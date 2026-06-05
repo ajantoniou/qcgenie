@@ -10,6 +10,7 @@ describe("agentic integration contract", () => {
       "GET /v1/qc/jobs/{job_id}/events",
       "GET /v1/qc/jobs/{job_id}/artifacts",
       "GET /v1/qc/jobs/{job_id}/artifacts/markers",
+      "POST /v1/qc/jobs/{job_id}/gate-verdict",
       "POST /v1/qc/jobs/{job_id}/cancel",
       "POST /v1/uploads",
       "GET /v1/uploads/{upload_id}",
@@ -25,6 +26,7 @@ describe("agentic integration contract", () => {
       "qc_get_events",
       "qc_get_artifacts",
       "qc_get_marker_csv",
+      "qc_submit_gate_verdict",
       "qc_list_recent_jobs",
       "qc_create_upload_url"
     ]);

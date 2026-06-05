@@ -51,6 +51,7 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "GET /v1/qc/jobs/{job_id}/events", purpose: "Inspect lifecycle events for agent explanations and progress audit." },
   { methodPath: "GET /v1/qc/jobs/{job_id}/artifacts", purpose: "List generated reports, marker exports, clips, and related QC artifacts." },
   { methodPath: "GET /v1/qc/jobs/{job_id}/artifacts/markers", purpose: "Download editor marker CSV for a completed QC run." },
+  { methodPath: "POST /v1/qc/jobs/{job_id}/gate-verdict", purpose: "Submit an external full-video gate VERDICT.json into QC Genie." },
   { methodPath: "POST /v1/qc/jobs/{job_id}/cancel", purpose: "Cancel queued or active work before minutes are finalized." },
   { methodPath: "POST /v1/uploads", purpose: "Create a signed upload target for agents and self-serve users." },
   { methodPath: "GET /v1/uploads/{upload_id}", purpose: "Check upload processing and metadata probe status." },
@@ -93,6 +94,12 @@ export const MCP_TOOLS: McpTool[] = [
     purpose: "Download the CSV marker export for an editor handoff.",
     inputs: ["job_id"],
     outputs: ["csv"]
+  },
+  {
+    name: "qc_submit_gate_verdict",
+    purpose: "Import an external full-video QC gate result into the hosted report and webhook flow.",
+    inputs: ["job_id", "verdict"],
+    outputs: ["verdict", "blocked", "skipped", "imported_flags", "report_url"]
   },
   {
     name: "qc_list_recent_jobs",

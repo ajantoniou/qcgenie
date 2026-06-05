@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+"""
+VIDEO QC GATE — runs all checks and emits one ship/block verdict.
+Checks: loop_freeze + cheap_broll + garble (deterministic-ish), twins + narration_match + omni_watch
+(vision). Deterministic checks are authoritative; vision checks supplement. Skipped checks (missing
+key) are reported but do not fail the gate.
+Usage:
+  run_gate.py VIDEO [--checks loop_freeze,cheap_broll,garble,twins,narration_match,omni_watch]
+              [--lang eng] [--out DIR] [--fast]
+Exit 0 only if every RUN check PASSES.
+"""
+import sys, os, json, subprocess, argparse, time
+
+HERE=os.path.dirname(os.path.abspath(__file__))
+ALL=["loop_freeze","cheap_broll","garble","twins","narration_match","omni_watch"]
+SCRIPT={c:f"check_{c}.py" for c in ALL}; SCRIPT["omni_watch"]="omni_watch.py"
+
+def run(check,video,lang,outdir,fast):
+    j=os.path.join(outdir,f"{check}.json")
+    cmd=["python3",os.path.join(HERE,SCRIPT[check]),video,"--json",j]
+    if check in ("garble","narration_match","omni_watch"): cmd+=["--lang",lang]
+    if fast and check in ("twins","cheap_broll"): cmd+=["--fps","0.2"]
+    if fast and check=="narration_match": cmd+=["--fps","0.25"]
+    if fast and check=="omni_watch": cmd+=["--window","40"]
+    t0=time.time(); p=subprocess.run(cmd,capture_output=True,text=True)
+    try: data=json.load(open(j))
+    except Exception: data={"check":check,"pass":None,"error":(p.stderr or p.stdout)[-300:]}
+    data["_seconds"]=round(time.time()-t0,1); return data
+
+def main():
+    ap=argparse.ArgumentParser()
+    ap.add_argument("video"); ap.add_argument("--checks",default=",".join(ALL))
+    ap.add_argument("--lang",default="eng"); ap.add_argument("--out",default=None); ap.add_argument("--fast",action="store_true")
+    a=ap.parse_args()
+    if not os.path.exists(a.video): sys.exit(f"no such file: {a.video}")
+    outdir=a.out or (os.path.splitext(a.video)[0]+"_qcgate"); os.makedirs(outdir,exist_ok=True)
+    checks=[c.strip() for c in a.checks.split(",") if c.strip() in ALL]
+    results={}
+    for c in checks:
+        print(f"[ gate ] running {c} ...",flush=True)
+        results[c]=run(c,a.video,a.lang,outdir,a.fast)
+        v=results[c].get("pass"); tag="PASS" if v is True else ("SKIP" if v is None else "BLOCK")
+        print(f"[ gate ] {c}: {tag} ({results[c].get('_seconds')}s)",flush=True)
+    blocked=[c for c,r in results.items() if r.get("pass") is False]
+    skipped=[c for c,r in results.items() if r.get("pass") is None]
+    summary={"video":a.video,"verdict":"SHIP-OK" if not blocked else "BLOCK","blocked":blocked,"skipped":skipped,
+             "per_check":{c:{"pass":r.get("pass"),
+                "findings":(r.get("findings") or r.get("divergences_over_threshold") or r.get("cheap_runs") or r.get("flags") or [])[:8],
+                "freezes":r.get("freezes")} for c,r in results.items()}}
+    open(os.path.join(outdir,"VERDICT.json"),"w").write(json.dumps(summary,indent=2))
+    print("\n=== VIDEO QC GATE VERDICT ===")
+    print(json.dumps({"verdict":summary["verdict"],"blocked":blocked,"skipped":skipped},indent=2))
+    print(f"details -> {outdir}/")
+    sys.exit(0 if not blocked else 1)
+
+if __name__=="__main__": main()

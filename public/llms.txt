@@ -8,6 +8,7 @@ Core workflow:
 - Paste a YouTube URL, upload a video, or create a job through the API.
 - QC Genie scans the full timeline for frozen frames, audio garble, caption and safe-area issues, aspect-ratio problems, and transcript-grounded review notes.
 - Reports include verdict, timestamps, evidence, editor handoff notes, and export-ready artifacts.
+- External full-video gate results can be imported with POST /v1/qc/jobs/{job_id}/gate-verdict after an agent runs scripts/qc-engine/run_gate.py.
 
 Pricing:
 - Creator: planned lightweight plan for Shorts and personal channels.
@@ -19,7 +20,7 @@ Agent integration:
 - OpenAPI: https://qcgenie-api.onrender.com/openapi.json
 - Hosted API base: https://qcgenie-api.onrender.com/v1
 - MCP wrapper package lives in the repository under mcp-server.
-- MCP tools: qc_run_video, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_list_recent_jobs, qc_create_upload_url.
+- MCP tools: qc_run_video, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_create_upload_url.
 - API keys are workspace-scoped and should be stored as connector secrets.
 - Agents should send idempotency_key on retries; repeated keys return the existing QC job instead of creating another run.
 - Webhook endpoints can receive job.completed and job.failed events with X-QCGenie-Signature metadata.

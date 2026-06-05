@@ -26,6 +26,7 @@ Current API/MCP tools:
 - `qc_get_events`
 - `qc_get_artifacts`
 - `qc_get_marker_csv`
+- `qc_submit_gate_verdict`
 - `qc_list_recent_jobs`
 - `qc_create_upload_url`
 
@@ -52,6 +53,8 @@ Persistence state:
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
 - Editor marker CSV exports are available at `/v1/qc/jobs/{job_id}/artifacts/markers`.
 - Job creation honors `idempotency_key` so agent retries return the existing job instead of creating duplicate QC runs.
+- External full-video gate outputs can be imported with `/v1/qc/jobs/{job_id}/gate-verdict`; imported findings become stored flags, reports, marker CSV rows, and webhook-triggering job verdicts.
+- Reference full-video gate scripts live under `scripts/qc-engine/`.
 - `supabase/schema.sql` includes workspace membership and RLS policies for the production persistence model.
 - Production persistence still needs a live Supabase connection, advisor verification, encrypted webhook secret storage, and storage buckets.
 

@@ -34,6 +34,7 @@ createServer(async (req, res) => {
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/events$/.test(url.pathname)) return getJobEvents(req, url, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/artifacts$/.test(url.pathname)) return getJobArtifacts(req, url, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/artifacts\/markers$/.test(url.pathname)) return getMarkerExport(req, url, res);
+    if (req.method === "POST" && /^\/v1\/qc\/jobs\/[^/]+\/gate-verdict$/.test(url.pathname)) return ingestGateVerdict(req, url, res);
     if (req.method === "POST" && /^\/v1\/qc\/jobs\/[^/]+\/cancel$/.test(url.pathname)) return cancelJob(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/uploads") return createUpload(req, res);
     if (req.method === "GET" && /^\/v1\/uploads\/[^/]+$/.test(url.pathname)) return getUpload(req, url, res);
@@ -114,6 +115,24 @@ function getMarkerExport(req, url, res) {
     "Content-Disposition": `attachment; filename="${jobId}-qc-markers.csv"`
   });
   res.end(csv);
+}
+
+async function ingestGateVerdict(req, url, res) {
+  const auth = requireScope(req, "jobs:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const jobId = url.pathname.split("/").at(-2);
+  const body = await readJson(req);
+  const result = store.ingestGateVerdict(jobId, body);
+  if (!result) return sendJson(res, 404, { error: "job_not_found" });
+  store.createWebhookDeliveriesForJob(jobId, "job.completed");
+  return sendJson(res, 200, {
+    jobId,
+    verdict: result.job.verdict,
+    blocked: result.blocked,
+    skipped: result.skipped,
+    importedFlags: result.importedFlags.length,
+    reportUrl: result.job.reportUrl
+  });
 }
 
 function cancelJob(req, url, res) {

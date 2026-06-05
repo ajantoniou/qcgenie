@@ -60,6 +60,16 @@ server.tool(
 );
 
 server.tool(
+  "qc_submit_gate_verdict",
+  "Submit an external full-video gate VERDICT.json result into QC Genie.",
+  {
+    job_id: z.string(),
+    verdict: z.any()
+  },
+  async ({ job_id, verdict }) => jsonTool(await apiFetch(`/v1/qc/jobs/${job_id}/gate-verdict`, { method: "POST", body: verdict }))
+);
+
+server.tool(
   "qc_list_recent_jobs",
   "List recent QC jobs in the workspace.",
   { limit: z.number().optional() },

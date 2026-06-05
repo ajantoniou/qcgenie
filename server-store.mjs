@@ -134,6 +134,50 @@ export class JsonStore {
     return job;
   }
 
+  ingestGateVerdict(jobId, verdictPayload) {
+    const job = this.getJob(jobId);
+    if (!job) return null;
+
+    const blockedChecks = verdictPayload.blocked || [];
+    const skippedChecks = verdictPayload.skipped || [];
+    const importedVerdict = verdictPayload.verdict === "BLOCK" || blockedChecks.length ? "BLOCK" : "PASS";
+
+    job.status = "completed";
+    job.progressPct = 100;
+    job.verdict = importedVerdict;
+    job.gateVerdict = verdictPayload.verdict || importedVerdict;
+    job.completedAt = new Date().toISOString();
+    job.updatedAt = job.completedAt;
+
+    this.addJobEvent(jobId, "gate_verdict_ingested", {
+      verdict: job.verdict,
+      blocked: blockedChecks,
+      skipped: skippedChecks
+    });
+
+    const importedFlags = buildFlagsFromGateVerdict(jobId, verdictPayload);
+    for (const flag of importedFlags) this.addFlag(jobId, flag);
+
+    this.addArtifact(jobId, {
+      artifactType: "gate_verdict",
+      url: `/v1/qc/jobs/${jobId}/report`,
+      metadata: {
+        format: "json",
+        source: "qc_engine",
+        blocked: blockedChecks,
+        skipped: skippedChecks
+      }
+    });
+
+    this.persist();
+    return {
+      job,
+      importedFlags,
+      blocked: blockedChecks,
+      skipped: skippedChecks
+    };
+  }
+
   addJobEvent(jobId, eventType, payload = {}) {
     const event = {
       eventId: `evt_${randomId()}`,
@@ -368,6 +412,70 @@ function currentBillingPeriod() {
 
 function retryDelayMs(attemptCount) {
   return Math.min(60_000, 2 ** Math.max(attemptCount - 1, 0) * 5_000);
+}
+
+function buildFlagsFromGateVerdict(jobId, verdictPayload) {
+  const perCheck = verdictPayload.per_check || {};
+  const flags = [];
+
+  for (const [gate, result] of Object.entries(perCheck)) {
+    const findings = [
+      ...normalizeFindings(result.findings),
+      ...normalizeFindings(result.freezes).map((finding) => ({ ...finding, summary: finding.summary || "Freeze/hold detected." }))
+    ];
+
+    if (result.pass === false && findings.length === 0) {
+      findings.push({ summary: `${gate} check failed.`, timestamp: "00:00:00" });
+    }
+
+    for (const finding of findings) {
+      flags.push({
+        gate,
+        severity: result.pass === false ? "block" : "warn",
+        timestamp: normalizeTimestamp(finding.timestamp || finding.timecode || finding.start || finding.start_s || finding.startSec),
+        summary: finding.summary || finding.reason || finding.label || `${gate} finding`,
+        evidenceSource: finding.evidenceSource || "deterministic",
+        transcriptEvidence: finding.transcriptEvidence || finding.transcript || finding.quote || ""
+      });
+    }
+  }
+
+  if (flags.length === 0 && (verdictPayload.blocked || []).length) {
+    for (const gate of verdictPayload.blocked) {
+      flags.push({
+        gate,
+        severity: "block",
+        timestamp: "00:00:00",
+        summary: `${gate} check failed.`,
+        evidenceSource: "deterministic",
+        transcriptEvidence: ""
+      });
+    }
+  }
+
+  return flags;
+}
+
+function normalizeFindings(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map((item) => typeof item === "object" ? item : { summary: String(item) });
+  if (typeof value === "object") return [value];
+  return [{ summary: String(value) }];
+}
+
+function normalizeTimestamp(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return secondsToTimecode(value);
+  if (typeof value === "string" && /^\d+(\.\d+)?$/.test(value)) return secondsToTimecode(Number(value));
+  if (typeof value === "string" && value.trim()) return value;
+  return "00:00:00";
+}
+
+function secondsToTimecode(seconds) {
+  const total = Math.max(0, Math.floor(seconds));
+  const hh = String(Math.floor(total / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+  const ss = String(total % 60).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
 }
 
 function csvEscape(value) {

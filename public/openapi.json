@@ -141,6 +141,32 @@
         }
       }
     },
+    "/v1/qc/jobs/{job_id}/gate-verdict": {
+      "post": {
+        "summary": "Import an external full-video gate verdict",
+        "parameters": [{ "name": "job_id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "verdict": { "type": "string", "enum": ["SHIP-OK", "BLOCK", "PASS"] },
+                  "blocked": { "type": "array", "items": { "type": "string" } },
+                  "skipped": { "type": "array", "items": { "type": "string" } },
+                  "per_check": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Gate verdict imported" },
+          "404": { "description": "Job not found" }
+        }
+      }
+    },
     "/v1/usage": {
       "get": {
         "summary": "List recent usage ledger entries",

@@ -126,6 +126,43 @@ describe("JsonStore", () => {
     }
   });
 
+  it("ingests external gate verdicts into job verdicts, flags, and marker exports", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const job = store.createJob({ youtube_url: "https://youtube.com/watch?v=creator-cut" });
+      const result = store.ingestGateVerdict(job.jobId, {
+        verdict: "BLOCK",
+        blocked: ["loop_freeze"],
+        skipped: ["omni_watch"],
+        per_check: {
+          loop_freeze: {
+            pass: false,
+            freezes: [{ start: 42.2, summary: "Visual hold detected for 4.5 seconds." }]
+          },
+          garble: {
+            pass: true,
+            findings: []
+          }
+        }
+      });
+
+      expect(result.job).toMatchObject({ status: "completed", verdict: "BLOCK", gateVerdict: "BLOCK" });
+      expect(result.importedFlags).toHaveLength(1);
+      expect(store.listFlags(job.jobId)[0]).toMatchObject({
+        gate: "loop_freeze",
+        severity: "block",
+        timestamp: "00:00:42"
+      });
+      expect(store.listJobEvents(job.jobId).map((event) => event.eventType)).toContain("gate_verdict_ingested");
+      expect(store.buildMarkerCsv(job.jobId)).toContain("00:00:42,block,loop_freeze");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("returns the existing job for repeated idempotency keys", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");
