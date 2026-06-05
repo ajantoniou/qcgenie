@@ -23,7 +23,7 @@ Agent integration:
 - API keys are workspace-scoped and should be stored as connector secrets.
 - Agents should send idempotency_key on retries; repeated keys return the existing QC job instead of creating another run.
 - Webhook endpoints can receive job.completed and job.failed events with X-QCGenie-Signature metadata.
-- Completed jobs enqueue signed webhook delivery records; delivery logs are available at GET /v1/webhooks/deliveries and manual retries at POST /v1/webhooks/deliveries/{delivery_id}/retry.
+- Completed jobs enqueue signed webhook delivery records; delivery logs are available at GET /v1/webhooks/deliveries, manual retries at POST /v1/webhooks/deliveries/{delivery_id}/retry, and due pending delivery drains at POST /v1/webhooks/deliveries/drain.
 - Current v0 API persists jobs, uploads, webhook endpoints, webhook delivery previews, and usage entries to a server-side JSON store; production Supabase persistence is still planned.
 - Report reads append rounded-minute usage entries visible through GET /v1/usage.
 - Creating a QC job currently runs deterministic v0 processing immediately and stores lifecycle events, one caption-safe-area warning, and JSON/marker-export artifact records.

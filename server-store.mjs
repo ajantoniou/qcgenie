@@ -290,6 +290,16 @@ export class JsonStore {
       .reverse();
   }
 
+  listDueWebhookDeliveries(options = {}) {
+    const limit = Number(options.limit || 10);
+    const nowMs = options.now ? new Date(options.now).getTime() : Date.now();
+    return this.state.webhookDeliveries
+      .filter((delivery) => delivery.status === "pending")
+      .filter((delivery) => !delivery.nextAttemptAt || new Date(delivery.nextAttemptAt).getTime() <= nowMs)
+      .sort((a, b) => new Date(a.nextAttemptAt || a.createdAt).getTime() - new Date(b.nextAttemptAt || b.createdAt).getTime())
+      .slice(0, Math.min(Math.max(limit || 10, 1), 25));
+  }
+
   markWebhookDeliveryAttempt(deliveryId, result) {
     const delivery = this.getWebhookDelivery(deliveryId);
     if (!delivery) return null;

@@ -53,11 +53,11 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Built MCP server wrapper artifacts for `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_list_recent_jobs`, `qc_create_upload_url`.
 - Added public OpenAPI at `/openapi.json`.
 - Built v0 webhook registration and HMAC-SHA256 delivery-preview signatures.
-- Built v0 webhook delivery queue on completed jobs, idempotent delivery records, delivery listing, and manual retry execution with attempt counts.
+- Built v0 webhook delivery queue on completed jobs, idempotent delivery records, delivery listing, manual retry execution with attempt counts, and batch draining of due pending deliveries.
 - Built server-side JSON persistence boundary for jobs, uploads, webhooks, webhook deliveries, and usage ledger entries.
 - Report reads append rounded-minute usage entries and `GET /v1/usage` exposes the recent ledger.
 - Added Supabase schema RLS hardening: workspace membership table, RLS enabled for all app tables, workspace-scoped policies for non-secret rows, and server-only default access for API key and webhook secret tables.
-- Production still needs automatic scheduled webhook retry workers, encrypted webhook secret storage, live Supabase-backed persistence, database advisor verification, and storage buckets for report artifacts.
+- Production still needs a scheduled Render cron trigger or dedicated worker identity for webhook drains, encrypted webhook secret storage, live Supabase-backed persistence, database advisor verification, and storage buckets for report artifacts.
 - Production still needs real video ingestion, ffmpeg/frame/audio checks, transcript handling, and grounded multimodal review behind the deterministic v0 processor.
 
 ### P1 - Creator Workflow

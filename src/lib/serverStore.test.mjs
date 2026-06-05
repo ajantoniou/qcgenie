@@ -75,6 +75,27 @@ describe("JsonStore", () => {
     }
   });
 
+  it("selects only due pending webhook deliveries for worker drains", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const webhook = store.createWebhook({ url: "https://agent.example.com/qc-callback", event_types: ["job.completed"] });
+      const due = store.createWebhookDelivery(webhook.webhookId, "job.completed", "job_due");
+      const future = store.createWebhookDelivery(webhook.webhookId, "job.completed", "job_future");
+      future.nextAttemptAt = "2099-01-01T00:00:00.000Z";
+      store.persist();
+
+      expect(store.listDueWebhookDeliveries({ limit: 10 }).map((delivery) => delivery.deliveryId)).toEqual([due.deliveryId]);
+
+      store.markWebhookDeliveryAttempt(due.deliveryId, { ok: true, responseStatus: 204 });
+      expect(store.listDueWebhookDeliveries({ limit: 10 })).toHaveLength(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("runs deterministic v0 QC and persists events, flags, and artifacts", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");

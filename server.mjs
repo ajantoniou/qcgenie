@@ -41,6 +41,7 @@ createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/v1/usage") return getUsage(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks") return createWebhook(req, res);
     if (req.method === "GET" && url.pathname === "/v1/webhooks/deliveries") return listWebhookDeliveries(req, res);
+    if (req.method === "POST" && url.pathname === "/v1/webhooks/deliveries/drain") return drainWebhookDeliveries(req, res);
     if (req.method === "POST" && /^\/v1\/webhooks\/deliveries\/[^/]+\/retry$/.test(url.pathname)) return retryWebhookDelivery(req, url, res);
     if (req.method === "GET" && /^\/v1\/webhooks\/[^/]+\/delivery-preview$/.test(url.pathname)) return previewWebhookDelivery(req, url, res);
 
@@ -194,6 +195,24 @@ async function retryWebhookDelivery(req, url, res) {
   if (!delivery) return sendJson(res, 404, { error: "delivery_not_found" });
   const result = await sendWebhookDelivery(delivery);
   return sendJson(res, 200, store.markWebhookDeliveryAttempt(deliveryId, result));
+}
+
+async function drainWebhookDeliveries(req, res) {
+  const auth = requireScope(req, "webhooks:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const body = await readJson(req);
+  const deliveries = store.listDueWebhookDeliveries({ limit: body.limit || 10 });
+  const results = [];
+
+  for (const delivery of deliveries) {
+    const result = await sendWebhookDelivery(delivery);
+    results.push(store.markWebhookDeliveryAttempt(delivery.deliveryId, result));
+  }
+
+  return sendJson(res, 200, {
+    processed: results.length,
+    results
+  });
 }
 
 async function sendWebhookDelivery(delivery) {
