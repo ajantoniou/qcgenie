@@ -42,6 +42,30 @@ export interface UploadCreated {
   expiresAt: string;
 }
 
+export interface WebhookInput {
+  url: string;
+  eventTypes: string[];
+}
+
+export interface WebhookEndpointCreated {
+  webhookId: string;
+  url: string;
+  eventTypes: string[];
+  signingSecretPreview: string;
+}
+
+export interface WebhookDeliveryPreview {
+  webhookId: string;
+  eventType: string;
+  jobId: string;
+  signatureHeader: "X-QCGenie-Signature";
+  payload: {
+    event: string;
+    job_id: string;
+    created_at: string;
+  };
+}
+
 export interface AuthResult {
   ok: boolean;
   status?: 401 | 403;
@@ -49,6 +73,7 @@ export interface AuthResult {
 }
 
 const jobs = new Map<string, ApiJob>();
+const webhooks = new Map<string, WebhookEndpointCreated>();
 
 export function createQcJob(input: BuildQcJobRequestInput): ApiJobCreated {
   const request = buildQcJobRequest(input);
@@ -105,6 +130,35 @@ export function createUpload(input: UploadInput): UploadCreated {
     uploadId,
     signedPutUrl: `https://uploads.qcgenie.com/${uploadId}/${encodedName}?content_type=${encodeURIComponent(input.contentType)}&size=${input.sizeBytes}`,
     expiresAt
+  };
+}
+
+export function createWebhookEndpoint(input: WebhookInput): WebhookEndpointCreated {
+  const webhookId = `wh_${cryptoRandom()}`;
+  const endpoint = {
+    webhookId,
+    url: input.url,
+    eventTypes: input.eventTypes,
+    signingSecretPreview: `whsec_${cryptoRandom()}`
+  };
+  webhooks.set(webhookId, endpoint);
+  return endpoint;
+}
+
+export function previewWebhookDelivery(webhookId: string, eventType: string, jobId: string): WebhookDeliveryPreview {
+  const endpoint = webhooks.get(webhookId);
+  if (!endpoint) throw new Error(`Unknown webhook endpoint: ${webhookId}`);
+
+  return {
+    webhookId,
+    eventType,
+    jobId,
+    signatureHeader: "X-QCGenie-Signature",
+    payload: {
+      event: eventType,
+      job_id: jobId,
+      created_at: new Date(0).toISOString()
+    }
   };
 }
 

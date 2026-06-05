@@ -133,6 +133,41 @@
           "201": { "description": "Signed upload target" }
         }
       }
+    },
+    "/v1/webhooks": {
+      "post": {
+        "summary": "Register a workspace webhook endpoint",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string" },
+                  "event_types": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  }
+                },
+                "required": ["url"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Webhook registered" }
+        }
+      }
+    },
+    "/v1/webhooks/{webhook_id}/delivery-preview": {
+      "get": {
+        "summary": "Preview signed webhook delivery metadata",
+        "parameters": [{ "name": "webhook_id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Signed delivery preview" }
+        }
+      }
     }
   }
 }

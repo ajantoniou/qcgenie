@@ -45,7 +45,8 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Built v0 bearer-token scope enforcement for API endpoints; production still needs hashed key storage and usage logs.
 - Built MCP server wrapper artifacts for `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_list_recent_jobs`, `qc_create_upload_url`.
 - Added public OpenAPI at `/openapi.json`.
-- Add webhooks with signed payloads and retry logs.
+- Built v0 webhook registration and signed delivery-preview metadata.
+- Production still needs retry logs, idempotent delivery, and real HMAC signing against stored secret hashes.
 
 ### P1 - Creator Workflow
 

@@ -6,6 +6,7 @@ import { createServer } from "node:http";
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
 const jobs = new Map();
+const webhooks = new Map();
 const apiKey = process.env.QCGENIE_API_KEY;
 const apiScopes = new Set((process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write").split(","));
 
@@ -31,6 +32,8 @@ createServer(async (req, res) => {
     if (req.method === "POST" && /^\/v1\/qc\/jobs\/[^/]+\/cancel$/.test(url.pathname)) return cancelJob(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/uploads") return createUpload(req, res);
     if (req.method === "GET" && url.pathname === "/v1/qc/jobs") return listJobs(req, res);
+    if (req.method === "POST" && url.pathname === "/v1/webhooks") return createWebhook(req, res);
+    if (req.method === "GET" && /^\/v1\/webhooks\/[^/]+\/delivery-preview$/.test(url.pathname)) return previewWebhookDelivery(req, url, res);
 
     return serveStatic(url.pathname, res);
   } catch (error) {
@@ -116,6 +119,40 @@ function listJobs(req, res) {
   const auth = requireScope(req, "jobs:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   return sendJson(res, 200, { jobs: Array.from(jobs.values()).slice(-20) });
+}
+
+async function createWebhook(req, res) {
+  const auth = requireScope(req, "webhooks:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const body = await readJson(req);
+  const webhookId = `wh_${Math.random().toString(36).slice(2, 10)}`;
+  const endpoint = {
+    webhookId,
+    url: body.url,
+    eventTypes: body.event_types || ["job.completed", "job.failed"],
+    signingSecretPreview: `whsec_${Math.random().toString(36).slice(2, 10)}`
+  };
+  webhooks.set(webhookId, endpoint);
+  return sendJson(res, 201, endpoint);
+}
+
+function previewWebhookDelivery(req, url, res) {
+  const auth = requireScope(req, "webhooks:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const webhookId = url.pathname.split("/").at(-2);
+  if (!webhooks.has(webhookId)) return sendJson(res, 404, { error: "webhook_not_found" });
+
+  return sendJson(res, 200, {
+    webhookId,
+    eventType: "job.completed",
+    jobId: "job_demo",
+    signatureHeader: "X-QCGenie-Signature",
+    payload: {
+      event: "job.completed",
+      job_id: "job_demo",
+      created_at: new Date().toISOString()
+    }
+  });
 }
 
 function completedJob(jobId) {

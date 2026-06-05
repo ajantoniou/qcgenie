@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createQcJob, createUpload, getQcJob, getQcReport } from "./apiMock";
+import { createQcJob, createUpload, createWebhookEndpoint, getQcJob, getQcReport, previewWebhookDelivery } from "./apiMock";
 import { assertApiKey, parseApiScopes } from "./apiMock";
 
 describe("api mock service contract", () => {
@@ -60,6 +60,24 @@ describe("api mock service contract", () => {
     expect(assertApiKey(undefined, "jobs:write", "qcg_test_key", scopes)).toMatchObject({
       ok: false,
       status: 401
+    });
+  });
+
+  it("registers webhooks and builds signed delivery metadata", () => {
+    const endpoint = createWebhookEndpoint({
+      url: "https://agent.example.com/qc-callback",
+      eventTypes: ["job.completed", "job.failed"]
+    });
+
+    expect(endpoint.webhookId).toMatch(/^wh_/);
+    expect(endpoint.signingSecretPreview).toMatch(/^whsec_/);
+
+    const delivery = previewWebhookDelivery(endpoint.webhookId, "job.completed", "job_demo");
+    expect(delivery).toMatchObject({
+      webhookId: endpoint.webhookId,
+      eventType: "job.completed",
+      jobId: "job_demo",
+      signatureHeader: "X-QCGenie-Signature"
     });
   });
 });

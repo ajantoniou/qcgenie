@@ -21,6 +21,7 @@ Agent integration:
 - MCP wrapper package lives in the repository under mcp-server.
 - MCP tools: qc_run_video, qc_get_job, qc_get_report, qc_list_recent_jobs, qc_create_upload_url.
 - API keys are workspace-scoped and should be stored as connector secrets.
+- Webhook endpoints can receive job.completed and job.failed events with X-QCGenie-Signature metadata.
 
 Trust rule:
 - Hard fails come from automated quality checks or explicit evidence.
