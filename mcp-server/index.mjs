@@ -3,7 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-const apiBaseUrl = process.env.QCGENIE_API_BASE_URL || "https://qcgenie-webservice.onrender.com";
+const apiBaseUrl = process.env.QCGENIE_API_BASE_URL || "https://qcgenie-api.onrender.com";
 const apiKey = process.env.QCGENIE_API_KEY;
 
 const server = new McpServer({

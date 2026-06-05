@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://qcgenie-webservice.onrender.com"
+      "url": "https://qcgenie-api.onrender.com"
     }
   ],
   "security": [

@@ -16,8 +16,8 @@ Pricing:
 
 Agent integration:
 - REST API job lifecycle starts at POST /v1/qc/jobs.
-- OpenAPI: https://qcgenie-webservice.onrender.com/openapi.json
-- Hosted API base: https://qcgenie-webservice.onrender.com/v1
+- OpenAPI: https://qcgenie-api.onrender.com/openapi.json
+- Hosted API base: https://qcgenie-api.onrender.com/v1
 - MCP wrapper package lives in the repository under mcp-server.
 - MCP tools: qc_run_video, qc_get_job, qc_get_report, qc_list_recent_jobs, qc_create_upload_url.
 - API keys are workspace-scoped and should be stored as connector secrets.

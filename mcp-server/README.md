@@ -5,7 +5,7 @@ Thin MCP wrapper over the hosted QC Genie API. It does not run QC locally.
 ## Environment
 
 ```bash
-export QCGENIE_API_BASE_URL="https://qcgenie-webservice.onrender.com"
+export QCGENIE_API_BASE_URL="https://qcgenie-api.onrender.com"
 export QCGENIE_API_KEY="qcg_live_..."
 ```
 

@@ -1,8 +1,8 @@
 {
   "name": "QC Genie",
   "description": "Pre-publish video QC for YouTube creators, studios, agencies, and agent workflows.",
-  "api_base_url": "https://qcgenie-webservice.onrender.com/v1",
-  "openapi_url": "https://qcgenie-webservice.onrender.com/openapi.json",
+  "api_base_url": "https://qcgenie-api.onrender.com/v1",
+  "openapi_url": "https://qcgenie-api.onrender.com/openapi.json",
   "auth": {
     "type": "api_key",
     "header": "Authorization",

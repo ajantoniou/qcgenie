@@ -30,8 +30,10 @@ See `public/agent-manifest.json`, `public/llms.txt`, and `docs/EXPERT-PANEL-READ
 
 Public API:
 
-- App and API: `https://qcgenie-webservice.onrender.com`
-- OpenAPI: `https://qcgenie-webservice.onrender.com/openapi.json`
+- Public app: `https://qcgenie-web.onrender.com`
+- Web service prototype: `https://qcgenie-webservice.onrender.com`
+- Authenticated API: `https://qcgenie-api.onrender.com`
+- OpenAPI: `https://qcgenie-api.onrender.com/openapi.json`
 - MCP wrapper package: `mcp-server/`
 
 ## Stack
