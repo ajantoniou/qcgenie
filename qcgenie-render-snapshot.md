@@ -1,0 +1,57 @@
+- main [ref=e3] [box=0,0,1021,1432]:
+  - complementary [ref=e4] [box=0,0,260,1432]:
+    - generic [ref=e5] [box=18,24,224,42]:
+      - generic [ref=e6] [box=18,24,42,42]: Q
+      - generic [ref=e7] [box=72,27,130,37]:
+        - strong [ref=e8] [box=72,27,72,19]: QC Genie
+        - generic [ref=e9] [box=72,49,130,15]: Pre-publish video QC
+    - navigation "Primary navigation" [ref=e10] [box=18,96,224,237]:
+      - button "Home" [ref=e11] [cursor=pointer] [box=18,96,224,41]:
+        - img [ref=e12] [box=30,108,18,18]
+        - text: Home
+      - button "Dashboard" [ref=e17] [cursor=pointer] [box=18,145,224,41]:
+        - img [ref=e18] [box=30,157,18,18]
+        - text: Dashboard
+      - button "Agent API" [ref=e22] [cursor=pointer] [box=18,194,224,41]:
+        - img [ref=e23] [box=30,206,18,18]
+        - text: Agent API
+      - button "Readiness" [ref=e27] [cursor=pointer] [box=18,243,224,41]:
+        - img [ref=e28] [box=30,255,18,18]
+        - text: Readiness
+      - button "Billing" [ref=e30] [cursor=pointer] [box=18,292,224,41]:
+        - img [ref=e31] [box=30,304,18,18]
+        - text: Billing
+    - generic [ref=e34] [box=18,1334,224,74]:
+      - generic [ref=e35] [box=18,1356,224,15]: Studio plan
+      - strong [ref=e36] [box=18,1371,61,19]: $49/mo
+      - generic [ref=e37] [box=18,1393,224,15]: 2,000 QC minutes included
+  - generic [ref=e39] [box=290,30,701,1372]:
+    - generic [ref=e40] [box=290,30,701,806]:
+      - generic [ref=e41] [box=325,65,183,736]:
+        - heading "Catch video mistakes before YouTube does." [level=1] [ref=e42] [box=325,65,183,317]
+        - paragraph [ref=e43] [box=325,400,183,251]: QC Genie scans every upload for frozen frames, audio glitches, caption problems, format mistakes, and evidence-backed review notes before a creator, editor, or client hits publish.
+        - generic [ref=e44] [box=325,677,183,124]
+      - generic [ref=e53] [box=536,65,420,736]:
+        - generic [ref=e54] [box=536,65,420,370]
+        - generic [ref=e58] [box=536,449,420,352]
+    - generic [ref=e63] [box=290,860,701,213]:
+      - article [ref=e64] [box=290,860,223,213]:
+        - img [ref=e65] [box=309,879,22,22]
+        - strong [ref=e68] [box=309,914,185,19]: No invented hard-fails
+        - paragraph [ref=e69] [box=309,933,185,120]: Advisory notes must be backed by transcript or hard-check evidence before they appear in a report.
+      - article [ref=e70] [box=529,860,223,213]:
+        - img [ref=e71] [box=548,879,22,22]
+        - strong [ref=e74] [box=548,914,185,19]: Built for creator defects
+        - paragraph [ref=e75] [box=548,933,185,120]: Freeze/loop, audio garble, captions, aspect ratio, transcript grounding, and editor-ready timestamps.
+      - article [ref=e76] [box=768,860,223,213]:
+        - img [ref=e77] [box=787,879,22,22]
+        - strong [ref=e81] [box=787,914,185,38]: Self-serve or programmatic
+        - paragraph [ref=e82] [box=787,952,185,96]: Paste a YouTube URL, upload a cut, or let Claude/Codex start QC through the agent API.
+    - generic [ref=e83] [box=290,1096,701,306]:
+      - generic [ref=e84] [box=309,1115,280,268]:
+        - heading "Pricing that maps to production volume" [level=2] [ref=e85] [box=309,1115,280,43]
+        - paragraph [ref=e86] [box=309,1159,280,72]: Minutes are metered, but the product is sold around fewer revision loops and safer publishing.
+      - generic [ref=e87] [box=609,1115,363,268]:
+        - article [ref=e88] [box=609,1115,113,268]
+        - article [ref=e91] [box=734,1115,113,268]
+        - article [ref=e94] [box=859,1115,113,268]
