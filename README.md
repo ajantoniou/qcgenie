@@ -36,6 +36,11 @@ Public API:
 - OpenAPI: `https://qcgenie-api.onrender.com/openapi.json`
 - MCP wrapper package: `mcp-server/`
 
+Persistence state:
+
+- Current hosted API stores jobs, uploads, webhook endpoints, webhook delivery previews, and usage ledger entries through `server-store.mjs`.
+- Production persistence still needs Supabase-backed tables, RLS, hashed API keys, and storage buckets.
+
 ## Stack
 
 - React + Vite app

@@ -22,6 +22,7 @@ Agent integration:
 - MCP tools: qc_run_video, qc_get_job, qc_get_report, qc_list_recent_jobs, qc_create_upload_url.
 - API keys are workspace-scoped and should be stored as connector secrets.
 - Webhook endpoints can receive job.completed and job.failed events with X-QCGenie-Signature metadata.
+- Current v0 API persists jobs, uploads, webhook endpoints, webhook delivery previews, and usage entries to a server-side JSON store; production Supabase persistence is still planned.
 
 Trust rule:
 - Hard fails come from automated quality checks or explicit evidence.

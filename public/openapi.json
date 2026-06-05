@@ -134,6 +134,16 @@
         }
       }
     },
+    "/v1/uploads/{upload_id}": {
+      "get": {
+        "summary": "Get upload metadata and processing status",
+        "parameters": [{ "name": "upload_id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Upload status" },
+          "404": { "description": "Upload not found" }
+        }
+      }
+    },
     "/v1/webhooks": {
       "post": {
         "summary": "Register a workspace webhook endpoint",

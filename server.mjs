@@ -2,11 +2,11 @@ import { createReadStream, existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import { createServer } from "node:http";
+import { JsonStore } from "./server-store.mjs";
 
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
-const jobs = new Map();
-const webhooks = new Map();
+const store = new JsonStore(process.env.QCGENIE_STORE_PATH || "/tmp/qcgenie/store.json");
 const apiKey = process.env.QCGENIE_API_KEY;
 const apiScopes = new Set((process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write").split(","));
 
@@ -31,6 +31,7 @@ createServer(async (req, res) => {
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/report$/.test(url.pathname)) return getReport(req, url, res);
     if (req.method === "POST" && /^\/v1\/qc\/jobs\/[^/]+\/cancel$/.test(url.pathname)) return cancelJob(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/uploads") return createUpload(req, res);
+    if (req.method === "GET" && /^\/v1\/uploads\/[^/]+$/.test(url.pathname)) return getUpload(req, url, res);
     if (req.method === "GET" && url.pathname === "/v1/qc/jobs") return listJobs(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks") return createWebhook(req, res);
     if (req.method === "GET" && /^\/v1\/webhooks\/[^/]+\/delivery-preview$/.test(url.pathname)) return previewWebhookDelivery(req, url, res);
@@ -47,19 +48,7 @@ async function createJob(req, res) {
   const auth = requireScope(req, "jobs:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
-  const jobId = `job_${Math.random().toString(36).slice(2, 10)}`;
-  const job = {
-    jobId,
-    status: "queued",
-    progressPct: 0,
-    verdict: null,
-    minutesMetered: 0,
-    source: body.youtube_url || body.source || body.signed_url || body.upload_id || null,
-    sourceType: body.youtube_url ? "youtube" : body.upload_id ? "upload" : "signed_url",
-    statusUrl: `/v1/qc/jobs/${jobId}`,
-    reportUrl: `/v1/qc/jobs/${jobId}/report`
-  };
-  jobs.set(jobId, job);
+  const job = store.createJob(body);
   return sendJson(res, 202, job);
 }
 
@@ -67,7 +56,7 @@ function getJob(req, url, res) {
   const auth = requireScope(req, "jobs:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-1);
-  return sendJson(res, 200, jobs.get(jobId) || completedJob(jobId));
+  return sendJson(res, 200, store.getJob(jobId) || completedJob(jobId));
 }
 
 function getReport(req, url, res) {
@@ -97,9 +86,7 @@ function cancelJob(req, url, res) {
   const auth = requireScope(req, "jobs:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-2);
-  const job = jobs.get(jobId) || completedJob(jobId);
-  job.status = "cancelled";
-  jobs.set(jobId, job);
+  const job = store.cancelJob(jobId) || { ...completedJob(jobId), status: "cancelled" };
   return sendJson(res, 200, job);
 }
 
@@ -107,52 +94,37 @@ async function createUpload(req, res) {
   const auth = requireScope(req, "uploads:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
-  const uploadId = `upl_${Math.random().toString(36).slice(2, 10)}`;
-  return sendJson(res, 201, {
-    uploadId,
-    signedPutUrl: `https://uploads.qcgenie.com/${uploadId}/${encodeURIComponent(body.filename || "upload.mp4")}`,
-    expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-  });
+  return sendJson(res, 201, store.createUpload(body));
+}
+
+function getUpload(req, url, res) {
+  const auth = requireScope(req, "uploads:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const uploadId = url.pathname.split("/").at(-1);
+  const upload = store.getUpload(uploadId);
+  if (!upload) return sendJson(res, 404, { error: "upload_not_found" });
+  return sendJson(res, 200, upload);
 }
 
 function listJobs(req, res) {
   const auth = requireScope(req, "jobs:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
-  return sendJson(res, 200, { jobs: Array.from(jobs.values()).slice(-20) });
+  return sendJson(res, 200, { jobs: store.listJobs(20) });
 }
 
 async function createWebhook(req, res) {
   const auth = requireScope(req, "webhooks:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
-  const webhookId = `wh_${Math.random().toString(36).slice(2, 10)}`;
-  const endpoint = {
-    webhookId,
-    url: body.url,
-    eventTypes: body.event_types || ["job.completed", "job.failed"],
-    signingSecretPreview: `whsec_${Math.random().toString(36).slice(2, 10)}`
-  };
-  webhooks.set(webhookId, endpoint);
-  return sendJson(res, 201, endpoint);
+  return sendJson(res, 201, store.createWebhook(body));
 }
 
 function previewWebhookDelivery(req, url, res) {
   const auth = requireScope(req, "webhooks:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const webhookId = url.pathname.split("/").at(-2);
-  if (!webhooks.has(webhookId)) return sendJson(res, 404, { error: "webhook_not_found" });
-
-  return sendJson(res, 200, {
-    webhookId,
-    eventType: "job.completed",
-    jobId: "job_demo",
-    signatureHeader: "X-QCGenie-Signature",
-    payload: {
-      event: "job.completed",
-      job_id: "job_demo",
-      created_at: new Date().toISOString()
-    }
-  });
+  if (!store.getWebhook(webhookId)) return sendJson(res, 404, { error: "webhook_not_found" });
+  return sendJson(res, 200, store.createWebhookDelivery(webhookId, "job.completed", "job_demo"));
 }
 
 function completedJob(jobId) {
