@@ -48,7 +48,8 @@ Persistence state:
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
 - Editor marker CSV exports are available at `/v1/qc/jobs/{job_id}/artifacts/markers`.
 - Job creation honors `idempotency_key` so agent retries return the existing job instead of creating duplicate QC runs.
-- Production persistence still needs Supabase-backed tables, RLS, encrypted webhook secret storage, and storage buckets.
+- `supabase/schema.sql` includes workspace membership and RLS policies for the production persistence model.
+- Production persistence still needs a live Supabase connection, advisor verification, encrypted webhook secret storage, and storage buckets.
 
 ## Stack
 
