@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from "node:crypto";
+import { runQcForJob } from "./qc-engine-runner.mjs";
 
 export class JsonStore {
   constructor(filePath, options = {}) {
@@ -84,53 +85,71 @@ export class JsonStore {
     return job;
   }
 
-  runDeterministicQc(jobId) {
+  runDeterministicQc(jobId, opts = {}) {
     const job = this.getJob(jobId);
     if (!job) return null;
 
-    const stages = [
-      ["ingesting", 15],
-      ["metadata_probe", 30],
-      ["transcribing", 48],
-      ["deterministic_qc", 72],
-      ["agent_review", 88],
-      ["reporting", 96]
-    ];
-
-    for (const [status, progressPct] of stages) {
+    const advance = (status, progressPct) => {
       job.status = status;
       job.progressPct = progressPct;
       job.updatedAt = new Date().toISOString();
       this.addJobEvent(jobId, status, { progressPct });
+    };
+    advance("ingesting", 15);
+    advance("metadata_probe", 30);
+    advance("deterministic_qc", 60);
+
+    // Run the REAL QC engine (scripts/qc-engine/run_gate.py) against the resolved source.
+    let engine;
+    try {
+      engine = runQcForJob(job, opts);
+    } catch (e) {
+      engine = { ranEngine: false, error: String(e && e.message || e) };
     }
 
+    if (engine && engine.ranEngine && engine.verdict) {
+      advance("agent_review", 88);
+      advance("reporting", 96);
+      if (engine.durationS) job.minutesMetered = Math.ceil(engine.durationS / 60);
+      // ingestGateVerdict converts VERDICT.json -> job verdict + flags + artifact.
+      this.ingestGateVerdict(jobId, engine.verdict);
+      this.addJobEvent(jobId, "qc_engine_ran", {
+        verdict: engine.verdict.verdict,
+        blocked: engine.verdict.blocked || [],
+        skipped: engine.verdict.skipped || []
+      });
+      this.addArtifact(jobId, {
+        artifactType: "marker_export",
+        url: `/v1/qc/jobs/${jobId}/artifacts/markers`,
+        metadata: { format: "premiere_csv" }
+      });
+      this.persist();
+      return this.getJob(jobId);
+    }
+
+    // FALLBACK: engine could not run (e.g. no yt-dlp / unresolvable source). Mark needs-review
+    // honestly instead of faking a pass.
+    advance("reporting", 96);
     job.status = "completed";
     job.progressPct = 100;
     job.verdict = "WATCH";
-    job.minutesMetered = 19;
+    job.gateVerdict = "NEEDS_REVIEW";
     job.completedAt = new Date().toISOString();
     job.updatedAt = job.completedAt;
-
     this.addFlag(jobId, {
-      gate: "caption",
+      gate: "engine",
       severity: "warn",
-      timestamp: "00:09:12",
-      summary: "Caption sits near the Shorts UI safe area.",
-      evidenceSource: "transcript",
-      transcriptEvidence: "the payment failed twice"
+      timestamp: "00:00:00",
+      summary: "QC engine could not run on this source; manual review required.",
+      evidenceSource: "engine",
+      transcriptEvidence: (engine && engine.error) ? String(engine.error).slice(0, 200) : ""
     });
-
     this.addArtifact(jobId, {
       artifactType: "json_report",
       url: `/v1/qc/jobs/${jobId}/report`,
-      metadata: { format: "json" }
+      metadata: { format: "json", engine: "fallback" }
     });
-    this.addArtifact(jobId, {
-      artifactType: "marker_export",
-      url: `/v1/qc/jobs/${jobId}/artifacts/markers`,
-      metadata: { format: "premiere_csv" }
-    });
-    this.addJobEvent(jobId, "completed", { verdict: job.verdict, minutesMetered: job.minutesMetered });
+    this.addJobEvent(jobId, "completed", { verdict: job.verdict, engine: "fallback", error: engine && engine.error });
     this.persist();
     return job;
   }
@@ -278,7 +297,7 @@ export class JsonStore {
     };
     this.state.webhooks.push(endpoint);
     this.persist();
-    return endpoint;
+    return { ...endpoint, signingSecret };
   }
 
   getWebhook(webhookId) {

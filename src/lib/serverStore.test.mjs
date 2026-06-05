@@ -57,7 +57,7 @@ describe("JsonStore", () => {
       const store = new JsonStore(path, { secretEncryptionKey: "test-secret-key" });
       const webhook = store.createWebhook({ url: "https://agent.example.com/qc-callback" });
 
-      expect(webhook.signingSecret).toBeUndefined();
+      expect(webhook.signingSecret).toMatch(/^whsec_/);
       expect(webhook.encryptedSigningSecret).toMatch(/^v1:/);
       expect(webhook.signingSecretStorage).toBe("encrypted");
       expect(decryptSecret(webhook.encryptedSigningSecret, "test-secret-key")).toMatch(/^whsec_/);
@@ -118,7 +118,7 @@ describe("JsonStore", () => {
     }
   });
 
-  it("runs deterministic v0 QC and persists events, flags, and artifacts", () => {
+  it("runs deterministic v0 QC and records an honest fallback when the engine cannot resolve the source", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");
 
@@ -131,18 +131,19 @@ describe("JsonStore", () => {
         status: "completed",
         progressPct: 100,
         verdict: "WATCH",
-        minutesMetered: 19
+        gateVerdict: "NEEDS_REVIEW",
+        minutesMetered: 0
       });
       expect(store.listJobEvents(job.jobId).map((event) => event.eventType)).toContain("deterministic_qc");
-      expect(store.listFlags(job.jobId)[0]).toMatchObject({ gate: "caption", severity: "warn" });
-      expect(store.listArtifacts(job.jobId).map((artifact) => artifact.artifactType)).toEqual(["json_report", "marker_export"]);
+      expect(store.listFlags(job.jobId)[0]).toMatchObject({ gate: "engine", severity: "warn" });
+      expect(store.listArtifacts(job.jobId).map((artifact) => artifact.artifactType)).toEqual(["json_report"]);
 
       const reloaded = new JsonStore(path);
       expect(reloaded.listJobEvents(job.jobId).at(-1)).toMatchObject({ eventType: "completed" });
       expect(reloaded.listFlags(job.jobId)).toHaveLength(1);
-      expect(reloaded.listArtifacts(job.jobId)).toHaveLength(2);
+      expect(reloaded.listArtifacts(job.jobId)).toHaveLength(1);
       expect(reloaded.buildMarkerCsv(job.jobId)).toContain("timecode,severity,gate,summary");
-      expect(reloaded.buildMarkerCsv(job.jobId)).toContain("00:09:12,warn,caption");
+      expect(reloaded.buildMarkerCsv(job.jobId)).toContain("00:00:00,warn,engine");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

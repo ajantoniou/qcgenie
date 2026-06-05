@@ -45,19 +45,20 @@ Persistence state:
 - Current hosted API stores jobs, uploads, webhook endpoints, webhook delivery previews, and usage ledger entries through `server-store.mjs`.
 - API auth supports plaintext `QCGENIE_API_KEY` for bootstrapping and SHA-256 hash verification through `QCGENIE_API_KEY_SHA256`.
 - Webhook delivery previews use HMAC-SHA256 signatures in the `X-QCGenie-Signature` format.
-- New webhook signing secrets are encrypted at rest when `QCGENIE_SECRET_ENCRYPTION_KEY` is configured; legacy plaintext records remain readable for migration.
+- New webhook signing secrets are returned once on creation and encrypted at rest when `QCGENIE_SECRET_ENCRYPTION_KEY` is configured; legacy plaintext records remain readable for migration. Set this env var on Render before treating hosted webhook secrets as encrypted.
 - Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
 - Webhook delivery logs are available at `/v1/webhooks/deliveries`; manual retry execution is available at `/v1/webhooks/deliveries/{delivery_id}/retry`.
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
 - Render cron can run `node scripts/drain-webhooks.mjs` with `QCGENIE_API_KEY`, `QCGENIE_API_BASE_URL`, and `QCGENIE_DRAIN_LIMIT` to process due deliveries on a schedule.
 - Report reads append rounded-minute usage ledger entries.
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
+- When a job source resolves to a local video or downloadable URL, `qc-engine-runner.mjs` can run the reference gate; otherwise the hosted job records a `WATCH` engine warning instead of pretending the asset passed.
 - Editor marker CSV exports are available at `/v1/qc/jobs/{job_id}/artifacts/markers`.
 - Job creation honors `idempotency_key` so agent retries return the existing job instead of creating duplicate QC runs.
 - External full-video gate outputs can be imported with `/v1/qc/jobs/{job_id}/gate-verdict`; imported findings become stored flags, reports, marker CSV rows, and webhook-triggering job verdicts.
 - Reference full-video gate scripts live under `scripts/qc-engine/`.
 - `supabase/schema.sql` includes workspace membership and RLS policies for the production persistence model.
-- Production persistence still needs a live Supabase connection, advisor verification, legacy webhook secret migration, and storage buckets.
+- Production persistence still needs hosted `QCGENIE_SECRET_ENCRYPTION_KEY` configuration, a live Supabase connection, advisor verification, legacy webhook secret migration, and storage buckets.
 
 ## Stack
 

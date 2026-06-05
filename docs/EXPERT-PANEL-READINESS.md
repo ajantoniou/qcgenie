@@ -43,7 +43,8 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Built v0 `POST /v1/qc/jobs`, `GET /v1/qc/jobs/{job_id}`, `GET /v1/qc/jobs/{job_id}/report`, `POST /v1/qc/jobs/{job_id}/cancel`.
 - Built v0 `POST /v1/uploads` signed upload URL response shape.
 - Built v0 `GET /v1/uploads/{upload_id}` upload metadata lookup.
-- Built deterministic v0 QC processing on job creation: lifecycle events, stored WATCH verdict, caption-safe-area warning, JSON report artifact, and marker-export artifact.
+- Built deterministic v0 QC processing on job creation: lifecycle events, stored WATCH verdict, JSON report artifact, marker-export artifact, and honest engine warning fallback when hosted media cannot be resolved.
+- Added hosted QC engine runner path for resolvable local/downloadable sources.
 - Added `GET /v1/qc/jobs/{job_id}/events` and `GET /v1/qc/jobs/{job_id}/artifacts`.
 - Built `GET /v1/qc/jobs/{job_id}/artifacts/markers` CSV export for editor handoff.
 - Added idempotent job creation with `idempotency_key` so agent retries return the existing job instead of creating duplicate QC runs.
@@ -55,11 +56,11 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Added public OpenAPI at `/openapi.json`.
 - Built v0 webhook registration and HMAC-SHA256 delivery-preview signatures.
 - Built v0 webhook delivery queue on completed jobs, idempotent delivery records, delivery listing, manual retry execution with attempt counts, batch draining of due pending deliveries, and a Render cron runner script.
-- Added encrypted-at-rest storage for new webhook signing secrets through `QCGENIE_SECRET_ENCRYPTION_KEY`; legacy plaintext records stay readable for migration.
+- Added encrypted-at-rest storage for new webhook signing secrets through `QCGENIE_SECRET_ENCRYPTION_KEY`; legacy plaintext records stay readable for migration. Render still needs this env var configured before hosted webhooks are encrypted.
 - Built server-side JSON persistence boundary for jobs, uploads, webhooks, webhook deliveries, and usage ledger entries.
 - Report reads append rounded-minute usage entries and `GET /v1/usage` exposes the recent ledger.
 - Added Supabase schema RLS hardening: workspace membership table, RLS enabled for all app tables, workspace-scoped policies for non-secret rows, and server-only default access for API key and webhook secret tables.
-- Production still needs live Supabase-backed persistence, database advisor verification, legacy webhook secret migration, and storage buckets for report artifacts.
+- Production still needs Render `QCGENIE_SECRET_ENCRYPTION_KEY` configuration, live Supabase-backed persistence, database advisor verification, legacy webhook secret migration, and storage buckets for report artifacts.
 - Production still needs hosted video file/object storage and worker execution for ffmpeg/frame/audio checks; external agents can now run the reference gate and import `VERDICT.json` into QCGenie.
 
 ### P1 - Creator Workflow
