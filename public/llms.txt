@@ -25,6 +25,7 @@ Agent integration:
 - Current v0 API persists jobs, uploads, webhook endpoints, webhook delivery previews, and usage entries to a server-side JSON store; production Supabase persistence is still planned.
 - Report reads append rounded-minute usage entries visible through GET /v1/usage.
 - Creating a QC job currently runs deterministic v0 processing immediately and stores lifecycle events, one caption-safe-area warning, and JSON/marker-export artifact records.
+- Marker exports are available as CSV at GET /v1/qc/jobs/{job_id}/artifacts/markers for editor handoff.
 
 Trust rule:
 - Hard fails come from automated quality checks or explicit evidence.

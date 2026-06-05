@@ -43,6 +43,7 @@ Persistence state:
 - Webhook delivery previews use HMAC-SHA256 signatures in the `X-QCGenie-Signature` format.
 - Report reads append rounded-minute usage ledger entries.
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
+- Editor marker CSV exports are available at `/v1/qc/jobs/{job_id}/artifacts/markers`.
 - Production persistence still needs Supabase-backed tables, RLS, encrypted webhook secret storage, and storage buckets.
 
 ## Stack

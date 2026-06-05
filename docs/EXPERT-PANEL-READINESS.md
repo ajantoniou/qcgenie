@@ -45,6 +45,7 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Built v0 `GET /v1/uploads/{upload_id}` upload metadata lookup.
 - Built deterministic v0 QC processing on job creation: lifecycle events, stored WATCH verdict, caption-safe-area warning, JSON report artifact, and marker-export artifact.
 - Added `GET /v1/qc/jobs/{job_id}/events` and `GET /v1/qc/jobs/{job_id}/artifacts`.
+- Built `GET /v1/qc/jobs/{job_id}/artifacts/markers` CSV export for editor handoff.
 - Built v0 bearer-token scope enforcement for API endpoints; production still needs hashed key storage and usage logs.
 - Added SHA-256 API-key hash verification support through `QCGENIE_API_KEY_SHA256`.
 - Built MCP server wrapper artifacts for `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_list_recent_jobs`, `qc_create_upload_url`.

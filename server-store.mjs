@@ -156,6 +156,22 @@ export class JsonStore {
     return this.state.artifacts.filter((artifact) => artifact.jobId === jobId);
   }
 
+  buildMarkerCsv(jobId) {
+    const flags = this.listFlags(jobId);
+    const rows = [
+      ["timecode", "severity", "gate", "summary", "evidence_source", "transcript_evidence"],
+      ...flags.map((flag) => [
+        flag.timestamp,
+        flag.severity,
+        flag.gate,
+        flag.summary,
+        flag.evidenceSource,
+        flag.transcriptEvidence || ""
+      ])
+    ];
+    return rows.map((row) => row.map(csvEscape).join(",")).join("\n") + "\n";
+  }
+
   createUpload(input) {
     const uploadId = `upl_${randomId()}`;
     const upload = {
@@ -258,4 +274,10 @@ function randomId() {
 
 function currentBillingPeriod() {
   return new Date().toISOString().slice(0, 7);
+}
+
+function csvEscape(value) {
+  const text = String(value ?? "");
+  if (!/[",\n]/.test(text)) return text;
+  return `"${text.replaceAll('"', '""')}"`;
 }

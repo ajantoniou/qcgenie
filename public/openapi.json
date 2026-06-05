@@ -119,6 +119,22 @@
         }
       }
     },
+    "/v1/qc/jobs/{job_id}/artifacts/markers": {
+      "get": {
+        "summary": "Download editor marker export CSV",
+        "parameters": [{ "name": "job_id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": {
+            "description": "CSV marker export",
+            "content": {
+              "text/csv": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/usage": {
       "get": {
         "summary": "List recent usage ledger entries",

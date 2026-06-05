@@ -33,6 +33,7 @@ createServer(async (req, res) => {
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/report$/.test(url.pathname)) return getReport(req, url, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/events$/.test(url.pathname)) return getJobEvents(req, url, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/artifacts$/.test(url.pathname)) return getJobArtifacts(req, url, res);
+    if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/artifacts\/markers$/.test(url.pathname)) return getMarkerExport(req, url, res);
     if (req.method === "POST" && /^\/v1\/qc\/jobs\/[^/]+\/cancel$/.test(url.pathname)) return cancelJob(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/uploads") return createUpload(req, res);
     if (req.method === "GET" && /^\/v1\/uploads\/[^/]+$/.test(url.pathname)) return getUpload(req, url, res);
@@ -96,6 +97,18 @@ function getJobArtifacts(req, url, res) {
   const jobId = url.pathname.split("/").at(-2);
   const artifacts = store.listArtifacts(jobId);
   return sendJson(res, 200, { artifacts: artifacts.length ? artifacts : defaultArtifacts(jobId) });
+}
+
+function getMarkerExport(req, url, res) {
+  const auth = requireScope(req, "reports:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const jobId = url.pathname.split("/").at(-3);
+  const csv = store.buildMarkerCsv(jobId);
+  res.writeHead(200, {
+    "Content-Type": "text/csv; charset=utf-8",
+    "Content-Disposition": `attachment; filename="${jobId}-qc-markers.csv"`
+  });
+  res.end(csv);
 }
 
 function cancelJob(req, url, res) {

@@ -72,6 +72,8 @@ describe("JsonStore", () => {
       expect(reloaded.listJobEvents(job.jobId).at(-1)).toMatchObject({ eventType: "completed" });
       expect(reloaded.listFlags(job.jobId)).toHaveLength(1);
       expect(reloaded.listArtifacts(job.jobId)).toHaveLength(2);
+      expect(reloaded.buildMarkerCsv(job.jobId)).toContain("timecode,severity,gate,summary");
+      expect(reloaded.buildMarkerCsv(job.jobId)).toContain("00:09:12,warn,caption");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
