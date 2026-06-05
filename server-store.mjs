@@ -240,6 +240,11 @@ export class JsonStore {
   createWebhookDelivery(webhookId, eventType, jobId) {
     const endpoint = this.getWebhook(webhookId);
     if (!endpoint) throw new Error(`Unknown webhook endpoint: ${webhookId}`);
+    const existing = this.state.webhookDeliveries.find((delivery) =>
+      delivery.webhookId === webhookId && delivery.eventType === eventType && delivery.jobId === jobId
+    );
+    if (existing) return { ...existing, idempotentReplay: true };
+
     const payload = {
       event: eventType,
       job_id: jobId,
@@ -252,12 +257,63 @@ export class JsonStore {
       eventType,
       jobId,
       status: "pending",
+      url: endpoint.url,
+      attemptCount: 0,
+      nextAttemptAt: new Date().toISOString(),
       signatureHeader: "X-QCGenie-Signature",
       signature: signPayload(endpoint.signingSecret, encodedPayload),
       payload,
       createdAt: new Date().toISOString()
     };
     this.state.webhookDeliveries.push(delivery);
+    this.persist();
+    return delivery;
+  }
+
+  createWebhookDeliveriesForJob(jobId, eventType = "job.completed") {
+    const endpoints = this.state.webhooks.filter((endpoint) => endpoint.eventTypes.includes(eventType));
+    return endpoints.map((endpoint) => this.createWebhookDelivery(endpoint.webhookId, eventType, jobId));
+  }
+
+  getWebhookDelivery(deliveryId) {
+    return this.state.webhookDeliveries.find((delivery) => delivery.deliveryId === deliveryId) || null;
+  }
+
+  listWebhookDeliveries(options = {}) {
+    const limit = Number(options.limit || 20);
+    const status = options.status || null;
+    const webhookId = options.webhookId || options.webhook_id || null;
+    return this.state.webhookDeliveries
+      .filter((delivery) => !status || delivery.status === status)
+      .filter((delivery) => !webhookId || delivery.webhookId === webhookId)
+      .slice(-Math.min(Math.max(limit || 20, 1), 100))
+      .reverse();
+  }
+
+  markWebhookDeliveryAttempt(deliveryId, result) {
+    const delivery = this.getWebhookDelivery(deliveryId);
+    if (!delivery) return null;
+
+    delivery.attemptCount = (delivery.attemptCount || 0) + 1;
+    delivery.lastAttemptAt = new Date().toISOString();
+    delivery.responseStatus = result.responseStatus || null;
+
+    if (result.ok) {
+      delivery.status = "sent";
+      delivery.sentAt = delivery.lastAttemptAt;
+      delivery.lastError = null;
+      delivery.nextAttemptAt = null;
+    } else {
+      delivery.lastError = result.error || `HTTP ${result.responseStatus || "unknown"}`;
+      if (delivery.attemptCount >= 3) {
+        delivery.status = "failed";
+        delivery.nextAttemptAt = null;
+      } else {
+        delivery.status = "pending";
+        delivery.nextAttemptAt = new Date(Date.now() + retryDelayMs(delivery.attemptCount)).toISOString();
+      }
+    }
+
     this.persist();
     return delivery;
   }
@@ -298,6 +354,10 @@ function randomId() {
 
 function currentBillingPeriod() {
   return new Date().toISOString().slice(0, 7);
+}
+
+function retryDelayMs(attemptCount) {
+  return Math.min(60_000, 2 ** Math.max(attemptCount - 1, 0) * 5_000);
 }
 
 function csvEscape(value) {

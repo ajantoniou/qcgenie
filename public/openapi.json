@@ -226,6 +226,29 @@
           "200": { "description": "Signed delivery preview" }
         }
       }
+    },
+    "/v1/webhooks/deliveries": {
+      "get": {
+        "summary": "List recent webhook deliveries",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 100 } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["pending", "sent", "failed"] } },
+          { "name": "webhook_id", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Webhook delivery log entries" }
+        }
+      }
+    },
+    "/v1/webhooks/deliveries/{delivery_id}/retry": {
+      "post": {
+        "summary": "Retry a pending or failed webhook delivery",
+        "parameters": [{ "name": "delivery_id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Delivery attempt result" },
+          "404": { "description": "Delivery not found" }
+        }
+      }
     }
   }
 }

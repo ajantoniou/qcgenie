@@ -49,6 +49,32 @@ describe("JsonStore", () => {
     }
   });
 
+  it("queues idempotent webhook deliveries and tracks retry attempts", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const webhook = store.createWebhook({ url: "https://agent.example.com/qc-callback", event_types: ["job.completed"] });
+      const first = store.createWebhookDeliveriesForJob("job_demo", "job.completed");
+      const replay = store.createWebhookDeliveriesForJob("job_demo", "job.completed");
+
+      expect(first).toHaveLength(1);
+      expect(replay[0]).toMatchObject({ deliveryId: first[0].deliveryId, idempotentReplay: true });
+      expect(store.listWebhookDeliveries({ webhook_id: webhook.webhookId })).toHaveLength(1);
+
+      const failedOnce = store.markWebhookDeliveryAttempt(first[0].deliveryId, { ok: false, responseStatus: 500, error: "server_error" });
+      expect(failedOnce).toMatchObject({ status: "pending", attemptCount: 1, lastError: "server_error" });
+      expect(failedOnce.nextAttemptAt).toBeTruthy();
+
+      const sent = store.markWebhookDeliveryAttempt(first[0].deliveryId, { ok: true, responseStatus: 200 });
+      expect(sent).toMatchObject({ status: "sent", attemptCount: 2, responseStatus: 200 });
+      expect(sent.sentAt).toBeTruthy();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("runs deterministic v0 QC and persists events, flags, and artifacts", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");

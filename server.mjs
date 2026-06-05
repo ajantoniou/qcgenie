@@ -40,6 +40,8 @@ createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/v1/qc/jobs") return listJobs(req, res);
     if (req.method === "GET" && url.pathname === "/v1/usage") return getUsage(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks") return createWebhook(req, res);
+    if (req.method === "GET" && url.pathname === "/v1/webhooks/deliveries") return listWebhookDeliveries(req, res);
+    if (req.method === "POST" && /^\/v1\/webhooks\/deliveries\/[^/]+\/retry$/.test(url.pathname)) return retryWebhookDelivery(req, url, res);
     if (req.method === "GET" && /^\/v1\/webhooks\/[^/]+\/delivery-preview$/.test(url.pathname)) return previewWebhookDelivery(req, url, res);
 
     return serveStatic(url.pathname, res);
@@ -57,6 +59,7 @@ async function createJob(req, res) {
   const job = store.createJob(body);
   if (job.idempotentReplay) return sendJson(res, 200, job);
   const completed = store.runDeterministicQc(job.jobId);
+  store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
   return sendJson(res, 202, completed || job);
 }
 
@@ -168,6 +171,47 @@ function previewWebhookDelivery(req, url, res) {
   const webhookId = url.pathname.split("/").at(-2);
   if (!store.getWebhook(webhookId)) return sendJson(res, 404, { error: "webhook_not_found" });
   return sendJson(res, 200, store.createWebhookDelivery(webhookId, "job.completed", "job_demo"));
+}
+
+function listWebhookDeliveries(req, res) {
+  const auth = requireScope(req, "webhooks:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const url = new URL(req.url || "/", `http://${req.headers.host}`);
+  return sendJson(res, 200, {
+    deliveries: store.listWebhookDeliveries({
+      limit: url.searchParams.get("limit") || 20,
+      status: url.searchParams.get("status"),
+      webhookId: url.searchParams.get("webhook_id")
+    })
+  });
+}
+
+async function retryWebhookDelivery(req, url, res) {
+  const auth = requireScope(req, "webhooks:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const deliveryId = url.pathname.split("/").at(-2);
+  const delivery = store.getWebhookDelivery(deliveryId);
+  if (!delivery) return sendJson(res, 404, { error: "delivery_not_found" });
+  const result = await sendWebhookDelivery(delivery);
+  return sendJson(res, 200, store.markWebhookDeliveryAttempt(deliveryId, result));
+}
+
+async function sendWebhookDelivery(delivery) {
+  try {
+    const response = await fetch(delivery.url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        [delivery.signatureHeader]: delivery.signature,
+        "x-qcgenie-delivery-id": delivery.deliveryId,
+        "x-qcgenie-event": delivery.eventType
+      },
+      body: JSON.stringify(delivery.payload)
+    });
+    return { ok: response.ok, responseStatus: response.status, error: response.ok ? null : `HTTP ${response.status}` };
+  } catch (error) {
+    return { ok: false, responseStatus: null, error: error instanceof Error ? error.message : "webhook_delivery_error" };
+  }
 }
 
 function completedJob(jobId) {

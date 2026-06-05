@@ -28,6 +28,8 @@
     "POST /v1/uploads",
     "GET /v1/uploads/{upload_id}",
     "POST /v1/webhooks",
+    "GET /v1/webhooks/deliveries",
+    "POST /v1/webhooks/deliveries/{delivery_id}/retry",
     "GET /v1/usage"
   ]
 }

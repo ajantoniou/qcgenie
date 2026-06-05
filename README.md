@@ -44,6 +44,8 @@ Persistence state:
 - Current hosted API stores jobs, uploads, webhook endpoints, webhook delivery previews, and usage ledger entries through `server-store.mjs`.
 - API auth supports plaintext `QCGENIE_API_KEY` for bootstrapping and SHA-256 hash verification through `QCGENIE_API_KEY_SHA256`.
 - Webhook delivery previews use HMAC-SHA256 signatures in the `X-QCGenie-Signature` format.
+- Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
+- Webhook delivery logs are available at `/v1/webhooks/deliveries`; manual retry execution is available at `/v1/webhooks/deliveries/{delivery_id}/retry`.
 - Report reads append rounded-minute usage ledger entries.
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
 - Editor marker CSV exports are available at `/v1/qc/jobs/{job_id}/artifacts/markers`.
