@@ -1,0 +1,24 @@
+# QC Genie
+
+QC Genie is a web platform for pre-publish video quality control.
+
+Primary audience: YouTube creators, video editors, studios, agencies, and agentic workflows that prepare digital media for publication.
+
+Core workflow:
+- Paste a YouTube URL, upload a video, or create a job through the API.
+- QC Genie scans the full timeline for frozen frames, audio garble, caption and safe-area issues, aspect-ratio problems, and transcript-grounded review notes.
+- Reports include verdict, timestamps, evidence, editor handoff notes, and export-ready artifacts.
+
+Pricing:
+- Creator: planned lightweight plan for Shorts and personal channels.
+- Studio: $49/month for 2,000 QC minutes.
+- Agency: planned team plan for workspaces, webhooks, and editor exports.
+
+Agent integration:
+- REST API job lifecycle starts at POST /v1/qc/jobs.
+- MCP tools planned: qc_run_video, qc_get_job, qc_get_report, qc_list_recent_jobs, qc_create_upload_url.
+- API keys are workspace-scoped and should be stored as connector secrets.
+
+Trust rule:
+- Hard fails come from automated quality checks or explicit evidence.
+- Advisory review notes cannot create invented hard-fails.

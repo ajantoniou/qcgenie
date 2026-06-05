@@ -1,0 +1,16 @@
+{
+  "name": "QC Genie",
+  "short_name": "QC Genie",
+  "description": "Pre-publish video QC for YouTube creators, studios, and agencies.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml"
+    }
+  ]
+}
