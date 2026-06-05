@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createQcJob, createUpload, createWebhookEndpoint, getQcJob, getQcReport, previewWebhookDelivery } from "./apiMock";
-import { assertApiKey, parseApiScopes } from "./apiMock";
+import { assertApiKey, hashApiKey, parseApiScopes } from "./apiMock";
 
 describe("api mock service contract", () => {
   it("creates and polls a QC job from a YouTube URL", () => {
@@ -61,6 +61,7 @@ describe("api mock service contract", () => {
       ok: false,
       status: 401
     });
+    expect(assertApiKey("Bearer qcg_test_key", "jobs:write", undefined, scopes, hashApiKey("qcg_test_key")).ok).toBe(true);
   });
 
   it("registers webhooks and builds signed delivery metadata", () => {

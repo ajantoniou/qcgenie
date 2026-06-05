@@ -1,4 +1,5 @@
 import { buildQcJobRequest, type BuildQcJobRequestInput, type JobStatus } from "./agentic";
+import { createHash } from "node:crypto";
 
 export interface ApiJobCreated {
   jobId: string;
@@ -170,15 +171,18 @@ export function assertApiKey(
   authorizationHeader: string | undefined,
   requiredScope: string,
   configuredKey: string | undefined,
-  configuredScopes: Set<string>
+  configuredScopes: Set<string>,
+  configuredKeyHash?: string
 ): AuthResult {
-  if (!configuredKey) return { ok: true };
+  if (!configuredKey && !configuredKeyHash) return { ok: true };
   if (!authorizationHeader?.startsWith("Bearer ")) {
     return { ok: false, status: 401, error: "missing_api_key" };
   }
 
   const token = authorizationHeader.slice("Bearer ".length).trim();
-  if (token !== configuredKey) {
+  const validPlaintext = configuredKey ? token === configuredKey : false;
+  const validHash = configuredKeyHash ? hashApiKey(token) === configuredKeyHash : false;
+  if (!validPlaintext && !validHash) {
     return { ok: false, status: 401, error: "invalid_api_key" };
   }
 
@@ -187,6 +191,10 @@ export function assertApiKey(
   }
 
   return { ok: true };
+}
+
+export function hashApiKey(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
 }
 
 function seedCompletedJob(jobId: string): ApiJob {

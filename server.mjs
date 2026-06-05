@@ -2,12 +2,14 @@ import { createReadStream, existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import { createServer } from "node:http";
+import { createHash } from "node:crypto";
 import { JsonStore } from "./server-store.mjs";
 
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
 const store = new JsonStore(process.env.QCGENIE_STORE_PATH || "/tmp/qcgenie/store.json");
 const apiKey = process.env.QCGENIE_API_KEY;
+const apiKeyHash = process.env.QCGENIE_API_KEY_SHA256;
 const apiScopes = new Set((process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write").split(","));
 
 const mimeTypes = {
@@ -33,6 +35,7 @@ createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/v1/uploads") return createUpload(req, res);
     if (req.method === "GET" && /^\/v1\/uploads\/[^/]+$/.test(url.pathname)) return getUpload(req, url, res);
     if (req.method === "GET" && url.pathname === "/v1/qc/jobs") return listJobs(req, res);
+    if (req.method === "GET" && url.pathname === "/v1/usage") return getUsage(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks") return createWebhook(req, res);
     if (req.method === "GET" && /^\/v1\/webhooks\/[^/]+\/delivery-preview$/.test(url.pathname)) return previewWebhookDelivery(req, url, res);
 
@@ -63,9 +66,13 @@ function getReport(req, url, res) {
   const auth = requireScope(req, "reports:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-2);
+  const job = store.getJob(jobId) || completedJob(jobId);
+  const roundedMinutes = Math.max(1, Math.ceil(job.minutesMetered || 19));
+  const usage = store.appendUsage(jobId, roundedMinutes);
   return sendJson(res, 200, {
     jobId,
     verdict: "WATCH",
+    usage,
     flags: [
       {
         timestamp: "00:09:12",
@@ -110,6 +117,12 @@ function listJobs(req, res) {
   const auth = requireScope(req, "jobs:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   return sendJson(res, 200, { jobs: store.listJobs(20) });
+}
+
+function getUsage(req, res) {
+  const auth = requireScope(req, "jobs:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  return sendJson(res, 200, { usageLedger: store.state.usageLedger.slice(-50).reverse() });
 }
 
 async function createWebhook(req, res) {
@@ -167,11 +180,13 @@ function requireScope(req, requiredScope) {
 }
 
 function requireScopeFromHeaders(headers, requiredScope) {
-  if (!apiKey) return { ok: true };
+  if (!apiKey && !apiKeyHash) return { ok: true };
   const authorization = headers?.authorization;
   if (!authorization?.startsWith("Bearer ")) return { ok: false, status: 401, error: "missing_api_key" };
   const token = authorization.slice("Bearer ".length).trim();
-  if (token !== apiKey) return { ok: false, status: 401, error: "invalid_api_key" };
+  const validPlaintext = apiKey ? token === apiKey : false;
+  const validHash = apiKeyHash ? createHash("sha256").update(token).digest("hex") === apiKeyHash : false;
+  if (!validPlaintext && !validHash) return { ok: false, status: 401, error: "invalid_api_key" };
   if (!apiScopes.has(requiredScope)) return { ok: false, status: 403, error: "insufficient_scope" };
   return { ok: true };
 }

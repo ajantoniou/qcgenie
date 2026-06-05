@@ -44,12 +44,13 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Built v0 `POST /v1/uploads` signed upload URL response shape.
 - Built v0 `GET /v1/uploads/{upload_id}` upload metadata lookup.
 - Built v0 bearer-token scope enforcement for API endpoints; production still needs hashed key storage and usage logs.
+- Added SHA-256 API-key hash verification support through `QCGENIE_API_KEY_SHA256`.
 - Built MCP server wrapper artifacts for `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_list_recent_jobs`, `qc_create_upload_url`.
 - Added public OpenAPI at `/openapi.json`.
-- Built v0 webhook registration and signed delivery-preview metadata.
+- Built v0 webhook registration and HMAC-SHA256 delivery-preview signatures.
 - Built server-side JSON persistence boundary for jobs, uploads, webhooks, webhook deliveries, and usage ledger entries.
-- Production still needs retry logs, idempotent delivery, and real HMAC signing against stored secret hashes.
-- Production still needs Supabase-backed persistence, RLS, hashed API key storage, and storage buckets for report artifacts.
+- Report reads append rounded-minute usage entries and `GET /v1/usage` exposes the recent ledger.
+- Production still needs webhook retry execution, idempotent delivery, encrypted webhook secret storage, Supabase-backed persistence, RLS, and storage buckets for report artifacts.
 
 ### P1 - Creator Workflow
 

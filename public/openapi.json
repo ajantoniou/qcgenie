@@ -101,6 +101,14 @@
         }
       }
     },
+    "/v1/usage": {
+      "get": {
+        "summary": "List recent usage ledger entries",
+        "responses": {
+          "200": { "description": "Usage ledger entries" }
+        }
+      }
+    },
     "/v1/qc/jobs/{job_id}/cancel": {
       "post": {
         "summary": "Cancel a QC job",

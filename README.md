@@ -39,7 +39,10 @@ Public API:
 Persistence state:
 
 - Current hosted API stores jobs, uploads, webhook endpoints, webhook delivery previews, and usage ledger entries through `server-store.mjs`.
-- Production persistence still needs Supabase-backed tables, RLS, hashed API keys, and storage buckets.
+- API auth supports plaintext `QCGENIE_API_KEY` for bootstrapping and SHA-256 hash verification through `QCGENIE_API_KEY_SHA256`.
+- Webhook delivery previews use HMAC-SHA256 signatures in the `X-QCGenie-Signature` format.
+- Report reads append rounded-minute usage ledger entries.
+- Production persistence still needs Supabase-backed tables, RLS, encrypted webhook secret storage, and storage buckets.
 
 ## Stack
 

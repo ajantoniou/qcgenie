@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+import { createHmac, randomBytes } from "node:crypto";
 
 export class JsonStore {
   constructor(filePath) {
@@ -77,11 +78,13 @@ export class JsonStore {
 
   createWebhook(input) {
     const webhookId = `wh_${randomId()}`;
+    const signingSecret = `whsec_${randomBytes(24).toString("hex")}`;
     const endpoint = {
       webhookId,
       url: input.url,
       eventTypes: input.event_types || input.eventTypes || ["job.completed", "job.failed"],
-      signingSecretPreview: `whsec_${randomId()}`,
+      signingSecret,
+      signingSecretPreview: `${signingSecret.slice(0, 14)}...`,
       createdAt: new Date().toISOString()
     };
     this.state.webhooks.push(endpoint);
@@ -94,6 +97,14 @@ export class JsonStore {
   }
 
   createWebhookDelivery(webhookId, eventType, jobId) {
+    const endpoint = this.getWebhook(webhookId);
+    if (!endpoint) throw new Error(`Unknown webhook endpoint: ${webhookId}`);
+    const payload = {
+      event: eventType,
+      job_id: jobId,
+      created_at: new Date().toISOString()
+    };
+    const encodedPayload = JSON.stringify(payload);
     const delivery = {
       deliveryId: `whd_${randomId()}`,
       webhookId,
@@ -101,11 +112,8 @@ export class JsonStore {
       jobId,
       status: "pending",
       signatureHeader: "X-QCGenie-Signature",
-      payload: {
-        event: eventType,
-        job_id: jobId,
-        created_at: new Date().toISOString()
-      },
+      signature: signPayload(endpoint.signingSecret, encodedPayload),
+      payload,
       createdAt: new Date().toISOString()
     };
     this.state.webhookDeliveries.push(delivery);
@@ -137,6 +145,10 @@ export class JsonStore {
     mkdirSync(dirname(this.filePath), { recursive: true });
     writeFileSync(this.filePath, JSON.stringify(this.state, null, 2));
   }
+}
+
+export function signPayload(secret, payload) {
+  return `sha256=${createHmac("sha256", secret).update(payload).digest("hex")}`;
 }
 
 function randomId() {

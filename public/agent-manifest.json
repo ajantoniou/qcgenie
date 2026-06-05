@@ -21,6 +21,7 @@
     "GET /v1/qc/jobs/{job_id}/report",
     "POST /v1/uploads",
     "GET /v1/uploads/{upload_id}",
-    "POST /v1/webhooks"
+    "POST /v1/webhooks",
+    "GET /v1/usage"
   ]
 }

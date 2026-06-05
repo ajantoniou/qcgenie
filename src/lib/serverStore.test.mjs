@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
-import { JsonStore } from "../../server-store.mjs";
+import { JsonStore, signPayload } from "../../server-store.mjs";
 
 describe("JsonStore", () => {
   it("persists jobs, uploads, webhooks, and usage ledger across store instances", () => {
@@ -41,6 +41,8 @@ describe("JsonStore", () => {
         eventType: "job.completed",
         signatureHeader: "X-QCGenie-Signature"
       });
+      expect(delivery.signature).toMatch(/^sha256=[a-f0-9]{64}$/);
+      expect(delivery.signature).toBe(signPayload(webhook.signingSecret, JSON.stringify(delivery.payload)));
       expect(new JsonStore(path).state.webhookDeliveries).toHaveLength(1);
     } finally {
       rmSync(dir, { recursive: true, force: true });
