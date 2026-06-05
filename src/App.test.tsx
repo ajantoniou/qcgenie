@@ -26,4 +26,30 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getAllByText("uploadcheck").length).toBeGreaterThan(0);
     expect(screen.getByText(/summarizes evidence, then updates captions/)).toBeInTheDocument();
   });
+
+  test("positions the metered pricing model around the $99 creator plan", () => {
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: "Quality check every upload before your audience sees it." })).toBeInTheDocument();
+    expect(screen.getByText("Best for most creators")).toBeInTheDocument();
+    expect(screen.getAllByText("$99/mo").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/1,200 checked minutes\/month/)).toBeInTheDocument();
+    expect(screen.getByText("$299/mo")).toBeInTheDocument();
+    expect(screen.getByText(/5,000 checked minutes\/month/)).toBeInTheDocument();
+    expect(screen.getByText("$799/mo")).toBeInTheDocument();
+    expect(screen.getByText(/18,000 checked minutes\/month/)).toBeInTheDocument();
+    expect(screen.queryByText("$29/mo")).not.toBeInTheDocument();
+    expect(screen.queryByText("$149/mo")).not.toBeInTheDocument();
+  });
+
+  test("answers creator SEO and agent-workflow questions on the homepage", () => {
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: "Pre-upload checks for creator searches" })).toBeInTheDocument();
+    expect(screen.getByText("Video quality checker before YouTube upload")).toBeInTheDocument();
+    expect(screen.getByText("Podcast audio QC before publishing")).toBeInTheDocument();
+    expect(screen.getByText("Audio garble and dropout checker")).toBeInTheDocument();
+    expect(screen.getByText("How many checked minutes do most creators need per month?")).toBeInTheDocument();
+    expect(screen.getByText("Does /check work in Claude Code and Codex?")).toBeInTheDocument();
+  });
 });

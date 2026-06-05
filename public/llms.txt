@@ -21,6 +21,8 @@ Agent integration:
 - REST API job lifecycle starts at POST /v1/qc/jobs.
 - OpenAPI: https://qcgenie-api.onrender.com/openapi.json
 - Hosted API base: https://qcgenie-api.onrender.com/v1
+- The Render service display name is uploadcheck-api, but the live Render URL still uses the legacy qcgenie-api slug until custom-domain cutover.
+- Legacy qcgenie-api environment names are accepted only as migration fallbacks.
 - MCP wrapper package lives in the repository under mcp-server.
 - MCP tools: qc_run_video, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_create_upload_url.
 - API keys are workspace-scoped and should be stored as connector secrets.
@@ -29,8 +31,47 @@ Agent integration:
 - Completed jobs enqueue signed webhook delivery records; delivery logs are available at GET /v1/webhooks/deliveries, manual retries at POST /v1/webhooks/deliveries/{delivery_id}/retry, and due pending delivery drains at POST /v1/webhooks/deliveries/drain.
 - Current v0 API persists jobs, uploads, webhook endpoints, webhook delivery previews, and usage entries to a server-side JSON store; production Supabase persistence is still planned.
 - Report reads append rounded-minute usage entries visible through GET /v1/usage.
-- Creating a QC job currently runs deterministic v0 processing immediately and stores lifecycle events, one caption-safe-area warning, and JSON/marker-export artifact records.
+- Creating a QC job currently runs deterministic v0 processing immediately and stores lifecycle events, warning flags, and JSON/marker-export artifact records.
 - Marker exports are available as CSV at GET /v1/qc/jobs/{job_id}/artifacts/markers for editor handoff.
+
+Pricing:
+- Creator: $99/mo for 1,200 checked media minutes/month. Best for most creators.
+- Studio: $299/mo for 5,000 checked media minutes/month. Best value for teams.
+- Network: $799/mo for 18,000 checked media minutes/month. High-volume plan.
+- Overage: Creator $0.12/min, Studio $0.09/min, Network $0.06/min after included minutes.
+- Plans are based on media minutes checked, not seats.
+- Re-checks count because UploadCheck analyzes the actual media file each time.
+- Most serious solo creators are expected to fit around 300-900 checked minutes/month; 1,200 minutes gives room for weekly uploads, clip batches, and a few re-checks.
+- Heavy users are expected around 2,500-4,500 checked minutes/month.
+- Super-heavy users are expected around 10,000-16,000 checked minutes/month.
+
+Search and answer topics:
+- Video quality checker before YouTube upload.
+- Podcast audio QC before publishing.
+- Shorts and Reels clip quality check.
+- 9:16 Shorts format and black-gutter checker.
+- Audio garble and dropout checker.
+- Low-contrast overlay text checker.
+- Shorts safe-area and text-readability checker.
+- Caption safe-area and transcript grounding.
+- Agentic media QC API and MCP server for Claude Code, Codex, and slash-command workflows.
+
+Crawlable public pages:
+- https://uploadcheck.app/youtube-video-qc/ for YouTube pre-upload video QC.
+- https://uploadcheck.app/podcast-audio-qc/ for podcast audio QC.
+- https://uploadcheck.app/shorts-reels-qc/ for short-form clip QC.
+- https://uploadcheck.app/audio-garble-checker/ for garble, dropout, and audio evidence.
+- https://uploadcheck.app/agentic-media-qc-api/ for CLI, MCP, API, and slash-command workflows.
+- https://uploadcheck.app/pricing/ for metered pricing.
+- https://uploadcheck.app/sample-report/ for timestamped report proof.
+
+FAQ:
+- How many checked minutes do most creators need per month? Most serious solo creators fit around 300-900 checked minutes, and the Creator plan includes 1,200.
+- Does /check work in Claude Code and Codex? Yes. Agents can call UploadCheck through the CLI, MCP server, or API and report timestamped evidence back in the same workspace.
+- What can UploadCheck fix automatically? UploadCheck returns evidence your agent can act on. Agents can usually fix captions, checklists, metadata, and reachable source files, while frozen video, garbled audio, and render defects may need a source or editor pass.
+- Does UploadCheck catch bad Shorts layout? Yes. The private gates include exact vertical-frame checks, black-gutter detection, text-card presence, OCR word safe-area checks, and text readability checks.
+- What happens after QC flags appear? Agents should show every flag, group what is fixable, ask whether to fix now, then rerun UploadCheck after edits.
+- Is UploadCheck only for video? No. UploadCheck is positioned for videos, podcasts, and clips.
 
 Trust rule:
 - Hard fails come from automated quality checks, imported full-video gates, or explicit evidence.

@@ -21,17 +21,80 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "UploadCheck.app",
-        "applicationCategory": "MultimediaApplication",
-        "operatingSystem": "Web",
-        "description": "Quality check videos, podcasts, and clips before you upload.",
-        "offers": {
-          "@type": "Offer",
-          "price": "49",
-          "priceCurrency": "USD",
-          "description": "Studio plan with 2,000 QC minutes per month."
-        }
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://uploadcheck.app/#software",
+            "name": "UploadCheck.app",
+            "applicationCategory": "MultimediaApplication",
+            "operatingSystem": "Web",
+            "description": "Quality check videos, podcasts, and clips before you upload.",
+            "featureList": [
+              "Pre-upload video quality checks",
+              "Podcast audio QC",
+              "Short-form clip checks",
+              "Timestamped visual, audio, caption, and format evidence",
+              "Claude Code, Codex, CLI, MCP, REST API, and webhook workflows"
+            ],
+            "offers": {
+              "@type": "OfferCatalog",
+              "name": "UploadCheck checked-minute plans",
+              "itemListElement": [
+                {
+                  "@type": "Offer",
+                  "name": "Creator",
+                  "price": "99",
+                  "priceCurrency": "USD",
+                  "description": "1,200 checked media minutes per month for most creators."
+                },
+                {
+                  "@type": "Offer",
+                  "name": "Studio",
+                  "price": "299",
+                  "priceCurrency": "USD",
+                  "description": "5,000 checked media minutes per month for editors, agencies, and teams."
+                },
+                {
+                  "@type": "Offer",
+                  "name": "Network",
+                  "price": "799",
+                  "priceCurrency": "USD",
+                  "description": "18,000 checked media minutes per month for high-volume channels and networks."
+                }
+              ]
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://uploadcheck.app/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "How many checked minutes do most creators need per month?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Most serious solo creators fit around 300-900 checked minutes per month. UploadCheck Creator includes 1,200 checked minutes for weekly uploads, clip batches, and a few re-checks."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does /check work in Claude Code and Codex?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. The intended workflow is /check inside Claude Code, Codex, or another slash-command capable workspace through the CLI, MCP server, or API."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is UploadCheck only for video?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. UploadCheck is positioned for videos, podcasts, and clips because creator teams need visual, audio, caption, and format evidence before publishing."
+                }
+              }
+            ]
+          }
+        ]
       }
     </script>
     <title>UploadCheck.app - Quality check media before upload</title>

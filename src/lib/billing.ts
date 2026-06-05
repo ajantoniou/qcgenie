@@ -12,17 +12,17 @@ export interface Plan {
 export const PLANS: Record<PlanId, Plan> = {
   studio: {
     id: "studio",
-    name: "Studio",
-    monthlyPrice: 49,
-    monthlyMinutes: 2000,
-    checkoutLabel: "Start Studio"
+    name: "Creator",
+    monthlyPrice: 99,
+    monthlyMinutes: 1200,
+    checkoutLabel: "Start Creator"
   },
   growth: {
     id: "growth",
-    name: "Growth",
-    monthlyPrice: 99,
+    name: "Studio",
+    monthlyPrice: 299,
     monthlyMinutes: 5000,
-    checkoutLabel: "Scale QC"
+    checkoutLabel: "Upgrade Studio"
   }
 };
 

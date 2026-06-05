@@ -60,6 +60,94 @@ const packageOptions = [
   { name: "uploadcheck", detail: "MCP server name for connector setup and agent manifests." }
 ] as const;
 
+const pricingTiers = [
+  {
+    name: "Creator",
+    label: "Best for most creators",
+    price: "$99/mo",
+    minutes: "1,200",
+    overage: "$0.12/min",
+    detail: "Built for creators who publish weekly, batch clips, and want every final export checked before upload."
+  },
+  {
+    name: "Studio",
+    label: "Best value for teams",
+    price: "$299/mo",
+    minutes: "5,000",
+    overage: "$0.09/min",
+    detail: "For editors, agencies, and teams checking multiple shows, clients, or channels."
+  },
+  {
+    name: "Network",
+    label: "High-volume",
+    price: "$799/mo",
+    minutes: "18,000",
+    overage: "$0.06/min",
+    detail: "For high-volume teams running daily uploads, large clip batches, or multi-channel operations."
+  }
+] as const;
+
+const usageProfiles = [
+  { label: "Most creators", range: "300-900 min", detail: "weekly long uploads, clips, and 1-2 re-checks" },
+  { label: "Heavy users", range: "2,500-4,500 min", detail: "multiple shows, clients, or batch editing weeks" },
+  { label: "Super heavy", range: "10,000-16,000 min", detail: "daily uploads, networks, and large clip pipelines" }
+] as const;
+
+const searchTopics = [
+  {
+    title: "Video quality checker before YouTube upload",
+    detail: "Run a full-timeline pass for freezes, black frames, format issues, captions, and upload-readiness notes."
+  },
+  {
+    title: "Podcast audio QC before publishing",
+    detail: "Check clipping, dropouts, dead air, transcript alignment, and episode handoff notes before release."
+  },
+  {
+    title: "Shorts and Reels clip quality check",
+    detail: "Review caption safe-area, mobile crop risk, loudness, trim points, and repeated clip export mistakes."
+  },
+  {
+    title: "Audio garble and dropout checker",
+    detail: "Surface timestamped audio evidence so editors and agents can tell whether the source or render needs a pass."
+  },
+  {
+    title: "Caption safe-area and transcript grounding",
+    detail: "Compare spoken content, captions, and visible placement before the final file reaches the upload screen."
+  },
+  {
+    title: "Agentic media QC API and MCP server",
+    detail: "Use @uploadcheck/cli, @uploadcheck/mcp, or the uploadcheck MCP server to bring reports into creator agents."
+  }
+] as const;
+
+const faqItems = [
+  {
+    question: "How many checked minutes do most creators need per month?",
+    answer:
+      "Most serious solo creators fit around 300-900 checked minutes per month. The Creator plan includes 1,200 checked minutes so weekly uploads, clip batches, and a few re-checks fit without making every export feel metered."
+  },
+  {
+    question: "Does /check work in Claude Code and Codex?",
+    answer:
+      "Yes. The intended workflow is /check inside Claude Code, Codex, or another slash-command capable workspace. The agent calls UploadCheck through the CLI, MCP server, or API, then reports timestamped evidence back in the same workspace."
+  },
+  {
+    question: "Do re-checks count against included minutes?",
+    answer:
+      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. We never block a check; if you regularly go over, the plan should recommend the cheaper monthly path."
+  },
+  {
+    question: "What can UploadCheck fix automatically?",
+    answer:
+      "UploadCheck returns evidence your agent can act on. Agents can usually fix captions, checklists, metadata, and reachable source files, while frozen video, garbled audio, and render defects may need a source or editor pass."
+  },
+  {
+    question: "Is UploadCheck only for video?",
+    answer:
+      "No. The same pre-upload gate is positioned for videos, podcasts, and clips because creator teams need visual, audio, caption, and format evidence before publishing."
+  }
+] as const;
+
 export function App() {
   const [view, setView] = useState<View>("home");
 
@@ -89,7 +177,7 @@ export function App() {
         </nav>
 
         <div className="sidebarFooter">
-          <span>Studio plan</span>
+          <span>{PLANS.studio.name} plan</span>
           <strong>${PLANS.studio.monthlyPrice}/mo</strong>
           <small>{PLANS.studio.monthlyMinutes.toLocaleString()} check minutes included</small>
         </div>
@@ -178,26 +266,70 @@ function LandingView({ onOpenDashboard, onOpenAgents }: { onOpenDashboard: () =>
       </section>
 
       <section className="pricingBand">
-        <div>
-          <h2>Pricing that maps to production volume</h2>
-          <p>Minutes are metered, but the product is sold around fewer revision loops and safer uploads.</p>
+        <div className="pricingIntro">
+          <h2>Quality check every upload before your audience sees it.</h2>
+          <p>
+            UploadCheck checks videos, podcasts, and clips for publish-blocking issues before they go live. Plans are
+            based on media minutes checked, not seats.
+          </p>
         </div>
         <div className="priceCards">
-          <article>
-            <span>Creator</span>
-            <strong>$29/mo</strong>
-            <p>Light clips, Shorts, and solo channel checks.</p>
-          </article>
-          <article className="featuredPrice">
-            <span>Studio</span>
-            <strong>${PLANS.studio.monthlyPrice}/mo</strong>
-            <p>{PLANS.studio.monthlyMinutes.toLocaleString()} minutes, reports, CLI, and MCP access.</p>
-          </article>
-          <article>
-            <span>Agency</span>
-            <strong>$149/mo</strong>
-            <p>Team workspaces, webhooks, marker exports, and client-ready links.</p>
-          </article>
+          {pricingTiers.map((tier) => (
+            <article className={tier.name === "Creator" ? "featuredPrice" : undefined} key={tier.name}>
+              <span>{tier.label}</span>
+              <strong>{tier.price}</strong>
+              <p>
+                {tier.minutes} checked minutes/month. {tier.detail}
+              </p>
+              <small>{tier.overage} overage after included minutes</small>
+            </article>
+          ))}
+        </div>
+        <div className="usageModel" aria-label="Monthly checked-minute usage model">
+          {usageProfiles.map((profile) => (
+            <article key={profile.label}>
+              <span>{profile.label}</span>
+              <strong>{profile.range}</strong>
+              <p>{profile.detail}</p>
+            </article>
+          ))}
+        </div>
+        <p className="pricingNote">
+          Overage is billed only when you exceed your included minutes. Re-checks count because UploadCheck analyzes the
+          actual media file each time.
+        </p>
+      </section>
+
+      <section className="seoPanel">
+        <div className="seoIntro">
+          <h2>Pre-upload checks for creator searches</h2>
+          <p>
+            UploadCheck is positioned around the practical jobs creators search for when they are one bad export away
+            from publishing the wrong file.
+          </p>
+        </div>
+        <div className="seoTopicGrid">
+          {searchTopics.map((topic) => (
+            <article key={topic.title}>
+              <strong>{topic.title}</strong>
+              <p>{topic.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="faqPanel">
+        <div className="seoIntro">
+          <h2>Answers for creators and agents</h2>
+          <p>Short answers for search engines, answer engines, and humans deciding whether UploadCheck fits the workflow.</p>
+        </div>
+        <div className="faqGrid">
+          {faqItems.map((item) => (
+            <article key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </article>
+          ))}
         </div>
       </section>
     </div>

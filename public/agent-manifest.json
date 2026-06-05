@@ -6,6 +6,41 @@
   "packages": ["@uploadcheck/cli", "@uploadcheck/mcp"],
   "api_base_url": "https://qcgenie-api.onrender.com/v1",
   "openapi_url": "https://qcgenie-api.onrender.com/openapi.json",
+  "api_url_note": "Live Render URL uses the legacy slug while the Render display name is uploadcheck-api and custom-domain cutover is pending.",
+  "pricing": [
+    {
+      "plan": "Creator",
+      "price_usd_monthly": 99,
+      "included_checked_minutes": 1200,
+      "positioning": "Best for most creators",
+      "overage_usd_per_minute": 0.12
+    },
+    {
+      "plan": "Studio",
+      "price_usd_monthly": 299,
+      "included_checked_minutes": 5000,
+      "positioning": "Best value for teams",
+      "overage_usd_per_minute": 0.09
+    },
+    {
+      "plan": "Network",
+      "price_usd_monthly": 799,
+      "included_checked_minutes": 18000,
+      "positioning": "High-volume",
+      "overage_usd_per_minute": 0.06
+    }
+  ],
+  "answer_engine_topics": [
+    "Video quality checker before YouTube upload",
+    "Podcast audio QC before publishing",
+    "Shorts and Reels clip quality check",
+    "9:16 Shorts format and black-gutter checker",
+    "Audio garble and dropout checker",
+    "Low-contrast overlay text checker",
+    "Shorts safe-area and text-readability checker",
+    "Caption safe-area and transcript grounding",
+    "Agentic media QC API and MCP server"
+  ],
   "auth": {
     "type": "api_key",
     "header": "Authorization",
@@ -42,6 +77,6 @@
     "User runs /check with a media file, YouTube URL, upload id, or signed URL.",
     "The agent calls qc_run_video and polls qc_get_job until completion.",
     "The agent fetches qc_get_report and lists timestamped evidence.",
-    "The agent fixes captions, checklists, and source-level issues it can reach, then flags issues requiring a source or render pass."
+    "The agent shows all BLOCK and WATCH flags, asks whether to fix now, fixes captions/checklists/source-level issues it can reach, then flags issues requiring a source or render pass."
   ]
 }

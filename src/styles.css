@@ -224,7 +224,12 @@ code {
 .proofBand article,
 .workflowPanel,
 .pricingBand,
+.seoPanel,
+.faqPanel,
 .priceCards article,
+.usageModel article,
+.seoTopicGrid article,
+.faqGrid article,
 .expertCard {
   background: #f8fafc;
   border: 1px solid #dce3ec;
@@ -337,6 +342,8 @@ code {
 .proofBand strong,
 .workflowCards strong,
 .priceCards strong,
+.usageModel strong,
+.seoTopicGrid strong,
 .expertCard strong,
 .packageGrid strong {
   display: block;
@@ -347,6 +354,9 @@ code {
 .workflowPanel p,
 .pricingBand p,
 .priceCards p,
+.usageModel p,
+.seoPanel p,
+.faqPanel p,
 .expertCard li,
 .toolList p,
 .toolList code,
@@ -359,17 +369,43 @@ code {
 }
 
 .workflowPanel,
-.pricingBand {
-  display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
-  gap: 20px;
+.pricingBand,
+.seoPanel,
+.faqPanel {
   background: #ffffff;
   padding: 18px;
 }
 
+.workflowPanel {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 20px;
+}
+
+.pricingBand,
+.seoPanel,
+.faqPanel {
+  display: grid;
+  gap: 18px;
+}
+
+.pricingIntro,
+.seoIntro {
+  display: grid;
+  gap: 8px;
+  max-width: 860px;
+}
+
+.pricingIntro h2 {
+  font-size: 26px;
+}
+
 .workflowCards,
 .priceCards,
-.packageGrid {
+.packageGrid,
+.usageModel,
+.seoTopicGrid,
+.faqGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
@@ -377,7 +413,10 @@ code {
 
 .workflowCards article,
 .priceCards article,
-.packageGrid article {
+.packageGrid article,
+.usageModel article,
+.seoTopicGrid article,
+.faqGrid article {
   background: #ffffff;
   border: 1px solid #dce3ec;
   border-radius: 8px;
@@ -385,6 +424,7 @@ code {
 }
 
 .priceCards span,
+.usageModel span,
 .expertCard span,
 .taskList span {
   color: #64748b;
@@ -395,6 +435,58 @@ code {
 
 .priceCards strong {
   font-size: 28px;
+}
+
+.priceCards small {
+  display: block;
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.4;
+  margin-top: 14px;
+}
+
+.usageModel {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.usageModel article,
+.seoTopicGrid article,
+.faqGrid article {
+  background: #f8fafc;
+}
+
+.usageModel strong {
+  color: #101827;
+  font-size: 20px;
+}
+
+.pricingNote {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 14px;
+  font-size: 14px;
+}
+
+.seoTopicGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.seoTopicGrid strong {
+  color: #101827;
+}
+
+.faqGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.faqGrid h3 {
+  font-size: 16px;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.faqGrid p {
+  margin-top: 9px;
 }
 
 .featuredPrice {
@@ -792,6 +884,8 @@ input:focus-visible {
   .landingHero,
   .workflowPanel,
   .pricingBand,
+  .seoPanel,
+  .faqPanel,
   .agentRunPanel,
   .agentGrid,
   .panelGrid {
@@ -801,6 +895,9 @@ input:focus-visible {
   .proofBand,
   .workflowCards,
   .priceCards,
+  .usageModel,
+  .seoTopicGrid,
+  .faqGrid,
   .packageGrid {
     grid-template-columns: 1fr;
   }
