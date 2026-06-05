@@ -23,6 +23,9 @@ Current API/MCP tools:
 - `qc_run_video`
 - `qc_get_job`
 - `qc_get_report`
+- `qc_get_events`
+- `qc_get_artifacts`
+- `qc_get_marker_csv`
 - `qc_list_recent_jobs`
 - `qc_create_upload_url`
 
@@ -44,6 +47,7 @@ Persistence state:
 - Report reads append rounded-minute usage ledger entries.
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
 - Editor marker CSV exports are available at `/v1/qc/jobs/{job_id}/artifacts/markers`.
+- Job creation honors `idempotency_key` so agent retries return the existing job instead of creating duplicate QC runs.
 - Production persistence still needs Supabase-backed tables, RLS, encrypted webhook secret storage, and storage buckets.
 
 ## Stack

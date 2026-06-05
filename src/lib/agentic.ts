@@ -48,6 +48,9 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "POST /v1/qc/jobs", purpose: "Create a QC job from a YouTube URL, upload id, or signed asset URL." },
   { methodPath: "GET /v1/qc/jobs/{job_id}", purpose: "Poll job status, verdict, gate progress, and minute usage." },
   { methodPath: "GET /v1/qc/jobs/{job_id}/report", purpose: "Fetch shareable JSON/PDF-ready defects, timestamps, and evidence." },
+  { methodPath: "GET /v1/qc/jobs/{job_id}/events", purpose: "Inspect lifecycle events for agent explanations and progress audit." },
+  { methodPath: "GET /v1/qc/jobs/{job_id}/artifacts", purpose: "List generated reports, marker exports, clips, and related QC artifacts." },
+  { methodPath: "GET /v1/qc/jobs/{job_id}/artifacts/markers", purpose: "Download editor marker CSV for a completed QC run." },
   { methodPath: "POST /v1/qc/jobs/{job_id}/cancel", purpose: "Cancel queued or active work before minutes are finalized." },
   { methodPath: "POST /v1/uploads", purpose: "Create a signed upload target for agents and self-serve users." },
   { methodPath: "GET /v1/uploads/{upload_id}", purpose: "Check upload processing and metadata probe status." },
@@ -72,6 +75,24 @@ export const MCP_TOOLS: McpTool[] = [
     purpose: "Retrieve a finished QC report with evidence-grounded timestamp flags.",
     inputs: ["job_id"],
     outputs: ["verdict", "flags", "timestamps", "transcript_evidence", "share_url"]
+  },
+  {
+    name: "qc_get_events",
+    purpose: "Retrieve lifecycle events so an agent can cite exactly which QC stages ran.",
+    inputs: ["job_id"],
+    outputs: ["events", "event_type", "created_at"]
+  },
+  {
+    name: "qc_get_artifacts",
+    purpose: "List report artifacts and editor handoff files for a QC run.",
+    inputs: ["job_id"],
+    outputs: ["artifacts", "artifact_type", "url"]
+  },
+  {
+    name: "qc_get_marker_csv",
+    purpose: "Download the CSV marker export for an editor handoff.",
+    inputs: ["job_id"],
+    outputs: ["csv"]
   },
   {
     name: "qc_list_recent_jobs",

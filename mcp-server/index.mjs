@@ -39,10 +39,31 @@ server.tool(
 );
 
 server.tool(
+  "qc_get_events",
+  "Retrieve lifecycle events for a QC job so an agent can explain what ran.",
+  { job_id: z.string() },
+  async ({ job_id }) => jsonTool(await apiFetch(`/v1/qc/jobs/${job_id}/events`))
+);
+
+server.tool(
+  "qc_get_artifacts",
+  "List report artifacts generated for a QC job.",
+  { job_id: z.string() },
+  async ({ job_id }) => jsonTool(await apiFetch(`/v1/qc/jobs/${job_id}/artifacts`))
+);
+
+server.tool(
+  "qc_get_marker_csv",
+  "Download editor marker CSV for a QC job.",
+  { job_id: z.string() },
+  async ({ job_id }) => textTool(await apiTextFetch(`/v1/qc/jobs/${job_id}/artifacts/markers`))
+);
+
+server.tool(
   "qc_list_recent_jobs",
   "List recent QC jobs in the workspace.",
   { limit: z.number().optional() },
-  async ({ limit }) => jsonTool(await apiFetch(`/v1/qc/jobs${limit ? `?limit=${limit}` : ""}`))
+  async ({ limit }) => jsonTool(await apiFetch(`/v1/qc/jobs${limit ? `?limit=${encodeURIComponent(limit)}` : ""}`))
 );
 
 server.tool(
@@ -60,11 +81,29 @@ const transport = new StdioServerTransport();
 await server.connect(transport);
 
 async function apiFetch(path, options = {}) {
+  const response = await authedFetch(path, options);
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(`QC Genie API ${response.status}: ${JSON.stringify(payload)}`);
+  }
+  return payload;
+}
+
+async function apiTextFetch(path, options = {}) {
+  const response = await authedFetch(path, options);
+  const payload = await response.text();
+  if (!response.ok) {
+    throw new Error(`QC Genie API ${response.status}: ${payload}`);
+  }
+  return payload;
+}
+
+async function authedFetch(path, options = {}) {
   if (!apiKey) {
     throw new Error("Set QCGENIE_API_KEY before running the MCP server.");
   }
 
-  const response = await fetch(`${apiBaseUrl}${path}`, {
+  return fetch(`${apiBaseUrl}${path}`, {
     method: options.method || "GET",
     headers: {
       "content-type": "application/json",
@@ -72,12 +111,6 @@ async function apiFetch(path, options = {}) {
     },
     body: options.body ? JSON.stringify(options.body) : undefined
   });
-
-  const payload = await response.json();
-  if (!response.ok) {
-    throw new Error(`QC Genie API ${response.status}: ${JSON.stringify(payload)}`);
-  }
-  return payload;
 }
 
 function jsonTool(payload) {
@@ -86,6 +119,17 @@ function jsonTool(payload) {
       {
         type: "text",
         text: JSON.stringify(payload, null, 2)
+      }
+    ]
+  };
+}
+
+function textTool(text) {
+  return {
+    content: [
+      {
+        type: "text",
+        text
       }
     ]
   };

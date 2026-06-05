@@ -78,4 +78,26 @@ describe("JsonStore", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("returns the existing job for repeated idempotency keys", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const first = store.createJob({ youtube_url: "https://youtube.com/watch?v=creator-cut", idempotency_key: "agent-run-1" });
+      store.runDeterministicQc(first.jobId);
+      const replay = store.createJob({ youtube_url: "https://youtube.com/watch?v=creator-cut", idempotency_key: "agent-run-1" });
+
+      expect(replay).toMatchObject({
+        jobId: first.jobId,
+        idempotentReplay: true,
+        status: "completed"
+      });
+      expect(store.listJobs({ source_url: "https://youtube.com/watch?v=creator-cut" })).toHaveLength(1);
+      expect(store.listJobEvents(first.jobId).map((event) => event.eventType)).toContain("idempotent_replay");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

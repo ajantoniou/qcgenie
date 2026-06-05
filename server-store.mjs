@@ -19,6 +19,18 @@ export class JsonStore {
   }
 
   createJob(input) {
+    if (input.idempotency_key || input.idempotencyKey) {
+      const existing = this.findJobByIdempotencyKey(input.idempotency_key || input.idempotencyKey);
+      if (existing) {
+        this.addJobEvent(existing.jobId, "idempotent_replay", {
+          idempotencyKey: existing.idempotencyKey,
+          status: existing.status
+        });
+        this.persist();
+        return { ...existing, idempotentReplay: true };
+      }
+    }
+
     const jobId = `job_${randomId()}`;
     const now = new Date().toISOString();
     const job = {
@@ -42,12 +54,24 @@ export class JsonStore {
     return job;
   }
 
+  findJobByIdempotencyKey(idempotencyKey) {
+    if (!idempotencyKey) return null;
+    return this.state.jobs.find((job) => job.idempotencyKey === idempotencyKey) || null;
+  }
+
   getJob(jobId) {
     return this.state.jobs.find((job) => job.jobId === jobId) || null;
   }
 
-  listJobs(limit = 20) {
-    return this.state.jobs.slice(-limit).reverse();
+  listJobs(options = {}) {
+    const limit = typeof options === "number" ? options : Number(options.limit || 20);
+    const status = typeof options === "object" ? options.status : null;
+    const sourceUrl = typeof options === "object" ? options.sourceUrl || options.source_url : null;
+    return this.state.jobs
+      .filter((job) => !status || job.status === status)
+      .filter((job) => !sourceUrl || job.source === sourceUrl)
+      .slice(-Math.min(Math.max(limit || 20, 1), 100))
+      .reverse();
   }
 
   cancelJob(jobId) {

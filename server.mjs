@@ -55,6 +55,7 @@ async function createJob(req, res) {
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
   const job = store.createJob(body);
+  if (job.idempotentReplay) return sendJson(res, 200, job);
   const completed = store.runDeterministicQc(job.jobId);
   return sendJson(res, 202, completed || job);
 }
@@ -138,7 +139,14 @@ function getUpload(req, url, res) {
 function listJobs(req, res) {
   const auth = requireScope(req, "jobs:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
-  return sendJson(res, 200, { jobs: store.listJobs(20) });
+  const url = new URL(req.url || "/", `http://${req.headers.host}`);
+  return sendJson(res, 200, {
+    jobs: store.listJobs({
+      limit: url.searchParams.get("limit") || 20,
+      status: url.searchParams.get("status"),
+      sourceUrl: url.searchParams.get("source_url")
+    })
+  });
 }
 
 function getUsage(req, res) {

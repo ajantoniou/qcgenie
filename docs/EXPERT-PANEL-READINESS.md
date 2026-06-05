@@ -46,9 +46,11 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Built deterministic v0 QC processing on job creation: lifecycle events, stored WATCH verdict, caption-safe-area warning, JSON report artifact, and marker-export artifact.
 - Added `GET /v1/qc/jobs/{job_id}/events` and `GET /v1/qc/jobs/{job_id}/artifacts`.
 - Built `GET /v1/qc/jobs/{job_id}/artifacts/markers` CSV export for editor handoff.
+- Added idempotent job creation with `idempotency_key` so agent retries return the existing job instead of creating duplicate QC runs.
+- Added list filters for recent jobs by `limit`, `status`, and `source_url`.
 - Built v0 bearer-token scope enforcement for API endpoints; production still needs hashed key storage and usage logs.
 - Added SHA-256 API-key hash verification support through `QCGENIE_API_KEY_SHA256`.
-- Built MCP server wrapper artifacts for `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_list_recent_jobs`, `qc_create_upload_url`.
+- Built MCP server wrapper artifacts for `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_list_recent_jobs`, `qc_create_upload_url`.
 - Added public OpenAPI at `/openapi.json`.
 - Built v0 webhook registration and HMAC-SHA256 delivery-preview signatures.
 - Built server-side JSON persistence boundary for jobs, uploads, webhooks, webhook deliveries, and usage ledger entries.

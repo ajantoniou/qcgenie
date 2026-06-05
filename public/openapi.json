@@ -71,6 +71,7 @@
           }
         },
         "responses": {
+          "200": { "description": "Existing idempotent job returned" },
           "202": { "description": "Job queued" },
           "401": { "description": "Missing or invalid API key" },
           "403": { "description": "Insufficient scope" }
@@ -78,6 +79,11 @@
       },
       "get": {
         "summary": "List recent QC jobs",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 100 } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "source_url", "in": "query", "schema": { "type": "string" } }
+        ],
         "responses": {
           "200": { "description": "Recent jobs" }
         }

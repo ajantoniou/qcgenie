@@ -19,8 +19,9 @@ Agent integration:
 - OpenAPI: https://qcgenie-api.onrender.com/openapi.json
 - Hosted API base: https://qcgenie-api.onrender.com/v1
 - MCP wrapper package lives in the repository under mcp-server.
-- MCP tools: qc_run_video, qc_get_job, qc_get_report, qc_list_recent_jobs, qc_create_upload_url.
+- MCP tools: qc_run_video, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_list_recent_jobs, qc_create_upload_url.
 - API keys are workspace-scoped and should be stored as connector secrets.
+- Agents should send idempotency_key on retries; repeated keys return the existing QC job instead of creating another run.
 - Webhook endpoints can receive job.completed and job.failed events with X-QCGenie-Signature metadata.
 - Current v0 API persists jobs, uploads, webhook endpoints, webhook delivery previews, and usage entries to a server-side JSON store; production Supabase persistence is still planned.
 - Report reads append rounded-minute usage entries visible through GET /v1/usage.
