@@ -45,6 +45,7 @@ Persistence state:
 - Current hosted API stores jobs, uploads, webhook endpoints, webhook delivery previews, and usage ledger entries through `server-store.mjs`.
 - API auth supports plaintext `QCGENIE_API_KEY` for bootstrapping and SHA-256 hash verification through `QCGENIE_API_KEY_SHA256`.
 - Webhook delivery previews use HMAC-SHA256 signatures in the `X-QCGenie-Signature` format.
+- New webhook signing secrets are encrypted at rest when `QCGENIE_SECRET_ENCRYPTION_KEY` is configured; legacy plaintext records remain readable for migration.
 - Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
 - Webhook delivery logs are available at `/v1/webhooks/deliveries`; manual retry execution is available at `/v1/webhooks/deliveries/{delivery_id}/retry`.
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
@@ -56,7 +57,7 @@ Persistence state:
 - External full-video gate outputs can be imported with `/v1/qc/jobs/{job_id}/gate-verdict`; imported findings become stored flags, reports, marker CSV rows, and webhook-triggering job verdicts.
 - Reference full-video gate scripts live under `scripts/qc-engine/`.
 - `supabase/schema.sql` includes workspace membership and RLS policies for the production persistence model.
-- Production persistence still needs a live Supabase connection, advisor verification, encrypted webhook secret storage, and storage buckets.
+- Production persistence still needs a live Supabase connection, advisor verification, legacy webhook secret migration, and storage buckets.
 
 ## Stack
 

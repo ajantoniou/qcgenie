@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
-import { JsonStore, signPayload } from "../../server-store.mjs";
+import { JsonStore, decryptSecret, signPayload } from "../../server-store.mjs";
 
 describe("JsonStore", () => {
   it("persists jobs, uploads, webhooks, and usage ledger across store instances", () => {
@@ -44,6 +44,28 @@ describe("JsonStore", () => {
       expect(delivery.signature).toMatch(/^sha256=[a-f0-9]{64}$/);
       expect(delivery.signature).toBe(signPayload(webhook.signingSecret, JSON.stringify(delivery.payload)));
       expect(new JsonStore(path).state.webhookDeliveries).toHaveLength(1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("encrypts webhook signing secrets when an encryption key is configured", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path, { secretEncryptionKey: "test-secret-key" });
+      const webhook = store.createWebhook({ url: "https://agent.example.com/qc-callback" });
+
+      expect(webhook.signingSecret).toBeUndefined();
+      expect(webhook.encryptedSigningSecret).toMatch(/^v1:/);
+      expect(webhook.signingSecretStorage).toBe("encrypted");
+      expect(decryptSecret(webhook.encryptedSigningSecret, "test-secret-key")).toMatch(/^whsec_/);
+
+      const reloaded = new JsonStore(path, { secretEncryptionKey: "test-secret-key" });
+      const delivery = reloaded.createWebhookDelivery(webhook.webhookId, "job.completed", "job_encrypted");
+      expect(delivery.signature).toMatch(/^sha256=[a-f0-9]{64}$/);
+      expect(new JsonStore(path).getWebhook(webhook.webhookId).signingSecret).toBeUndefined();
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

@@ -55,10 +55,11 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Added public OpenAPI at `/openapi.json`.
 - Built v0 webhook registration and HMAC-SHA256 delivery-preview signatures.
 - Built v0 webhook delivery queue on completed jobs, idempotent delivery records, delivery listing, manual retry execution with attempt counts, batch draining of due pending deliveries, and a Render cron runner script.
+- Added encrypted-at-rest storage for new webhook signing secrets through `QCGENIE_SECRET_ENCRYPTION_KEY`; legacy plaintext records stay readable for migration.
 - Built server-side JSON persistence boundary for jobs, uploads, webhooks, webhook deliveries, and usage ledger entries.
 - Report reads append rounded-minute usage entries and `GET /v1/usage` exposes the recent ledger.
 - Added Supabase schema RLS hardening: workspace membership table, RLS enabled for all app tables, workspace-scoped policies for non-secret rows, and server-only default access for API key and webhook secret tables.
-- Production still needs encrypted webhook secret storage, live Supabase-backed persistence, database advisor verification, and storage buckets for report artifacts.
+- Production still needs live Supabase-backed persistence, database advisor verification, legacy webhook secret migration, and storage buckets for report artifacts.
 - Production still needs hosted video file/object storage and worker execution for ffmpeg/frame/audio checks; external agents can now run the reference gate and import `VERDICT.json` into QCGenie.
 
 ### P1 - Creator Workflow

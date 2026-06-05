@@ -1,10 +1,11 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { createHmac, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from "node:crypto";
 
 export class JsonStore {
-  constructor(filePath) {
+  constructor(filePath, options = {}) {
     this.filePath = filePath;
+    this.secretEncryptionKey = options.secretEncryptionKey || process.env.QCGENIE_SECRET_ENCRYPTION_KEY || null;
     this.state = {
       jobs: [],
       uploads: [],
@@ -264,12 +265,15 @@ export class JsonStore {
   createWebhook(input) {
     const webhookId = `wh_${randomId()}`;
     const signingSecret = `whsec_${randomBytes(24).toString("hex")}`;
+    const encryptedSigningSecret = this.secretEncryptionKey ? encryptSecret(signingSecret, this.secretEncryptionKey) : null;
     const endpoint = {
       webhookId,
       url: input.url,
       eventTypes: input.event_types || input.eventTypes || ["job.completed", "job.failed"],
-      signingSecret,
+      signingSecret: encryptedSigningSecret ? undefined : signingSecret,
+      encryptedSigningSecret,
       signingSecretPreview: `${signingSecret.slice(0, 14)}...`,
+      signingSecretStorage: encryptedSigningSecret ? "encrypted" : "plaintext",
       createdAt: new Date().toISOString()
     };
     this.state.webhooks.push(endpoint);
@@ -295,6 +299,7 @@ export class JsonStore {
       created_at: new Date().toISOString()
     };
     const encodedPayload = JSON.stringify(payload);
+    const signingSecret = this.getWebhookSigningSecret(endpoint);
     const delivery = {
       deliveryId: `whd_${randomId()}`,
       webhookId,
@@ -305,13 +310,22 @@ export class JsonStore {
       attemptCount: 0,
       nextAttemptAt: new Date().toISOString(),
       signatureHeader: "X-QCGenie-Signature",
-      signature: signPayload(endpoint.signingSecret, encodedPayload),
+      signature: signPayload(signingSecret, encodedPayload),
       payload,
       createdAt: new Date().toISOString()
     };
     this.state.webhookDeliveries.push(delivery);
     this.persist();
     return delivery;
+  }
+
+  getWebhookSigningSecret(endpoint) {
+    if (endpoint.encryptedSigningSecret) {
+      if (!this.secretEncryptionKey) throw new Error("QCGENIE_SECRET_ENCRYPTION_KEY is required to decrypt webhook signing secrets.");
+      return decryptSecret(endpoint.encryptedSigningSecret, this.secretEncryptionKey);
+    }
+    if (endpoint.signingSecret) return endpoint.signingSecret;
+    throw new Error(`Webhook endpoint ${endpoint.webhookId} is missing a signing secret.`);
   }
 
   createWebhookDeliveriesForJob(jobId, eventType = "job.completed") {
@@ -400,6 +414,31 @@ export class JsonStore {
 
 export function signPayload(secret, payload) {
   return `sha256=${createHmac("sha256", secret).update(payload).digest("hex")}`;
+}
+
+export function encryptSecret(secret, keyMaterial) {
+  const key = deriveEncryptionKey(keyMaterial);
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  const ciphertext = Buffer.concat([cipher.update(secret, "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return `v1:${iv.toString("base64")}:${tag.toString("base64")}:${ciphertext.toString("base64")}`;
+}
+
+export function decryptSecret(encryptedSecret, keyMaterial) {
+  const [version, iv, tag, ciphertext] = String(encryptedSecret).split(":");
+  if (version !== "v1" || !iv || !tag || !ciphertext) throw new Error("Unsupported encrypted secret format.");
+  const key = deriveEncryptionKey(keyMaterial);
+  const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "base64"));
+  decipher.setAuthTag(Buffer.from(tag, "base64"));
+  return Buffer.concat([
+    decipher.update(Buffer.from(ciphertext, "base64")),
+    decipher.final()
+  ]).toString("utf8");
+}
+
+function deriveEncryptionKey(keyMaterial) {
+  return createHash("sha256").update(String(keyMaterial)).digest();
 }
 
 function randomId() {

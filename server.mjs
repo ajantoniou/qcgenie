@@ -7,7 +7,9 @@ import { JsonStore } from "./server-store.mjs";
 
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
-const store = new JsonStore(process.env.QCGENIE_STORE_PATH || "/tmp/qcgenie/store.json");
+const store = new JsonStore(process.env.QCGENIE_STORE_PATH || "/tmp/qcgenie/store.json", {
+  secretEncryptionKey: process.env.QCGENIE_SECRET_ENCRYPTION_KEY
+});
 const apiKey = process.env.QCGENIE_API_KEY;
 const apiKeyHash = process.env.QCGENIE_API_KEY_SHA256;
 const apiScopes = new Set((process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write").split(","));
