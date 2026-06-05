@@ -47,6 +47,7 @@ Persistence state:
 - Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
 - Webhook delivery logs are available at `/v1/webhooks/deliveries`; manual retry execution is available at `/v1/webhooks/deliveries/{delivery_id}/retry`.
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
+- Render cron can run `node scripts/drain-webhooks.mjs` with `QCGENIE_API_KEY`, `QCGENIE_API_BASE_URL`, and `QCGENIE_DRAIN_LIMIT` to process due deliveries on a schedule.
 - Report reads append rounded-minute usage ledger entries.
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
 - Editor marker CSV exports are available at `/v1/qc/jobs/{job_id}/artifacts/markers`.
