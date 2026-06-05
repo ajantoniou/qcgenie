@@ -48,4 +48,32 @@ describe("JsonStore", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("runs deterministic v0 QC and persists events, flags, and artifacts", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const job = store.createJob({ youtube_url: "https://youtube.com/watch?v=creator-cut" });
+      const completed = store.runDeterministicQc(job.jobId);
+
+      expect(completed).toMatchObject({
+        status: "completed",
+        progressPct: 100,
+        verdict: "WATCH",
+        minutesMetered: 19
+      });
+      expect(store.listJobEvents(job.jobId).map((event) => event.eventType)).toContain("deterministic_qc");
+      expect(store.listFlags(job.jobId)[0]).toMatchObject({ gate: "caption", severity: "warn" });
+      expect(store.listArtifacts(job.jobId).map((artifact) => artifact.artifactType)).toEqual(["json_report", "marker_export"]);
+
+      const reloaded = new JsonStore(path);
+      expect(reloaded.listJobEvents(job.jobId).at(-1)).toMatchObject({ eventType: "completed" });
+      expect(reloaded.listFlags(job.jobId)).toHaveLength(1);
+      expect(reloaded.listArtifacts(job.jobId)).toHaveLength(2);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

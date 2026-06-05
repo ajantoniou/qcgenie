@@ -101,6 +101,24 @@
         }
       }
     },
+    "/v1/qc/jobs/{job_id}/events": {
+      "get": {
+        "summary": "List QC lifecycle events for a job",
+        "parameters": [{ "name": "job_id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Lifecycle events" }
+        }
+      }
+    },
+    "/v1/qc/jobs/{job_id}/artifacts": {
+      "get": {
+        "summary": "List report artifacts for a job",
+        "parameters": [{ "name": "job_id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Artifacts" }
+        }
+      }
+    },
     "/v1/usage": {
       "get": {
         "summary": "List recent usage ledger entries",

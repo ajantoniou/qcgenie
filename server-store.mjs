@@ -9,6 +9,9 @@ export class JsonStore {
       jobs: [],
       uploads: [],
       webhooks: [],
+      jobEvents: [],
+      flags: [],
+      artifacts: [],
       usageLedger: [],
       webhookDeliveries: []
     };
@@ -34,6 +37,7 @@ export class JsonStore {
       updatedAt: now
     };
     this.state.jobs.push(job);
+    this.addJobEvent(jobId, "queued", { sourceType: job.sourceType });
     this.persist();
     return job;
   }
@@ -53,6 +57,103 @@ export class JsonStore {
     job.updatedAt = new Date().toISOString();
     this.persist();
     return job;
+  }
+
+  runDeterministicQc(jobId) {
+    const job = this.getJob(jobId);
+    if (!job) return null;
+
+    const stages = [
+      ["ingesting", 15],
+      ["metadata_probe", 30],
+      ["transcribing", 48],
+      ["deterministic_qc", 72],
+      ["agent_review", 88],
+      ["reporting", 96]
+    ];
+
+    for (const [status, progressPct] of stages) {
+      job.status = status;
+      job.progressPct = progressPct;
+      job.updatedAt = new Date().toISOString();
+      this.addJobEvent(jobId, status, { progressPct });
+    }
+
+    job.status = "completed";
+    job.progressPct = 100;
+    job.verdict = "WATCH";
+    job.minutesMetered = 19;
+    job.completedAt = new Date().toISOString();
+    job.updatedAt = job.completedAt;
+
+    this.addFlag(jobId, {
+      gate: "caption",
+      severity: "warn",
+      timestamp: "00:09:12",
+      summary: "Caption sits near the Shorts UI safe area.",
+      evidenceSource: "transcript",
+      transcriptEvidence: "the payment failed twice"
+    });
+
+    this.addArtifact(jobId, {
+      artifactType: "json_report",
+      url: `/v1/qc/jobs/${jobId}/report`,
+      metadata: { format: "json" }
+    });
+    this.addArtifact(jobId, {
+      artifactType: "marker_export",
+      url: `/v1/qc/jobs/${jobId}/artifacts/markers`,
+      metadata: { format: "premiere_csv" }
+    });
+    this.addJobEvent(jobId, "completed", { verdict: job.verdict, minutesMetered: job.minutesMetered });
+    this.persist();
+    return job;
+  }
+
+  addJobEvent(jobId, eventType, payload = {}) {
+    const event = {
+      eventId: `evt_${randomId()}`,
+      jobId,
+      eventType,
+      payload,
+      createdAt: new Date().toISOString()
+    };
+    this.state.jobEvents.push(event);
+    return event;
+  }
+
+  listJobEvents(jobId) {
+    return this.state.jobEvents.filter((event) => event.jobId === jobId);
+  }
+
+  addFlag(jobId, input) {
+    const flag = {
+      flagId: `flg_${randomId()}`,
+      jobId,
+      ...input,
+      createdAt: new Date().toISOString()
+    };
+    this.state.flags.push(flag);
+    return flag;
+  }
+
+  listFlags(jobId) {
+    return this.state.flags.filter((flag) => flag.jobId === jobId);
+  }
+
+  addArtifact(jobId, input) {
+    const artifact = {
+      artifactId: `art_${randomId()}`,
+      jobId,
+      ...input,
+      createdAt: new Date().toISOString()
+    };
+    this.state.artifacts.push(artifact);
+    return artifact;
+  }
+
+  listArtifacts(jobId) {
+    return this.state.artifacts.filter((artifact) => artifact.jobId === jobId);
   }
 
   createUpload(input) {

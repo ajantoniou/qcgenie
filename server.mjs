@@ -31,6 +31,8 @@ createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/v1/qc/jobs") return createJob(req, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+$/.test(url.pathname)) return getJob(req, url, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/report$/.test(url.pathname)) return getReport(req, url, res);
+    if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/events$/.test(url.pathname)) return getJobEvents(req, url, res);
+    if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/artifacts$/.test(url.pathname)) return getJobArtifacts(req, url, res);
     if (req.method === "POST" && /^\/v1\/qc\/jobs\/[^/]+\/cancel$/.test(url.pathname)) return cancelJob(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/uploads") return createUpload(req, res);
     if (req.method === "GET" && /^\/v1\/uploads\/[^/]+$/.test(url.pathname)) return getUpload(req, url, res);
@@ -52,7 +54,8 @@ async function createJob(req, res) {
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
   const job = store.createJob(body);
-  return sendJson(res, 202, job);
+  const completed = store.runDeterministicQc(job.jobId);
+  return sendJson(res, 202, completed || job);
 }
 
 function getJob(req, url, res) {
@@ -69,24 +72,30 @@ function getReport(req, url, res) {
   const job = store.getJob(jobId) || completedJob(jobId);
   const roundedMinutes = Math.max(1, Math.ceil(job.minutesMetered || 19));
   const usage = store.appendUsage(jobId, roundedMinutes);
+  const flags = store.listFlags(jobId);
+  const artifacts = store.listArtifacts(jobId);
   return sendJson(res, 200, {
     jobId,
-    verdict: "WATCH",
+    verdict: job.verdict || "WATCH",
     usage,
-    flags: [
-      {
-        timestamp: "00:09:12",
-        severity: "warn",
-        summary: "Caption sits near the Shorts UI safe area.",
-        evidenceSource: "transcript",
-        transcriptEvidence: "the payment failed twice"
-      }
-    ],
-    artifacts: [
-      { type: "json_report", url: `/v1/qc/jobs/${jobId}/report` },
-      { type: "marker_export", url: `/v1/qc/jobs/${jobId}/artifacts/markers` }
-    ]
+    flags: flags.length ? flags : [defaultFlag(jobId)],
+    artifacts: artifacts.length ? artifacts : defaultArtifacts(jobId)
   });
+}
+
+function getJobEvents(req, url, res) {
+  const auth = requireScope(req, "jobs:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const jobId = url.pathname.split("/").at(-2);
+  return sendJson(res, 200, { events: store.listJobEvents(jobId) });
+}
+
+function getJobArtifacts(req, url, res) {
+  const auth = requireScope(req, "reports:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const jobId = url.pathname.split("/").at(-2);
+  const artifacts = store.listArtifacts(jobId);
+  return sendJson(res, 200, { artifacts: artifacts.length ? artifacts : defaultArtifacts(jobId) });
 }
 
 function cancelJob(req, url, res) {
@@ -152,6 +161,26 @@ function completedJob(jobId) {
     statusUrl: `/v1/qc/jobs/${jobId}`,
     reportUrl: `/v1/qc/jobs/${jobId}/report`
   };
+}
+
+function defaultFlag(jobId) {
+  return {
+    flagId: `flg_${jobId}`,
+    jobId,
+    gate: "caption",
+    severity: "warn",
+    timestamp: "00:09:12",
+    summary: "Caption sits near the Shorts UI safe area.",
+    evidenceSource: "transcript",
+    transcriptEvidence: "the payment failed twice"
+  };
+}
+
+function defaultArtifacts(jobId) {
+  return [
+    { artifactType: "json_report", url: `/v1/qc/jobs/${jobId}/report`, metadata: { format: "json" } },
+    { artifactType: "marker_export", url: `/v1/qc/jobs/${jobId}/artifacts/markers`, metadata: { format: "premiere_csv" } }
+  ];
 }
 
 async function serveStatic(pathname, res) {

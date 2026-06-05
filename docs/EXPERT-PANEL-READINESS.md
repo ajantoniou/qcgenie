@@ -43,6 +43,8 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Built v0 `POST /v1/qc/jobs`, `GET /v1/qc/jobs/{job_id}`, `GET /v1/qc/jobs/{job_id}/report`, `POST /v1/qc/jobs/{job_id}/cancel`.
 - Built v0 `POST /v1/uploads` signed upload URL response shape.
 - Built v0 `GET /v1/uploads/{upload_id}` upload metadata lookup.
+- Built deterministic v0 QC processing on job creation: lifecycle events, stored WATCH verdict, caption-safe-area warning, JSON report artifact, and marker-export artifact.
+- Added `GET /v1/qc/jobs/{job_id}/events` and `GET /v1/qc/jobs/{job_id}/artifacts`.
 - Built v0 bearer-token scope enforcement for API endpoints; production still needs hashed key storage and usage logs.
 - Added SHA-256 API-key hash verification support through `QCGENIE_API_KEY_SHA256`.
 - Built MCP server wrapper artifacts for `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_list_recent_jobs`, `qc_create_upload_url`.
@@ -51,6 +53,7 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Built server-side JSON persistence boundary for jobs, uploads, webhooks, webhook deliveries, and usage ledger entries.
 - Report reads append rounded-minute usage entries and `GET /v1/usage` exposes the recent ledger.
 - Production still needs webhook retry execution, idempotent delivery, encrypted webhook secret storage, Supabase-backed persistence, RLS, and storage buckets for report artifacts.
+- Production still needs real video ingestion, ffmpeg/frame/audio checks, transcript handling, and grounded multimodal review behind the deterministic v0 processor.
 
 ### P1 - Creator Workflow
 

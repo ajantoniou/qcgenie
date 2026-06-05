@@ -42,6 +42,7 @@ Persistence state:
 - API auth supports plaintext `QCGENIE_API_KEY` for bootstrapping and SHA-256 hash verification through `QCGENIE_API_KEY_SHA256`.
 - Webhook delivery previews use HMAC-SHA256 signatures in the `X-QCGenie-Signature` format.
 - Report reads append rounded-minute usage ledger entries.
+- Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
 - Production persistence still needs Supabase-backed tables, RLS, encrypted webhook secret storage, and storage buckets.
 
 ## Stack
