@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://qcgenie.com/sitemap.xml
+Sitemap: https://uploadcheck.app/sitemap.xml

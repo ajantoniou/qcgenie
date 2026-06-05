@@ -51,7 +51,7 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "GET /v1/qc/jobs/{job_id}/events", purpose: "Inspect lifecycle events for agent explanations and progress audit." },
   { methodPath: "GET /v1/qc/jobs/{job_id}/artifacts", purpose: "List generated reports, marker exports, clips, and related QC artifacts." },
   { methodPath: "GET /v1/qc/jobs/{job_id}/artifacts/markers", purpose: "Download editor marker CSV for a completed QC run." },
-  { methodPath: "POST /v1/qc/jobs/{job_id}/gate-verdict", purpose: "Submit an external full-video gate VERDICT.json into QC Genie." },
+  { methodPath: "POST /v1/qc/jobs/{job_id}/gate-verdict", purpose: "Submit an external full-video gate VERDICT.json into UploadCheck." },
   { methodPath: "POST /v1/qc/jobs/{job_id}/cancel", purpose: "Cancel queued or active work before minutes are finalized." },
   { methodPath: "POST /v1/uploads", purpose: "Create a signed upload target for agents and self-serve users." },
   { methodPath: "GET /v1/uploads/{upload_id}", purpose: "Check upload processing and metadata probe status." },
@@ -61,7 +61,7 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
 export const MCP_TOOLS: McpTool[] = [
   {
     name: "qc_run_video",
-    purpose: "Start a full-timeline QC run from Claude, Codex, or another agent workspace.",
+    purpose: "Start a full-timeline UploadCheck run from Claude, Codex, or another agent workspace.",
     inputs: ["youtube_url", "upload_id", "signed_url", "callback_url"],
     outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered"]
   },
@@ -73,7 +73,7 @@ export const MCP_TOOLS: McpTool[] = [
   },
   {
     name: "qc_get_report",
-    purpose: "Retrieve a finished QC report with evidence-grounded timestamp flags.",
+    purpose: "Retrieve a finished UploadCheck report with evidence-grounded timestamp flags.",
     inputs: ["job_id"],
     outputs: ["verdict", "flags", "timestamps", "transcript_evidence", "share_url"]
   },

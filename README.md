@@ -1,6 +1,8 @@
-# QC Genie
+# UploadCheck.app
 
-Agentic quality control for creator video assets. The beachhead is YouTube videos: creators import a URL or upload a cut, QC Genie runs deterministic gates across the full timeline, then adds grounded multimodal review notes.
+Quality check videos, podcasts, and clips before you upload.
+
+The beachhead is YouTube videos: creators import a URL, upload a cut, or run `/check` from Claude Code/Codex; UploadCheck.app runs deterministic gates across the full timeline, then adds grounded multimodal review notes.
 
 ## Product Rules
 
@@ -11,14 +13,20 @@ Agentic quality control for creator video assets. The beachhead is YouTube video
 
 ## Agentic Surface
 
-QC Genie supports self-serve users and programmatic agent workflows.
+UploadCheck.app supports self-serve users and programmatic agent workflows.
 
 - Web users paste a YouTube URL or upload a cut.
+- Agent users run `/check` against a media file, upload id, signed URL, or YouTube URL.
 - Claude, Codex, and other agents call the same REST API through an MCP server or connector.
 - MCP tools are thin wrappers over the API; they do not run QC locally.
 - Customer-facing tools do not expose internal model/provider rails.
+- MCP server name: `uploadcheck`.
+- CLI/package options: `@uploadcheck/cli` and `@uploadcheck/mcp`.
 
 Current API/MCP tools:
+
+- MCP server: `uploadcheck`
+- CLI/package: `@uploadcheck/cli` or `@uploadcheck/mcp`
 
 - `qc_run_video`
 - `qc_get_job`
@@ -30,14 +38,14 @@ Current API/MCP tools:
 - `qc_list_recent_jobs`
 - `qc_create_upload_url`
 
-See `public/agent-manifest.json`, `public/llms.txt`, and `docs/EXPERT-PANEL-READINESS.md`.
+See `public/agent-manifest.json`, `public/llms.txt`, `docs/PRODUCT-ROADMAP.md`, and `docs/EXPERT-PANEL-READINESS.md`.
 
 Public API:
 
-- Public app: `https://qcgenie-web.onrender.com`
-- Web service prototype: `https://qcgenie-webservice.onrender.com`
-- Authenticated API: `https://qcgenie-api.onrender.com`
-- OpenAPI: `https://qcgenie-api.onrender.com/openapi.json`
+- Public app: `https://qcgenie-web.onrender.com` (legacy Render service name)
+- Web service prototype: `https://qcgenie-webservice.onrender.com` (legacy Render service name)
+- Authenticated API: `https://qcgenie-api.onrender.com` (legacy Render service name)
+- OpenAPI: `https://qcgenie-api.onrender.com/openapi.json` (legacy Render service name)
 - MCP wrapper package: `mcp-server/`
 
 Persistence state:

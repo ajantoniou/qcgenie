@@ -1,21 +1,23 @@
-# QC Genie
+# UploadCheck.app
 
-QC Genie is a web platform for pre-publish video quality control.
+UploadCheck.app is an agent-native quality-check platform for videos, podcasts, and clips before upload.
 
-Primary audience: YouTube creators, video editors, studios, agencies, and agentic workflows that prepare digital media for publication.
+Primary audience: creators, editors, studios, agencies, Claude Code/Codex users, and agentic workflows that prepare media for publication.
 
 Core workflow:
-- Paste a YouTube URL, upload a video, or create a job through the API.
-- QC Genie scans the full timeline for frozen frames, audio garble, caption and safe-area issues, aspect-ratio problems, and transcript-grounded review notes.
-- Reports include verdict, timestamps, evidence, editor handoff notes, and export-ready artifacts.
+- Run `/check` from Claude Code, Codex, or another slash-command capable workspace.
+- Paste a YouTube URL, upload a video, provide a signed asset URL, or create a job through the API.
+- UploadCheck scans the full timeline for frozen frames, audio garble, caption and safe-area issues, aspect-ratio problems, transcript-grounded review notes, and external full-video gate results.
+- Reports include verdict, timestamps, evidence, editor handoff notes, suggested fixes, and export-ready artifacts.
 - External full-video gate results can be imported with POST /v1/qc/jobs/{job_id}/gate-verdict after an agent runs scripts/qc-engine/run_gate.py.
 
-Pricing:
-- Creator: planned lightweight plan for Shorts and personal channels.
-- Studio: $49/month for 2,000 QC minutes.
-- Agency: planned team plan for workspaces, webhooks, and editor exports.
+Tagline:
+- Quality check videos, podcasts, and clips before you upload.
 
 Agent integration:
+- MCP server name: uploadcheck.
+- CLI/package options: @uploadcheck/cli and @uploadcheck/mcp.
+- Slash command concept: /check.
 - REST API job lifecycle starts at POST /v1/qc/jobs.
 - OpenAPI: https://qcgenie-api.onrender.com/openapi.json
 - Hosted API base: https://qcgenie-api.onrender.com/v1
@@ -31,5 +33,6 @@ Agent integration:
 - Marker exports are available as CSV at GET /v1/qc/jobs/{job_id}/artifacts/markers for editor handoff.
 
 Trust rule:
-- Hard fails come from automated quality checks or explicit evidence.
+- Hard fails come from automated quality checks, imported full-video gates, or explicit evidence.
 - Advisory review notes cannot create invented hard-fails.
+- Agents should distinguish direct fixes from issues requiring a human source/render pass.

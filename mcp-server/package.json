@@ -1,11 +1,11 @@
 {
-  "name": "@qcgenie/mcp-server",
+  "name": "@uploadcheck/mcp",
   "version": "0.1.0",
   "type": "module",
   "private": true,
-  "description": "MCP wrapper for the QC Genie hosted API.",
+  "description": "MCP wrapper for the UploadCheck hosted API.",
   "bin": {
-    "qcgenie-mcp": "./index.mjs"
+    "uploadcheck-mcp": "./index.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.24.0"

@@ -1,12 +1,15 @@
 {
-  "name": "QC Genie",
-  "description": "Pre-publish video QC for YouTube creators, studios, agencies, and agent workflows.",
+  "name": "UploadCheck.app",
+  "description": "Quality check videos, podcasts, and clips before you upload.",
+  "mcp_server": "uploadcheck",
+  "slash_command": "/check",
+  "packages": ["@uploadcheck/cli", "@uploadcheck/mcp"],
   "api_base_url": "https://qcgenie-api.onrender.com/v1",
   "openapi_url": "https://qcgenie-api.onrender.com/openapi.json",
   "auth": {
     "type": "api_key",
     "header": "Authorization",
-    "format": "Bearer qcg_live_..."
+    "format": "Bearer <workspace_api_key>"
   },
   "tools": [
     "qc_run_video",
@@ -34,5 +37,11 @@
     "POST /v1/webhooks/deliveries/drain",
     "POST /v1/webhooks/deliveries/{delivery_id}/retry",
     "GET /v1/usage"
+  ],
+  "agent_workflow": [
+    "User runs /check with a media file, YouTube URL, upload id, or signed URL.",
+    "The agent calls qc_run_video and polls qc_get_job until completion.",
+    "The agent fetches qc_get_report and lists timestamped evidence.",
+    "The agent fixes captions, checklists, and source-level issues it can reach, then flags issues requiring a source or render pass."
   ]
 }

@@ -3,17 +3,17 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-const apiBaseUrl = process.env.QCGENIE_API_BASE_URL || "https://qcgenie-api.onrender.com";
-const apiKey = process.env.QCGENIE_API_KEY;
+const apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || "https://qcgenie-api.onrender.com";
+const apiKey = process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
 
 const server = new McpServer({
-  name: "qcgenie",
+  name: "uploadcheck",
   version: "0.1.0"
 });
 
 server.tool(
   "qc_run_video",
-  "Start a QC Genie video QC job from a YouTube URL, upload id, or signed URL.",
+  "Start an UploadCheck quality check from a YouTube URL, upload id, or signed URL.",
   {
     youtube_url: z.string().optional(),
     upload_id: z.string().optional(),
@@ -61,7 +61,7 @@ server.tool(
 
 server.tool(
   "qc_submit_gate_verdict",
-  "Submit an external full-video gate VERDICT.json result into QC Genie.",
+  "Submit an external full-video gate VERDICT.json result into UploadCheck.",
   {
     job_id: z.string(),
     verdict: z.any()
@@ -94,7 +94,7 @@ async function apiFetch(path, options = {}) {
   const response = await authedFetch(path, options);
   const payload = await response.json();
   if (!response.ok) {
-    throw new Error(`QC Genie API ${response.status}: ${JSON.stringify(payload)}`);
+    throw new Error(`UploadCheck API ${response.status}: ${JSON.stringify(payload)}`);
   }
   return payload;
 }
@@ -103,14 +103,14 @@ async function apiTextFetch(path, options = {}) {
   const response = await authedFetch(path, options);
   const payload = await response.text();
   if (!response.ok) {
-    throw new Error(`QC Genie API ${response.status}: ${payload}`);
+    throw new Error(`UploadCheck API ${response.status}: ${payload}`);
   }
   return payload;
 }
 
 async function authedFetch(path, options = {}) {
   if (!apiKey) {
-    throw new Error("Set QCGENIE_API_KEY before running the MCP server.");
+    throw new Error("Set UPLOADCHECK_API_KEY or QCGENIE_API_KEY before running the MCP server.");
   }
 
   return fetch(`${apiBaseUrl}${path}`, {

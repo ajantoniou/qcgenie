@@ -1,8 +1,8 @@
-# QC Genie Expert Panel Readiness
+# UploadCheck.app Expert Panel Readiness
 
 ## Verdict
 
-QC Genie has a credible wedge: full-timeline creator video QC with hard checks, evidence-backed review notes, editor handoff, self-serve upload, and programmatic agent access. It is now a stronger product prototype, but production launch still depends on backend execution, real ingest, auditable reports, billing integration, and public proof.
+UploadCheck.app has a credible wedge: full-timeline creator video QC with hard checks, evidence-backed review notes, editor handoff, self-serve upload, and programmatic agent access. It is now a stronger product prototype, but production launch still depends on backend execution, real ingest, auditable reports, billing integration, and public proof.
 
 ## Panel Recommendations
 
@@ -61,7 +61,7 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 - Report reads append rounded-minute usage entries and `GET /v1/usage` exposes the recent ledger.
 - Added Supabase schema RLS hardening: workspace membership table, RLS enabled for all app tables, workspace-scoped policies for non-secret rows, and server-only default access for API key and webhook secret tables.
 - Production still needs Render `QCGENIE_SECRET_ENCRYPTION_KEY` configuration, live Supabase-backed persistence, database advisor verification, legacy webhook secret migration, and storage buckets for report artifacts.
-- Production still needs hosted video file/object storage and worker execution for ffmpeg/frame/audio checks; external agents can now run the reference gate and import `VERDICT.json` into QCGenie.
+- Production still needs hosted video file/object storage and worker execution for ffmpeg/frame/audio checks; external agents can now run the reference gate and import `VERDICT.json` into UploadCheck.app.
 
 ### P1 - Creator Workflow
 

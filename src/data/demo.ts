@@ -71,7 +71,7 @@ export const editorHandoff = [
 
 export const expertPanels = [
   {
-    title: "Creator QC panel",
+    title: "Creator upload panel",
     experts: "video editor, YouTube producer, audio engineer, MicroSaaS operator",
     recommendations: [
       "Make WATCH a real outcome for warning-only runs, not a hidden PASS.",
@@ -84,7 +84,7 @@ export const expertPanels = [
     experts: "MCP designer, API architect, Claude/Codex automation user",
     recommendations: [
       "Expose job creation, polling, reports, and webhooks through stable API endpoints.",
-      "Ship MCP tools for qc_run_video, qc_get_report, and qc_list_recent_jobs.",
+      "Ship UploadCheck MCP tools for qc_run_video, qc_get_report, and qc_list_recent_jobs.",
       "Keep internal model/provider rails hidden from customer-facing tools."
     ]
   },
@@ -106,7 +106,7 @@ export const readinessTasks = [
   { phase: "Trust", item: "Persist gate thresholds, source hash, frame rate, coverage, and suppressed agent notes.", status: "Next" },
   { phase: "Ingest", item: "Replace demo input with YouTube OAuth, signed upload URLs, and transcript import.", status: "Next" },
   { phase: "Editor", item: "Generate preview clips, thumbnails, marker exports, and copyable editor notes.", status: "Next" },
-  { phase: "Agentic", item: "Deploy API worker, API keys, webhooks, OpenAPI spec, and MCP server package.", status: "In design" },
+  { phase: "Agentic", item: "Deploy API worker, API keys, webhooks, OpenAPI spec, CLI, and MCP server package.", status: "In design" },
   { phase: "Growth", item: "Add pricing, proof examples, SEO pages, llms.txt, and public sample reports.", status: "In design" },
   { phase: "Retention", item: "Weekly channel digest, saved presets, re-run reminders, trend alerts.", status: "Backlog" }
 ] as const;

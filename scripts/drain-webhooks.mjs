@@ -24,7 +24,7 @@ try {
 }
 
 if (!response.ok) {
-  throw new Error(`QC Genie webhook drain failed: HTTP ${response.status} ${JSON.stringify(payload)}`);
+  throw new Error(`UploadCheck.app webhook drain failed: HTTP ${response.status} ${JSON.stringify(payload)}`);
 }
 
 console.log(JSON.stringify({

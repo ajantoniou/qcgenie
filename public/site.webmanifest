@@ -1,11 +1,11 @@
 {
-  "name": "QC Genie",
-  "short_name": "QC Genie",
-  "description": "Pre-publish video QC for YouTube creators, studios, and agencies.",
+  "name": "UploadCheck.app",
+  "short_name": "UploadCheck",
+  "description": "Quality check videos, podcasts, and clips before you upload.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f5f7fa",
-  "theme_color": "#0f172a",
+  "background_color": "#f4f6f8",
+  "theme_color": "#101827",
   "icons": [
     {
       "src": "/favicon.svg",

@@ -1,7 +1,7 @@
 {
-  "name": "qcgenie",
+  "name": "uploadcheck-app",
   "version": "1.0.0",
-  "description": "Agentic QC MicroSaaS for creator video quality gates.",
+  "description": "Quality check videos, podcasts, and clips before you upload.",
   "main": "index.js",
   "scripts": {
     "dev": "vite --host 0.0.0.0",

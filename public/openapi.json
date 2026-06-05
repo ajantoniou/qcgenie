@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "QC Genie API",
+    "title": "UploadCheck.app API",
     "version": "0.1.0",
-    "description": "Programmatic pre-publish video QC for YouTube, uploads, and agent workflows."
+    "description": "Programmatic quality checks for videos, podcasts, clips, uploads, and agent workflows."
   },
   "servers": [
     {
@@ -20,7 +20,7 @@
       "bearerApiKey": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Workspace API key. Prefix convention: qcg_live_..."
+        "description": "Workspace API key supplied as a bearer token."
       }
     },
     "schemas": {

@@ -35,10 +35,30 @@ type View = "home" | "dashboard" | "agents" | "readiness";
 const nav = [
   { label: "Home", icon: Rocket, view: "home" },
   { label: "Dashboard", icon: FileVideo, view: "dashboard" },
-  { label: "Agent API", icon: Code2, view: "agents" },
+  { label: "Agent Workflow", icon: Code2, view: "agents" },
   { label: "Readiness", icon: BarChart3, view: "readiness" },
   { label: "Billing", icon: CircleDollarSign, view: "dashboard" }
 ] satisfies Array<{ label: string; icon: typeof Rocket; view: View }>;
+
+const workflowSteps = [
+  "/check final-upload.mp4",
+  "UploadCheck inspects frames, audio, captions, and format",
+  "agent receives timestamped evidence",
+  "agent fixes captions, checklists, and source-level issues it can reach"
+] as const;
+
+const agentFindings = [
+  { time: "00:12.4", issue: "frozen frame detected", evidence: "frame hash held for 2.9s" },
+  { time: "01:08.7", issue: "right-channel audio dropout", evidence: "waveform evidence saved" },
+  { time: "02:44.0", issue: "caption mismatch", evidence: "subtitle differs from spoken words" },
+  { time: "09:16.2", issue: "black frame before end card", evidence: "visual evidence requires review" }
+] as const;
+
+const packageOptions = [
+  { name: "@uploadcheck/cli", detail: "Run checks from terminal, scripts, or CI before upload." },
+  { name: "@uploadcheck/mcp", detail: "Expose UploadCheck tools to Claude Code, Codex, and MCP-capable agents." },
+  { name: "uploadcheck", detail: "MCP server name for connector setup and agent manifests." }
+] as const;
 
 export function App() {
   const [view, setView] = useState<View>("home");
@@ -47,10 +67,10 @@ export function App() {
     <main className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brandMark">Q</div>
+          <div className="brandMark">U</div>
           <div>
-            <strong>QC Genie</strong>
-            <span>Pre-publish video QC</span>
+            <strong>UploadCheck.app</strong>
+            <span>Media checks before upload</span>
           </div>
         </div>
 
@@ -71,7 +91,7 @@ export function App() {
         <div className="sidebarFooter">
           <span>Studio plan</span>
           <strong>${PLANS.studio.monthlyPrice}/mo</strong>
-          <small>{PLANS.studio.monthlyMinutes.toLocaleString()} QC minutes included</small>
+          <small>{PLANS.studio.monthlyMinutes.toLocaleString()} check minutes included</small>
         </div>
       </aside>
 
@@ -90,79 +110,125 @@ function LandingView({ onOpenDashboard, onOpenAgents }: { onOpenDashboard: () =>
     <div className="pageStack">
       <section className="landingHero">
         <div className="heroCopy">
-          <h1>Catch video mistakes before YouTube does.</h1>
-          <p>
-            QC Genie scans every upload for frozen frames, audio glitches, caption problems, format mistakes, and
-            evidence-backed review notes before a creator, editor, or client hits publish.
+          <h1>Give your agent eyes and ears before upload.</h1>
+          <p>Quality check videos, podcasts, and clips before you upload.</p>
+          <p className="heroSupport">
+            Run <code>/check</code> from Claude Code, Codex, or another creator workspace. UploadCheck returns
+            timestamped frame, audio, caption, and format evidence so your agent can list issues and fix what it can.
           </p>
           <div className="heroActions">
-            <button onClick={onOpenDashboard} type="button">
-              <Play size={17} />
-              Run sample QC
-            </button>
-            <button className="secondaryButton" onClick={onOpenAgents} type="button">
+            <button onClick={onOpenAgents} type="button">
               <Code2 size={17} />
-              Connect an agent
+              Run /check workflow
+            </button>
+            <button className="secondaryButton" onClick={onOpenDashboard} type="button">
+              <Play size={17} />
+              Try sample video
             </button>
           </div>
-        </div>
-        <div className="heroProof">
-          <div className="verdictMini">
-            <span>Current sample</span>
-            <strong className={activeRun.verdict.toLowerCase()}>{activeRun.verdict}</strong>
-            <p>1 issue needs review before publish.</p>
-          </div>
-          <div className="proofGrid">
-            <span>Full-timeline scan</span>
-            <span>Editor notes</span>
-            <span>API + MCP ready</span>
-            <span>Client reports</span>
+          <div className="workflowStrip" aria-label="UploadCheck agent workflow">
+            {workflowSteps.map((step) => (
+              <span key={step}>{step}</span>
+            ))}
           </div>
         </div>
+        <AgentTranscript />
       </section>
 
       <section className="proofBand">
         <article>
-          <BadgeCheck size={22} />
-          <strong>No invented hard-fails</strong>
-          <p>Advisory notes must be backed by transcript or hard-check evidence before they appear in a report.</p>
+          <Sparkles size={22} />
+          <strong>Multimodal sensory layer</strong>
+          <p>Agents get structured visual, audio, caption, and transcript signals they cannot infer from code alone.</p>
         </article>
         <article>
-          <ListChecks size={22} />
-          <strong>Built for creator defects</strong>
-          <p>Freeze/loop, audio garble, captions, aspect ratio, transcript grounding, and editor-ready timestamps.</p>
+          <BadgeCheck size={22} />
+          <strong>Evidence over vibes</strong>
+          <p>Findings carry timecodes, severity, evidence notes, and clear boundaries around what needs human review.</p>
         </article>
         <article>
           <Webhook size={22} />
-          <strong>Self-serve or programmatic</strong>
-          <p>Paste a YouTube URL, upload a cut, or let Claude/Codex start QC through the agent API.</p>
+          <strong>Same report everywhere</strong>
+          <p>Use the web app, CLI, MCP server, REST API, or webhooks without changing the core report format.</p>
         </article>
+      </section>
+
+      <section className="workflowPanel">
+        <div>
+          <h2>Built for the moment before publish</h2>
+          <p>
+            UploadCheck is a repeatable pre-upload gate for creator teams using agents to produce, edit, caption, and
+            package media.
+          </p>
+        </div>
+        <div className="workflowCards">
+          <article>
+            <strong>Videos</strong>
+            <p>Freeze, black frame, aspect, caption safe-area, transcript grounding, and export checks.</p>
+          </article>
+          <article>
+            <strong>Podcasts</strong>
+            <p>Audio dropout, clipping, dead air, transcript alignment, and episode handoff notes.</p>
+          </article>
+          <article>
+            <strong>Clips</strong>
+            <p>Shorts-safe captions, mobile crop risk, loudness, intro/outro trim, and upload-ready reports.</p>
+          </article>
+        </div>
       </section>
 
       <section className="pricingBand">
         <div>
           <h2>Pricing that maps to production volume</h2>
-          <p>Minutes are metered, but the product is sold around fewer revision loops and safer publishing.</p>
+          <p>Minutes are metered, but the product is sold around fewer revision loops and safer uploads.</p>
         </div>
         <div className="priceCards">
           <article>
             <span>Creator</span>
             <strong>$29/mo</strong>
-            <p>Light Shorts and personal channel checks.</p>
+            <p>Light clips, Shorts, and solo channel checks.</p>
           </article>
           <article className="featuredPrice">
             <span>Studio</span>
             <strong>${PLANS.studio.monthlyPrice}/mo</strong>
-            <p>{PLANS.studio.monthlyMinutes.toLocaleString()} minutes, reports, and agent access.</p>
+            <p>{PLANS.studio.monthlyMinutes.toLocaleString()} minutes, reports, CLI, and MCP access.</p>
           </article>
           <article>
             <span>Agency</span>
             <strong>$149/mo</strong>
-            <p>Team workspaces, webhooks, marker exports, and client links.</p>
+            <p>Team workspaces, webhooks, marker exports, and client-ready links.</p>
           </article>
         </div>
       </section>
     </div>
+  );
+}
+
+function AgentTranscript() {
+  return (
+    <aside className="agentTranscript" aria-label="Sample UploadCheck agent transcript">
+      <div className="terminalHeader">
+        <span>Claude Code / Codex</span>
+        <strong>/check final-upload.mp4</strong>
+      </div>
+      <div className="terminalBody">
+        <p className="terminalLine success">Running UploadCheck...</p>
+        <p>Found 4 review items before upload:</p>
+        <ol>
+          {agentFindings.map((finding) => (
+            <li key={`${finding.time}-${finding.issue}`}>
+              <time>{finding.time}</time>
+              <span>{finding.issue}</span>
+              <em>{finding.evidence}</em>
+            </li>
+          ))}
+        </ol>
+        <p className="terminalLine">
+          I can fix the caption file and update the render checklist now. Frozen video and audio stem issues need a
+          source/render pass.
+        </p>
+      </div>
+    </aside>
   );
 }
 
@@ -171,8 +237,8 @@ function DashboardView() {
     <div className="pageStack">
       <header className="topbar">
         <div>
-          <h1>Video QC command center</h1>
-          <p>Automated checks decide the verdict. Evidence-backed review notes explain what to fix.</p>
+          <h1>Upload quality command center</h1>
+          <p>Automated checks decide the verdict. Evidence-backed notes explain what to fix before upload.</p>
         </div>
         <div className="usagePill">
           <Gauge size={18} />
@@ -188,14 +254,14 @@ function DashboardView() {
               <UploadCloud size={28} />
               <div>
                 <h2>Import a YouTube URL or upload a cut</h2>
-                <p>Run full-timeline checks before a creator publishes or sends client approval.</p>
+                <p>Run full-timeline checks before a creator publishes, uploads, or sends client approval.</p>
               </div>
             </div>
             <div className="importControls">
               <input aria-label="Video source" defaultValue="https://youtube.com/watch?v=creator-cut" />
               <button type="button">
                 <Play size={17} />
-                Run QC
+                Run check
               </button>
             </div>
           </section>
@@ -227,13 +293,13 @@ function DashboardView() {
           <section className="proofCard">
             <BadgeCheck size={20} />
             <strong>No invented hard-fails</strong>
-            <p>Review notes are filtered against evidence before they can appear in a customer report.</p>
+            <p>Review notes are filtered against evidence before they can appear in an upload report.</p>
           </section>
 
           <section className="planCard">
-            <span>Ready for creator clients</span>
-            <strong>API + app workflow</strong>
-            <p>Designed for YouTube first, with the same gate model extensible to ads, product demos, and courses.</p>
+            <span>Ready for creator workflows</span>
+            <strong>App + CLI + MCP</strong>
+            <p>Designed for video first, with the same gate model extensible to podcasts, ads, demos, and courses.</p>
             <button type="button">{PLANS.studio.checkoutLabel}</button>
           </section>
         </aside>
@@ -247,7 +313,7 @@ function GatePanel() {
     <section className="gatePanel">
       <div className="sectionTitle">
         <ListChecks size={19} />
-        <h2>Pre-publish check results</h2>
+        <h2>Pre-upload check results</h2>
       </div>
       <div className="gateList">
         {gates.map((gate) => (
@@ -302,7 +368,7 @@ function ReviewTimeline() {
             <time>{flag.timestamp}</time>
             <div>
               <strong>{flag.summary}</strong>
-              <p>Grounded on transcript evidence: “{flag.transcriptEvidence}”.</p>
+              <p>Grounded on transcript evidence: "{flag.transcriptEvidence}".</p>
             </div>
           </article>
         ))}
@@ -338,15 +404,47 @@ function AgentView() {
     <div className="pageStack">
       <header className="topbar">
         <div>
-          <h1>Agent and API workflow</h1>
-          <p>Claude, Codex, and production systems call the same QC Genie job API as the web app.</p>
+          <h1>Run video QC inside your agent workspace</h1>
+          <p>
+            UploadCheck gives Claude Code, Codex, and MCP-capable agents a quality-check loop for media they could not
+            inspect on their own.
+          </p>
         </div>
         <div className="usagePill">
           <KeyRound size={18} />
-          <span>API keys</span>
-          <strong>Scoped</strong>
+          <span>MCP server</span>
+          <strong>uploadcheck</strong>
         </div>
       </header>
+
+      <section className="agentRunPanel">
+        <div className="quickstart">
+          <div className="sectionTitle">
+            <Code2 size={19} />
+            <h2>Agent QC in 60 seconds</h2>
+          </div>
+          <div className="commandBlock">
+            <code>npm install -g @uploadcheck/cli</code>
+            <code>uploadcheck mcp install</code>
+            <code>/check ./final-upload.mp4</code>
+          </div>
+          <p>
+            The agent starts the check, waits for results, summarizes evidence, then updates captions, render checklists,
+            or source files where it has access.
+          </p>
+          <p>agent fixes captions, checklists, and source-level issues it can reach</p>
+        </div>
+        <AgentTranscript />
+      </section>
+
+      <section className="packageGrid" aria-label="UploadCheck packages">
+        {packageOptions.map((option) => (
+          <article key={option.name}>
+            <strong>{option.name}</strong>
+            <p>{option.detail}</p>
+          </article>
+        ))}
+      </section>
 
       <section className="agentGrid">
         <section className="reportsPanel">
@@ -368,7 +466,7 @@ function AgentView() {
         <section className="reportsPanel">
           <div className="sectionTitle">
             <Webhook size={19} />
-            <h2>REST endpoints</h2>
+            <h2>REST reference</h2>
           </div>
           <div className="toolList">
             {agentApiEndpoints.map((endpoint) => (

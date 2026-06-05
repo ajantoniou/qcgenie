@@ -53,7 +53,7 @@ createServer(async (req, res) => {
     return sendJson(res, 500, { error: "internal_error", message: error instanceof Error ? error.message : "Unknown error" });
   }
 }).listen(port, () => {
-  console.log(`QC Genie web service listening on ${port}`);
+  console.log(`UploadCheck.app web service listening on ${port}`);
 });
 
 async function createJob(req, res) {
