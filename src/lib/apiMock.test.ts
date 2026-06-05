@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createQcJob, createUpload, getQcJob, getQcReport } from "./apiMock";
+import { assertApiKey, parseApiScopes } from "./apiMock";
 
 describe("api mock service contract", () => {
   it("creates and polls a QC job from a YouTube URL", () => {
@@ -46,5 +47,19 @@ describe("api mock service contract", () => {
     expect(upload.uploadId).toMatch(/^upl_/);
     expect(upload.signedPutUrl).toContain(upload.uploadId);
     expect(upload.expiresAt).toContain("T");
+  });
+
+  it("enforces scoped bearer tokens when API keys are configured", () => {
+    const scopes = parseApiScopes("jobs:write,reports:read");
+
+    expect(assertApiKey("Bearer qcg_test_key", "jobs:write", "qcg_test_key", scopes).ok).toBe(true);
+    expect(assertApiKey("Bearer qcg_test_key", "uploads:write", "qcg_test_key", scopes)).toMatchObject({
+      ok: false,
+      status: 403
+    });
+    expect(assertApiKey(undefined, "jobs:write", "qcg_test_key", scopes)).toMatchObject({
+      ok: false,
+      status: 401
+    });
   });
 });

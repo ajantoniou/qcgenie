@@ -40,10 +40,11 @@ QC Genie has a credible wedge: full-timeline creator video QC with hard checks, 
 
 ### P0 - Backend and Agentic Surface
 
-- Build `POST /v1/qc/jobs`, `GET /v1/qc/jobs/{job_id}`, `GET /v1/qc/jobs/{job_id}/report`, `POST /v1/qc/jobs/{job_id}/cancel`.
-- Build `POST /v1/uploads`, signed upload URLs, and upload metadata probe.
-- Implement API keys, scopes, key hashing, and API usage logging.
-- Implement MCP server tools: `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_list_recent_jobs`, `qc_create_upload_url`.
+- Built v0 `POST /v1/qc/jobs`, `GET /v1/qc/jobs/{job_id}`, `GET /v1/qc/jobs/{job_id}/report`, `POST /v1/qc/jobs/{job_id}/cancel`.
+- Built v0 `POST /v1/uploads` signed upload URL response shape.
+- Built v0 bearer-token scope enforcement for API endpoints; production still needs hashed key storage and usage logs.
+- Built MCP server wrapper artifacts for `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_list_recent_jobs`, `qc_create_upload_url`.
+- Added public OpenAPI at `/openapi.json`.
 - Add webhooks with signed payloads and retry logs.
 
 ### P1 - Creator Workflow

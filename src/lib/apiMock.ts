@@ -42,6 +42,12 @@ export interface UploadCreated {
   expiresAt: string;
 }
 
+export interface AuthResult {
+  ok: boolean;
+  status?: 401 | 403;
+  error?: "missing_api_key" | "invalid_api_key" | "insufficient_scope";
+}
+
 const jobs = new Map<string, ApiJob>();
 
 export function createQcJob(input: BuildQcJobRequestInput): ApiJobCreated {
@@ -100,6 +106,33 @@ export function createUpload(input: UploadInput): UploadCreated {
     signedPutUrl: `https://uploads.qcgenie.com/${uploadId}/${encodedName}?content_type=${encodeURIComponent(input.contentType)}&size=${input.sizeBytes}`,
     expiresAt
   };
+}
+
+export function parseApiScopes(value: string | undefined): Set<string> {
+  return new Set((value ?? "").split(",").map((scope) => scope.trim()).filter(Boolean));
+}
+
+export function assertApiKey(
+  authorizationHeader: string | undefined,
+  requiredScope: string,
+  configuredKey: string | undefined,
+  configuredScopes: Set<string>
+): AuthResult {
+  if (!configuredKey) return { ok: true };
+  if (!authorizationHeader?.startsWith("Bearer ")) {
+    return { ok: false, status: 401, error: "missing_api_key" };
+  }
+
+  const token = authorizationHeader.slice("Bearer ".length).trim();
+  if (token !== configuredKey) {
+    return { ok: false, status: 401, error: "invalid_api_key" };
+  }
+
+  if (!configuredScopes.has(requiredScope)) {
+    return { ok: false, status: 403, error: "insufficient_scope" };
+  }
+
+  return { ok: true };
 }
 
 function seedCompletedJob(jobId: string): ApiJob {

@@ -6,6 +6,8 @@ import { createServer } from "node:http";
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
 const jobs = new Map();
+const apiKey = process.env.QCGENIE_API_KEY;
+const apiScopes = new Set((process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write").split(","));
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -22,12 +24,13 @@ createServer(async (req, res) => {
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
 
     if (url.pathname === "/healthz") return sendJson(res, 200, { ok: true, service: "qcgenie" });
+    if (req.method === "GET" && url.pathname === "/openapi.json") return serveStatic("/openapi.json", res);
     if (req.method === "POST" && url.pathname === "/v1/qc/jobs") return createJob(req, res);
-    if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+$/.test(url.pathname)) return getJob(url, res);
-    if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/report$/.test(url.pathname)) return getReport(url, res);
-    if (req.method === "POST" && /^\/v1\/qc\/jobs\/[^/]+\/cancel$/.test(url.pathname)) return cancelJob(url, res);
+    if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+$/.test(url.pathname)) return getJob(req, url, res);
+    if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/report$/.test(url.pathname)) return getReport(req, url, res);
+    if (req.method === "POST" && /^\/v1\/qc\/jobs\/[^/]+\/cancel$/.test(url.pathname)) return cancelJob(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/uploads") return createUpload(req, res);
-    if (req.method === "GET" && url.pathname === "/v1/qc/jobs") return listJobs(res);
+    if (req.method === "GET" && url.pathname === "/v1/qc/jobs") return listJobs(req, res);
 
     return serveStatic(url.pathname, res);
   } catch (error) {
@@ -38,6 +41,8 @@ createServer(async (req, res) => {
 });
 
 async function createJob(req, res) {
+  const auth = requireScope(req, "jobs:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
   const jobId = `job_${Math.random().toString(36).slice(2, 10)}`;
   const job = {
@@ -55,12 +60,16 @@ async function createJob(req, res) {
   return sendJson(res, 202, job);
 }
 
-function getJob(url, res) {
+function getJob(req, url, res) {
+  const auth = requireScope(req, "jobs:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-1);
   return sendJson(res, 200, jobs.get(jobId) || completedJob(jobId));
 }
 
-function getReport(url, res) {
+function getReport(req, url, res) {
+  const auth = requireScope(req, "reports:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-2);
   return sendJson(res, 200, {
     jobId,
@@ -81,7 +90,9 @@ function getReport(url, res) {
   });
 }
 
-function cancelJob(url, res) {
+function cancelJob(req, url, res) {
+  const auth = requireScope(req, "jobs:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-2);
   const job = jobs.get(jobId) || completedJob(jobId);
   job.status = "cancelled";
@@ -90,6 +101,8 @@ function cancelJob(url, res) {
 }
 
 async function createUpload(req, res) {
+  const auth = requireScope(req, "uploads:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
   const uploadId = `upl_${Math.random().toString(36).slice(2, 10)}`;
   return sendJson(res, 201, {
@@ -99,7 +112,9 @@ async function createUpload(req, res) {
   });
 }
 
-function listJobs(res) {
+function listJobs(req, res) {
+  const auth = requireScope(req, "jobs:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   return sendJson(res, 200, { jobs: Array.from(jobs.values()).slice(-20) });
 }
 
@@ -136,4 +151,18 @@ async function readJson(req) {
 function sendJson(res, status, payload) {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify(payload, null, 2));
+}
+
+function requireScope(req, requiredScope) {
+  return requireScopeFromHeaders(req.headers, requiredScope);
+}
+
+function requireScopeFromHeaders(headers, requiredScope) {
+  if (!apiKey) return { ok: true };
+  const authorization = headers?.authorization;
+  if (!authorization?.startsWith("Bearer ")) return { ok: false, status: 401, error: "missing_api_key" };
+  const token = authorization.slice("Bearer ".length).trim();
+  if (token !== apiKey) return { ok: false, status: 401, error: "invalid_api_key" };
+  if (!apiScopes.has(requiredScope)) return { ok: false, status: 403, error: "insufficient_scope" };
+  return { ok: true };
 }

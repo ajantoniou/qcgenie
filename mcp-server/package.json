@@ -1,0 +1,13 @@
+{
+  "name": "@qcgenie/mcp-server",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "MCP wrapper for the QC Genie hosted API.",
+  "bin": {
+    "qcgenie-mcp": "./index.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.0"
+  }
+}

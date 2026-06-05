@@ -18,7 +18,7 @@ QC Genie supports self-serve users and programmatic agent workflows.
 - MCP tools are thin wrappers over the API; they do not run QC locally.
 - Customer-facing tools do not expose internal model/provider rails.
 
-Planned tools:
+Current API/MCP tools:
 
 - `qc_run_video`
 - `qc_get_job`
@@ -27,6 +27,12 @@ Planned tools:
 - `qc_create_upload_url`
 
 See `public/agent-manifest.json`, `public/llms.txt`, and `docs/EXPERT-PANEL-READINESS.md`.
+
+Public API:
+
+- App and API: `https://qcgenie-webservice.onrender.com`
+- OpenAPI: `https://qcgenie-webservice.onrender.com/openapi.json`
+- MCP wrapper package: `mcp-server/`
 
 ## Stack
 

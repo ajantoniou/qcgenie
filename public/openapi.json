@@ -1,0 +1,138 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "QC Genie API",
+    "version": "0.1.0",
+    "description": "Programmatic pre-publish video QC for YouTube, uploads, and agent workflows."
+  },
+  "servers": [
+    {
+      "url": "https://qcgenie-webservice.onrender.com"
+    }
+  ],
+  "security": [
+    {
+      "bearerApiKey": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerApiKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Workspace API key. Prefix convention: qcg_live_..."
+      }
+    },
+    "schemas": {
+      "QcJob": {
+        "type": "object",
+        "properties": {
+          "jobId": { "type": "string" },
+          "status": { "type": "string" },
+          "progressPct": { "type": "integer" },
+          "verdict": { "type": ["string", "null"], "enum": ["PASS", "WATCH", "BLOCK", null] },
+          "minutesMetered": { "type": "integer" },
+          "statusUrl": { "type": "string" },
+          "reportUrl": { "type": "string" }
+        },
+        "required": ["jobId", "status", "progressPct", "verdict", "minutesMetered"]
+      }
+    }
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Health check",
+        "security": [],
+        "responses": {
+          "200": { "description": "Service is healthy" }
+        }
+      }
+    },
+    "/v1/qc/jobs": {
+      "post": {
+        "summary": "Create a QC job",
+        "security": [{ "bearerApiKey": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "youtube_url": { "type": "string" },
+                  "upload_id": { "type": "string" },
+                  "signed_url": { "type": "string" },
+                  "callback_url": { "type": "string" },
+                  "idempotency_key": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": { "description": "Job queued" },
+          "401": { "description": "Missing or invalid API key" },
+          "403": { "description": "Insufficient scope" }
+        }
+      },
+      "get": {
+        "summary": "List recent QC jobs",
+        "responses": {
+          "200": { "description": "Recent jobs" }
+        }
+      }
+    },
+    "/v1/qc/jobs/{job_id}": {
+      "get": {
+        "summary": "Get QC job status",
+        "parameters": [{ "name": "job_id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Job status" }
+        }
+      }
+    },
+    "/v1/qc/jobs/{job_id}/report": {
+      "get": {
+        "summary": "Get QC report",
+        "parameters": [{ "name": "job_id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Timestamped report" }
+        }
+      }
+    },
+    "/v1/qc/jobs/{job_id}/cancel": {
+      "post": {
+        "summary": "Cancel a QC job",
+        "parameters": [{ "name": "job_id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Job cancelled" }
+        }
+      }
+    },
+    "/v1/uploads": {
+      "post": {
+        "summary": "Create a signed upload target",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filename": { "type": "string" },
+                  "content_type": { "type": "string" },
+                  "size_bytes": { "type": "integer" }
+                },
+                "required": ["filename", "content_type", "size_bytes"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Signed upload target" }
+        }
+      }
+    }
+  }
+}
