@@ -270,6 +270,20 @@
         }
       }
     },
+    "/product-hunt-launch-kit.json": {
+      "get": {
+        "summary": "Product Hunt launch kit",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Machine-readable Product Hunt launch copy, demo flow, proof links, pricing posture, and go/no-go rule.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
     "/cost-basis.json": {
       "get": {
         "summary": "UploadCheck cost basis",

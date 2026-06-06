@@ -52,6 +52,7 @@ export function buildLaunchStatus(readiness, {
       launch_targets: "https://qcgenie-api.onrender.com/launch-targets.json",
       cost_basis: "https://qcgenie-api.onrender.com/cost-basis.json",
       sample_reports: "https://qcgenie-api.onrender.com/sample-reports/index.json",
+      product_hunt_launch_kit: "https://qcgenie-api.onrender.com/product-hunt-launch-kit.json",
       launch_status: "https://qcgenie-api.onrender.com/launch-status.json",
       live_launch_status: "https://qcgenie-api.onrender.com/v1/launch-status",
       product_hunt_page: "https://uploadcheck.app/product-hunt/",
@@ -106,6 +107,11 @@ function verifiedControls() {
       id: "sample_reports",
       status: "done",
       evidence: "Public PASS, WATCH, and BLOCK sample report JSON artifacts are linked from /sample-report/, agent-manifest.json, and llms.txt."
+    },
+    {
+      id: "product_hunt_launch_kit",
+      status: "done",
+      evidence: "Public product-hunt-launch-kit.json packages launch copy, demo flow, sample-report links, cost-basis proof, and go/no-go rule for operators and agents."
     },
     {
       id: "observed_costs",

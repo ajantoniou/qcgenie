@@ -39,6 +39,7 @@ describe("static SEO/AEO pages", () => {
     expect(html).toContain("product_hunt_ready=true");
     expect(html).toContain("remaining_blockers is empty");
     expect(html).toContain("npm run launch:check");
+    expect(html).toContain("/product-hunt-launch-kit.json");
   });
 
   it("keeps pricing honest about deep-review cost guardrails", () => {

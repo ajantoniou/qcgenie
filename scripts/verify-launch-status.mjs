@@ -15,6 +15,7 @@ function assert(condition, message) {
 const status = readJson("public/launch-status.json");
 const manifest = readJson("public/agent-manifest.json");
 const openapi = readJson("public/openapi.json");
+const launchKit = readJson("public/product-hunt-launch-kit.json");
 const llms = readFileSync(resolve("public/llms.txt"), "utf8");
 
 const representativeReadiness = buildReadinessReport({
@@ -47,6 +48,7 @@ assert(status.verified_controls.some((control) => control.id === "codex_mcp" && 
 assert(status.verified_controls.some((control) => control.id === "cost_basis" && control.evidence.includes("cost-basis:verify")), "launch-status cost-basis evidence must cite cost-basis:verify");
 assert(status.verified_controls.some((control) => control.id === "roadmap" && control.evidence.includes("roadmap:verify")), "launch-status roadmap evidence must cite roadmap:verify");
 assert(status.verified_controls.some((control) => control.id === "sample_reports" && control.evidence.includes("PASS, WATCH, and BLOCK")), "launch-status sample report evidence must cite PASS, WATCH, and BLOCK");
+assert(status.verified_controls.some((control) => control.id === "product_hunt_launch_kit" && control.evidence.includes("product-hunt-launch-kit.json")), "launch-status Product Hunt launch kit evidence must cite product-hunt-launch-kit.json");
 assert(status.verified_controls.some((control) => control.id === "billing_enforcement" && control.evidence.includes("AI-review seconds") && control.evidence.includes("usage_limit_exceeded")), "launch-status billing enforcement evidence must cite AI-review seconds and usage_limit_exceeded");
 assert(status.verified_controls.some((control) => control.id === "abuse_limits" && control.evidence.includes("duration_limit_exceeded") && control.evidence.includes("active_job_limit_exceeded")), "launch-status abuse limits evidence must cite fail-fast errors");
 assert(status.verified_controls.some((control) => control.id === "job_observability" && control.evidence.includes("processingDurationMs") && control.evidence.includes("failureReason")), "launch-status job observability evidence must cite processingDurationMs and failureReason");
@@ -54,9 +56,15 @@ assert(status.verified_controls.some((control) => control.id === "queued_worker"
 assert(manifest.launch_status_url === status.public_artifacts.launch_status, "agent manifest launch_status_url must match launch-status public artifact URL");
 assert(manifest.live_launch_status_url === status.public_artifacts.live_launch_status, "agent manifest live_launch_status_url must match launch-status public artifact URL");
 assert(openapi.paths["/launch-status.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /launch-status.json metadata");
+assert(openapi.paths["/product-hunt-launch-kit.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /product-hunt-launch-kit.json metadata");
 assert(openapi.paths["/v1/launch-status"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /v1/launch-status metadata");
 assert(llms.includes(status.public_artifacts.launch_status), "llms.txt must link launch-status URL");
 assert(llms.includes(status.public_artifacts.live_launch_status), "llms.txt must link live launch-status URL");
 assert(llms.includes(status.public_artifacts.sample_reports), "llms.txt must link sample report artifacts URL");
+assert(llms.includes(status.public_artifacts.product_hunt_launch_kit), "llms.txt must link Product Hunt launch kit URL");
+assert(launchKit.ready_when?.source_of_truth === status.public_artifacts.live_launch_status, "Product Hunt launch kit must use live launch status as source of truth");
+assert(launchKit.public_links?.launch_status === status.public_artifacts.launch_status, "Product Hunt launch kit must link static launch status");
+assert(launchKit.public_links?.sample_reports_index === status.public_artifacts.sample_reports, "Product Hunt launch kit must link sample reports");
+assert(launchKit.public_links?.cost_basis === status.public_artifacts.cost_basis, "Product Hunt launch kit must link cost basis");
 
 console.log("Launch status metadata matches readiness, manifest, OpenAPI, and llms.txt.");

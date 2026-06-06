@@ -55,7 +55,7 @@ describe("public OpenAPI spec", () => {
 
   it("documents public machine-readable metadata endpoints", () => {
     const spec = loadSpec();
-    for (const path of ["/agent-manifest.json", "/pipeline-recipes.json", "/launch-targets.json", "/launch-status.json", "/cost-basis.json", "/sample-reports/index.json"]) {
+    for (const path of ["/agent-manifest.json", "/pipeline-recipes.json", "/launch-targets.json", "/launch-status.json", "/product-hunt-launch-kit.json", "/cost-basis.json", "/sample-reports/index.json"]) {
       expect(spec.paths[path].get.security).toEqual([]);
       expect(spec.paths[path].get.responses["200"].content["application/json"].schema).toEqual({ type: "object" });
     }

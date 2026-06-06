@@ -1,0 +1,75 @@
+{
+  "name": "UploadCheck.app Product Hunt Launch Kit",
+  "product": {
+    "name": "UploadCheck.app",
+    "tagline": "Quality check videos, podcasts, and clips before you upload.",
+    "category": "Agent-native media QC",
+    "primary_audience": ["creators", "editors", "studios", "agencies", "Claude Code users", "Codex users", "MCP agents"],
+    "one_liner": "UploadCheck gives creator agents a final pre-upload QC pass for video, podcast, and clip exports."
+  },
+  "launch_copy": {
+    "headline": "Catch upload mistakes before your audience does",
+    "maker_comment": "We built UploadCheck from real production failures: duplicate AI characters, frozen frames, low-contrast captions, garbled audio, unsafe Shorts text, canvas gutters, and agent repair loops. The product gives agents a callable QC gate before the upload button.",
+    "short_description": "Run /check from an agent workspace or call the API before publishing. UploadCheck returns verdicts, timestamped flags, source-hash proof, marker exports, cost estimates, and repair-loop instructions.",
+    "proof_points": [
+      "Global Codex MCP server: uploadcheck",
+      "CLI/package names: @uploadcheck/cli and @uploadcheck/mcp",
+      "Live Render API with inline media, signed upload, queued worker, and report endpoints",
+      "Public PASS, WATCH, and BLOCK sample reports",
+      "Cost guardrails that downgrade or block model-backed checks when they would break the 95% gross-margin target"
+    ]
+  },
+  "demo_flow": [
+    {
+      "step": 1,
+      "title": "Preflight cost",
+      "script": "Call qc_estimate_cost with the intended checks and plan. Show effective checks, removed checks, and margin safety before media is sent."
+    },
+    {
+      "step": 2,
+      "title": "Run /check",
+      "script": "Send a final video, podcast, Short, or still frame through UploadCheck using the CLI, MCP server, or REST API."
+    },
+    {
+      "step": 3,
+      "title": "Show the block",
+      "script": "Use the duplicate-crowd sample: UploadCheck blocks repeated faces and tells the editor to regenerate with more character variation."
+    },
+    {
+      "step": 4,
+      "title": "Ask to fix now",
+      "script": "Show every flag, separate direct fixes from render-source issues, ask whether to fix now, then rerun UploadCheck after edits."
+    }
+  ],
+  "public_links": {
+    "product_hunt_page": "https://uploadcheck.app/product-hunt/",
+    "demo_clip": "https://uploadcheck.app/demo/uploadcheck-product-hunt-demo.mp4",
+    "sample_reports_index": "https://qcgenie-api.onrender.com/sample-reports/index.json",
+    "block_sample_report": "https://qcgenie-api.onrender.com/sample-reports/duplicate-characters-block.json",
+    "cost_basis": "https://qcgenie-api.onrender.com/cost-basis.json",
+    "agent_manifest": "https://qcgenie-api.onrender.com/agent-manifest.json",
+    "openapi": "https://qcgenie-api.onrender.com/openapi.json",
+    "launch_status": "https://qcgenie-api.onrender.com/launch-status.json",
+    "live_launch_status": "https://qcgenie-api.onrender.com/v1/launch-status"
+  },
+  "pricing_position": {
+    "creator": "$99/mo for 1,200 checked minutes",
+    "studio": "$299/mo for 5,000 checked minutes",
+    "network": "$799/mo for 18,000 checked minutes",
+    "margin_rule": "Included minutes cover deterministic pre-upload QC. Model-backed deep review is preflighted and may be downgraded or sold separately when it would break the 95% gross-margin target.",
+    "stress_plan_verdict": "$99 for 5,000 checked minutes is too generous for unlimited full-video AI review."
+  },
+  "ready_when": {
+    "product_hunt_ready": true,
+    "remaining_blockers": [],
+    "required_commands": [
+      "npm run codex:verify-install",
+      "npm run cost-basis:verify",
+      "npm run roadmap:verify",
+      "npm run launch-status:verify",
+      "npm run readiness:check",
+      "npm run launch:check"
+    ],
+    "source_of_truth": "https://qcgenie-api.onrender.com/v1/launch-status"
+  }
+}
