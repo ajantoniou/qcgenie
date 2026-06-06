@@ -10,6 +10,7 @@
   "launch_targets_url": "https://qcgenie-api.onrender.com/launch-targets.json",
   "launch_status_url": "https://qcgenie-api.onrender.com/launch-status.json",
   "live_launch_status_url": "https://qcgenie-api.onrender.com/v1/launch-status",
+  "launch_handoff_command": "npm run launch:handoff -- --text",
   "cost_basis_url": "https://qcgenie-api.onrender.com/cost-basis.json",
   "product_hunt_launch_kit_url": "https://qcgenie-api.onrender.com/product-hunt-launch-kit.json",
   "sample_reports_url": "https://qcgenie-api.onrender.com/sample-reports/index.json",

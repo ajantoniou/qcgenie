@@ -62,6 +62,7 @@ describe("agentic integration contract", () => {
   it("publishes job observability fields for agent debugging", () => {
     const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
 
+    expect(manifest.launch_handoff_command).toBe("npm run launch:handoff -- --text");
     expect(manifest.response_fields.qc_job).toEqual(expect.arrayContaining([
       "startedAt",
       "completedAt",

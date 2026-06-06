@@ -73,6 +73,7 @@ describe("public launch status", () => {
 
     expect(manifest.launch_status_url).toBe("https://qcgenie-api.onrender.com/launch-status.json");
     expect(manifest.live_launch_status_url).toBe("https://qcgenie-api.onrender.com/v1/launch-status");
+    expect(manifest.launch_handoff_command).toBe("npm run launch:handoff -- --text");
     expect(openapi.paths["/launch-status.json"].get.security).toEqual([]);
     expect(openapi.paths["/v1/launch-status"].get.security).toEqual([]);
   });
