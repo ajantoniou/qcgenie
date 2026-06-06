@@ -8,6 +8,14 @@ export const LAUNCH_DOCTOR_STEPS = [
   { id: "storage-probe", label: "Probe writable durable storage", command: ["npm", "run", "--silent", "launch:storage"], env: { UPLOADCHECK_STORAGE_PROBE: "1" } },
   { id: "render-config", label: "Verify Render blueprint", command: ["npm", "run", "--silent", "render:verify"] },
   { id: "media-ingress", label: "Verify programmatic video/audio ingress", command: ["npm", "run", "--silent", "media-ingress:verify"] },
+  {
+    id: "hosted-media-ingress",
+    label: "Verify hosted Render media ingress",
+    command: ["npm", "run", "--silent", "media-ingress:verify"],
+    env: { UPLOADCHECK_MEDIA_INGRESS_BASE_URL: "https://qcgenie-api.onrender.com" },
+    requiredEnv: ["UPLOADCHECK_API_KEY"],
+    displayEnv: { UPLOADCHECK_API_KEY: "<private_bearer>" }
+  },
   { id: "launch-status", label: "Verify launch status metadata", command: ["npm", "run", "--silent", "launch-status:verify"] },
   { id: "cost-basis", label: "Verify cost basis", command: ["npm", "run", "--silent", "cost-basis:verify"] },
   { id: "codex-install", label: "Verify Codex MCP install", command: ["npm", "run", "--silent", "codex:verify-install"] },
@@ -61,7 +69,7 @@ export function formatLaunchDoctor(report) {
 }
 
 function formatDoctorCommand(step) {
-  const envPrefix = Object.entries(step.env || {})
+  const envPrefix = Object.entries({ ...(step.env || {}), ...(step.displayEnv || {}) })
     .map(([key, value]) => `${key}=${value}`)
     .join(" ");
   const command = normalizeCommand(step.command || []);
@@ -77,6 +85,18 @@ function normalizeCommand(command) {
 }
 
 function runCommand(command, step = {}) {
+  const missingEnv = (step.requiredEnv || []).filter((key) => !process.env[key]);
+  if (missingEnv.length) {
+    return {
+      status: 1,
+      stdout: [
+        `${step.label || step.id || "Launch doctor step"}: NOT READY`,
+        `Missing env: ${missingEnv.join(", ")}`,
+        `command: ${formatDoctorCommand(step)}`
+      ].join("\n"),
+      stderr: ""
+    };
+  }
   const [cmd, ...args] = command;
   return spawnSync(cmd, args, {
     cwd: process.cwd(),

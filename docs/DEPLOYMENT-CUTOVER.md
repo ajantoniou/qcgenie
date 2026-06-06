@@ -64,6 +64,7 @@ npm run readiness:check
 `launch:handoff` includes a structured `blockerFixPlan` in JSON mode and a `Fix plan` section in text mode. Use it as the operator sequence for Render env preparation, checkout URLs, mounted persistence, durable upload storage, domain cutover, webhook secret encryption, and final proof commands before Product Hunt launch.
 
 Agents can use `npm run launch:doctor -- --json` to read the same launch checks as structured data, including blocked step ids and normalized command strings, without scraping the text output.
+The launch doctor includes the hosted Render media-ingress probe command and reports `hosted-media-ingress` as a blocker until `UPLOADCHECK_API_KEY=<private_bearer>` is present in the operator environment.
 
 Agents outside this repo can use the packaged CLI fallback `uploadcheck launch-doctor --json`; it fetches the live launch handoff and blocker fix plan from Render without requiring local repo scripts.
 

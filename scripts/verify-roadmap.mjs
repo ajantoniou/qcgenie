@@ -32,6 +32,7 @@ const REQUIRED_EXECUTION_MARKERS = [
   "pipeline handoff artifact",
   "launch blocker fix plan",
   "machine-readable launch doctor",
+  "hosted media ingress launch doctor",
   "packaged CLI launch doctor",
   "Product Hunt launch checker",
   "observed provider usage is now priced"
