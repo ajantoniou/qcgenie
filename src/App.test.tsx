@@ -39,6 +39,8 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getByText("$799/mo")).toBeInTheDocument();
     expect(screen.getByText(/18,000 checked minutes\/month/)).toBeInTheDocument();
     expect(screen.getByText(/Included minutes cover deterministic pre-upload QC/)).toBeInTheDocument();
+    expect(screen.getByText(/0.0157 COGS cents\/minute/)).toBeInTheDocument();
+    expect(screen.getByText(/unlimited full-video AI review is not included/)).toBeInTheDocument();
     expect(screen.getByText(/95% gross-margin target/)).toBeInTheDocument();
     expect(screen.getByText(/downgrades expensive model-backed checks or blocks the run before spend/)).toBeInTheDocument();
     expect(screen.queryByText(/We never block a check/)).not.toBeInTheDocument();

@@ -37,6 +37,12 @@
       "overage_usd_per_minute": 0.06
     }
   ],
+  "pricing_guardrail_note": {
+    "included_minutes_mean": "deterministic pre-upload QC minutes",
+    "model_backed_deep_review": "preflighted, downgraded, blocked, or sold separately when it would break the 95% gross-margin target",
+    "stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute": 0.0157,
+    "stress_99_5000_verdict": "$99 / 5,000 is too generous for unlimited full-video AI review."
+  },
   "answer_engine_topics": [
     "Video quality checker before YouTube upload",
     "Podcast audio QC before publishing",

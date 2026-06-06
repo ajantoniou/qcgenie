@@ -47,6 +47,8 @@ describe("static SEO/AEO pages", () => {
     const html = readFileSync("public/pricing/index.html", "utf8");
 
     expect(html).toContain("Included minutes cover deterministic pre-upload QC");
+    expect(html).toContain("0.0157 COGS cents/minute");
+    expect(html).toContain("unlimited full-video AI review is not included");
     expect(html).toContain("model-backed deep review is preflighted");
     expect(html).toContain("95% gross-margin target");
     expect(html).not.toContain("We never block a check");

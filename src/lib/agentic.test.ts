@@ -118,6 +118,17 @@ describe("agentic integration contract", () => {
     ]);
   });
 
+  it("publishes pricing guardrails so agents do not treat checked minutes as unlimited AI review", () => {
+    const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
+
+    expect(manifest.pricing_guardrail_note).toMatchObject({
+      included_minutes_mean: "deterministic pre-upload QC minutes",
+      stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute: 0.0157
+    });
+    expect(manifest.pricing_guardrail_note.model_backed_deep_review).toContain("95% gross-margin target");
+    expect(manifest.pricing_guardrail_note.stress_99_5000_verdict).toContain("too generous");
+  });
+
   it("normalizes a YouTube QC request without exposing internal model rails", () => {
     const request = buildQcJobRequest({
       source: "https://youtube.com/watch?v=abc123",
