@@ -35,13 +35,26 @@ IMAGE_EXTS={".jpg",".jpeg",".png",".webp",".bmp",".tif",".tiff"}
 def load_key():
     if os.environ.get("UPLOADCHECK_TEST_NO_ANTHROPIC_KEY"):
         return None
-    p="/Applications/DrAntoniou Projects/AgentCompanies/.env"
-    if os.path.exists(p):
+    for v in ("ANTHROPIC_API_KEY","NT_ANTHROPIC_API_KEY","CLAUDE_API_KEY"):
+        key=os.environ.get(v)
+        if key and len(key.strip())>10:
+            return key.strip()
+    here=os.path.dirname(os.path.abspath(__file__))
+    candidates=[
+        os.path.join(os.getcwd(),".env"),
+        os.path.abspath(os.path.join(here,"..","..",".env")),
+        "/Applications/DrAntoniou Projects/AgentCompanies/.env"
+    ]
+    seen=set()
+    for p in candidates:
+        if p in seen or not os.path.exists(p):
+            continue
+        seen.add(p)
         t=open(p).read()
         for v in ("ANTHROPIC_API_KEY","NT_ANTHROPIC_API_KEY","CLAUDE_API_KEY"):
             m=re.search(rf"^{v}=(.+)$",t,re.M)
             if m and len(m.group(1).strip())>10: return m.group(1).strip().strip('"').strip("'")
-    return os.environ.get("ANTHROPIC_API_KEY")
+    return None
 
 def dur(f):
     return float(subprocess.run(["ffprobe","-v","error","-show_entries","format=duration",

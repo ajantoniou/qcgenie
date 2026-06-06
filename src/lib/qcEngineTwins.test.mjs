@@ -5,6 +5,35 @@ import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
 describe("check_twins.py", () => {
+  it("loads ANTHROPIC_API_KEY from the current working .env", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-env-"));
+    const repoRoot = resolve(".");
+    try {
+      writeFileSync(join(dir, ".env"), "ANTHROPIC_API_KEY=sk-ant-test-current-working-env-1234567890\n");
+      const script = `
+import importlib.util
+spec = importlib.util.spec_from_file_location("check_twins", "${repoRoot}/scripts/qc-engine/check_twins.py")
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+print(mod.load_key())
+`;
+      const env = { ...process.env };
+      delete env.ANTHROPIC_API_KEY;
+      delete env.NT_ANTHROPIC_API_KEY;
+      delete env.CLAUDE_API_KEY;
+      const result = spawnSync("python3", ["-c", script], {
+        cwd: dir,
+        encoding: "utf8",
+        env
+      });
+
+      expect(result.status).toBe(0);
+      expect(result.stdout.trim()).toBe("sk-ant-test-current-working-env-1234567890");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("normalizes duplicate-person findings to require more distinct characters", () => {
     const script = `
 import importlib.util
