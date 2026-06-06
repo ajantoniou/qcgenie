@@ -120,8 +120,9 @@ Signed-upload flow:
 
 1. `POST /v1/uploads` creates a tokenized `signedPutUrl`.
 2. The CLI `PUT`s the file bytes to `/v1/uploads/{upload_id}/content?token=...`.
-3. The CLI creates a job with `upload_id`.
-4. Render reads the uploaded temp file locally, runs the deterministic gate, and records the report.
+3. Render writes the upload to local staging for the immediate ffmpeg/QC run. If complete S3/R2-compatible env is configured, Render also mirrors the file to object storage and records `storageMode=object_storage`, `objectKey`, and `objectUrl`.
+4. The CLI creates a job with `upload_id`.
+5. Render reads the staged file locally, runs the deterministic gate, and records the report.
 
 ## NTO/NPO Pipeline Pattern
 
@@ -134,7 +135,7 @@ For NTO long-form episodes, shorts, or NPO media exports:
 5. Fetch `qc_get_report` and `qc_get_marker_csv`.
 6. Treat `BLOCK` as stop-ship, `WATCH` as source review, and `PASS` as ready only after the project-specific editorial checklist is also complete.
 
-The hosted API writes inline media to temporary server storage, runs the deterministic gate, parses the gate verdict, stores the report, and deletes the temporary media file after the request finishes.
+The hosted API writes inline media to temporary server storage, runs the deterministic gate, parses the gate verdict, stores the report, and deletes the temporary media file after the request finishes. Signed-upload media uses local staging for the immediate run; durable filesystem or object storage retention is only used when configured.
 
 For NTO specifically, UploadCheck is the replacement target for the current production QC personas and scripts. The product should eventually cover the NTO gates for audio garble, script faithfulness, pronunciation watchlists, visual-to-narration match, literal named-subject match, canvas/aspect errors, Shorts safe area, low-contrast overlay text, repeat fatigue, source-family dominance, cheap filler, dead air, first-three-second hook quality, re-hook cadence, and repair-loop instructions. The current engine already includes `canvas_fill`, `dead_air`, `repeat_fatigue`, `script_faithfulness`, `spoken_leaks`, `text_contrast`, `text_safe_area`, and opt-in `shorts_format`.
 

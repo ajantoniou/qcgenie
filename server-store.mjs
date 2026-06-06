@@ -309,6 +309,8 @@ export class JsonStore {
     upload.status = "uploaded";
     upload.contentPath = input.contentPath;
     upload.storageMode = input.storageMode || upload.storageMode || "render_temp_storage";
+    upload.objectKey = input.objectKey || upload.objectKey || null;
+    upload.objectUrl = input.objectUrl || upload.objectUrl || null;
     upload.bytesReceived = input.bytesReceived;
     upload.sha256 = input.sha256;
     upload.uploadedAt = new Date().toISOString();

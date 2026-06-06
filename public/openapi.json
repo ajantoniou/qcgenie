@@ -346,7 +346,14 @@
           }
         },
         "responses": {
-          "201": { "description": "Signed upload target" }
+          "201": {
+            "description": "Signed upload target",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Upload" }
+              }
+            }
+          }
         }
       }
     },
@@ -355,7 +362,14 @@
         "summary": "Get upload metadata and processing status",
         "parameters": [{ "name": "upload_id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
-          "200": { "description": "Upload status" },
+          "200": {
+            "description": "Upload status",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Upload" }
+              }
+            }
+          },
           "404": { "description": "Upload not found" }
         }
       }
@@ -377,7 +391,14 @@
           }
         },
         "responses": {
-          "200": { "description": "Upload bytes stored for a QC job" },
+          "200": {
+            "description": "Upload bytes stored for a QC job",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UploadStored" }
+              }
+            }
+          },
           "403": { "description": "Invalid upload token" },
           "410": { "description": "Upload URL expired" },
           "413": { "description": "Upload too large" },
@@ -462,6 +483,38 @@
         "responses": {
           "200": { "description": "Due delivery drain result" }
         }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Upload": {
+        "type": "object",
+        "properties": {
+          "uploadId": { "type": "string" },
+          "filename": { "type": "string" },
+          "contentType": { "type": "string" },
+          "sizeBytes": { "type": "integer" },
+          "status": { "type": "string", "enum": ["created", "uploaded"] },
+          "signedPutUrl": { "type": "string" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "storageMode": { "type": "string", "enum": ["render_temp_storage", "durable_filesystem", "object_storage"] },
+          "objectKey": { "type": "string", "nullable": true },
+          "objectUrl": { "type": "string", "nullable": true }
+        }
+      },
+      "UploadStored": {
+        "type": "object",
+        "properties": {
+          "uploadId": { "type": "string" },
+          "status": { "type": "string", "enum": ["uploaded"] },
+          "storageMode": { "type": "string", "enum": ["render_temp_storage", "durable_filesystem", "object_storage"] },
+          "bytesReceived": { "type": "integer" },
+          "sha256": { "type": "string" },
+          "objectKey": { "type": "string" },
+          "objectUrl": { "type": "string" }
+        },
+        "required": ["uploadId", "status", "storageMode", "bytesReceived", "sha256"]
       }
     }
   }

@@ -11,13 +11,15 @@ import { cleanupInlineMedia, materializeInlineMedia } from "./inline-media.mjs";
 import { applyCostGuardrail, estimateJobCost, summarizeUsageMargins } from "./cost-model.mjs";
 import { buildCheckoutUrl, normalizePlanId } from "./checkout-links.mjs";
 import { buildReadinessReport } from "./readiness.mjs";
+import { getObjectStorageConfig, objectKeyForUpload, uploadFileToObjectStorage } from "./object-storage.mjs";
 
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
 const uploadDir = process.env.UPLOADCHECK_UPLOAD_DIR || process.env.QCGENIE_UPLOAD_DIR || "/tmp/uploadcheck/uploads";
 const durableStorageDir = process.env.UPLOADCHECK_DURABLE_STORAGE_DIR || process.env.QCGENIE_DURABLE_STORAGE_DIR || null;
 const uploadStorageDir = durableStorageDir || uploadDir;
-const uploadStorageMode = durableStorageDir ? "durable_filesystem" : "render_temp_storage";
+const objectStorageConfig = getObjectStorageConfig();
+const uploadStorageMode = durableStorageDir ? "durable_filesystem" : (objectStorageConfig.configured ? "object_storage" : "render_temp_storage");
 const store = new JsonStore(process.env.UPLOADCHECK_STORE_PATH || process.env.QCGENIE_STORE_PATH || "/tmp/uploadcheck/store.json", {
   secretEncryptionKey: process.env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || process.env.QCGENIE_SECRET_ENCRYPTION_KEY
 });
@@ -400,17 +402,30 @@ async function putUploadContent(req, url, res) {
     }
   });
   await pipeline(req, meter, createWriteStream(contentPath));
+  let objectStorage = null;
+  if (objectStorageConfig.configured) {
+    objectStorage = await uploadFileToObjectStorage(contentPath, {
+      key: objectKeyForUpload(upload),
+      contentType: upload.contentType,
+      sha256: hash.copy().digest("hex")
+    });
+  }
   const stored = store.markUploadStored(uploadId, {
     contentPath,
-    storageMode: uploadStorageMode,
+    storageMode: objectStorage?.storageMode || uploadStorageMode,
+    objectKey: objectStorage?.objectKey,
+    objectUrl: objectStorage?.objectUrl,
     bytesReceived,
     sha256: hash.digest("hex")
   });
   return sendJson(res, 200, {
     uploadId,
     status: stored.status,
+    storageMode: stored.storageMode,
     bytesReceived: stored.bytesReceived,
-    sha256: stored.sha256
+    sha256: stored.sha256,
+    objectKey: stored.objectKey || undefined,
+    objectUrl: stored.objectUrl || undefined
   });
 }
 

@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { buildCheckoutUrl } from "./checkout-links.mjs";
 import { validateSecretEncryptionKey } from "./secrets.mjs";
+import { getObjectStorageConfig } from "./object-storage.mjs";
 
 const PLANS = ["creator", "studio", "network"];
 
@@ -20,7 +21,8 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
   const durableJsonStoreConfigured = isDurableStorePath(storePath);
   const persistenceConfigured = supabaseConfigured || durableJsonStoreConfigured;
   const durableFilesystemConfigured = Boolean(env.UPLOADCHECK_DURABLE_STORAGE_DIR || env.QCGENIE_DURABLE_STORAGE_DIR);
-  const objectStorageConfigured = Boolean(env.UPLOADCHECK_STORAGE_BUCKET || env.UPLOADCHECK_S3_BUCKET || env.UPLOADCHECK_R2_BUCKET);
+  const objectStorage = getObjectStorageConfig(env);
+  const objectStorageConfigured = objectStorage.configured;
   const durableStorageConfigured = durableFilesystemConfigured || objectStorageConfigured;
   const bundledDemoClipPath = env.UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH || resolve("dist/demo/uploadcheck-product-hunt-demo.mp4");
   const demoClipConfigured = Boolean(env.UPLOADCHECK_DEMO_CLIP_URL || env.UPLOADCHECK_PUBLIC_DEMO_URL || existsSync(bundledDemoClipPath));
@@ -64,7 +66,14 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
       mode: durableFilesystemConfigured ? "durable_filesystem" : (objectStorageConfigured ? "object_storage_configured" : "render_temp_storage"),
       detail: durableFilesystemConfigured
         ? "Durable filesystem storage is configured for uploaded media."
-        : (objectStorageConfigured ? "Object storage env is present; verify the storage adapter before launch." : "Inline media uses temp files; large durable retention still needs mounted or object storage.")
+        : (objectStorageConfigured ? "S3-compatible object storage adapter is configured for uploaded media retention." : "Inline media uses temp files; large durable retention still needs mounted or object storage."),
+      objectStorage: {
+        configured: objectStorage.configured,
+        bucketConfigured: Boolean(objectStorage.bucket),
+        endpointConfigured: Boolean(objectStorage.endpoint),
+        accessKeyConfigured: Boolean(objectStorage.accessKeyId),
+        secretKeyConfigured: Boolean(objectStorage.secretAccessKey)
+      }
     },
     demoClip: {
       ok: demoClipConfigured,

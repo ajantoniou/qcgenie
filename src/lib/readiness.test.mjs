@@ -62,7 +62,7 @@ describe("launch readiness report", () => {
     expect(report.checks.secretEncryption).toMatchObject({ ok: false, reason: "too_short" });
   });
 
-  it("reports object storage env separately from mounted filesystem storage", () => {
+  it("does not accept incomplete object storage env as launch-ready storage", () => {
     const report = buildReadinessReport({
       host: "api.uploadcheck.app",
       env: {
@@ -72,8 +72,32 @@ describe("launch readiness report", () => {
       now: "2026-06-06T00:00:00.000Z"
     });
 
+    expect(report.checks.storage.ok).toBe(false);
+    expect(report.checks.storage.mode).toBe("render_temp_storage");
+    expect(report.checks.storage.objectStorage).toMatchObject({
+      bucketConfigured: true,
+      endpointConfigured: false,
+      accessKeyConfigured: false,
+      secretKeyConfigured: false
+    });
+  });
+
+  it("reports complete object storage env separately from mounted filesystem storage", () => {
+    const report = buildReadinessReport({
+      host: "api.uploadcheck.app",
+      env: {
+        UPLOADCHECK_STORAGE_BUCKET: "uploadcheck-artifacts",
+        UPLOADCHECK_STORAGE_ENDPOINT: "https://r2.example",
+        UPLOADCHECK_STORAGE_ACCESS_KEY_ID: "key",
+        UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY: "secret",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "/tmp/does-not-exist-uploadcheck-demo.mp4"
+      },
+      now: "2026-06-06T00:00:00.000Z"
+    });
+
     expect(report.checks.storage.ok).toBe(true);
     expect(report.checks.storage.mode).toBe("object_storage_configured");
+    expect(report.checks.storage.objectStorage.configured).toBe(true);
   });
 
   it("keeps Supabase as the preferred persistence mode when configured", () => {

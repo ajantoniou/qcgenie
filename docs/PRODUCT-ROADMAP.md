@@ -196,6 +196,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: no-secret launch readiness proof added at `GET /v1/readiness` for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt go/no-go state.
 - Done: public Product Hunt demo clip is bundled at `/demo/uploadcheck-product-hunt-demo.mp4` and embedded on `/product-hunt/`.
 - Done: signed-upload media can use mounted durable filesystem storage via `UPLOADCHECK_DURABLE_STORAGE_DIR`; upload reports retain `storageMode`.
+- Done: signed-upload media can mirror to S3/R2-compatible object storage when the full `UPLOADCHECK_STORAGE_*` env set is configured; readiness now rejects incomplete object-storage env instead of treating a bucket name as enough.
 - Done: mounted-disk JSON persistence is recognized as production persistence when `UPLOADCHECK_STORE_PATH` points outside temp storage; Supabase remains the future multi-workspace store.
 - Done: strong webhook encryption key generation and readiness validation added through `npm run --silent secret:generate` and `GET /v1/readiness`.
 - Done: Product Hunt readiness CLI added through `npm run readiness:check`; it fetches live readiness and prints exact remaining Render/DNS/checkout actions.
@@ -209,7 +210,6 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: observed provider usage is now priced into post-run COGS. Reports and `/v1/usage/margins` distinguish estimated preflight COGS from observed provider COGS, observed total COGS, observed cost/minute, and observed gross margin.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
-- Next: add direct object-storage upload for production-scale retention beyond mounted filesystem storage.
 - Next: use observed provider COGS from live Render runs to set final AI-review allowances per plan.
 - Next: cut over `uploadcheck.app` DNS/custom domains and decide whether to keep legacy Render slugs or recreate services for `uploadcheck-*` subdomains.
 - Partial: Product Hunt launch page, public report examples, and bundled demo clip exist; final launch still needs custom-domain cutover, live checkout proof, mounted persistence/storage envs, and generated secret encryption key configuration.
