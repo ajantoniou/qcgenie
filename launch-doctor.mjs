@@ -12,6 +12,7 @@ export const LAUNCH_DOCTOR_STEPS = [
   { id: "cost-basis", label: "Verify cost basis", command: ["npm", "run", "--silent", "cost-basis:verify"] },
   { id: "codex-install", label: "Verify Codex MCP install", command: ["npm", "run", "--silent", "codex:verify-install"] },
   { id: "roadmap", label: "Verify roadmap", command: ["npm", "run", "--silent", "roadmap:verify"] },
+  { id: "launch-handoff", label: "Build live launch handoff", command: ["npm", "run", "--silent", "launch:handoff"] },
   { id: "readiness", label: "Check live Product Hunt readiness", command: ["npm", "run", "--silent", "readiness:check"] },
   { id: "launch-check", label: "Check live DNS and HTTP launch state", command: ["npm", "run", "--silent", "launch:check"] }
 ];

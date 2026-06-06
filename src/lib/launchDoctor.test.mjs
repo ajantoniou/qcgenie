@@ -44,6 +44,7 @@ describe("launch doctor", () => {
     expect(result.stdout).toContain("BLOCK checkout-probe");
     expect(result.stdout).toContain("BLOCK storage");
     expect(result.stdout).toContain("BLOCK storage-probe");
+    expect(result.stdout).toContain("BLOCK launch-handoff");
     expect(result.stdout).toContain("BLOCK readiness");
     expect(result.stdout).toContain("BLOCK launch-check");
   });
@@ -60,6 +61,7 @@ describe("launch doctor", () => {
       "npm run cost-basis:verify",
       "npm run codex:verify-install",
       "npm run roadmap:verify",
+      "npm run launch:handoff",
       "npm run readiness:check",
       "npm run launch:check"
     ]));

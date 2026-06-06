@@ -51,7 +51,6 @@ describe("Product Hunt launch kit", () => {
     const doctorCommands = new Set(launchDoctorCommandStrings());
     const standaloneCommands = new Set([
       "npm run launch:doctor",
-      "npm run launch:handoff",
       "npm run launch-status:generate",
       "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
