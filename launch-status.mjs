@@ -39,6 +39,7 @@ export function buildLaunchStatus(readiness, {
       "npm run render:validate-env",
       "npm run render:audit",
       "npm run render:apply",
+      "npm run codex:verify-install",
       "npm run launch:check",
       "npm run readiness:check"
     ],
@@ -71,7 +72,7 @@ function verifiedControls() {
     {
       id: "codex_mcp",
       status: "done",
-      evidence: "Global Codex MCP server entry is uploadcheck; local skill is installed."
+      evidence: "npm run codex:verify-install checks the global uploadcheck MCP server entry, hosted API base URL, executable wrapper, and installed skill."
     },
     {
       id: "inline_media",
