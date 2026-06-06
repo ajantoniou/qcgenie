@@ -69,6 +69,7 @@ export function buildProductHuntLaunchKit(status) {
         "npm run codex:verify-install",
         "npm run cost-basis:verify",
         "npm run media-ingress:verify",
+        "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
         "npm run roadmap:verify",
         "npm run launch-status:generate",
         "npm run launch-status:verify",

@@ -41,6 +41,7 @@ describe("readiness action mapping", () => {
     expect(actions[0].commands).toContain("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env");
     expect(actions[0].commands).toContain("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
     expect(actions[0].commands).toContain("UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage");
+    expect(actions[0].commands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     expect(actions[1].env).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
     expect(actions[1].command).toBe("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
     expect(actions[3].command).toBe("npm run --silent render:bootstrap-env");
@@ -87,7 +88,8 @@ describe("readiness action mapping", () => {
         "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
         "npm run render:plan && npm run render:validate-env && npm run render:apply",
         "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
-        "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage"
+        "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
+        "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
       ],
       docs: "docs/DEPLOYMENT-CUTOVER.md"
     }, {

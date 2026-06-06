@@ -7,27 +7,37 @@ import { join } from "node:path";
 
 const root = process.cwd();
 const tempDir = mkdtempSync(join(tmpdir(), "uploadcheck-media-ingress-"));
-const apiKey = `uck_media_ingress_${randomBytes(8).toString("hex")}`;
 const port = 21000 + Math.floor(Math.random() * 2000);
+const hostedBaseUrl = normalizeBaseUrl(process.env.UPLOADCHECK_MEDIA_INGRESS_BASE_URL || process.env.UPLOADCHECK_API_BASE_URL || "");
+const hostedMode = Boolean(hostedBaseUrl);
+const apiKey = hostedMode
+  ? (process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY || "")
+  : `uck_media_ingress_${randomBytes(8).toString("hex")}`;
 let server = null;
 
 try {
-  server = spawn("node", ["server.mjs"], {
-    cwd: root,
-    env: {
-      ...process.env,
-      PORT: String(port),
-      UPLOADCHECK_API_KEY: apiKey,
-      UPLOADCHECK_STORE_PATH: join(tempDir, "store.json"),
-      UPLOADCHECK_UPLOAD_DIR: join(tempDir, "uploads"),
-      UPLOADCHECK_INLINE_MEDIA_MAX_MB: "1",
-      UPLOADCHECK_MAX_UPLOAD_MB: "1",
-      UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
-    },
-    stdio: ["ignore", "pipe", "pipe"]
-  });
+  if (hostedMode && !apiKey) {
+    throw new Error("Set UPLOADCHECK_API_KEY when UPLOADCHECK_MEDIA_INGRESS_BASE_URL is set.");
+  }
 
-  const baseUrl = `http://127.0.0.1:${port}`;
+  if (!hostedMode) {
+    server = spawn("node", ["server.mjs"], {
+      cwd: root,
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: join(tempDir, "store.json"),
+        UPLOADCHECK_UPLOAD_DIR: join(tempDir, "uploads"),
+        UPLOADCHECK_INLINE_MEDIA_MAX_MB: "1",
+        UPLOADCHECK_MAX_UPLOAD_MB: "1",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+  }
+
+  const baseUrl = hostedMode ? hostedBaseUrl : `http://127.0.0.1:${port}`;
   await waitForHealth(baseUrl);
 
   const inlineVideo = await postJson(baseUrl, "/v1/qc/jobs", apiKey, {
@@ -45,7 +55,7 @@ try {
     bytes: 8,
     sha256: sha256("fake-mp4"),
     ephemeral: true,
-    storageMode: "render_temp_storage"
+    allowedStorageModes: ["render_temp_storage"]
   }, "inline video");
 
   const inlineAudio = await postJson(baseUrl, "/v1/qc/jobs", apiKey, {
@@ -62,7 +72,7 @@ try {
     bytes: 8,
     sha256: sha256("fake-wav"),
     ephemeral: true,
-    storageMode: "render_temp_storage"
+    allowedStorageModes: ["render_temp_storage"]
   }, "inline audio");
 
   const signedUpload = await postJson(baseUrl, "/v1/uploads", apiKey, {
@@ -94,11 +104,13 @@ try {
     bytes: 4096,
     sha256: sha256(uploadBytes),
     ephemeral: false,
-    storageMode: "render_temp_storage"
+    allowedStorageModes: ["render_temp_storage", "durable_filesystem", "object_storage"]
   }, "signed upload");
 
   console.log(JSON.stringify({
     ok: true,
+    mode: hostedMode ? "hosted" : "local",
+    baseUrl,
     checked: ["inline_video_base64", "inline_audio_base64", "signed_upload"],
     inlineStorageMode: inlineVideo.payload.mediaIngress.storageMode,
     signedUploadStorageMode: signedJob.payload.mediaIngress.storageMode
@@ -144,8 +156,17 @@ function assertStatus(result, expected, label) {
 }
 
 function assertMediaIngress(payload, expected, label) {
-  if (JSON.stringify(payload.mediaIngress) !== JSON.stringify(expected)) {
-    throw new Error(`${label} mediaIngress mismatch.\nExpected: ${JSON.stringify(expected)}\nActual:   ${JSON.stringify(payload.mediaIngress)}`);
+  const ingress = payload.mediaIngress || {};
+  const expectedShape = { ...expected };
+  const allowedStorageModes = expectedShape.allowedStorageModes || [];
+  delete expectedShape.allowedStorageModes;
+  const actualShape = { ...ingress };
+  delete actualShape.storageMode;
+  if (JSON.stringify(actualShape) !== JSON.stringify(expectedShape)) {
+    throw new Error(`${label} mediaIngress mismatch.\nExpected: ${JSON.stringify(expectedShape)}\nActual:   ${JSON.stringify(actualShape)}`);
+  }
+  if (!allowedStorageModes.includes(ingress.storageMode)) {
+    throw new Error(`${label} storageMode ${JSON.stringify(ingress.storageMode)} is not one of ${allowedStorageModes.join(", ")}.`);
   }
   if (!payload.sourceRedacted || payload.source) {
     throw new Error(`${label} must redact temporary/upload source paths.`);
@@ -162,6 +183,11 @@ function sha256(value) {
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function normalizeBaseUrl(value) {
+  const trimmed = String(value || "").trim().replace(/\/+$/, "");
+  return trimmed.endsWith("/v1") ? trimmed.slice(0, -3) : trimmed;
 }
 
 async function serverOutput() {

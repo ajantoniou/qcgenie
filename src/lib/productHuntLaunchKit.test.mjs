@@ -32,6 +32,7 @@ describe("Product Hunt launch kit", () => {
     expect(kit.ready_when.source_of_truth).toBe(status.public_artifacts.live_launch_status);
     expect(kit.ready_when.required_commands).toContain("npm run launch:doctor");
     expect(kit.ready_when.required_commands).toContain("npm run media-ingress:verify");
+    expect(kit.ready_when.required_commands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     expect(kit.ready_when.required_commands).toContain("npm run launch-status:generate");
     expect(kit.ready_when.required_commands).toContain("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env");
     expect(kit.ready_when.required_commands).toContain("npm run launch:dns");
@@ -50,7 +51,8 @@ describe("Product Hunt launch kit", () => {
     const standaloneCommands = new Set([
       "npm run launch:doctor",
       "npm run launch-status:generate",
-      "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"
+      "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
+      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
     ]);
 
     for (const command of kit.ready_when.required_commands) {
