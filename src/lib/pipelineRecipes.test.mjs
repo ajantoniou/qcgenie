@@ -52,6 +52,7 @@ describe("UploadCheck pipeline recipes", () => {
     expect(longForm.arguments.checks).toContain("repeat_fatigue");
     expect(longForm.arguments.checks).toContain("speaker_visual_binding");
     expect(longForm.arguments.checks).toContain("static_head_dominance");
+    expect(longForm.arguments.checks).toContain("literal_subject_match");
     expect(longForm.arguments.checks).toContain("script_faithfulness");
     expect(longForm.arguments).toMatchObject({
       manifest_path: "/path/to/storybook.json",
@@ -120,12 +121,15 @@ describe("UploadCheck pipeline recipes", () => {
       callable_check: "static_head_dominance"
     });
     expect(implemented.static_head_dominance.covers).toContain("Held talking-head");
+    expect(implemented.literal_subject_match).toMatchObject({
+      callable_check: "literal_subject_match"
+    });
+    expect(implemented.literal_subject_match.covers).toContain("generic mood footage");
 
     for (const id of [
       "first_three_seconds",
       "rehook_cadence",
       "end_screen_tease",
-      "literal_subject_match",
       "contact_sheet_evidence"
     ]) {
       expect(planned.has(id)).toBe(true);
