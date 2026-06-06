@@ -34,6 +34,13 @@ server.tool(
 );
 
 server.tool(
+  "qc_get_cost_basis",
+  "Fetch public UploadCheck cost-per-minute, plan economics, and gross-margin assumptions.",
+  {},
+  async () => jsonTool(await publicApiFetch("/cost-basis.json"))
+);
+
+server.tool(
   "qc_estimate_cost",
   "Preflight UploadCheck cost and margin guardrail behavior before uploading or running media.",
   {

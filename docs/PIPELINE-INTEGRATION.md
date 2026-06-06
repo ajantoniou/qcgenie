@@ -23,13 +23,15 @@ UPLOADCHECK_API_BASE_URL = "https://qcgenie-api.onrender.com"
 UPLOADCHECK_API_KEY = "<workspace_api_key>"
 ```
 
-The server exposes `qc_get_launch_status`, `qc_get_launch_handoff`, `qc_get_pipeline_recipes`, `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_get_margin_telemetry`, and `qc_create_upload_url`.
+The server exposes `qc_get_launch_status`, `qc_get_launch_handoff`, `qc_get_pipeline_recipes`, `qc_get_cost_basis`, `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_get_margin_telemetry`, and `qc_create_upload_url`.
 
 The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadcheck`. Use `$uploadcheck` when a project needs the standard preflight -> hosted QC -> report -> repair-loop workflow.
 
 Machine-readable pipeline profiles are available through MCP `qc_get_pipeline_recipes`, CLI `uploadcheck recipes --json`, and `https://qcgenie-api.onrender.com/pipeline-recipes.json` for agents that need defaults without scraping prose. The current profiles are `nto_long_form`, `nto_shorts`, `npo_podcast_or_audio`, and `generic_creator_video`. The recipe file includes `launch_preflight`, `cost_preflight`, profile-specific `qc_run_local_file` arguments, and repair-loop instructions.
 
 Before launch-sensitive production workflows, agents can call MCP `qc_get_launch_status` for the live go/no-go state and MCP `qc_get_launch_handoff` for blocker-specific required actions and proof commands. CLI fallback: `uploadcheck launch-status --json` or `uploadcheck launch-handoff --json`.
+
+Before pricing, plan, or model-backed review decisions, agents can call MCP `qc_get_cost_basis` or CLI `uploadcheck cost-basis --json` to fetch the published cost-per-minute, 95% gross-margin target, and `$99 / 5,000` stress-plan warning.
 
 To verify that Codex can still call UploadCheck globally from any project, run:
 

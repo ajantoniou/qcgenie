@@ -211,6 +211,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: plan-aware cost guardrail added for declared AI-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked.
 - Done: first per-check model-call accounting added for `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch`; in downgrade mode, margin-breaking model-backed checks are removed before the engine runs.
 - Done: preflight cost estimation added through `POST /v1/qc/estimate`, CLI `uploadcheck estimate`, and MCP `qc_estimate_cost`, so agents can check effective/removed gates before sending media to Render.
+- Done: public cost-basis access added through MCP `qc_get_cost_basis` and CLI `uploadcheck cost-basis --json`, so agents can fetch cost/minute and the `$99 / 5,000` stress-plan warning before pricing or model-backed review decisions.
 - Done: global Codex MCP entry is installed locally through the `uploadcheck` server and was smoke-tested with a live hosted report.
 - Done: global Codex skill `uploadcheck` installed locally so projects can invoke the standard cost-preflight, hosted QC, report, marker CSV, and repair-loop workflow.
 - Done: global Codex install verifier added through `npm run codex:verify-install`, checking `[mcp_servers.uploadcheck]`, hosted API base URL, executable MCP wrapper, and installed UploadCheck skill markers.

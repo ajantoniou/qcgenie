@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildEstimateRequest, buildJobRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildPipelineRecipesRequest, buildUsageRequest, formatJobSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+import { buildCostBasisRequest, buildEstimateRequest, buildJobRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildPipelineRecipesRequest, buildUsageRequest, formatCostBasisSummary, formatJobSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 describe("UploadCheck CLI request builder", () => {
   it("builds a YouTube job request", () => {
@@ -368,6 +368,26 @@ describe("UploadCheck CLI request builder", () => {
     });
   });
 
+  it("builds and parses a public cost-basis request", () => {
+    const parsed = parseArgs([
+      "cost-basis",
+      "--api-base",
+      "https://api.example.test",
+      "--json"
+    ]);
+    const request = buildCostBasisRequest(parsed.options);
+
+    expect(parsed.command).toBe("cost-basis");
+    expect(parsed.target).toBeNull();
+    expect(request).toEqual({
+      apiBaseUrl: "https://api.example.test",
+      path: "/cost-basis.json",
+      method: "GET",
+      kind: "cost_basis",
+      public: true
+    });
+  });
+
   it("formats a compact job summary", () => {
     expect(formatJobSummary({
       jobId: "job_1",
@@ -458,5 +478,18 @@ describe("UploadCheck CLI request builder", () => {
         implemented_gates: [{ id: "text_contrast" }, { id: "repeat_fatigue" }]
       }
     })).toBe("UploadCheck pipeline recipes: 2 profiles (nto_long_form, npo_podcast_or_audio) | 2 implemented NTO/NPO replacement gates");
+  });
+
+  it("formats a compact public cost-basis summary", () => {
+    expect(formatCostBasisSummary({
+      target_gross_margin_pct: 95,
+      plans: [{
+        plan_id: "stress_99_5000",
+        remaining_cost_per_minute_after_deterministic_full_allowance_cents: 0.0157
+      }],
+      verdict: {
+        stress_99_5000: "$99 for 5,000 checked minutes is too generous for unlimited full-video AI review."
+      }
+    })).toBe("UploadCheck cost basis: target margin 95% | $99/5,000 remaining post-deterministic COGS 0.0157c/min | $99 for 5,000 checked minutes is too generous for unlimited full-video AI review.");
   });
 });

@@ -113,8 +113,9 @@
   "telemetry": {
     "preflight_endpoint": "POST /v1/qc/estimate",
     "usage_endpoint": "GET /v1/usage/margins",
-    "mcp_tools": ["qc_estimate_cost", "qc_get_margin_telemetry"],
+    "mcp_tools": ["qc_get_cost_basis", "qc_estimate_cost", "qc_get_margin_telemetry"],
     "cli_commands": [
+      "uploadcheck cost-basis --json",
       "uploadcheck estimate --minutes N --checks CHECKS --plan creator --cost-guardrail downgrade --json",
       "uploadcheck usage --billing-period YYYY-MM --json"
     ]

@@ -29,6 +29,12 @@ export function verifyCostBasis({ costBasisPath = COST_BASIS_PATH } = {}) {
   if (!String(basis.observed_calibration?.source || "").includes("0.654")) {
     errors.push({ key: "observed_calibration.source", reason: "missing_observed_source", detail: "Observed calibration must cite the clone-crowd Sonnet frame-call cost." });
   }
+  if (!Array.isArray(basis.telemetry?.mcp_tools) || !basis.telemetry.mcp_tools.includes("qc_get_cost_basis")) {
+    errors.push({ key: "telemetry.mcp_tools", reason: "missing_cost_basis_tool", detail: "Cost basis must expose MCP qc_get_cost_basis." });
+  }
+  if (!Array.isArray(basis.telemetry?.cli_commands) || !basis.telemetry.cli_commands.includes("uploadcheck cost-basis --json")) {
+    errors.push({ key: "telemetry.cli_commands", reason: "missing_cost_basis_cli", detail: "Cost basis must expose CLI uploadcheck cost-basis --json." });
+  }
 
   const plans = Array.isArray(basis.plans) ? basis.plans : [];
   if (JSON.stringify(plans.map((plan) => plan.plan_id)) !== JSON.stringify(PLAN_IDS)) {

@@ -84,6 +84,12 @@ export const MCP_TOOLS: McpTool[] = [
     outputs: ["launch_preflight", "cost_preflight", "profiles", "repair_loop_contract", "nto_replacement_qc"]
   },
   {
+    name: "qc_get_cost_basis",
+    purpose: "Fetch public cost-per-minute, plan economics, and 95% gross-margin assumptions before pricing or launch decisions.",
+    inputs: [],
+    outputs: ["target_gross_margin_pct", "cost_assumptions", "plans", "verdict", "model_backed_checks"]
+  },
+  {
     name: "qc_estimate_cost",
     purpose: "Preflight cost, margin safety, and effective/removed gates before an agent uploads or runs media.",
     inputs: ["minutes", "duration_seconds", "checks", "plan_id", "ai_review_seconds", "cost_guardrail"],

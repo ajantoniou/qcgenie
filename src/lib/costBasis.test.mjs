@@ -18,6 +18,8 @@ describe("public cost basis", () => {
     expect(basis.target_gross_margin_pct).toBe(95);
     expect(basis.cost_assumptions.model_check_call_cost_cents).toBe(0.75);
     expect(basis.observed_calibration.source).toContain("0.654");
+    expect(basis.telemetry.mcp_tools).toContain("qc_get_cost_basis");
+    expect(basis.telemetry.cli_commands).toContain("uploadcheck cost-basis --json");
     expect(stress).toMatchObject({
       price_cents: 9900,
       included_minutes: 5000,
@@ -64,6 +66,7 @@ describe("public cost basis", () => {
     const manifest = readJson("public/agent-manifest.json");
 
     expect(manifest.cost_basis_url).toBe("https://qcgenie-api.onrender.com/cost-basis.json");
+    expect(manifest.tools).toContain("qc_get_cost_basis");
   });
 
   it("exposes an operator verifier for public cost basis drift", () => {

@@ -22,6 +22,7 @@ const REQUIRED_EXECUTION_MARKERS = [
   "global Codex MCP entry is installed",
   "global Codex install verifier",
   "public cost-basis verifier",
+  "MCP `qc_get_cost_basis`",
   "machine-readable repair-loop contract",
   "MCP `qc_run_local_file`",
   "MCP `qc_get_launch_handoff`",

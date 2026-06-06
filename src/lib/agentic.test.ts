@@ -30,6 +30,7 @@ describe("agentic integration contract", () => {
       "qc_get_launch_status",
       "qc_get_launch_handoff",
       "qc_get_pipeline_recipes",
+      "qc_get_cost_basis",
       "qc_estimate_cost",
       "qc_run_video",
       "qc_run_local_file",
@@ -51,6 +52,9 @@ describe("agentic integration contract", () => {
     const pipelineRecipes = MCP_TOOLS.find((tool) => tool.name === "qc_get_pipeline_recipes");
     expect(pipelineRecipes?.outputs).toContain("profiles");
     expect(pipelineRecipes?.outputs).toContain("repair_loop_contract");
+    const costBasis = MCP_TOOLS.find((tool) => tool.name === "qc_get_cost_basis");
+    expect(costBasis?.outputs).toContain("target_gross_margin_pct");
+    expect(costBasis?.outputs).toContain("plans");
     const runVideo = MCP_TOOLS.find((tool) => tool.name === "qc_run_video");
     expect(runVideo?.inputs).toContain("youtube_url");
     expect(runVideo?.outputs).toContain("verdict");

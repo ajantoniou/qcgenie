@@ -72,7 +72,7 @@ When a project has local chunk QC reports, pass `sidecar_dir` with `checks: "chu
 
 For thumbnail candidates, call `qc_run_local_file` on the image with `checks: "thumbnail_text_readability"`. The same inline Render path evaluates OCR contrast and edge/safe-area readability without model spend.
 
-Use `plan_id`, `ai_review_seconds`, and `cost_guardrail` when an agent is asking for paid AI review beyond deterministic checks. The default guardrail is `downgrade`: margin-breaking AI review is removed and the job runs deterministic checks. Use `block` to reject unsafe requests, or `off` only for internal experiments/deep-review add-ons.
+Use `qc_get_cost_basis` before pricing, plan, or model-backed review decisions. Use `plan_id`, `ai_review_seconds`, and `cost_guardrail` when an agent is asking for paid AI review beyond deterministic checks. The default guardrail is `downgrade`: margin-breaking AI review is removed and the job runs deterministic checks. Use `block` to reject unsafe requests, or `off` only for internal experiments/deep-review add-ons.
 
 Checked minutes mean deterministic pre-upload QC minutes. The old `$99 / 5,000` stress plan leaves only `0.0157` COGS cents/min after deterministic scanning, so unlimited full-video AI review is not included; model-backed deep review must be preflighted, downgraded, blocked, or sold separately to preserve the >95% gross-margin target.
 
@@ -86,6 +86,7 @@ Call `qc_estimate_cost` before uploading large media or asking for model-backed 
 - `qc_get_launch_status`
 - `qc_get_launch_handoff`
 - `qc_get_pipeline_recipes`
+- `qc_get_cost_basis`
 - `qc_run_video`
 - `qc_run_local_file`
 - `qc_get_job`

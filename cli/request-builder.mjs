@@ -113,7 +113,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
 export function parseArgs(argv) {
   const args = [...argv];
   const command = args.shift();
-  if (!["check", "estimate", "usage", "launch-status", "launch-handoff", "recipes"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status | uploadcheck launch-handoff | uploadcheck recipes");
+  if (!["check", "estimate", "usage", "launch-status", "launch-handoff", "recipes", "cost-basis"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status | uploadcheck launch-handoff | uploadcheck recipes | uploadcheck cost-basis");
 
   const target = command === "check" ? args.shift() : null;
   const options = { json: false };
@@ -209,6 +209,17 @@ export function buildPipelineRecipesRequest(options = {}) {
   };
 }
 
+export function buildCostBasisRequest(options = {}) {
+  const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
+  return {
+    apiBaseUrl,
+    path: "/cost-basis.json",
+    method: "GET",
+    kind: "cost_basis",
+    public: true
+  };
+}
+
 export function buildUsageRequest(options = {}) {
   const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
   const params = new URLSearchParams();
@@ -283,6 +294,15 @@ export function formatPipelineRecipesSummary(payload) {
   const profiles = Object.keys(payload.profiles || {});
   const checks = payload.nto_replacement_qc?.implemented_gates?.length || 0;
   return `UploadCheck pipeline recipes: ${profiles.length} profiles${profiles.length ? ` (${profiles.join(", ")})` : ""} | ${checks} implemented NTO/NPO replacement gates`;
+}
+
+export function formatCostBasisSummary(payload) {
+  const target = Number(payload.target_gross_margin_pct || 0);
+  const stress = (payload.plans || []).find((plan) => plan.plan_id === "stress_99_5000");
+  const remaining = stress?.remaining_cost_per_minute_after_deterministic_full_allowance_cents;
+  const verdict = payload.verdict?.stress_99_5000 || "";
+  const remainingText = remaining == null ? "unknown" : `${Number(remaining).toFixed(4)}c/min`;
+  return `UploadCheck cost basis: target margin ${target}% | $99/5,000 remaining post-deterministic COGS ${remainingText}${verdict ? ` | ${verdict}` : ""}`;
 }
 
 function requireValue(flag, value) {
