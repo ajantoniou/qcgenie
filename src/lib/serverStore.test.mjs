@@ -449,6 +449,40 @@ describe("JsonStore", () => {
     }
   });
 
+  it("adds character variation repair guidance when a twins action is too narrow", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const job = store.createJob({ source: "/tmp/tiled-characters.jpg" });
+      store.ingestGateVerdict(job.jobId, {
+        verdict: "BLOCK",
+        blocked: ["twins"],
+        skipped: [],
+        per_check: {
+          twins: {
+            pass: false,
+            findings: [{
+              t: 0,
+              duplicate_count: 4,
+              needs_more_character_variation: true,
+              reason: "The same face appears four times.",
+              action: "Remove the duplicate quadrants."
+            }]
+          }
+        }
+      });
+
+      const flag = store.listFlags(job.jobId)[0];
+      expect(flag.summary).toContain("Remove the duplicate quadrants.");
+      expect(flag.summary).toContain("more character variation");
+      expect(store.buildMarkerCsv(job.jobId)).toContain("more character variation");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("ingests text safe-area gate findings with readable summaries", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");

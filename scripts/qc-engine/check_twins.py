@@ -95,6 +95,15 @@ def vision(key,jpg):
         return parsed
     except Exception as ex: return {"_error":str(ex)[:120]}
 
+def normalize_twins_finding(v, t):
+    return {
+        "t": t,
+        "duplicate_count": v.get("duplicate_count"),
+        "needs_more_character_variation": True,
+        "reason": v.get("reason",""),
+        "action": v.get("action") or "Regenerate or edit the scene with more character variation."
+    }
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("media"); ap.add_argument("--fps",type=float,default=0.25)
@@ -123,13 +132,7 @@ def main():
         if usage: provider_usage.append(usage)
         checked+=1
         if v.get("has_twins"):
-            findings.append({
-                "t":0 if is_image(a.media) else round(i/a.fps,1),
-                "duplicate_count":v.get("duplicate_count"),
-                "needs_more_character_variation":bool(v.get("needs_more_character_variation", True)),
-                "reason":v.get("reason",""),
-                "action":v.get("action") or "Regenerate or edit the scene with more character variation."
-            })
+            findings.append(normalize_twins_finding(v, 0 if is_image(a.media) else round(i/a.fps,1)))
     for f in glob.glob(os.path.join(tmp,"*.jpg")): os.unlink(f)
     os.rmdir(tmp)
     if checked == 0 and errors:

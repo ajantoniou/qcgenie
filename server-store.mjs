@@ -744,7 +744,11 @@ function summarizeFinding(gate, finding) {
   if (gate === "twins") {
     const duplicateCount = Number.isFinite(Number(finding.duplicate_count)) ? Number(finding.duplicate_count) : null;
     const countText = duplicateCount ? `${duplicateCount} near-duplicate character${duplicateCount === 1 ? "" : "s"}` : "Near-duplicate characters";
-    const action = finding.action || (finding.needs_more_character_variation ? "Regenerate or edit the scene with more character variation." : "");
+    const variationAction = "Regenerate or edit the scene with more character variation.";
+    const baseAction = finding.action || (finding.needs_more_character_variation ? variationAction : "");
+    const action = finding.needs_more_character_variation && baseAction && !/character variation|distinct character|unique character/i.test(baseAction)
+      ? `${baseAction} ${variationAction}`
+      : baseAction;
     const reason = finding.reason || finding.summary || finding.label || "Repeated faces or bodies detected in the scene.";
     return action ? `${countText}: ${reason} ${action}` : `${countText}: ${reason}`;
   }
