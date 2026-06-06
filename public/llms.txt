@@ -61,6 +61,8 @@ Pricing:
 - Network: $799/mo for 18,000 checked media minutes/month. High-volume plan.
 - Overage: Creator $0.12/min, Studio $0.09/min, Network $0.06/min after included minutes.
 - Plans are based on media minutes checked, not seats.
+- Checked minutes are deterministic pre-upload QC minutes; model-backed deep review is preflighted and may be downgraded, blocked, or sold separately when it would break the 95% gross-margin target.
+- The old $99 / 5,000 stress plan leaves only 0.0157 COGS cents/minute after deterministic scanning, so unlimited full-video AI review is not included.
 - Re-checks count because UploadCheck analyzes the actual media file each time.
 - Most serious solo creators are expected to fit around 300-900 checked minutes/month; 1,200 minutes gives room for weekly uploads, clip batches, and a few re-checks.
 - Heavy users are expected around 2,500-4,500 checked minutes/month.
