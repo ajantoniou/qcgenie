@@ -540,6 +540,13 @@ function normalizeFindings(value) {
 }
 
 function summarizeFinding(gate, finding) {
+  if (gate === "twins") {
+    const duplicateCount = Number.isFinite(Number(finding.duplicate_count)) ? Number(finding.duplicate_count) : null;
+    const countText = duplicateCount ? `${duplicateCount} near-duplicate character${duplicateCount === 1 ? "" : "s"}` : "Near-duplicate characters";
+    const action = finding.action || (finding.needs_more_character_variation ? "Regenerate or edit the scene with more character variation." : "");
+    const reason = finding.reason || finding.summary || finding.label || "Repeated faces or bodies detected in the scene.";
+    return action ? `${countText}: ${reason} ${action}` : `${countText}: ${reason}`;
+  }
   if (finding.summary || finding.reason || finding.label) return finding.summary || finding.reason || finding.label;
   if (gate === "text_contrast" && Array.isArray(finding.words) && finding.words.length) {
     const sample = finding.words.map((word) => word.text).filter(Boolean).slice(0, 5).join(" ");

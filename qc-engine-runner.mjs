@@ -13,6 +13,12 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ENGINE = join(HERE, "scripts", "qc-engine", "run_gate.py");
 const PYTHON = process.env.UPLOADCHECK_PYTHON || process.env.QCGENIE_PYTHON || "python3";
 const YTDLP = process.env.UPLOADCHECK_YTDLP || process.env.QCGENIE_YTDLP || "yt-dlp";
+const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"]);
+
+function isImagePath(path) {
+  const lower = String(path || "").toLowerCase();
+  return [...IMAGE_EXTS].some((ext) => lower.endsWith(ext));
+}
 
 // Resolve a job source (local path / file:// / youtube URL / signed URL) to a local file path.
 // Returns { path, cleanup } or null if it cannot be resolved here.
@@ -71,10 +77,14 @@ export function runQcForJob(job, opts = {}) {
   const resolved = resolveSourceToLocal(job.source, job.sourceType);
   if (!resolved) return { ranEngine: false, error: "could not resolve source to a local file (no yt-dlp / not a local path)" };
   let durationS = null;
-  try {
-    const p = spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", resolved.path], { encoding: "utf8" });
-    durationS = Math.ceil(parseFloat((p.stdout || "0").trim()) || 0);
-  } catch {}
+  if (isImagePath(resolved.path)) {
+    durationS = 1;
+  } else {
+    try {
+      const p = spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", resolved.path], { encoding: "utf8" });
+      durationS = Math.ceil(parseFloat((p.stdout || "0").trim()) || 0);
+    } catch {}
+  }
   if (!durationS || durationS <= 0) {
     if (resolved.cleanup) {
       try { rmSync(resolved.cleanup, { recursive: true, force: true }); } catch {}

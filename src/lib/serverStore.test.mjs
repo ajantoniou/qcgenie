@@ -280,6 +280,44 @@ describe("JsonStore", () => {
     }
   });
 
+  it("ingests twins findings with character variation repair guidance", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const job = store.createJob({ source: "/tmp/crowd-scene.jpg" });
+      const result = store.ingestGateVerdict(job.jobId, {
+        verdict: "BLOCK",
+        blocked: ["twins"],
+        skipped: [],
+        per_check: {
+          twins: {
+            pass: false,
+            findings: [{
+              t: 0,
+              duplicate_count: 12,
+              needs_more_character_variation: true,
+              reason: "Multiple background men share the same face, hair, and robe silhouette.",
+              action: "Regenerate or edit the crowd with more character variation."
+            }]
+          }
+        }
+      });
+
+      expect(result.importedFlags).toHaveLength(1);
+      expect(store.listFlags(job.jobId)[0]).toMatchObject({
+        gate: "twins",
+        severity: "block",
+        timestamp: "00:00:00",
+        summary: "12 near-duplicate characters: Multiple background men share the same face, hair, and robe silhouette. Regenerate or edit the crowd with more character variation."
+      });
+      expect(store.buildMarkerCsv(job.jobId)).toContain("more character variation");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("ingests text safe-area gate findings with readable summaries", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");
