@@ -437,12 +437,13 @@ export class JsonStore {
     return delivery;
   }
 
-  appendUsage(jobId, roundedMinutes, billingPeriod = currentBillingPeriod()) {
+  appendUsage(jobId, roundedMinutes, billingPeriod = currentBillingPeriod(), costSnapshot = null) {
     const entry = {
       usageId: `use_${randomId()}`,
       jobId,
       roundedMinutes,
       billingPeriod,
+      costSnapshot,
       createdAt: new Date().toISOString()
     };
     this.state.usageLedger.push(entry);

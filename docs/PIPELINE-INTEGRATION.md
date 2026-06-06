@@ -23,7 +23,7 @@ UPLOADCHECK_API_BASE_URL = "https://qcgenie-api.onrender.com"
 UPLOADCHECK_API_KEY = "<workspace_api_key>"
 ```
 
-The server exposes `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, and `qc_create_upload_url`.
+The server exposes `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_get_margin_telemetry`, and `qc_create_upload_url`.
 
 The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadcheck`. Use `$uploadcheck` when a project needs the standard preflight -> hosted QC -> report -> repair-loop workflow.
 
@@ -157,6 +157,7 @@ Cost guardrail controls:
 - Use `cost_guardrail: "block"` to reject margin-breaking AI-review requests with `402 cost_guardrail_blocked`.
 - Use `cost_guardrail: "off"` only for internal experiments or paid deep-review add-ons.
 - Pass `plan_id: "creator" | "studio" | "network" | "stress_99_5000"` or custom `plan_price_cents` and `included_minutes` so the cost estimate matches the customer contract.
+- Call `qc_get_margin_telemetry` or `GET /v1/usage/margins` after live jobs to compare actual metered minutes, estimated COGS, allocated revenue, cost per minute, and gross margin against the Product Hunt launch threshold.
 
 CLI example:
 

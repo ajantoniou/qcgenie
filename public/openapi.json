@@ -305,6 +305,18 @@
         }
       }
     },
+    "/v1/usage/margins": {
+      "get": {
+        "summary": "Summarize usage cost and gross-margin telemetry",
+        "parameters": [
+          { "name": "billing_period", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Usage COGS, allocated revenue, cost per minute, and gross-margin summary" }
+        }
+      }
+    },
     "/v1/qc/jobs/{job_id}/cancel": {
       "post": {
         "summary": "Cancel a QC job",

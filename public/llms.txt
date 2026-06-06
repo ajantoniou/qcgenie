@@ -25,7 +25,7 @@ Agent integration:
 - The Render service display name is uploadcheck-api, but the live Render URL still uses the legacy qcgenie-api slug until custom-domain cutover.
 - Legacy qcgenie-api environment names are accepted only as migration fallbacks.
 - MCP wrapper package lives in the repository under mcp-server.
-- MCP tools: qc_estimate_cost, qc_run_video, qc_run_local_file, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_create_upload_url.
+- MCP tools: qc_estimate_cost, qc_run_video, qc_run_local_file, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_get_margin_telemetry, qc_create_upload_url.
 - MCP local-file workflow: qc_run_local_file reads a reachable local media path, encodes small files inline for Render evaluation, and falls back to signed upload for larger files.
 - Large local files use POST /v1/uploads, PUT /v1/uploads/{upload_id}/content?token=..., then POST /v1/qc/jobs with upload_id.
 - Signed-upload bytes use Render temp storage by default or mounted durable filesystem storage when UPLOADCHECK_DURABLE_STORAGE_DIR is configured.
@@ -36,7 +36,7 @@ Agent integration:
 - Webhook signing secrets require a strong UPLOADCHECK_SECRET_ENCRYPTION_KEY for encrypted-at-rest storage; generate one with npm run --silent secret:generate.
 - Completed jobs enqueue signed webhook delivery records; delivery logs are available at GET /v1/webhooks/deliveries, manual retries at POST /v1/webhooks/deliveries/{delivery_id}/retry, and due pending delivery drains at POST /v1/webhooks/deliveries/drain.
 - Current v0 API persists jobs, uploads, webhook endpoints, webhook delivery previews, and usage entries to a server-side JSON store. Set UPLOADCHECK_STORE_PATH outside temp storage for mounted-disk persistence; Supabase persistence is still planned for multi-workspace scale.
-- Report reads append rounded-minute usage entries visible through GET /v1/usage.
+- Report reads append rounded-minute usage entries visible through GET /v1/usage, with gross-margin telemetry summarized at GET /v1/usage/margins.
 - Creating a QC job currently runs deterministic v0 processing immediately and stores lifecycle events, warning flags, and JSON/marker-export artifact records.
 - Marker exports are available as CSV at GET /v1/qc/jobs/{job_id}/artifacts/markers for editor handoff.
 - Product Hunt launch state should be verified with GET /v1/readiness before claiming checkout, custom domain, persistence, storage, demo clip, and launch readiness are complete.

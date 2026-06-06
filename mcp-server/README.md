@@ -76,6 +76,7 @@ Call `qc_estimate_cost` before uploading large media or asking for model-backed 
 - `qc_get_marker_csv`
 - `qc_submit_gate_verdict`
 - `qc_list_recent_jobs`
+- `qc_get_margin_telemetry`
 - `qc_create_upload_url`
 
 Use `idempotency_key` with `qc_run_video` when an agent may retry the same asset. The hosted API returns the existing job instead of creating a duplicate run.

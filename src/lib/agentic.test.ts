@@ -16,7 +16,8 @@ describe("agentic integration contract", () => {
       "POST /v1/uploads",
       "PUT /v1/uploads/{upload_id}/content",
       "GET /v1/uploads/{upload_id}",
-      "GET /v1/qc/jobs?limit=&status=&source_url="
+      "GET /v1/qc/jobs?limit=&status=&source_url=",
+      "GET /v1/usage/margins?billing_period=&limit="
     ]);
   });
 
@@ -32,6 +33,7 @@ describe("agentic integration contract", () => {
       "qc_get_marker_csv",
       "qc_submit_gate_verdict",
       "qc_list_recent_jobs",
+      "qc_get_margin_telemetry",
       "qc_create_upload_url"
     ]);
     const runVideo = MCP_TOOLS.find((tool) => tool.name === "qc_run_video");

@@ -57,7 +57,8 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "POST /v1/uploads", purpose: "Create a signed upload target for agents and self-serve users." },
   { methodPath: "PUT /v1/uploads/{upload_id}/content", purpose: "Send local media bytes to the signed upload URL before creating an upload_id QC job." },
   { methodPath: "GET /v1/uploads/{upload_id}", purpose: "Check upload processing and metadata probe status." },
-  { methodPath: "GET /v1/qc/jobs?limit=&status=&source_url=", purpose: "List recent jobs and avoid duplicate agent runs." }
+  { methodPath: "GET /v1/qc/jobs?limit=&status=&source_url=", purpose: "List recent jobs and avoid duplicate agent runs." },
+  { methodPath: "GET /v1/usage/margins?billing_period=&limit=", purpose: "Summarize usage COGS, allocated revenue, cost per minute, and gross margin." }
 ];
 
 export const MCP_TOOLS: McpTool[] = [
@@ -120,6 +121,12 @@ export const MCP_TOOLS: McpTool[] = [
     purpose: "Let an agent inspect recent jobs before re-running duplicate QC work.",
     inputs: ["workspace_id", "limit"],
     outputs: ["jobs", "verdicts", "created_at", "minutes_metered"]
+  },
+  {
+    name: "qc_get_margin_telemetry",
+    purpose: "Summarize usage COGS and gross-margin safety for pricing and launch decisions.",
+    inputs: ["billing_period", "limit"],
+    outputs: ["minutes", "estimated_cogs_cents", "estimated_cost_per_minute_cents", "estimated_gross_margin_pct", "margin_safe"]
   },
   {
     name: "qc_create_upload_url",

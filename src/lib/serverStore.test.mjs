@@ -14,7 +14,7 @@ describe("JsonStore", () => {
       const job = store.createJob({ youtube_url: "https://youtube.com/watch?v=creator-cut", idempotency_key: "abc" });
       const upload = store.createUpload({ filename: "rough-cut.mp4", content_type: "video/mp4", size_bytes: 42000000 });
       const webhook = store.createWebhook({ url: "https://agent.example.com/qc-callback" });
-      const usage = store.appendUsage(job.jobId, 19, "2026-06");
+      const usage = store.appendUsage(job.jobId, 19, "2026-06", { estimatedCogsCents: 1.58, marginSafe: true });
 
       const reloaded = new JsonStore(path);
 
@@ -22,7 +22,11 @@ describe("JsonStore", () => {
       expect(reloaded.getUpload(upload.uploadId)).toMatchObject({ filename: "rough-cut.mp4", status: "created" });
       expect(reloaded.getUpload(upload.uploadId).signedPutUrl).toContain(`/v1/uploads/${upload.uploadId}/content?token=`);
       expect(reloaded.getWebhook(webhook.webhookId)).toMatchObject({ url: "https://agent.example.com/qc-callback" });
-      expect(reloaded.state.usageLedger[0]).toMatchObject({ usageId: usage.usageId, roundedMinutes: 19 });
+      expect(reloaded.state.usageLedger[0]).toMatchObject({
+        usageId: usage.usageId,
+        roundedMinutes: 19,
+        costSnapshot: { estimatedCogsCents: 1.58, marginSafe: true }
+      });
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

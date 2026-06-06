@@ -152,6 +152,22 @@ server.tool(
 );
 
 server.tool(
+  "qc_get_margin_telemetry",
+  "Summarize recent UploadCheck usage COGS, allocated revenue, cost per minute, and gross margin.",
+  {
+    billing_period: z.string().optional(),
+    limit: z.number().optional()
+  },
+  async ({ billing_period, limit }) => {
+    const params = new URLSearchParams();
+    if (billing_period) params.set("billing_period", billing_period);
+    if (limit) params.set("limit", String(limit));
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return jsonTool(await apiFetch(`/v1/usage/margins${suffix}`));
+  }
+);
+
+server.tool(
   "qc_create_upload_url",
   "Create a signed upload URL for a local video file.",
   {

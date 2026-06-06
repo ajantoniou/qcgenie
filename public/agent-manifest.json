@@ -57,6 +57,7 @@
     "qc_get_marker_csv",
     "qc_submit_gate_verdict",
     "qc_list_recent_jobs",
+    "qc_get_margin_telemetry",
     "qc_create_upload_url"
   ],
   "primary_endpoints": [
@@ -76,7 +77,8 @@
     "GET /v1/webhooks/deliveries",
     "POST /v1/webhooks/deliveries/drain",
     "POST /v1/webhooks/deliveries/{delivery_id}/retry",
-    "GET /v1/usage"
+    "GET /v1/usage",
+    "GET /v1/usage/margins"
   ],
   "agent_workflow": [
     "Before launch-sensitive workflows, the agent may call GET /v1/readiness to verify checkout, custom domain, persistence, storage, demo clip, and Product Hunt readiness.",

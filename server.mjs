@@ -8,7 +8,7 @@ import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { JsonStore } from "./server-store.mjs";
 import { cleanupInlineMedia, materializeInlineMedia } from "./inline-media.mjs";
-import { applyCostGuardrail, estimateJobCost } from "./cost-model.mjs";
+import { applyCostGuardrail, estimateJobCost, summarizeUsageMargins } from "./cost-model.mjs";
 import { buildCheckoutUrl, normalizePlanId } from "./checkout-links.mjs";
 import { buildReadinessReport } from "./readiness.mjs";
 
@@ -62,6 +62,7 @@ createServer(async (req, res) => {
     if (req.method === "GET" && /^\/v1\/uploads\/[^/]+$/.test(url.pathname)) return getUpload(req, url, res);
     if (req.method === "GET" && url.pathname === "/v1/qc/jobs") return listJobs(req, res);
     if (req.method === "GET" && url.pathname === "/v1/usage") return getUsage(req, res);
+    if (req.method === "GET" && url.pathname === "/v1/usage/margins") return getUsageMargins(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks") return createWebhook(req, res);
     if (req.method === "GET" && url.pathname === "/v1/webhooks/deliveries") return listWebhookDeliveries(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks/deliveries/drain") return drainWebhookDeliveries(req, res);
@@ -300,14 +301,15 @@ function getReport(req, url, res) {
   const realJob = store.getJob(jobId);
   const job = realJob || completedJob(jobId);
   const roundedMinutes = Math.max(1, Math.ceil(job.minutesMetered || 19));
-  const usage = store.appendUsage(jobId, roundedMinutes);
+  const costEstimate = estimateCostForJob(job, roundedMinutes);
+  const usage = store.appendUsage(jobId, roundedMinutes, undefined, costEstimate);
   const flags = store.listFlags(jobId);
   const artifacts = store.listArtifacts(jobId);
   return sendJson(res, 200, {
     jobId,
     verdict: job.verdict || "WATCH",
     usage,
-    costEstimate: estimateCostForJob(job, roundedMinutes),
+    costEstimate,
     flags: flags.length ? flags : (realJob ? [] : [defaultFlag(jobId)]),
     artifacts: artifacts.length ? artifacts : (realJob ? [] : defaultArtifacts(jobId))
   });
@@ -443,6 +445,22 @@ function getUsage(req, res) {
   const auth = requireScope(req, "jobs:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   return sendJson(res, 200, { usageLedger: store.state.usageLedger.slice(-50).reverse() });
+}
+
+function getUsageMargins(req, res) {
+  const auth = requireScope(req, "jobs:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const url = new URL(req.url || "/", `http://${req.headers.host}`);
+  const billingPeriod = url.searchParams.get("billing_period") || url.searchParams.get("billingPeriod") || null;
+  const limit = Math.min(Math.max(Number(url.searchParams.get("limit") || 500) || 500, 1), 5000);
+  const entries = store.state.usageLedger
+    .filter((entry) => !billingPeriod || entry.billingPeriod === billingPeriod)
+    .slice(-limit);
+  return sendJson(res, 200, {
+    billingPeriod,
+    summary: summarizeUsageMargins(entries),
+    usageLedger: entries.slice(-50).reverse()
+  });
 }
 
 async function createWebhook(req, res) {

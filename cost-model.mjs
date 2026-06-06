@@ -44,6 +44,7 @@ export function estimateJobCost(input = {}) {
   const includedMinutes = plan.includedMinutes;
   const cogsBudgetCents = planPriceCents * (1 - TARGET_MARGIN);
   const maxCostPerMinuteCents = cogsBudgetCents / includedMinutes;
+  const revenuePerMinuteCents = includedMinutes > 0 ? planPriceCents / includedMinutes : 0;
 
   const deterministicComputeCents = minutes * DEFAULT_DETERMINISTIC_COST_PER_MINUTE_CENTS; // Render starter task at about $0.05/hour, 1x realtime.
   const flashLiteVideoAudioInputCents = minutes * 0.2154;
@@ -51,6 +52,10 @@ export function estimateJobCost(input = {}) {
   const sampledAiCents = (aiReviewSeconds / 60) * DEFAULT_AI_REVIEW_COST_PER_MINUTE_CENTS;
   const estimatedCogsCents = deterministicComputeCents + sampledAiCents + checkCost.modelCheckCents;
   const allowedCogsForJobCents = minutes * maxCostPerMinuteCents;
+  const allocatedRevenueCents = minutes * revenuePerMinuteCents;
+  const estimatedGrossMarginPct = allocatedRevenueCents > 0
+    ? ((allocatedRevenueCents - estimatedCogsCents) / allocatedRevenueCents) * 100
+    : 0;
   const remainingAiBudgetCents = Math.max(0, allowedCogsForJobCents - deterministicComputeCents);
   const maxAiReviewSecondsAtMargin = DEFAULT_AI_REVIEW_COST_PER_MINUTE_CENTS > 0
     ? Math.floor((remainingAiBudgetCents / DEFAULT_AI_REVIEW_COST_PER_MINUTE_CENTS) * 60)
@@ -63,6 +68,7 @@ export function estimateJobCost(input = {}) {
     includedMinutes,
     maxCogsCents: round(cogsBudgetCents),
     maxCostPerMinuteCents: round(maxCostPerMinuteCents),
+    revenuePerMinuteCents: round(revenuePerMinuteCents),
     minutesMetered: minutes,
     aiReviewSeconds,
     deterministicComputeCents: round(deterministicComputeCents),
@@ -72,6 +78,8 @@ export function estimateJobCost(input = {}) {
     deterministicChecks: checkCost.deterministicChecks,
     estimatedCogsCents: round(estimatedCogsCents),
     estimatedCostPerMinuteCents: round(minutes ? estimatedCogsCents / minutes : 0),
+    allocatedRevenueCents: round(allocatedRevenueCents),
+    estimatedGrossMarginPct: round(estimatedGrossMarginPct),
     allowedCogsForJobCents: round(allowedCogsForJobCents),
     maxAiReviewSecondsAtMargin,
     marginSafe: estimatedCogsCents <= allowedCogsForJobCents,
@@ -80,6 +88,48 @@ export function estimateJobCost(input = {}) {
     warning: flashLiteVideoAudioInputCents > minutes * maxCostPerMinuteCents
       ? `Full-video Gemini review exceeds the 95% margin budget for ${plan.planId || "this plan"}.`
       : null
+  };
+}
+
+export function summarizeUsageMargins(entries = []) {
+  const summary = entries.reduce((acc, entry) => {
+    const snapshot = entry.costSnapshot || entry.costEstimate || {};
+    const minutes = Number(entry.roundedMinutes || snapshot.minutesMetered || 0) || 0;
+    const cogs = Number(snapshot.estimatedCogsCents || 0) || 0;
+    const revenue = Number(snapshot.allocatedRevenueCents || 0) || 0;
+    const allowed = Number(snapshot.allowedCogsForJobCents || 0) || 0;
+    acc.entries += 1;
+    acc.minutes += minutes;
+    acc.estimatedCogsCents += cogs;
+    acc.allocatedRevenueCents += revenue;
+    acc.allowedCogsCents += allowed;
+    if (snapshot.marginSafe === false) acc.marginUnsafeEntries += 1;
+    return acc;
+  }, {
+    entries: 0,
+    minutes: 0,
+    estimatedCogsCents: 0,
+    allocatedRevenueCents: 0,
+    allowedCogsCents: 0,
+    marginUnsafeEntries: 0
+  });
+
+  const grossMarginPct = summary.allocatedRevenueCents > 0
+    ? ((summary.allocatedRevenueCents - summary.estimatedCogsCents) / summary.allocatedRevenueCents) * 100
+    : 0;
+
+  return {
+    entries: summary.entries,
+    minutes: round(summary.minutes),
+    estimatedCogsCents: round(summary.estimatedCogsCents),
+    estimatedCogsUsd: round(summary.estimatedCogsCents / 100),
+    allocatedRevenueCents: round(summary.allocatedRevenueCents),
+    allocatedRevenueUsd: round(summary.allocatedRevenueCents / 100),
+    allowedCogsCents: round(summary.allowedCogsCents),
+    estimatedCostPerMinuteCents: round(summary.minutes ? summary.estimatedCogsCents / summary.minutes : 0),
+    estimatedGrossMarginPct: round(grossMarginPct),
+    marginSafe: summary.marginUnsafeEntries === 0 && summary.estimatedCogsCents <= summary.allowedCogsCents,
+    marginUnsafeEntries: summary.marginUnsafeEntries
   };
 }
 
