@@ -111,7 +111,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
 export function parseArgs(argv) {
   const args = [...argv];
   const command = args.shift();
-  if (!["check", "estimate"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N");
+  if (!["check", "estimate", "usage"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage");
 
   const target = command === "check" ? args.shift() : null;
   const options = { json: false };
@@ -154,6 +154,10 @@ export function parseArgs(argv) {
       options.minutes = requireValue(arg, args.shift());
     } else if (arg === "--duration-seconds") {
       options.durationSeconds = requireValue(arg, args.shift());
+    } else if (arg === "--billing-period") {
+      options.billingPeriod = requireValue(arg, args.shift());
+    } else if (arg === "--limit") {
+      options.limit = requireValue(arg, args.shift());
     } else if (arg === "--max-inline-mb") {
       options.maxInlineMb = requireValue(arg, args.shift());
     } else if (arg === "--upload-mode") {
@@ -166,6 +170,20 @@ export function parseArgs(argv) {
   }
 
   return { command, target, options };
+}
+
+export function buildUsageRequest(options = {}) {
+  const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
+  const params = new URLSearchParams();
+  if (options.billingPeriod) params.set("billing_period", options.billingPeriod);
+  if (options.limit) params.set("limit", Number(options.limit));
+  const query = params.toString();
+  return {
+    apiBaseUrl,
+    path: `/v1/usage/margins${query ? `?${query}` : ""}`,
+    method: "GET",
+    kind: "usage"
+  };
 }
 
 export function buildEstimateRequest(options = {}) {
@@ -193,6 +211,16 @@ export function formatJobSummary(payload) {
   );
   const suffix = cost == null ? "" : ` | est. COGS $${Number(cost).toFixed(4)}`;
   return `UploadCheck job ${payload.jobId || payload.id || "(unknown)"}: ${status} / ${verdict} | ${minutes} min${suffix}`;
+}
+
+export function formatUsageSummary(payload) {
+  const summary = payload.summary || {};
+  const minutes = Number(summary.minutes || 0);
+  const cogs = Number(summary.estimatedCogsCents || 0) / 100;
+  const costPerMinuteCents = Number(summary.estimatedCostPerMinuteCents || 0);
+  const grossMarginPct = Number(summary.estimatedGrossMarginPct || 0);
+  const status = summary.marginSafe === false ? "MARGIN RISK" : "MARGIN SAFE";
+  return `UploadCheck usage: ${status} | ${minutes} min | est. COGS $${cogs.toFixed(4)} | cost/min ${costPerMinuteCents.toFixed(4)}c | margin ${grossMarginPct.toFixed(2)}%`;
 }
 
 function requireValue(flag, value) {

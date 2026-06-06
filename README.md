@@ -56,6 +56,7 @@ Public API:
 - Product Hunt readiness CLI: `npm run readiness:check`
 - Render Blueprint verifier: `npm run render:verify`
 - Render API launch helper: `npm run render:plan`, `npm run render:audit`, `npm run render:apply`
+- CLI margin telemetry: `uploadcheck usage --billing-period YYYY-MM`
 
 Persistence state:
 
@@ -68,6 +69,7 @@ Persistence state:
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
 - Render cron can run `node scripts/drain-webhooks.mjs` with `UPLOADCHECK_API_KEY`, `UPLOADCHECK_API_BASE_URL`, and `UPLOADCHECK_DRAIN_LIMIT` to process due deliveries on a schedule.
 - Report reads append rounded-minute usage ledger entries.
+- `uploadcheck usage` reads `/v1/usage/margins` and prints current estimated COGS, cost/minute, and gross margin.
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
 - When a job source resolves to a local video or downloadable URL, `qc-engine-runner.mjs` can run the reference gate; otherwise the hosted job records a `WATCH` engine warning instead of pretending the asset passed.
 - Editor marker CSV exports are available at `/v1/qc/jobs/{job_id}/artifacts/markers`.

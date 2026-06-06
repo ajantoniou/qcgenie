@@ -199,6 +199,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: Render API launch helper added through `npm run render:plan`, `npm run render:audit`, and `npm run render:apply`; it can add domains, set durable env values, set provided secrets, and trigger deploys when `RENDER_API_KEY` is available.
 - Done: Product Hunt launch checker added through `npm run launch:check`; it combines live readiness, DNS resolution, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
 - Done: margin telemetry added through `GET /v1/usage/margins` and MCP `qc_get_margin_telemetry`; usage entries now retain cost snapshots with COGS, allocated revenue, cost/minute, and estimated gross margin.
+- Done: CLI margin telemetry added through `uploadcheck usage --billing-period YYYY-MM`, so non-MCP agent workflows can inspect cost/minute and gross margin directly.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
 - Next: add direct object-storage upload for production-scale retention beyond mounted filesystem storage.

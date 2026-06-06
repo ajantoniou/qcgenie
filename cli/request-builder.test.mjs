@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildEstimateRequest, buildJobRequest, formatJobSummary, parseArgs } from "./request-builder.mjs";
+import { buildEstimateRequest, buildJobRequest, buildUsageRequest, formatJobSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 describe("UploadCheck CLI request builder", () => {
   it("builds a YouTube job request", () => {
@@ -254,6 +254,29 @@ describe("UploadCheck CLI request builder", () => {
     });
   });
 
+  it("builds and parses a usage margin request", () => {
+    const parsed = parseArgs([
+      "usage",
+      "--api-base",
+      "https://api.example.test",
+      "--billing-period",
+      "2026-06",
+      "--limit",
+      "25",
+      "--json"
+    ]);
+    const request = buildUsageRequest(parsed.options);
+
+    expect(parsed.command).toBe("usage");
+    expect(parsed.target).toBeNull();
+    expect(request).toEqual({
+      apiBaseUrl: "https://api.example.test",
+      path: "/v1/usage/margins?billing_period=2026-06&limit=25",
+      method: "GET",
+      kind: "usage"
+    });
+  });
+
   it("formats a compact job summary", () => {
     expect(formatJobSummary({
       jobId: "job_1",
@@ -269,5 +292,17 @@ describe("UploadCheck CLI request builder", () => {
       minutesMetered: 1,
       costEstimate: { estimatedCogsCents: 0.0833 }
     })).toContain("job_2: completed / PASS | 1 min | est. COGS $0.0008");
+  });
+
+  it("formats a compact usage margin summary", () => {
+    expect(formatUsageSummary({
+      summary: {
+        minutes: 42,
+        estimatedCogsCents: 3.4986,
+        estimatedCostPerMinuteCents: 0.0833,
+        estimatedGrossMarginPct: 95.79,
+        marginSafe: true
+      }
+    })).toBe("UploadCheck usage: MARGIN SAFE | 42 min | est. COGS $0.0350 | cost/min 0.0833c | margin 95.79%");
   });
 });

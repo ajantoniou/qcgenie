@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 import { createReadStream } from "node:fs";
-import { buildEstimateRequest, buildJobRequest, formatJobSummary, parseArgs } from "./request-builder.mjs";
+import { buildEstimateRequest, buildJobRequest, buildUsageRequest, formatJobSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 try {
   const { command, target, options } = parseArgs(process.argv.slice(2));
   const apiKey = options.apiKey || process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
   if (!apiKey) throw new Error("Set UPLOADCHECK_API_KEY or pass --api-key.");
 
-  const request = command === "estimate" ? buildEstimateRequest(options) : buildJobRequest(target, options);
+  const request = command === "estimate"
+    ? buildEstimateRequest(options)
+    : (command === "usage" ? buildUsageRequest(options) : buildJobRequest(target, options));
   const payload = request.kind === "signed_upload"
     ? await runSignedUploadJob(request, apiKey)
-    : await postJson(request.apiBaseUrl, request.path, request.payload, apiKey);
+    : (request.method === "GET" ? await getJson(request.apiBaseUrl, request.path, apiKey) : await postJson(request.apiBaseUrl, request.path, request.payload, apiKey));
 
-  console.log(options.json ? JSON.stringify(payload, null, 2) : formatJobSummary(payload));
+  console.log(options.json ? JSON.stringify(payload, null, 2) : (request.kind === "usage" ? formatUsageSummary(payload) : formatJobSummary(payload)));
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;
@@ -48,6 +50,20 @@ async function postJson(apiBaseUrl, path, payload, apiKey) {
       authorization: `Bearer ${apiKey}`
     },
     body: JSON.stringify(payload)
+  });
+  const body = await response.json();
+  if (!response.ok) {
+    throw new Error(`UploadCheck API ${response.status}: ${JSON.stringify(body)}`);
+  }
+  return body;
+}
+
+async function getJson(apiBaseUrl, path, apiKey) {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: "GET",
+    headers: {
+      authorization: `Bearer ${apiKey}`
+    }
   });
   const body = await response.json();
   if (!response.ok) {
