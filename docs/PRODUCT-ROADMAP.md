@@ -233,6 +233,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: Product Hunt readiness actions now include explicit checkout and storage probe commands, so operators can prove configured payment/storage paths live before launch.
 - Done: launch doctor added through `npm run launch:doctor`; it runs local launch helpers, explicit checkout/storage probes, public metadata verifiers, and live readiness/DNS checks in one ordered report.
 - Done: machine-readable launch doctor JSON added through `npm run launch:doctor -- --json`, so agents can read blocked steps, normalized command strings, and proof outputs without scraping text logs.
+- Done: packaged CLI launch doctor added through `uploadcheck launch-doctor --json`, so agents outside this repo can fetch the live blocker fix plan without local npm scripts.
 - Done: launch blocker fix plan added to `npm run launch:handoff`, giving operators and agents structured phases for Render env, checkout, persistence, upload storage, domains, secret encryption, proof commands, and final launch proof.
 - Done: Product Hunt launch-kit required commands are now tested against launch-doctor coverage plus the standalone env-file validation handoff, so public go/no-go instructions cannot drift from the executable verifier.
 - Done: launch readiness no longer treats Supabase env alone as persistence proof; until a server-side Supabase store adapter exists, Product Hunt readiness requires the mounted JsonStore path that the runtime actually uses.

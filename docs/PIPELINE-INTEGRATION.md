@@ -33,6 +33,8 @@ Machine-readable pipeline profiles are available through MCP `qc_get_pipeline_re
 
 Before launch-sensitive production workflows, agents can call MCP `qc_get_launch_status` for the live go/no-go state and MCP `qc_get_launch_handoff` for blocker-specific required actions and proof commands. CLI fallback: `uploadcheck launch-status --json` or `uploadcheck launch-handoff --json`.
 
+Agents outside this repository can run `uploadcheck launch-doctor --json` to fetch the live launch handoff plus blocker fix plan without local npm scripts. Local operators in this repo can still run `npm run launch:doctor -- --json` for executable repo checks.
+
 Before pricing, plan, or model-backed review decisions, agents can call MCP `qc_get_cost_basis` or CLI `uploadcheck cost-basis --json` to fetch the published cost-per-minute, 95% gross-margin target, and `$99 / 5,000` stress-plan warning.
 
 To verify that Codex can still call UploadCheck globally from any project, run:

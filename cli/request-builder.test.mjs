@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildCostBasisRequest, buildEstimateRequest, buildJobRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildPipelineHandoffRequest, buildPipelineRecipesRequest, buildUsageRequest, formatCostBasisSummary, formatJobSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatPipelineHandoffSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+import { buildCostBasisRequest, buildEstimateRequest, buildJobRequest, buildLaunchDoctorRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildPipelineHandoffRequest, buildPipelineRecipesRequest, buildUsageRequest, formatCostBasisSummary, formatJobSummary, formatLaunchDoctorSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatPipelineHandoffSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 describe("UploadCheck CLI request builder", () => {
   it("builds a YouTube job request", () => {
@@ -348,6 +348,26 @@ describe("UploadCheck CLI request builder", () => {
     });
   });
 
+  it("builds and parses a public launch-doctor request", () => {
+    const parsed = parseArgs([
+      "launch-doctor",
+      "--api-base",
+      "https://api.example.test",
+      "--json"
+    ]);
+    const request = buildLaunchDoctorRequest(parsed.options);
+
+    expect(parsed.command).toBe("launch-doctor");
+    expect(parsed.target).toBeNull();
+    expect(request).toEqual({
+      apiBaseUrl: "https://api.example.test",
+      path: "/v1/launch-handoff",
+      method: "GET",
+      kind: "launch_doctor",
+      public: true
+    });
+  });
+
   it("builds and parses a public pipeline recipes request", () => {
     const parsed = parseArgs([
       "recipes",
@@ -486,6 +506,19 @@ describe("UploadCheck CLI request builder", () => {
       remainingBlockers: [],
       requiredActions: []
     })).toBe("UploadCheck launch handoff: READY");
+  });
+
+  it("formats a compact launch doctor summary from the live handoff shape", () => {
+    expect(formatLaunchDoctorSummary({
+      productHuntReady: false,
+      remainingBlockers: [{ id: "checkout" }, { id: "storage" }],
+      blockerFixPlan: { phases: [{ id: "configure-checkout" }, { id: "configure-upload-storage" }] }
+    })).toBe("UploadCheck launch doctor: NOT READY | blockers checkout, storage | fix phases 2");
+    expect(formatLaunchDoctorSummary({
+      productHuntReady: true,
+      remainingBlockers: [],
+      blockerFixPlan: { phases: [] }
+    })).toBe("UploadCheck launch doctor: READY");
   });
 
   it("formats a compact pipeline recipes summary", () => {

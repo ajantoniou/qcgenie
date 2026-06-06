@@ -113,7 +113,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
 export function parseArgs(argv) {
   const args = [...argv];
   const command = args.shift();
-  if (!["check", "estimate", "usage", "launch-status", "launch-handoff", "pipeline-handoff", "recipes", "cost-basis"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status | uploadcheck launch-handoff | uploadcheck pipeline-handoff | uploadcheck recipes | uploadcheck cost-basis");
+  if (!["check", "estimate", "usage", "launch-status", "launch-handoff", "launch-doctor", "pipeline-handoff", "recipes", "cost-basis"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status | uploadcheck launch-handoff | uploadcheck launch-doctor | uploadcheck pipeline-handoff | uploadcheck recipes | uploadcheck cost-basis");
 
   const target = command === "check" ? args.shift() : null;
   const options = { json: false };
@@ -194,6 +194,17 @@ export function buildLaunchHandoffRequest(options = {}) {
     path: "/v1/launch-handoff",
     method: "GET",
     kind: "launch_handoff",
+    public: true
+  };
+}
+
+export function buildLaunchDoctorRequest(options = {}) {
+  const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
+  return {
+    apiBaseUrl,
+    path: "/v1/launch-handoff",
+    method: "GET",
+    kind: "launch_doctor",
     public: true
   };
 }
@@ -299,6 +310,13 @@ export function formatLaunchHandoffSummary(payload) {
   const blockers = (payload.remainingBlockers || []).map((blocker) => blocker.id).filter(Boolean);
   const actions = (payload.requiredActions || []).map((action) => action.id).filter(Boolean);
   return `UploadCheck launch handoff: ${status}${blockers.length ? ` | blockers ${blockers.join(", ")}` : ""}${actions.length ? ` | required actions ${actions.join(", ")}` : ""}`;
+}
+
+export function formatLaunchDoctorSummary(payload) {
+  const status = payload.productHuntReady ? "READY" : "NOT READY";
+  const blockers = (payload.remainingBlockers || []).map((blocker) => blocker.id).filter(Boolean);
+  const phases = payload.blockerFixPlan?.phases?.length || 0;
+  return `UploadCheck launch doctor: ${status}${blockers.length ? ` | blockers ${blockers.join(", ")}` : ""}${phases ? ` | fix phases ${phases}` : ""}`;
 }
 
 export function formatPipelineRecipesSummary(payload) {

@@ -67,6 +67,7 @@ export function verifyCodexInstall({
       "MCP server: `uploadcheck`",
       "qc_get_launch_status",
       "qc_get_launch_handoff",
+      "uploadcheck launch-doctor --json",
       "qc_get_pipeline_handoff",
       "uploadcheck pipeline-handoff --json",
       "pipeline-handoff.json",

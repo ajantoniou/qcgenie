@@ -65,6 +65,8 @@ npm run readiness:check
 
 Agents can use `npm run launch:doctor -- --json` to read the same launch checks as structured data, including blocked step ids and normalized command strings, without scraping the text output.
 
+Agents outside this repo can use the packaged CLI fallback `uploadcheck launch-doctor --json`; it fetches the live launch handoff and blocker fix plan from Render without requiring local repo scripts.
+
 The Blueprint can request Render domains and disk settings, but DNS still has to point to the `qcgenie-*` Render hostnames before `/v1/readiness` can mark `customDomain` ready.
 
 If a Render API key is available locally, the same launch shape can be audited or partially applied without opening the dashboard:
