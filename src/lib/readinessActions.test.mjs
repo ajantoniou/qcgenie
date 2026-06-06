@@ -58,7 +58,7 @@ describe("readiness action mapping", () => {
     expect(text).toContain("UploadCheck readiness: NOT READY");
     expect(text).toContain("PASS api");
     expect(text).toContain("BLOCK persistence (json_store)");
-    expect(text).toContain("commands: npm run render:plan");
+    expect(text).toContain("commands:\n    npm run render:plan");
     expect(text).toContain("UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json");
   });
 

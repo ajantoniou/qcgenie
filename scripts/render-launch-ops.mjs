@@ -52,11 +52,11 @@ export function buildRenderLaunchPlan(env = process.env) {
   const envVars = Object.entries(FIXED_API_ENV).map(([key, value]) => ({ serviceId: API_SERVICE_ID, key, value, secret: false }));
   for (const key of OPTIONAL_API_ENV_KEYS) {
     const value = env[key];
-    if (value) envVars.push({ serviceId: API_SERVICE_ID, key, value, secret: false });
+    if (isFilledEnvValue(value)) envVars.push({ serviceId: API_SERVICE_ID, key, value, secret: false });
   }
   for (const key of SECRET_ENV_KEYS) {
     const value = env[key];
-    if (value) envVars.push({ serviceId: API_SERVICE_ID, key, value, secret: true });
+    if (isFilledEnvValue(value)) envVars.push({ serviceId: API_SERVICE_ID, key, value, secret: true });
   }
   return {
     webServiceId: WEB_SERVICE_ID,
@@ -64,8 +64,10 @@ export function buildRenderLaunchPlan(env = process.env) {
     domains: DOMAIN_PLAN,
     envVars,
     missingSecretInputs: REQUIRED_SECRET_GROUPS
-      .filter((group) => !group.keys.some((key) => env[key]))
-      .map((group) => group.label)
+      .filter((group) => !group.keys.some((key) => isFilledEnvValue(env[key])))
+      .map((group) => group.label),
+    placeholderInputs: [...OPTIONAL_API_ENV_KEYS, ...SECRET_ENV_KEYS, "RENDER_API_KEY"]
+      .filter((key) => isPlaceholderEnvValue(env[key]))
   };
 }
 
@@ -75,7 +77,8 @@ export function summarizePlan(plan) {
     apiServiceId: plan.apiServiceId,
     domains: plan.domains.map((domain) => domain.name),
     envVars: plan.envVars.map((item) => ({ key: item.key, value: item.secret ? "<provided-secret>" : item.value })),
-    missingSecretInputs: plan.missingSecretInputs
+    missingSecretInputs: plan.missingSecretInputs,
+    placeholderInputs: plan.placeholderInputs || []
   };
 }
 
@@ -134,8 +137,8 @@ async function main() {
     return;
   }
   const token = process.env.RENDER_API_KEY;
-  if (!token) {
-    console.error("Set RENDER_API_KEY before running Render launch operations.");
+  if (!isFilledEnvValue(token)) {
+    console.error("Set a real RENDER_API_KEY before running Render launch operations.");
     process.exit(2);
   }
   if (command === "audit") {
@@ -147,6 +150,16 @@ async function main() {
     return;
   }
   throw new Error("Usage: render-launch-ops.mjs [env-template|plan|audit|apply]");
+}
+
+function isFilledEnvValue(value) {
+  return Boolean(value && !isPlaceholderEnvValue(value));
+}
+
+function isPlaceholderEnvValue(value) {
+  if (!value) return false;
+  const trimmed = String(value).trim();
+  return trimmed === "..." || trimmed === "https://..." || /^<[^>]+>$/.test(trimmed);
 }
 
 export async function auditRenderLaunch(token, plan = buildRenderLaunchPlan()) {

@@ -121,7 +121,10 @@ export function formatReadinessSummary(report, actions = buildReadinessActions(r
     for (const action of actions) {
       lines.push(`- ${action.title}: ${action.detail}`);
       if (action.command) lines.push(`  command: ${action.command}`);
-      if (action.commands?.length) lines.push(`  commands: ${action.commands.join(" | ")}`);
+      if (action.commands?.length) {
+        lines.push("  commands:");
+        for (const command of action.commands) lines.push(`    ${command}`);
+      }
       if (action.env?.length) lines.push(`  env: ${action.env.join(", ")}`);
       if (action.docs) lines.push(`  docs: ${action.docs}`);
     }

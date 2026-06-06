@@ -57,6 +57,43 @@ describe("Render launch operations plan", () => {
     expect(plan.missingSecretInputs).toEqual([]);
   });
 
+  it("does not treat unfilled template placeholders as launch env inputs", () => {
+    const plan = buildRenderLaunchPlan({
+      RENDER_API_KEY: "<render_api_key>",
+      UPLOADCHECK_API_KEY_SHA256: "<generated_sha256>",
+      UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://...",
+      UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://...",
+      UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://...",
+      UPLOADCHECK_SECRET_ENCRYPTION_KEY: "<generated_secret_encryption_key>",
+      UPLOADCHECK_STORAGE_BUCKET: "uploadcheck-artifacts",
+      UPLOADCHECK_STORAGE_ENDPOINT: "https://...",
+      UPLOADCHECK_STORAGE_ACCESS_KEY_ID: "<object_storage_access_key>",
+      UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY: "<object_storage_secret_key>"
+    });
+    const plannedKeys = plan.envVars.map((item) => item.key);
+
+    expect(plannedKeys).not.toContain("UPLOADCHECK_API_KEY_SHA256");
+    expect(plannedKeys).not.toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
+    expect(plannedKeys).not.toContain("UPLOADCHECK_SECRET_ENCRYPTION_KEY");
+    expect(plannedKeys).toContain("UPLOADCHECK_STORAGE_BUCKET");
+    expect(plannedKeys).not.toContain("UPLOADCHECK_STORAGE_ENDPOINT");
+    expect(plannedKeys).not.toContain("UPLOADCHECK_STORAGE_ACCESS_KEY_ID");
+    expect(plan.missingSecretInputs).toEqual([
+      "UPLOADCHECK_API_KEY or UPLOADCHECK_API_KEY_SHA256",
+      "UPLOADCHECK_CREATOR_CHECKOUT_URL",
+      "UPLOADCHECK_STUDIO_CHECKOUT_URL",
+      "UPLOADCHECK_NETWORK_CHECKOUT_URL",
+      "UPLOADCHECK_SECRET_ENCRYPTION_KEY"
+    ]);
+    expect(plan.placeholderInputs).toEqual(expect.arrayContaining([
+      "RENDER_API_KEY",
+      "UPLOADCHECK_API_KEY_SHA256",
+      "UPLOADCHECK_CREATOR_CHECKOUT_URL",
+      "UPLOADCHECK_STORAGE_ENDPOINT",
+      "UPLOADCHECK_STORAGE_ACCESS_KEY_ID"
+    ]));
+  });
+
   it("prints a redacted plan without requiring a Render API key", () => {
     const output = execFileSync("node", ["scripts/render-launch-ops.mjs", "plan"], {
       encoding: "utf8",
@@ -98,6 +135,16 @@ describe("Render launch operations plan", () => {
     });
 
     expect(result.status).toBe(2);
-    expect(result.stderr).toContain("Set RENDER_API_KEY");
+    expect(result.stderr).toContain("Set a real RENDER_API_KEY");
+  });
+
+  it("rejects an unfilled Render API key placeholder for audit operations", () => {
+    const result = spawnSync("node", ["scripts/render-launch-ops.mjs", "audit"], {
+      encoding: "utf8",
+      env: { ...process.env, RENDER_API_KEY: "<render_api_key>" }
+    });
+
+    expect(result.status).toBe(2);
+    expect(result.stderr).toContain("Set a real RENDER_API_KEY");
   });
 });
