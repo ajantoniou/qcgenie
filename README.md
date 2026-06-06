@@ -61,6 +61,7 @@ Public API:
 - Render Blueprint verifier: `npm run render:verify`
 - Render API launch helper: `npm run render:env-template`, `npm run render:plan`, `npm run render:validate-env`, `npm run render:audit`, `npm run render:apply`
 - Package publish verifier: `npm run packages:verify` checks `@uploadcheck/cli` and `@uploadcheck/mcp` identity, bins, lock metadata, and `npm pack --dry-run` contents.
+- Codex install verifier: `npm run codex:verify-install` checks the global `uploadcheck` MCP server entry, hosted API base URL, executable MCP wrapper, and installed UploadCheck skill.
 - CLI margin telemetry: `uploadcheck usage --billing-period YYYY-MM`
 
 Persistence state:
@@ -92,6 +93,7 @@ Persistence state:
 - `npm run readiness:check` fetches live readiness and prints the exact remaining Render/DNS/checkout actions.
 - `npm run render:verify` checks that `render.yaml` declares custom domains, a mounted disk, durable store/media paths, checkout prompts, and webhook encryption prompts.
 - `npm run render:env-template` prints a fillable local env file for the remaining Render checkout, auth, webhook, optional storage, and API-key inputs. `npm run render:validate-env` rejects placeholders, invalid checkout/storage URLs, weak encryption keys, invalid API key hashes, and non-durable paths before `render:apply`. `npm run render:plan`, `npm run render:audit`, and `npm run render:apply` use `RENDER_API_KEY` to inspect or apply Render custom domains, durable env values, provided checkout URLs, and provided secret values.
+- `npm run codex:verify-install` checks that the local Codex app still exposes UploadCheck globally through `[mcp_servers.uploadcheck]` and the `/Users/drantoniou/.codex/skills/uploadcheck` skill.
 
 ## Stack
 

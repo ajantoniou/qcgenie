@@ -31,6 +31,14 @@ Machine-readable pipeline profiles are published at `https://qcgenie-api.onrende
 
 Before launch-sensitive production workflows, agents can call MCP `qc_get_launch_status` or CLI `uploadcheck launch-status --json` to verify the live go/no-go state and remaining external blockers.
 
+To verify that Codex can still call UploadCheck globally from any project, run:
+
+```bash
+npm run codex:verify-install
+```
+
+That command checks `[mcp_servers.uploadcheck]`, the hosted API base URL, the executable MCP wrapper, and the installed UploadCheck skill markers.
+
 Before publishing package updates or installing from a packed artifact, run:
 
 ```bash

@@ -1,7 +1,9 @@
-import { readFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import { resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { verifyCodexInstall } from "../../scripts/verify-codex-install.mjs";
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(path), "utf8"));
@@ -82,5 +84,82 @@ describe("UploadCheck package metadata", () => {
       "request-builder.mjs",
       "run-uploadcheck-mcp.sh"
     ]);
+  });
+
+  it("verifies the global Codex UploadCheck MCP and skill install shape", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-codex-install-"));
+    const wrapper = join(dir, "run-uploadcheck-mcp.sh");
+    const config = join(dir, "config.toml");
+    const skill = join(dir, "SKILL.md");
+
+    try {
+      writeFileSync(wrapper, "#!/bin/sh\nexec node index.mjs\n");
+      chmodSync(wrapper, 0o755);
+      writeFileSync(config, `
+[mcp_servers.uploadcheck]
+command = "${wrapper}"
+args = []
+startup_timeout_sec = 60
+
+[mcp_servers.uploadcheck.env]
+UPLOADCHECK_API_BASE_URL = "https://qcgenie-api.onrender.com"
+`);
+      writeFileSync(skill, `
+---
+name: uploadcheck
+---
+MCP server: \`uploadcheck\`
+qc_get_launch_status
+qc_estimate_cost
+qc_run_local_file
+qc_get_marker_csv
+watchlist JSON
+At \`$99 / 5,000\` minutes
+`);
+
+      const result = verifyCodexInstall({
+        configPath: config,
+        skillPath: skill,
+        expectedCommand: wrapper
+      });
+
+      expect(result.ok).toBe(true);
+      expect(result.server.command).toBe(wrapper);
+      expect(result.server.commandExecutable).toBe(true);
+      expect(result.env.apiBaseUrl).toBe("https://qcgenie-api.onrender.com");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("fails Codex install verification when uploadcheck config drifts", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-codex-install-"));
+    const config = join(dir, "config.toml");
+    const skill = join(dir, "SKILL.md");
+
+    try {
+      writeFileSync(config, `
+[mcp_servers.other]
+command = "node"
+`);
+      writeFileSync(skill, "name: wrong\n");
+
+      const result = verifyCodexInstall({
+        configPath: config,
+        skillPath: skill,
+        expectedCommand: join(dir, "missing.sh")
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result.errors.map((error) => error.reason)).toEqual(expect.arrayContaining([
+        "missing",
+        "wrong_command",
+        "wrong_api_base",
+        "not_executable",
+        "missing_marker"
+      ]));
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
