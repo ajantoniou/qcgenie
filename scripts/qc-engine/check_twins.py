@@ -39,14 +39,44 @@ def dur(f):
     return float(subprocess.run(["ffprobe","-v","error","-show_entries","format=duration",
         "-of","csv=p=0",f],capture_output=True,text=True).stdout.strip() or 0)
 
+def dims(f):
+    out=subprocess.run(["ffprobe","-v","error","-select_streams","v:0","-show_entries","stream=width,height",
+        "-of","csv=s=x:p=0",f],capture_output=True,text=True).stdout.strip()
+    if not out or "x" not in out: return (0,0)
+    w,h=out.split("x")[:2]
+    return (int(w or 0), int(h or 0))
+
 def is_image(path):
     return os.path.splitext(path.lower())[1] in IMAGE_EXTS
 
+def write_image_frame(media,out,vf):
+    cmd=["ffmpeg","-y","-i",media,"-frames:v","1"]
+    if vf: cmd+=["-vf",vf]
+    cmd+=[out]
+    subprocess.run(cmd,capture_output=True)
+    return os.path.exists(out)
+
 def extract_frames(media,tmp,fps):
     if is_image(media):
-        out=os.path.join(tmp,"t_00001.jpg")
-        subprocess.run(["ffmpeg","-y","-i",media,"-frames:v","1","-vf","scale=768:-1",out],capture_output=True)
-        return [out] if os.path.exists(out) else []
+        w,h=dims(media)
+        frames=[]
+        full=os.path.join(tmp,"t_00001_full.jpg")
+        if write_image_frame(media,full,"scale='min(1536,iw)':-1"):
+            frames.append(full)
+        # Wide AI crowds fail when all extras are compressed into one 768px frame.
+        # Add overlapping crops so the vision gate can inspect repeated faces at usable size.
+        if w >= 1000 and h >= 500:
+            crop_w=max(1, min(w, int(w*0.55)))
+            starts=[0, max(0, int((w-crop_w)/2)), max(0, w-crop_w)]
+            seen=set()
+            for n,x in enumerate(starts, start=2):
+                if x in seen: continue
+                seen.add(x)
+                out=os.path.join(tmp,f"t_{n:05d}_crop.jpg")
+                vf=f"crop={crop_w}:{h}:{x}:0,scale='min(1280,iw)':-1"
+                if write_image_frame(media,out,vf):
+                    frames.append(out)
+        return frames
     subprocess.run(["ffmpeg","-y","-i",media,"-vf",f"fps={fps},scale=768:-1",os.path.join(tmp,"t_%05d.jpg")],capture_output=True)
     return sorted(glob.glob(os.path.join(tmp,"t_*.jpg")))
 
