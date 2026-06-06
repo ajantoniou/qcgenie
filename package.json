@@ -20,6 +20,7 @@
     "packages:verify": "node scripts/verify-packages.mjs",
     "codex:verify-install": "node scripts/verify-codex-install.mjs",
     "cost-basis:verify": "node scripts/verify-cost-basis.mjs",
+    "roadmap:verify": "node scripts/verify-roadmap.mjs",
     "secret:generate": "node scripts/generate-secret-key.mjs",
     "api-key:generate": "node scripts/generate-api-key.mjs",
     "test": "vitest run",

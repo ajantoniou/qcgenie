@@ -41,6 +41,7 @@ export function buildLaunchStatus(readiness, {
       "npm run render:apply",
       "npm run codex:verify-install",
       "npm run cost-basis:verify",
+      "npm run roadmap:verify",
       "npm run launch:check",
       "npm run readiness:check"
     ],
@@ -94,6 +95,11 @@ function verifiedControls() {
       id: "cost_basis",
       status: "done",
       evidence: "npm run cost-basis:verify checks public cost-per-minute and 95% gross-margin assumptions against cost-model.mjs."
+    },
+    {
+      id: "roadmap",
+      status: "done",
+      evidence: "npm run roadmap:verify checks the 50-point plan, expert-panel coverage, NTO replacement addendum, and execution-status markers."
     },
     {
       id: "observed_costs",
