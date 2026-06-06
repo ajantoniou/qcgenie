@@ -225,6 +225,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: machine-readable repair-loop contract added to `agent-manifest.json` and `pipeline-recipes.json`, requiring all flags to be shown, the user to be asked "Fix now?", reachable fixes only, timestamped source/render instructions for unreachable defects, and rerun before upload-ready claims.
 - Done: safe API auth material generation added through `npm run --silent api-key:generate`; operators can keep the bearer token private and set only `UPLOADCHECK_API_KEY_SHA256` on Render.
 - Done: webhook delivery headers now use UploadCheck naming (`X-UploadCheck-Signature`, `x-uploadcheck-delivery-id`, `x-uploadcheck-event`) while still sending legacy QCGenie aliases during migration.
+- Done: launch checkout readiness no longer lets Studio checkout URLs or variants satisfy missing Creator checkout config; each public plan must resolve from its own launch env family before Product Hunt readiness can pass.
 - Done: margin telemetry added through `GET /v1/usage/margins` and MCP `qc_get_margin_telemetry`; usage entries now retain cost snapshots with COGS, allocated revenue, cost/minute, and estimated gross margin.
 - Done: CLI margin telemetry added through `uploadcheck usage --billing-period YYYY-MM`, so non-MCP agent workflows can inspect cost/minute and gross margin directly.
 - Done: public cost-basis verifier added through `npm run cost-basis:verify`, checking `/cost-basis.json` plan economics and the `$99 / 5,000` stress-plan verdict against `cost-model.mjs`.

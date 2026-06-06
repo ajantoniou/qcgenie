@@ -37,4 +37,21 @@ describe("launch checkout config helper", () => {
     expect(result.stdout).toContain("BLOCK creator");
     expect(result.stdout).toContain("UPLOADCHECK_<PLAN>_CHECKOUT_URL");
   });
+
+  it("does not mark checkout ready when Creator is missing but Studio is configured", () => {
+    const summary = buildCheckoutSummary({
+      UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
+      UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network"
+    });
+    const text = formatCheckoutSummary(summary);
+
+    expect(summary.ok).toBe(false);
+    expect(summary.plans.map((plan) => [plan.plan, plan.configured, plan.sourceKey])).toEqual([
+      ["creator", false, null],
+      ["studio", true, "UPLOADCHECK_STUDIO_CHECKOUT_URL"],
+      ["network", true, "UPLOADCHECK_NETWORK_CHECKOUT_URL"]
+    ]);
+    expect(text).toContain("UploadCheck checkout config: NOT READY");
+    expect(text).toContain("BLOCK creator");
+  });
 });

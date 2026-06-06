@@ -107,6 +107,36 @@ describe("launch readiness report", () => {
     expect(JSON.stringify(report)).not.toContain("333");
   });
 
+  it("does not let Studio checkout config satisfy missing Creator readiness", () => {
+    const report = buildReadinessReport({
+      host: "api.uploadcheck.app",
+      env: {
+        UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
+        UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+        UPLOADCHECK_SECRET_ENCRYPTION_KEY: strongSecret,
+        UPLOADCHECK_API_KEY_SHA256: "hash",
+        UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
+        UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck-storage",
+        UPLOADCHECK_DEMO_CLIP_URL: "https://uploadcheck.app/demo.mp4"
+      },
+      now: "2026-06-06T00:00:00.000Z"
+    });
+
+    expect(report.checks.checkout.ok).toBe(false);
+    expect(report.checks.checkout.plans.creator).toMatchObject({
+      configured: false,
+      source: "missing",
+      sourceKey: null,
+      host: null,
+      redactedUrl: null
+    });
+    expect(report.checks.checkout.plans.studio).toMatchObject({
+      configured: true,
+      sourceKey: "UPLOADCHECK_STUDIO_CHECKOUT_URL"
+    });
+    expect(report.readyForProductHunt).toBe(false);
+  });
+
   it("does not accept weak webhook encryption keys as launch-ready", () => {
     const report = buildReadinessReport({
       host: "api.uploadcheck.app",

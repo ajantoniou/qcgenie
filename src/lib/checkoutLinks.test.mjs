@@ -39,4 +39,36 @@ describe("checkout links", () => {
       LEMONSQUEEZY_GROWTH_VARIANT_ID: "789"
     })).toBe("https://uploadcheck.lemonsqueezy.com/checkout/buy/789");
   });
+
+  it("does not let Studio checkout config satisfy missing Creator checkout", () => {
+    expect(resolveCheckout("creator", {
+      UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio"
+    })).toMatchObject({
+      plan: "creator",
+      configured: false,
+      source: "missing",
+      sourceKey: null
+    });
+
+    expect(resolveCheckout("creator", {
+      UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG: "uploadcheck",
+      UPLOADCHECK_STUDIO_VARIANT_ID: "222"
+    })).toMatchObject({
+      plan: "creator",
+      configured: false,
+      source: "missing",
+      sourceKey: null
+    });
+  });
+
+  it("still lets legacy Growth checkout config satisfy Studio", () => {
+    expect(resolveCheckout("studio", {
+      LEMONSQUEEZY_GROWTH_CHECKOUT_URL: "https://checkout.example/growth"
+    })).toMatchObject({
+      plan: "studio",
+      configured: true,
+      source: "direct_url",
+      sourceKey: "LEMONSQUEEZY_GROWTH_CHECKOUT_URL"
+    });
+  });
 });

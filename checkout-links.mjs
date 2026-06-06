@@ -1,5 +1,5 @@
 const PLAN_ALIASES = {
-  creator: ["CREATOR", "STUDIO"],
+  creator: ["CREATOR"],
   studio: ["STUDIO", "GROWTH"],
   network: ["NETWORK"]
 };
