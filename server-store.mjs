@@ -54,6 +54,7 @@ export class JsonStore {
       planId: input.plan_id || input.planId || null,
       planPriceCents: numberOrNull(input.plan_price_cents ?? input.planPriceCents),
       includedMinutes: numberOrNull(input.included_minutes ?? input.includedMinutes),
+      aiReviewBudgetSeconds: Math.max(0, Number(input.ai_review_budget_seconds ?? input.aiReviewBudgetSeconds ?? 0) || 0),
       aiReviewSeconds: Math.max(0, Number(input.ai_review_seconds ?? input.aiReviewSeconds ?? 0) || 0),
       requestedAiReviewSeconds: Math.max(0, Number(input.requested_ai_review_seconds ?? input.requestedAiReviewSeconds ?? input.ai_review_seconds ?? input.aiReviewSeconds ?? 0) || 0),
       checks: input.checks || null,
@@ -460,6 +461,8 @@ export class JsonStore {
       billingPeriod: period,
       planId: job?.planId || costSnapshot?.planId || null,
       includedMinutes: numberOrNull(job?.includedMinutes ?? costSnapshot?.includedMinutes),
+      aiReviewSeconds: Math.max(0, Number(job?.aiReviewSeconds ?? costSnapshot?.aiReviewSeconds ?? 0) || 0),
+      aiReviewBudgetSeconds: Math.max(0, Number(job?.aiReviewBudgetSeconds ?? costSnapshot?.aiReviewBudgetSeconds ?? 0) || 0),
       costSnapshot,
       createdAt: new Date().toISOString()
     };
@@ -477,13 +480,18 @@ export class JsonStore {
       return String(entry.planId || entry.costSnapshot?.planId || "").toLowerCase() === normalizedPlanId;
     });
     const minutesUsed = entries.reduce((sum, entry) => sum + (Number(entry.roundedMinutes) || 0), 0);
+    const aiReviewSecondsUsed = entries.reduce((sum, entry) => sum + (Number(entry.aiReviewSeconds ?? entry.costSnapshot?.aiReviewSeconds) || 0), 0);
     const limit = numberOrNull(includedMinutes) || entries.find((entry) => entry.includedMinutes)?.includedMinutes || null;
+    const aiBudget = entries.find((entry) => Number(entry.aiReviewBudgetSeconds) > 0)?.aiReviewBudgetSeconds || null;
     return {
       planId: normalizedPlanId || null,
       billingPeriod: period,
       includedMinutes: limit,
       minutesUsed,
       minutesRemaining: limit ? Math.max(0, limit - minutesUsed) : null,
+      aiReviewSecondsUsed,
+      aiReviewBudgetSeconds: aiBudget,
+      aiReviewSecondsRemaining: aiBudget == null ? null : Math.max(0, aiBudget - aiReviewSecondsUsed),
       usageEntryCount: entries.length
     };
   }

@@ -39,8 +39,10 @@ describe("JsonStore", () => {
     try {
       const store = new JsonStore(path);
       const job = store.createJob({ source: "/tmp/master.mp4", plan_id: "creator", included_minutes: 1200 });
-      const first = store.appendUsage(job.jobId, 7, "2026-06", { planId: "creator", includedMinutes: 1200 });
-      const replay = store.appendUsage(job.jobId, 7, "2026-06", { planId: "creator", includedMinutes: 1200 });
+      job.aiReviewSeconds = 90;
+      job.aiReviewBudgetSeconds = 3600;
+      const first = store.appendUsage(job.jobId, 7, "2026-06", { planId: "creator", includedMinutes: 1200, aiReviewSeconds: 90, aiReviewBudgetSeconds: 3600 });
+      const replay = store.appendUsage(job.jobId, 7, "2026-06", { planId: "creator", includedMinutes: 1200, aiReviewSeconds: 90, aiReviewBudgetSeconds: 3600 });
       const summary = store.summarizePlanUsage({ planId: "creator", billingPeriod: "2026-06", includedMinutes: 1200 });
 
       expect(first.usageId).toBe(replay.usageId);
@@ -52,6 +54,9 @@ describe("JsonStore", () => {
         includedMinutes: 1200,
         minutesUsed: 7,
         minutesRemaining: 1193,
+        aiReviewSecondsUsed: 90,
+        aiReviewBudgetSeconds: 3600,
+        aiReviewSecondsRemaining: 3510,
         usageEntryCount: 1
       });
     } finally {

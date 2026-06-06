@@ -19,6 +19,8 @@ describe("public cost basis", () => {
     expect(stress).toMatchObject({
       price_cents: 9900,
       included_minutes: 5000,
+      ai_review_budget_seconds: 0,
+      max_ai_review_seconds_at_95_margin_after_deterministic_full_allowance: 21866,
       max_cost_per_minute_cents_at_95_margin: 0.099,
       deterministic_full_allowance_cogs_cents: 416.5,
       full_gemini_flash_lite_video_audio_input_cogs_cents: 1077,
@@ -40,6 +42,8 @@ describe("public cost basis", () => {
 
       expect(plan.price_cents).toBe(estimate.planPriceCents);
       expect(plan.included_minutes).toBe(estimate.includedMinutes);
+      expect(plan.ai_review_budget_seconds).toBe(estimate.aiReviewBudgetSeconds);
+      expect(plan.max_ai_review_seconds_at_95_margin_after_deterministic_full_allowance).toBe(estimate.maxAiReviewSecondsAtMargin);
       expect(plan.max_cogs_cents_at_95_margin).toBe(estimate.maxCogsCents);
       expect(plan.max_cost_per_minute_cents_at_95_margin).toBe(estimate.maxCostPerMinuteCents);
       expect(plan.revenue_per_minute_cents).toBe(estimate.revenuePerMinuteCents);

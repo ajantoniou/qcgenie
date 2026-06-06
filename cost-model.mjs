@@ -61,10 +61,10 @@ const MODEL_CHECK_CALLS_PER_MINUTE = {
   garble: 2
 };
 const PLAN_PRESETS = {
-  creator: { planPriceCents: 9900, includedMinutes: 1200 },
-  studio: { planPriceCents: 29900, includedMinutes: 5000 },
-  network: { planPriceCents: 79900, includedMinutes: 18000 },
-  stress_99_5000: { planPriceCents: 9900, includedMinutes: 5000 }
+  creator: { planPriceCents: 9900, includedMinutes: 1200, aiReviewBudgetSeconds: 3600 },
+  studio: { planPriceCents: 29900, includedMinutes: 5000, aiReviewBudgetSeconds: 7200 },
+  network: { planPriceCents: 79900, includedMinutes: 18000, aiReviewBudgetSeconds: 21600 },
+  stress_99_5000: { planPriceCents: 9900, includedMinutes: 5000, aiReviewBudgetSeconds: 0 }
 };
 
 export function estimateJobCost(input = {}) {
@@ -104,6 +104,7 @@ export function estimateJobCost(input = {}) {
     planId: plan.planId,
     planPriceCents,
     includedMinutes,
+    aiReviewBudgetSeconds: plan.aiReviewBudgetSeconds,
     maxCogsCents: round(cogsBudgetCents),
     maxCostPerMinuteCents: round(maxCostPerMinuteCents),
     revenuePerMinuteCents: round(revenuePerMinuteCents),
@@ -326,7 +327,8 @@ export function resolvePlanEconomics(input = {}) {
   return {
     planId: planId || null,
     planPriceCents: Number(input.planPriceCents || input.plan_price_cents || preset.planPriceCents || DEFAULT_PLAN_PRICE_CENTS),
-    includedMinutes: Number(input.includedMinutes || input.included_minutes || preset.includedMinutes || DEFAULT_INCLUDED_MINUTES)
+    includedMinutes: Number(input.includedMinutes || input.included_minutes || preset.includedMinutes || DEFAULT_INCLUDED_MINUTES),
+    aiReviewBudgetSeconds: Number(input.aiReviewBudgetSeconds ?? input.ai_review_budget_seconds ?? preset.aiReviewBudgetSeconds ?? 0)
   };
 }
 

@@ -5,6 +5,7 @@ describe("cost model", () => {
   it("computes the 95% margin budget for the $99 / 5,000 minute plan", () => {
     const estimate = estimateJobCost({ minutesMetered: 5000 });
 
+    expect(estimate.aiReviewBudgetSeconds).toBe(0);
     expect(estimate.maxCogsCents).toBe(495);
     expect(estimate.maxCostPerMinuteCents).toBe(0.099);
     expect(estimate.revenuePerMinuteCents).toBe(1.98);
@@ -13,6 +14,12 @@ describe("cost model", () => {
     expect(estimate.estimatedCogsCents).toBeLessThanOrEqual(estimate.maxCogsCents);
     expect(estimate.fullGeminiFlashLiteVideoAudioInputCents).toBeGreaterThan(estimate.maxCogsCents);
     expect(estimate.warning).toContain("Full-video Gemini review exceeds");
+  });
+
+  it("exposes conservative AI-review seconds per paid plan", () => {
+    expect(estimateJobCost({ planId: "creator", minutesMetered: 1200 }).aiReviewBudgetSeconds).toBe(3600);
+    expect(estimateJobCost({ planId: "studio", minutesMetered: 5000 }).aiReviewBudgetSeconds).toBe(7200);
+    expect(estimateJobCost({ planId: "network", minutesMetered: 18000 }).aiReviewBudgetSeconds).toBe(21600);
   });
 
   it("marks sampled AI review as unsafe when it crosses the per-minute budget", () => {

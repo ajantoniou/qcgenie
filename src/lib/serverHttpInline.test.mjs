@@ -159,6 +159,125 @@ describe("server inline media API", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   }, 20000);
+
+  it("rejects declared jobs that exceed included AI-review seconds", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-ai-limit-"));
+    const storePath = join(dir, "store.json");
+    const apiKey = "uck_test_ai_limit";
+    const seedStore = new JsonStore(storePath);
+    const seededJob = seedStore.createJob({
+      source: "/tmp/previous.mp4",
+      plan_id: "creator",
+      included_minutes: 1200,
+      ai_review_budget_seconds: 3600,
+      ai_review_seconds: 3500
+    });
+    seedStore.appendUsage(seededJob.jobId, 10, currentTestBillingPeriod(), {
+      planId: "creator",
+      includedMinutes: 1200,
+      aiReviewBudgetSeconds: 3600,
+      aiReviewSeconds: 3500
+    });
+
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/final.mp4",
+          source_type: "signed_url",
+          plan_id: "creator",
+          duration_seconds: 30,
+          ai_review_seconds: 180,
+          checks: "canvas_fill",
+          cost_guardrail: "off"
+        })
+      });
+      const payload = await response.json();
+
+      expect(response.status).toBe(402);
+      expect(payload).toMatchObject({
+        error: "usage_limit_exceeded",
+        planId: "creator",
+        aiReviewBudgetSeconds: 3600,
+        aiReviewSecondsUsed: 3500,
+        requestedAiReviewSeconds: 180,
+        aiReviewSecondsRemaining: 100
+      });
+      expect(payload.message).toContain("AI-review seconds");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("treats a zero AI-review budget as an enforced limit", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-zero-ai-limit-"));
+    const apiKey = "uck_test_zero_ai_limit";
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/final.mp4",
+          source_type: "signed_url",
+          plan_id: "stress_99_5000",
+          duration_seconds: 30,
+          ai_review_seconds: 1,
+          checks: "canvas_fill",
+          cost_guardrail: "off"
+        })
+      });
+      const payload = await response.json();
+
+      expect(response.status).toBe(402);
+      expect(payload).toMatchObject({
+        error: "usage_limit_exceeded",
+        planId: "stress_99_5000",
+        aiReviewBudgetSeconds: 0,
+        aiReviewSecondsUsed: 0,
+        requestedAiReviewSeconds: 1,
+        aiReviewSecondsRemaining: 0
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
 });
 
 async function waitForHealth(port) {

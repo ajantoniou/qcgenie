@@ -142,6 +142,7 @@ async function createJob(req, res) {
     body.cost_guardrail = guardrail.costGuardrail;
     body.cost_guardrail_action = guardrail.action;
     body.cost_guardrail_reason = guardrail.reason || null;
+    body.ai_review_budget_seconds = guardrail.estimate.aiReviewBudgetSeconds;
 
     const usageLimit = checkUsageLimit(body);
     if (!usageLimit.ok) {
@@ -153,7 +154,11 @@ async function createJob(req, res) {
         includedMinutes: usageLimit.includedMinutes,
         minutesUsed: usageLimit.minutesUsed,
         requestedMinutes: usageLimit.requestedMinutes,
-        minutesRemaining: usageLimit.minutesRemaining
+        minutesRemaining: usageLimit.minutesRemaining,
+        aiReviewBudgetSeconds: usageLimit.aiReviewBudgetSeconds,
+        aiReviewSecondsUsed: usageLimit.aiReviewSecondsUsed,
+        requestedAiReviewSeconds: usageLimit.requestedAiReviewSeconds,
+        aiReviewSecondsRemaining: usageLimit.aiReviewSecondsRemaining
       });
     }
 
@@ -670,7 +675,8 @@ function estimateCostForJob(job, minutesMetered) {
     providerUsage: job.providerUsage,
     planId: job.planId,
     planPriceCents: job.planPriceCents,
-    includedMinutes: job.includedMinutes
+    includedMinutes: job.includedMinutes,
+    aiReviewBudgetSeconds: job.aiReviewBudgetSeconds
   });
 }
 
@@ -678,15 +684,17 @@ function checkUsageLimit(body = {}) {
   const planId = String(body.plan_id || body.planId || "").toLowerCase();
   if (!planId) return { ok: true };
   const requestedMinutes = estimateRequestedMinutes(body);
-  if (!requestedMinutes) return { ok: true };
   const plan = resolvePlanEconomics(body);
-  if (!plan.includedMinutes) return { ok: true };
+  if (!plan.includedMinutes && !plan.aiReviewBudgetSeconds) return { ok: true };
   const usage = store.summarizePlanUsage({
     planId,
     billingPeriod: body.billing_period || body.billingPeriod,
     includedMinutes: plan.includedMinutes
   });
-  if (usage.minutesUsed + requestedMinutes <= plan.includedMinutes) {
+  const requestedAiReviewSeconds = Math.max(0, Number(body.ai_review_seconds ?? body.aiReviewSeconds ?? 0) || 0);
+  const minuteLimitOk = !requestedMinutes || !plan.includedMinutes || usage.minutesUsed + requestedMinutes <= plan.includedMinutes;
+  const aiLimitOk = !requestedAiReviewSeconds || usage.aiReviewSecondsUsed + requestedAiReviewSeconds <= plan.aiReviewBudgetSeconds;
+  if (minuteLimitOk && aiLimitOk) {
     return {
       ok: true,
       planId,
@@ -694,7 +702,27 @@ function checkUsageLimit(body = {}) {
       includedMinutes: plan.includedMinutes,
       minutesUsed: usage.minutesUsed,
       requestedMinutes,
-      minutesRemaining: plan.includedMinutes - usage.minutesUsed
+      minutesRemaining: plan.includedMinutes ? plan.includedMinutes - usage.minutesUsed : null,
+      aiReviewBudgetSeconds: plan.aiReviewBudgetSeconds,
+      aiReviewSecondsUsed: usage.aiReviewSecondsUsed,
+      requestedAiReviewSeconds,
+      aiReviewSecondsRemaining: Math.max(0, plan.aiReviewBudgetSeconds - usage.aiReviewSecondsUsed)
+    };
+  }
+  if (!aiLimitOk) {
+    return {
+      ok: false,
+      planId,
+      billingPeriod: usage.billingPeriod,
+      includedMinutes: plan.includedMinutes,
+      minutesUsed: usage.minutesUsed,
+      requestedMinutes,
+      minutesRemaining: plan.includedMinutes ? Math.max(0, plan.includedMinutes - usage.minutesUsed) : null,
+      aiReviewBudgetSeconds: plan.aiReviewBudgetSeconds,
+      aiReviewSecondsUsed: usage.aiReviewSecondsUsed,
+      requestedAiReviewSeconds,
+      aiReviewSecondsRemaining: Math.max(0, plan.aiReviewBudgetSeconds - usage.aiReviewSecondsUsed),
+      reason: `Plan ${planId} has ${usage.aiReviewSecondsUsed}/${plan.aiReviewBudgetSeconds} AI-review seconds used for ${usage.billingPeriod}; this ${requestedAiReviewSeconds} second request exceeds the included AI-review allowance.`
     };
   }
   return {
@@ -705,6 +733,10 @@ function checkUsageLimit(body = {}) {
     minutesUsed: usage.minutesUsed,
     requestedMinutes,
     minutesRemaining: Math.max(0, plan.includedMinutes - usage.minutesUsed),
+    aiReviewBudgetSeconds: plan.aiReviewBudgetSeconds,
+    aiReviewSecondsUsed: usage.aiReviewSecondsUsed,
+    requestedAiReviewSeconds,
+    aiReviewSecondsRemaining: Math.max(0, plan.aiReviewBudgetSeconds - usage.aiReviewSecondsUsed),
     reason: `Plan ${planId} has ${usage.minutesUsed}/${plan.includedMinutes} minutes used for ${usage.billingPeriod}; this ${requestedMinutes} minute job exceeds the included allowance.`
   };
 }

@@ -37,6 +37,8 @@ export function verifyCostBasis({ costBasisPath = COST_BASIS_PATH } = {}) {
     });
     compare(errors, plan, "price_cents", estimate.planPriceCents);
     compare(errors, plan, "included_minutes", estimate.includedMinutes);
+    compare(errors, plan, "ai_review_budget_seconds", estimate.aiReviewBudgetSeconds);
+    compare(errors, plan, "max_ai_review_seconds_at_95_margin_after_deterministic_full_allowance", estimate.maxAiReviewSecondsAtMargin);
     compare(errors, plan, "revenue_per_minute_cents", estimate.revenuePerMinuteCents);
     compare(errors, plan, "max_cogs_cents_at_95_margin", estimate.maxCogsCents);
     compare(errors, plan, "max_cost_per_minute_cents_at_95_margin", estimate.maxCostPerMinuteCents);
@@ -62,6 +64,8 @@ export function verifyCostBasis({ costBasisPath = COST_BASIS_PATH } = {}) {
       planId: plan.plan_id,
       priceCents: plan.price_cents,
       includedMinutes: plan.included_minutes,
+      aiReviewBudgetSeconds: plan.ai_review_budget_seconds,
+      maxAiReviewSecondsAtMargin: plan.max_ai_review_seconds_at_95_margin_after_deterministic_full_allowance,
       revenuePerMinuteCents: plan.revenue_per_minute_cents,
       maxCostPerMinuteCentsAt95Margin: plan.max_cost_per_minute_cents_at_95_margin,
       deterministicMarginSafe: plan.deterministic_margin_safe,
