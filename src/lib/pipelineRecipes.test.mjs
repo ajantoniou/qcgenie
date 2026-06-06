@@ -53,6 +53,7 @@ describe("UploadCheck pipeline recipes", () => {
     expect(longForm.arguments.checks).toContain("speaker_visual_binding");
     expect(longForm.arguments.checks).toContain("static_head_dominance");
     expect(longForm.arguments.checks).toContain("literal_subject_match");
+    expect(longForm.arguments.checks).toContain("first_three_seconds");
     expect(longForm.arguments.checks).toContain("script_faithfulness");
     expect(longForm.arguments).toMatchObject({
       manifest_path: "/path/to/storybook.json",
@@ -63,6 +64,7 @@ describe("UploadCheck pipeline recipes", () => {
     });
 
     expect(shorts.arguments.checks).toContain("shorts_format");
+    expect(shorts.arguments.checks).toContain("first_three_seconds");
     expect(shorts.arguments.checks).toContain("sentence_boundary");
     expect(shorts.arguments.checks).toContain("text_safe_area");
     expect(audio.arguments.file_path).toBe("/path/to/episode.wav");
@@ -125,9 +127,12 @@ describe("UploadCheck pipeline recipes", () => {
       callable_check: "literal_subject_match"
     });
     expect(implemented.literal_subject_match.covers).toContain("generic mood footage");
+    expect(implemented.first_three_seconds).toMatchObject({
+      callable_check: "first_three_seconds"
+    });
+    expect(implemented.first_three_seconds.covers).toContain("Generic openings");
 
     for (const id of [
-      "first_three_seconds",
       "rehook_cadence",
       "end_screen_tease",
       "contact_sheet_evidence"

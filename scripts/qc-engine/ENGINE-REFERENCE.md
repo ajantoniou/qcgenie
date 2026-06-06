@@ -28,6 +28,7 @@ Do not use this as a substitute for normal quick iteration while a clip is still
    - `check_dead_air.py`
    - `check_static_head_dominance.py`
    - `check_literal_subject_match.py`
+   - `check_first_three_seconds.py`
    - `check_loop_freeze.py`
    - `check_repeat_fatigue.py`
    - `check_twins.py`
@@ -43,24 +44,25 @@ Do not use this as a substitute for normal quick iteration while a clip is still
 ## Procedure
 
 1. Run the existing runner if it exists. Prefer one command that emits structured pass/fail output.
-2. The scripts live in `scripts/` next to this file. Run `python3 scripts/run_gate.py VIDEO --checks canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,script_faithfulness,sentence_boundary,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch [--lang eng] [--manifest storybook.json] [--transcript transcript.txt] [--expected-script locked-script.txt] [--fast]` for one verdict. For Shorts, add `shorts_format` explicitly: `--checks canvas_fill,shorts_format,text_contrast,text_safe_area,repeat_fatigue,sentence_boundary,dead_air,garble`.
+2. The scripts live in `scripts/` next to this file. Run `python3 scripts/run_gate.py VIDEO --checks canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,script_faithfulness,sentence_boundary,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch [--lang eng] [--manifest storybook.json] [--transcript transcript.txt] [--expected-script locked-script.txt] [--fast]` for one verdict. For Shorts, add `shorts_format` explicitly: `--checks canvas_fill,shorts_format,first_three_seconds,text_contrast,text_safe_area,repeat_fatigue,sentence_boundary,dead_air,garble`.
    1. `canvas_fill`: deterministic ffprobe + sampled-frame black-edge check. Blocks pillarbox, letterbox, and black-gutter "tower" failures even when the encoded frame size looks correct.
    2. `loop_freeze`: ffmpeg freeze detection (`-50dB` + sensitive `-60dB`) for held frames. Each held frame is then CLASSIFIED: an intended static TEXT/GRAPHIC card (Remotion scripture/explainer — mostly-dark bg, sliver of bright text, low photographic mid-tone mass) is NOT a defect and is reported under `held_cards_ok` (type `STATIC_CARD_HELD_OK`); a frozen PHOTOGRAPHIC clip (broad mid-tone histogram — stuck skin/cloth/scene) stays in `freezes` and BLOCKS. Validated both ways: Ep.2-EN's 15s Matthew-10:5-6 scripture card → held_cards_ok (PASS); Ep.1-FIL's 27 stuck motion clips in the 666–885s region → freezes (BLOCK), while its real held cards (incl. a 75.6s explainer hold) → held_cards_ok. `--detect-repeats` adds opt-in perceptual reused-shot detection (noisy; off by default — the build-time clip ledger is the real anti-reuse control).
    3. `repeat_fatigue`: deterministic repeated-sequence gate for rendered masters, plus optional JSON manifest analysis for exact visual reuse and source-family dominance.
    4. `speaker_visual_binding`: deterministic manifest-side gate. Blocks rows where a named speaker's voice is paired with another named character's face. Speaker-neutral b-roll, Remotion/source cards, archive, and no-face rows are allowed.
    5. `static_head_dominance`: deterministic manifest-side gate. Blocks long held portrait/talking-head/single-character shots without b-roll, graphic/source-card, visible action, or explicit approval.
    6. `literal_subject_match`: deterministic manifest-side gate. Blocks rows where named VO subjects are paired with generic/mood footage instead of the named thing or an explicit source-card/Remotion fallback.
-   7. `dead_air`: deterministic ffmpeg `silencedetect` gate. Blocks unintended silence longer than the configured threshold (default 1.5s) and skips cleanly when no audio stream exists.
-   8. `script_faithfulness`: deterministic transcript-vs-locked-script WER check. Skips unless both `--transcript` and `--expected-script` are supplied. Blocks narration drift without spending on full multimodal review.
-   9. `sentence_boundary`: deterministic transcript-side check for clips/Shorts that end mid-sentence, start mid-phrase, or leave an unintended long trailing gap. Skips unless `--transcript` is supplied.
-   10. `cheap_broll`: VISION check (Anthropic) for B&W / grainy / scratched / low-res ARCHIVAL footage. Founder rule: "no B&W cheap broll." Saturation/grain math does NOT work — the silent-film stock was color-GRADED blue (sat 80-160), so this MUST be a vision call that judges old/degraded image QUALITY, not color grade. Cold-graded modern cinematic shots are FINE.
-   11. `text_contrast`: deterministic OCR + luminance contrast pass for overlay text that blends into footage/background. Blocks sustained low-contrast readable text. This is the first UploadCheck productization of NTO's text-card safe-area/readability failures.
-   12. `text_safe_area`: deterministic OCR word-box check against Shorts action chrome, bottom UI, and long-form title-safe margins. Blocks text that may be hidden by platform UI or cropped near edges.
-   13. `garble`: ElevenLabs Scribe per window. BLOCK only on PARTIAL/garbled speech. MUSIC-ONLY audio (no VO — e.g. Shorts) yields no text and must NOT be flagged: if Scribe returns ~0 words it is tagged `MUSIC_OR_NONSPEECH` advisory, not garble.
-   14. `twins`: sample frames; strict schema-locked vision call for duplicate-looking faces/people.
-   15. `narration_match`: cadence-accurate Scribe word-timestamps -> per-frame vision illustrate-or-not -> contiguous mismatch > ~3 s is flagged.
-   16. `omni_watch`: multimodal pass (Qwen3-Omni via DashScope; Anthropic frame-only fallback). Grounded on the real transcript + post-filters so it never invents narration. Supplements, never sole gate.
-   17. `shorts_format`: specialized Shorts check for exact 1080x1920, 50-60s duration, no gutters, opening/footer text cards, safe-area text, and optional no-dialogue verification.
+   7. `first_three_seconds`: deterministic manifest-side gate. Blocks missing/generic first-three-second hook frames/cards and explicit title/thumbnail/opening mismatch.
+   8. `dead_air`: deterministic ffmpeg `silencedetect` gate. Blocks unintended silence longer than the configured threshold (default 1.5s) and skips cleanly when no audio stream exists.
+   9. `script_faithfulness`: deterministic transcript-vs-locked-script WER check. Skips unless both `--transcript` and `--expected-script` are supplied. Blocks narration drift without spending on full multimodal review.
+   10. `sentence_boundary`: deterministic transcript-side check for clips/Shorts that end mid-sentence, start mid-phrase, or leave an unintended long trailing gap. Skips unless `--transcript` is supplied.
+   11. `cheap_broll`: VISION check (Anthropic) for B&W / grainy / scratched / low-res ARCHIVAL footage. Founder rule: "no B&W cheap broll." Saturation/grain math does NOT work — the silent-film stock was color-GRADED blue (sat 80-160), so this MUST be a vision call that judges old/degraded image QUALITY, not color grade. Cold-graded modern cinematic shots are FINE.
+   12. `text_contrast`: deterministic OCR + luminance contrast pass for overlay text that blends into footage/background. Blocks sustained low-contrast readable text. This is the first UploadCheck productization of NTO's text-card safe-area/readability failures.
+   13. `text_safe_area`: deterministic OCR word-box check against Shorts action chrome, bottom UI, and long-form title-safe margins. Blocks text that may be hidden by platform UI or cropped near edges.
+   14. `garble`: ElevenLabs Scribe per window. BLOCK only on PARTIAL/garbled speech. MUSIC-ONLY audio (no VO — e.g. Shorts) yields no text and must NOT be flagged: if Scribe returns ~0 words it is tagged `MUSIC_OR_NONSPEECH` advisory, not garble.
+   15. `twins`: sample frames; strict schema-locked vision call for duplicate-looking faces/people.
+   16. `narration_match`: cadence-accurate Scribe word-timestamps -> per-frame vision illustrate-or-not -> contiguous mismatch > ~3 s is flagged.
+   17. `omni_watch`: multimodal pass (Qwen3-Omni via DashScope; Anthropic frame-only fallback). Grounded on the real transcript + post-filters so it never invents narration. Supplements, never sole gate.
+   18. `shorts_format`: specialized Shorts check for exact 1080x1920, 50-60s duration, no gutters, opening/footer text cards, safe-area text, and optional no-dialogue verification.
    ALWAYS re-validate any threshold against a KNOWN-GOOD and a KNOWN-BAD fixture before trusting it.
 3. Scan the entire timeline, not only a few sampled regions.
 4. For Shorts, also check aspect (`9:16`), audio presence, and caption-safe area.
