@@ -237,9 +237,28 @@ describe("JsonStore", () => {
         progressPct: 100,
         verdict: "WATCH",
         gateVerdict: "NEEDS_REVIEW",
-        minutesMetered: 0
+        minutesMetered: 0,
+        observability: {
+          outcome: "WATCH",
+          engine: "fallback",
+          providerUsageEntries: 0
+        }
       });
+      expect(completed.startedAt).toBeTruthy();
+      expect(completed.completedAt).toBeTruthy();
+      expect(completed.processingDurationMs).toBeGreaterThanOrEqual(0);
+      expect(completed.failureReason).toBeTruthy();
+      expect(completed.observability.stages.map((stage) => stage.status)).toEqual([
+        "ingesting",
+        "metadata_probe",
+        "deterministic_qc",
+        "reporting"
+      ]);
       expect(store.listJobEvents(job.jobId).map((event) => event.eventType)).toContain("deterministic_qc");
+      expect(store.listJobEvents(job.jobId).at(-1).payload).toMatchObject({
+        engine: "fallback",
+        processingDurationMs: completed.processingDurationMs
+      });
       expect(store.listFlags(job.jobId)[0]).toMatchObject({ gate: "engine", severity: "warn" });
       expect(store.listArtifacts(job.jobId).map((artifact) => artifact.artifactType)).toEqual(["json_report"]);
 
@@ -304,6 +323,12 @@ describe("JsonStore", () => {
       });
 
       expect(result.job).toMatchObject({ status: "completed", verdict: "BLOCK", gateVerdict: "BLOCK" });
+      expect(result.job.observability).toMatchObject({
+        outcome: "BLOCK",
+        engine: "gate_verdict_import",
+        providerUsageEntries: 0
+      });
+      expect(result.job.processingDurationMs).toBeGreaterThanOrEqual(0);
       expect(result.importedFlags).toHaveLength(1);
       expect(store.listFlags(job.jobId)[0]).toMatchObject({
         gate: "loop_freeze",

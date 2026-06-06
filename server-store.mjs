@@ -107,11 +107,13 @@ export class JsonStore {
     const job = this.getJob(jobId);
     if (!job) return null;
 
+    this.startJobObservability(job);
     const advance = (status, progressPct) => {
       job.status = status;
       job.progressPct = progressPct;
       job.updatedAt = new Date().toISOString();
-      this.addJobEvent(jobId, status, { progressPct });
+      const stage = this.recordJobStage(job, status, progressPct);
+      this.addJobEvent(jobId, status, { progressPct, elapsedMs: stage.elapsedMs });
     };
     advance("ingesting", 15);
     advance("metadata_probe", 30);
@@ -131,10 +133,17 @@ export class JsonStore {
       if (engine.durationS) job.minutesMetered = Math.ceil(engine.durationS / 60);
       // ingestGateVerdict converts VERDICT.json -> job verdict + flags + artifact.
       this.ingestGateVerdict(jobId, engine.verdict);
+      const completedJob = this.getJob(jobId);
+      this.completeJobObservability(completedJob, {
+        outcome: completedJob?.verdict || "PASS",
+        engine: "qc_engine",
+        providerUsageEntries: completedJob?.providerUsage?.length || 0
+      });
       this.addJobEvent(jobId, "qc_engine_ran", {
         verdict: engine.verdict.verdict,
         blocked: engine.verdict.blocked || [],
-        skipped: engine.verdict.skipped || []
+        skipped: engine.verdict.skipped || [],
+        processingDurationMs: completedJob?.processingDurationMs || 0
       });
       this.addArtifact(jobId, {
         artifactType: "marker_export",
@@ -154,6 +163,11 @@ export class JsonStore {
     job.gateVerdict = "NEEDS_REVIEW";
     job.completedAt = new Date().toISOString();
     job.updatedAt = job.completedAt;
+    this.completeJobObservability(job, {
+      outcome: job.verdict,
+      engine: "fallback",
+      failureReason: (engine && engine.error) ? String(engine.error).slice(0, 300) : "qc_engine_unavailable"
+    });
     this.addFlag(jobId, {
       gate: "engine",
       severity: "warn",
@@ -167,9 +181,60 @@ export class JsonStore {
       url: `/v1/qc/jobs/${jobId}/report`,
       metadata: { format: "json", engine: "fallback" }
     });
-    this.addJobEvent(jobId, "completed", { verdict: job.verdict, engine: "fallback", error: engine && engine.error });
+    this.addJobEvent(jobId, "completed", {
+      verdict: job.verdict,
+      engine: "fallback",
+      error: engine && engine.error,
+      processingDurationMs: job.processingDurationMs,
+      failureReason: job.failureReason || null
+    });
     this.persist();
     return job;
+  }
+
+  startJobObservability(job) {
+    const now = new Date().toISOString();
+    job.startedAt = job.startedAt || now;
+    job.observability = {
+      ...(job.observability || {}),
+      startedAt: job.startedAt,
+      stages: Array.isArray(job.observability?.stages) ? job.observability.stages : [],
+      providerUsageEntries: job.providerUsage?.length || 0,
+      failureReason: job.failureReason || null
+    };
+  }
+
+  recordJobStage(job, status, progressPct) {
+    if (!job.observability) this.startJobObservability(job);
+    const elapsedMs = elapsedMsBetween(job.startedAt, new Date().toISOString());
+    const stage = {
+      status,
+      progressPct,
+      elapsedMs,
+      at: new Date().toISOString()
+    };
+    job.observability.stages.push(stage);
+    return stage;
+  }
+
+  completeJobObservability(job, input = {}) {
+    if (!job) return null;
+    if (!job.observability) this.startJobObservability(job);
+    const completedAt = job.completedAt || new Date().toISOString();
+    job.completedAt = completedAt;
+    job.updatedAt = completedAt;
+    job.processingDurationMs = elapsedMsBetween(job.startedAt, completedAt);
+    job.failureReason = input.failureReason || job.failureReason || null;
+    job.observability = {
+      ...job.observability,
+      completedAt,
+      processingDurationMs: job.processingDurationMs,
+      outcome: input.outcome || job.verdict || null,
+      engine: input.engine || job.observability.engine || null,
+      providerUsageEntries: input.providerUsageEntries ?? job.providerUsage?.length ?? 0,
+      failureReason: job.failureReason
+    };
+    return job.observability;
   }
 
   ingestGateVerdict(jobId, verdictPayload) {
@@ -187,12 +252,18 @@ export class JsonStore {
     job.providerUsage = normalizeProviderUsage(verdictPayload);
     job.completedAt = new Date().toISOString();
     job.updatedAt = job.completedAt;
+    this.completeJobObservability(job, {
+      outcome: job.verdict,
+      engine: "gate_verdict_import",
+      providerUsageEntries: job.providerUsage.length
+    });
 
     this.addJobEvent(jobId, "gate_verdict_ingested", {
       verdict: job.verdict,
       blocked: blockedChecks,
       skipped: skippedChecks,
-      providerUsageEntries: job.providerUsage.length
+      providerUsageEntries: job.providerUsage.length,
+      processingDurationMs: job.processingDurationMs || 0
     });
 
     const importedFlags = buildFlagsFromGateVerdict(jobId, verdictPayload);
@@ -700,6 +771,13 @@ function secondsToTimecode(seconds) {
   const mm = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
   const ss = String(total % 60).padStart(2, "0");
   return `${hh}:${mm}:${ss}`;
+}
+
+function elapsedMsBetween(startIso, endIso) {
+  const start = Date.parse(startIso);
+  const end = Date.parse(endIso);
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return 0;
+  return Math.max(0, end - start);
 }
 
 function csvEscape(value) {

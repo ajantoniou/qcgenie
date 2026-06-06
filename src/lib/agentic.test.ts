@@ -57,6 +57,20 @@ describe("agentic integration contract", () => {
     expect(getJob?.outputs).toContain("media_ingress");
   });
 
+  it("publishes job observability fields for agent debugging", () => {
+    const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
+
+    expect(manifest.response_fields.qc_job).toEqual(expect.arrayContaining([
+      "startedAt",
+      "completedAt",
+      "processingDurationMs",
+      "failureReason",
+      "observability"
+    ]));
+    expect(manifest.response_fields.observability.safe_to_show).toContain("providerUsageEntries");
+    expect(manifest.response_fields.observability.safe_to_show).toContain("stages");
+  });
+
   it("defines a real async job lifecycle", () => {
     expect(JOB_STATUSES).toEqual([
       "queued",

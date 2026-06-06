@@ -123,6 +123,11 @@ function verifiedControls() {
       evidence: "Job creation and upload reservation fail fast on duration_limit_exceeded, upload_size_limit_exceeded, and active_job_limit_exceeded."
     },
     {
+      id: "job_observability",
+      status: "done",
+      evidence: "Jobs persist startedAt, completedAt, processingDurationMs, stage elapsed times, provider usage entry counts, and fallback failureReason telemetry."
+    },
+    {
       id: "package_verify",
       status: "done",
       evidence: "npm run packages:verify checks @uploadcheck/cli and @uploadcheck/mcp pack contents."

@@ -82,6 +82,11 @@
       "minutesMetered",
       "mediaIngress",
       "costEstimate",
+      "startedAt",
+      "completedAt",
+      "processingDurationMs",
+      "failureReason",
+      "observability",
       "statusUrl",
       "reportUrl"
     ],
@@ -91,6 +96,10 @@
       "signed_upload_mode": "signed_upload",
       "safe_to_show": ["mode", "contentType", "bytes", "sha256", "ephemeral", "storageMode"],
       "never_exposes": ["temporary server file paths", "cleanup paths"]
+    },
+    "observability": {
+      "purpose": "Debug job runtime, engine fallback, provider usage, and slow-stage behavior without reprocessing media.",
+      "safe_to_show": ["startedAt", "completedAt", "processingDurationMs", "outcome", "engine", "providerUsageEntries", "failureReason", "stages"]
     }
   },
   "primary_endpoints": [

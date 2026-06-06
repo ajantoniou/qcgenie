@@ -32,8 +32,37 @@
           "progressPct": { "type": "integer" },
           "verdict": { "type": ["string", "null"], "enum": ["PASS", "WATCH", "BLOCK", null] },
           "minutesMetered": { "type": "integer" },
+          "startedAt": { "type": "string", "format": "date-time" },
+          "completedAt": { "type": "string", "format": "date-time" },
+          "processingDurationMs": { "type": "integer", "description": "Wall-clock processing time in milliseconds from job start to completion." },
+          "failureReason": { "type": ["string", "null"], "description": "Failure or fallback reason when the engine cannot complete normally." },
           "statusUrl": { "type": "string" },
           "reportUrl": { "type": "string" },
+          "observability": {
+            "type": ["object", "null"],
+            "description": "Timing, engine, stage, provider-usage, and failure telemetry for job debugging and cost analysis.",
+            "properties": {
+              "startedAt": { "type": "string", "format": "date-time" },
+              "completedAt": { "type": "string", "format": "date-time" },
+              "processingDurationMs": { "type": "integer" },
+              "outcome": { "type": ["string", "null"] },
+              "engine": { "type": ["string", "null"] },
+              "providerUsageEntries": { "type": "integer" },
+              "failureReason": { "type": ["string", "null"] },
+              "stages": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "progressPct": { "type": "integer" },
+                    "elapsedMs": { "type": "integer" },
+                    "at": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
           "mediaIngress": {
             "type": ["object", "null"],
             "description": "Sanitized media ingress metadata. Inline media is processed ephemerally without exposing temporary server paths.",

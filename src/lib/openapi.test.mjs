@@ -77,6 +77,19 @@ describe("public OpenAPI spec", () => {
     expect(spec.components.schemas.QcJob.properties.sourceRedacted.description).toContain("local server path");
   });
 
+  it("documents job observability fields on QC jobs", () => {
+    const spec = loadSpec();
+    const props = spec.components.schemas.QcJob.properties;
+
+    expect(props.startedAt.format).toBe("date-time");
+    expect(props.completedAt.format).toBe("date-time");
+    expect(props.processingDurationMs.description).toContain("Wall-clock processing time");
+    expect(props.failureReason.description).toContain("fallback reason");
+    expect(props.observability.description).toContain("Timing");
+    expect(props.observability.properties.stages.items.properties.elapsedMs.type).toBe("integer");
+    expect(props.observability.properties.providerUsageEntries.type).toBe("integer");
+  });
+
   it("documents job abuse-limit inputs and fail-fast responses", () => {
     const spec = loadSpec();
     const jobPost = spec.paths["/v1/qc/jobs"].post;
