@@ -49,6 +49,26 @@ describe("launch readiness report", () => {
     expect(report.checks.demoClip.ok).toBe(true);
   });
 
+  it("requires API auth for Product Hunt readiness", () => {
+    const report = buildReadinessReport({
+      host: "api.uploadcheck.app",
+      env: {
+        UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
+        UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
+        UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+        UPLOADCHECK_SECRET_ENCRYPTION_KEY: strongSecret,
+        UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
+        UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck-storage",
+        UPLOADCHECK_DEMO_CLIP_URL: "https://uploadcheck.app/demo.mp4"
+      },
+      now: "2026-06-06T00:00:00.000Z"
+    });
+
+    expect(report.checks.apiAuth.ok).toBe(false);
+    expect(report.checks.productHunt.required).toContain("apiAuth");
+    expect(report.readyForProductHunt).toBe(false);
+  });
+
   it("does not accept weak webhook encryption keys as launch-ready", () => {
     const report = buildReadinessReport({
       host: "api.uploadcheck.app",

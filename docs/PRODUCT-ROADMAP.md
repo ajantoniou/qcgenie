@@ -193,7 +193,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: global Codex skill `uploadcheck` installed locally so projects can invoke the standard cost-preflight, hosted QC, report, marker CSV, and repair-loop workflow.
 - Done: authenticated hosted inline-media execution is verified on Render with a blocking `twins` report.
 - Done: checkout route plumbing exists at `/checkout/creator`, `/checkout/studio`, and `/checkout/network`, with env-driven Lemon Squeezy redirects.
-- Done: no-secret launch readiness proof added at `GET /v1/readiness` for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt go/no-go state.
+- Done: no-secret launch readiness proof added at `GET /v1/readiness` for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt go/no-go state; `apiAuth` is launch-blocking.
 - Done: public Product Hunt demo clip is bundled at `/demo/uploadcheck-product-hunt-demo.mp4` and embedded on `/product-hunt/`.
 - Done: signed-upload media can use mounted durable filesystem storage via `UPLOADCHECK_DURABLE_STORAGE_DIR`; upload reports retain `storageMode`.
 - Done: signed-upload media can mirror to S3/R2-compatible object storage when the full `UPLOADCHECK_STORAGE_*` env set is configured; readiness now rejects incomplete object-storage env instead of treating a bucket name as enough.

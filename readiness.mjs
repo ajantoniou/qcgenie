@@ -80,8 +80,8 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
       detail: demoClipConfigured ? "Public demo clip is configured or bundled." : "Set UPLOADCHECK_DEMO_CLIP_URL or ship public/demo/uploadcheck-product-hunt-demo.mp4 before Product Hunt launch."
     },
     productHunt: {
-      ok: checkoutConfigured && customDomainActive && secretEncryptionConfigured && persistenceConfigured && durableStorageConfigured && demoClipConfigured,
-      required: ["checkout", "customDomain", "secretEncryption", "persistence", "storage", "demoClip"]
+      ok: checkoutConfigured && customDomainActive && secretEncryptionConfigured && apiAuthConfigured && persistenceConfigured && durableStorageConfigured && demoClipConfigured,
+      required: ["checkout", "customDomain", "secretEncryption", "apiAuth", "persistence", "storage", "demoClip"]
     }
   };
 
