@@ -11,7 +11,7 @@ Canonical naming:
 ## Environment
 
 ```bash
-export UPLOADCHECK_API_BASE_URL="https://qcgenie-api.onrender.com"
+export UPLOADCHECK_API_BASE_URL="https://api.uploadcheck.app"
 export UPLOADCHECK_API_KEY="<workspace_api_key>"
 ```
 
@@ -59,7 +59,7 @@ Small files are base64 encoded by the local MCP process and evaluated through Re
 Hosted media ingress can be smoke-tested from the repo before handing the MCP to another production pipeline:
 
 ```bash
-UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
+UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
 ```
 
 When a project has a storybook, edit decision list, or visual timeline JSON, pass it as `manifest_json` with `checks: "repeat_fatigue"`. UploadCheck will use it to flag exact visual reuse and source-family dominance even before a final render is reviewed.

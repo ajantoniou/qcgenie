@@ -3,15 +3,15 @@
   "description": "Quality check videos, podcasts, and clips before you upload.",
   "package": "@uploadcheck/mcp",
   "binary": "uploadcheck-mcp",
-  "hosted_api_base_url": "https://qcgenie-api.onrender.com",
-  "canonical_api_base_url_after_dns_cutover": "https://api.uploadcheck.app",
+  "hosted_api_base_url": "https://api.uploadcheck.app",
+  "legacy_render_api_base_url": "https://qcgenie-api.onrender.com",
   "environment": {
-    "UPLOADCHECK_API_BASE_URL": "https://qcgenie-api.onrender.com",
+    "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
     "UPLOADCHECK_API_KEY": "<workspace_api_key>"
   },
   "codex_local": {
     "config_file": "~/.codex/config.toml",
-    "toml": "[mcp_servers.uploadcheck]\ncommand = \"/Applications/DrAntoniou Projects/UploadCheck/mcp-server/run-uploadcheck-mcp.sh\"\nargs = []\nstartup_timeout_sec = 60\n\n[mcp_servers.uploadcheck.env]\nUPLOADCHECK_API_BASE_URL = \"https://qcgenie-api.onrender.com\""
+    "toml": "[mcp_servers.uploadcheck]\ncommand = \"/Applications/DrAntoniou Projects/UploadCheck/mcp-server/run-uploadcheck-mcp.sh\"\nargs = []\nstartup_timeout_sec = 60\n\n[mcp_servers.uploadcheck.env]\nUPLOADCHECK_API_BASE_URL = \"https://api.uploadcheck.app\""
   },
   "claude_desktop": {
     "config_file": "claude_desktop_config.json",
@@ -21,7 +21,7 @@
           "command": "npx",
           "args": ["-y", "@uploadcheck/mcp"],
           "env": {
-            "UPLOADCHECK_API_BASE_URL": "https://qcgenie-api.onrender.com",
+            "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
             "UPLOADCHECK_API_KEY": "<workspace_api_key>"
           }
         }
@@ -36,7 +36,7 @@
           "command": "npx",
           "args": ["-y", "@uploadcheck/mcp"],
           "env": {
-            "UPLOADCHECK_API_BASE_URL": "https://qcgenie-api.onrender.com",
+            "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
             "UPLOADCHECK_API_KEY": "<workspace_api_key>"
           }
         }
@@ -47,7 +47,7 @@
     "command": "npx",
     "args": ["-y", "@uploadcheck/mcp"],
     "env": {
-      "UPLOADCHECK_API_BASE_URL": "https://qcgenie-api.onrender.com",
+      "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
       "UPLOADCHECK_API_KEY": "<workspace_api_key>"
     }
   },

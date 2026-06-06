@@ -226,7 +226,7 @@ UPLOADCHECK_STORAGE_PREFIX=uploads/ # trailing comment
     expect(output).toContain("UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG");
     expect(output).toContain("UPLOADCHECK_CREATOR_VARIANT_ID");
     expect(output).toContain("UPLOADCHECK_STORE_PATH=\"/mnt/uploadcheck/store.json\"");
-    expect(output).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=\"https://qcgenie-api.onrender.com\" UPLOADCHECK_API_KEY=\"<generated_bearer_token>\" npm run media-ingress:verify");
+    expect(output).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=\"https://api.uploadcheck.app\" UPLOADCHECK_API_KEY=\"<generated_bearer_token>\" npm run media-ingress:verify");
     expect(output).toContain("Do not commit a filled copy.");
     expect(output).not.toContain(process.env.RENDER_API_KEY || "render-secret-never-present");
   });
@@ -241,7 +241,7 @@ UPLOADCHECK_STORAGE_PREFIX=uploads/ # trailing comment
     expect(output).toContain(`UPLOADCHECK_SECRET_ENCRYPTION_KEY="${"b".repeat(43)}"`);
     expect(output).toContain("RENDER_API_KEY=\"<render_api_key>\"");
     expect(output).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL=\"https://...\"");
-    expect(output).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=\"https://qcgenie-api.onrender.com\" UPLOADCHECK_API_KEY=\"<generated_bearer_token>\" npm run media-ingress:verify");
+    expect(output).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=\"https://api.uploadcheck.app\" UPLOADCHECK_API_KEY=\"<generated_bearer_token>\" npm run media-ingress:verify");
     expect(output).not.toContain("UPLOADCHECK_API_KEY=uck_");
   });
 

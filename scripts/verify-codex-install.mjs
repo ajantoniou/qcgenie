@@ -10,7 +10,7 @@ const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
 const DEFAULT_CONFIG_PATH = resolve(homedir(), ".codex/config.toml");
 const DEFAULT_SKILL_PATH = resolve(homedir(), ".codex/skills/uploadcheck/SKILL.md");
 const EXPECTED_COMMAND = resolve(REPO_ROOT, "mcp-server/run-uploadcheck-mcp.sh");
-const EXPECTED_API_BASE_URL = "https://qcgenie-api.onrender.com";
+const EXPECTED_API_BASE_URL = "https://api.uploadcheck.app";
 
 export function verifyCodexInstall({
   configPath = process.env.UPLOADCHECK_CODEX_CONFIG_PATH || DEFAULT_CONFIG_PATH,
@@ -83,7 +83,7 @@ export function verifyCodexInstall({
       "At `$99 / 5,000` minutes",
       "Checked minutes mean deterministic pre-upload QC minutes",
       "0.0157",
-      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com"
+      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app"
     ];
     for (const marker of requiredSkillMarkers) {
       if (!skillText.includes(marker)) {

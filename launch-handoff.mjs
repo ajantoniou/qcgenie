@@ -2,7 +2,7 @@ import { buildReadinessActions } from "./readiness-actions.mjs";
 import { launchDoctorCommandStrings } from "./launch-doctor.mjs";
 
 export function buildLaunchHandoff(report, {
-  apiBaseUrl = "https://qcgenie-api.onrender.com",
+  apiBaseUrl = "https://api.uploadcheck.app",
   generatedAt = new Date().toISOString()
 } = {}) {
   const checks = report?.checks || {};
@@ -46,7 +46,7 @@ export function buildLaunchHandoff(report, {
       "npm run launch:doctor",
       "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
       "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
-      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
+      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run launch:check",
       "npm run readiness:check"
     ],
@@ -183,7 +183,7 @@ function proofCommandsForBlockers(blockers) {
     storage: [
       "npm run launch:storage",
       "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
-      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
     ],
     demoClip: [
       "npm run launch-status:verify",

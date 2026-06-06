@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { verifyCostBasis } from "./verify-cost-basis.mjs";
 
-const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_COST_BASIS_BASE_URL || "https://qcgenie-api.onrender.com");
+const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_COST_BASIS_BASE_URL || "https://api.uploadcheck.app");
 const url = `${baseUrl}/cost-basis.json`;
 
 try {

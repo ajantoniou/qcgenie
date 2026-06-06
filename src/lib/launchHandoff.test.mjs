@@ -33,13 +33,13 @@ describe("launch handoff", () => {
       commands: [
         "npm run launch:storage",
         "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
-        "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+        "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
       ]
     }]);
     expect(handoff.operatorCommandSequence).toContain("npm run launch:doctor");
-    expect(handoff.operatorCommandSequence).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+    expect(handoff.operatorCommandSequence).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     expect(handoff.launchDoctorCommands).toContain("npm run media-ingress:verify");
-    expect(handoff.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+    expect(handoff.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     expect(handoff.rule).toContain("launch:doctor exits 0");
     expect(handoff.blockerFixPlan).toMatchObject({
       status: "blocked",
@@ -66,7 +66,7 @@ describe("launch handoff", () => {
     expect(text).toContain("Fix plan:");
     expect(text).toContain("Configure checkout URLs: configure-checkout");
     expect(text).toContain("UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage");
-    expect(text).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+    expect(text).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
   });
 
   it("returns nonzero in the current live unready launch state", () => {
@@ -80,7 +80,7 @@ describe("launch handoff", () => {
     expect(payload.name).toBe("UploadCheck.app Launch Handoff");
     expect(payload.productHuntReady).toBe(false);
     expect(payload.remainingBlockers.length).toBeGreaterThan(0);
-    expect(payload.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+    expect(payload.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     expect(payload.blockerFixPlan.status).toBe("blocked");
     expect(payload.blockerFixPlan.phases.map((phase) => phase.id)).toContain("final-launch-proof");
   });

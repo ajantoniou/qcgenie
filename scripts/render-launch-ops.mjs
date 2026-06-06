@@ -187,7 +187,7 @@ function buildEnvTemplateFromValues({ apiKeySha256, secretEncryptionKey }) {
     "# Keep UPLOADCHECK_API_KEY private for clients; only set it on Render for bootstrap/testing.",
     "# UPLOADCHECK_API_KEY=\"<generated_bearer_token>\"",
     "# After Render deploy, use the private bearer token locally to probe hosted media ingress:",
-    "# UPLOADCHECK_MEDIA_INGRESS_BASE_URL=\"https://qcgenie-api.onrender.com\" UPLOADCHECK_API_KEY=\"<generated_bearer_token>\" npm run media-ingress:verify",
+    "# UPLOADCHECK_MEDIA_INGRESS_BASE_URL=\"https://api.uploadcheck.app\" UPLOADCHECK_API_KEY=\"<generated_bearer_token>\" npm run media-ingress:verify",
     "",
     "# Checkout URLs: required for Product Hunt readiness.",
     "UPLOADCHECK_CREATOR_CHECKOUT_URL=\"https://...\"",

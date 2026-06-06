@@ -2,7 +2,7 @@ import { lookup } from "node:dns/promises";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const DEFAULT_API_BASE_URL = "https://qcgenie-api.onrender.com";
+const DEFAULT_API_BASE_URL = "https://api.uploadcheck.app";
 const LAUNCH_TARGETS = JSON.parse(readFileSync(resolve("public/launch-targets.json"), "utf8"));
 const HOSTS = LAUNCH_TARGETS.http_targets.map((target) => ({
   kind: target.kind,

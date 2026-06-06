@@ -4,7 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { runLocalFileRequest } from "./local-file.mjs";
 
-const apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || "https://qcgenie-api.onrender.com";
+const apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || "https://api.uploadcheck.app";
 const apiKey = process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
 
 const server = new McpServer({

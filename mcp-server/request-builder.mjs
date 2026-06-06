@@ -1,7 +1,7 @@
 import { extname, basename, join, relative } from "node:path";
 import { statSync, readFileSync, existsSync, readdirSync } from "node:fs";
 
-const DEFAULT_API_BASE_URL = "https://qcgenie-api.onrender.com";
+const DEFAULT_API_BASE_URL = "https://api.uploadcheck.app";
 const DEFAULT_MAX_INLINE_MB = 128;
 
 const CONTENT_TYPES = new Map([

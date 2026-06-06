@@ -16,7 +16,7 @@ export function buildReadinessActions(report) {
         "npm run render:plan && npm run render:validate-env && npm run render:apply",
         "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
         "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
-        "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+        "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
       ],
       docs: "docs/DEPLOYMENT-CUTOVER.md"
     });

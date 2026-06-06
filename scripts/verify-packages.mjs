@@ -99,7 +99,7 @@ function verifyMcpInstallManifest(manifest) {
   if (manifest.name !== "uploadcheck") throw new Error("MCP install manifest must name the uploadcheck server.");
   if (manifest.package !== "@uploadcheck/mcp") throw new Error("MCP install manifest must reference @uploadcheck/mcp.");
   if (manifest.binary !== "uploadcheck-mcp") throw new Error("MCP install manifest must reference uploadcheck-mcp.");
-  if (manifest.hosted_api_base_url !== "https://qcgenie-api.onrender.com") throw new Error("MCP install manifest must preserve the current hosted API base URL until DNS cutover.");
+  if (manifest.hosted_api_base_url !== "https://api.uploadcheck.app") throw new Error("MCP install manifest must use the UploadCheck custom API base URL.");
   if (!manifest.codex_local?.toml?.includes("[mcp_servers.uploadcheck]")) throw new Error("MCP install manifest must include Codex TOML.");
   for (const client of ["claude_desktop", "cursor"]) {
     const server = manifest[client]?.json?.mcpServers?.uploadcheck;

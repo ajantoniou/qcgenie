@@ -23,7 +23,7 @@ export const LAUNCH_DOCTOR_STEPS = [
     id: "hosted-media-ingress",
     label: "Verify hosted Render media ingress",
     command: ["npm", "run", "--silent", "media-ingress:verify"],
-    env: { UPLOADCHECK_MEDIA_INGRESS_BASE_URL: "https://qcgenie-api.onrender.com" },
+    env: { UPLOADCHECK_MEDIA_INGRESS_BASE_URL: "https://api.uploadcheck.app" },
     requiredEnv: ["UPLOADCHECK_API_KEY"],
     displayEnv: { UPLOADCHECK_API_KEY: "<private_bearer>" }
   },

@@ -10,5 +10,5 @@ if [ -f "$ROOT/.env" ]; then
   set +a
 fi
 
-export UPLOADCHECK_API_BASE_URL="${UPLOADCHECK_API_BASE_URL:-https://qcgenie-api.onrender.com}"
+export UPLOADCHECK_API_BASE_URL="${UPLOADCHECK_API_BASE_URL:-https://api.uploadcheck.app}"
 exec node "$ROOT/mcp-server/index.mjs"

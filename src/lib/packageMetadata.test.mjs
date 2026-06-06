@@ -92,7 +92,7 @@ describe("UploadCheck package metadata", () => {
       name: "uploadcheck",
       package: "@uploadcheck/mcp",
       binary: "uploadcheck-mcp",
-      hosted_api_base_url: "https://qcgenie-api.onrender.com"
+      hosted_api_base_url: "https://api.uploadcheck.app"
     });
     expect(install.claude_desktop.json.mcpServers.uploadcheck.args).toEqual(["-y", "@uploadcheck/mcp"]);
     expect(install.cursor.json.mcpServers.uploadcheck.args).toEqual(["-y", "@uploadcheck/mcp"]);
@@ -116,7 +116,7 @@ args = []
 startup_timeout_sec = 60
 
 [mcp_servers.uploadcheck.env]
-UPLOADCHECK_API_BASE_URL = "https://qcgenie-api.onrender.com"
+UPLOADCHECK_API_BASE_URL = "https://api.uploadcheck.app"
 `);
       writeFileSync(skill, `
 ---
@@ -144,7 +144,7 @@ watchlist JSON
 At \`$99 / 5,000\` minutes
 Checked minutes mean deterministic pre-upload QC minutes
 0.0157
-UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com
+UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app
 `);
 
       const result = verifyCodexInstall({
@@ -156,7 +156,7 @@ UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com
       expect(result.ok).toBe(true);
       expect(result.server.command).toBe(wrapper);
       expect(result.server.commandExecutable).toBe(true);
-      expect(result.env.apiBaseUrl).toBe("https://qcgenie-api.onrender.com");
+      expect(result.env.apiBaseUrl).toBe("https://api.uploadcheck.app");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
