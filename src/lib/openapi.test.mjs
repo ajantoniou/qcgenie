@@ -71,5 +71,6 @@ describe("public OpenAPI spec", () => {
     });
     expect(spec.components.schemas.QcJob.properties.mediaIngress.properties.mode.enum).toContain("inline_ephemeral");
     expect(spec.components.schemas.QcJob.properties.mediaIngress.properties.storageMode.enum).toContain("render_temp_storage");
+    expect(spec.components.schemas.QcJob.properties.sourceRedacted.description).toContain("local server path");
   });
 });

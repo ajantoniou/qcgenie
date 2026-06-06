@@ -453,7 +453,7 @@ function listJobs(req, res) {
       limit: url.searchParams.get("limit") || 20,
       status: url.searchParams.get("status"),
       sourceUrl: url.searchParams.get("source_url")
-    })
+    }).map((job) => publicJob(job))
   });
 }
 
@@ -618,10 +618,25 @@ function sendJson(res, status, payload) {
 
 function withCostEstimate(job) {
   if (!job) return job;
+  const safeJob = publicJob(job);
   return {
-    ...job,
+    ...safeJob,
     costEstimate: estimateCostForJob(job, job.minutesMetered || 0)
   };
+}
+
+function publicJob(job) {
+  if (!job) return job;
+  const safe = { ...job };
+  if (shouldRedactSource(safe)) {
+    delete safe.source;
+    safe.sourceRedacted = true;
+  }
+  return safe;
+}
+
+function shouldRedactSource(job) {
+  return job.sourceType === "upload" || job.uploadId || job.mediaIngress?.mode === "inline_ephemeral" || job.mediaIngress?.mode === "signed_upload";
 }
 
 function estimateCostForJob(job, minutesMetered) {

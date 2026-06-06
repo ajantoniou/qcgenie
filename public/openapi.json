@@ -45,6 +45,10 @@
               "storageMode": { "type": "string", "enum": ["render_temp_storage", "durable_filesystem", "object_storage"] }
             }
           },
+          "sourceRedacted": {
+            "type": "boolean",
+            "description": "True when an upload-backed local server path was removed from the public job response."
+          },
           "costEstimate": {
             "type": "object",
             "properties": {
