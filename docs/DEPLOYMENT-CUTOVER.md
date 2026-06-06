@@ -49,6 +49,24 @@ npm run readiness:check
 
 The Blueprint can request Render domains and disk settings, but DNS still has to point to the `qcgenie-*` Render hostnames before `/v1/readiness` can mark `customDomain` ready.
 
+If a Render API key is available locally, the same launch shape can be audited or partially applied without opening the dashboard:
+
+```bash
+export RENDER_API_KEY="<render_api_key>"
+export UPLOADCHECK_API_KEY="<workspace_api_key>"
+export UPLOADCHECK_SECRET_ENCRYPTION_KEY="$(npm run --silent secret:generate)"
+export UPLOADCHECK_CREATOR_CHECKOUT_URL="https://..."
+export UPLOADCHECK_STUDIO_CHECKOUT_URL="https://..."
+export UPLOADCHECK_NETWORK_CHECKOUT_URL="https://..."
+
+npm run render:plan
+npm run render:audit
+npm run render:apply
+npm run readiness:check
+```
+
+`render:apply` adds the custom domains, sets the fixed durable env values, sets only the secret env values that are present in the local environment, and triggers web/API redeploys. It does not configure DNS; Cloudflare or the domain registrar still needs the CNAME records above.
+
 ## Verification Commands
 
 After DNS propagation:

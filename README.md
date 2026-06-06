@@ -54,6 +54,7 @@ Public API:
 - CLI package: `cli/`
 - Product Hunt readiness CLI: `npm run readiness:check`
 - Render Blueprint verifier: `npm run render:verify`
+- Render API launch helper: `npm run render:plan`, `npm run render:audit`, `npm run render:apply`
 
 Persistence state:
 
@@ -79,6 +80,7 @@ Persistence state:
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
 - `npm run readiness:check` fetches live readiness and prints the exact remaining Render/DNS/checkout actions.
 - `npm run render:verify` checks that `render.yaml` declares custom domains, a mounted disk, durable store/media paths, checkout prompts, and webhook encryption prompts.
+- `npm run render:plan`, `npm run render:audit`, and `npm run render:apply` use `RENDER_API_KEY` to inspect or apply Render custom domains, durable env values, provided checkout URLs, and provided secret values.
 
 ## Stack
 
