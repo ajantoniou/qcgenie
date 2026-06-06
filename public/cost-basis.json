@@ -17,7 +17,12 @@
     "sampled_ai_review_cents_per_minute": 0.2154,
     "full_gemini_flash_lite_video_audio_input_cents_per_minute": 0.2154,
     "full_gemini_flash_video_audio_input_cents_per_minute": 0.6654,
-    "model_check_call_cost_cents": 0.05
+    "model_check_call_cost_cents": 0.75
+  },
+  "observed_calibration": {
+    "model_check_call_cost_floor_cents": 0.75,
+    "source": "June 6 clone-crowd twins smoke test priced one Anthropic Sonnet vision frame call at about 0.654 cents before Render compute.",
+    "rule": "Use the observed-cost floor for preflight guardrails so model-backed checks are downgraded or sold separately unless the selected plan can still hold 95% gross margin."
   },
   "verdict": {
     "stress_99_5000": "$99 for 5,000 checked minutes is too generous for unlimited full-video AI review. It is only margin-safe as deterministic scan minutes with model-backed review capped, sampled, downgraded, or sold separately.",

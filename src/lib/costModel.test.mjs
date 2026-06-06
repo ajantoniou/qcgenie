@@ -37,6 +37,28 @@ describe("cost model", () => {
     expect(estimate.modelCheckCents).toBeCloseTo(checkCost.modelCheckCents);
   });
 
+  it("uses the observed Sonnet vision-call floor for model-backed preflight", () => {
+    const checkCost = estimateModelCheckCost("twins", 1);
+
+    expect(checkCost.modelCalls).toBe(12);
+    expect(checkCost.modelCheckCents / checkCost.modelCalls).toBe(0.75);
+    expect(checkCost.modelCheckCents).toBeGreaterThan(8);
+  });
+
+  it("downgrades model-backed checks on Creator when observed call costs break per-job margin", () => {
+    const guardrail = applyCostGuardrail({
+      planId: "creator",
+      minutes: 1,
+      checks: "canvas_fill,twins",
+      costGuardrail: "downgrade"
+    });
+
+    expect(guardrail.action).toBe("downgraded_to_deterministic");
+    expect(guardrail.removedChecks).toBe("twins");
+    expect(guardrail.originalEstimate.marginSafe).toBe(false);
+    expect(guardrail.estimate.marginSafe).toBe(true);
+  });
+
   it("downgrades default model-backed checks when they break the margin budget", () => {
     const guardrail = applyCostGuardrail({
       planId: "stress_99_5000",

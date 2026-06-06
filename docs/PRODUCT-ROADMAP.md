@@ -40,6 +40,8 @@ Cost-per-minute target: at `$99 / 5,000`, the COGS ceiling is `$0.00099` per min
 
 Observed-cost telemetry now prices real provider usage separately from preflight estimates. Example: the June 6 clone-crowd smoke test used `1,637` Anthropic input tokens and `108` output tokens, which prices at about `$0.0065` for that single vision call before Render compute. That is useful for flagged-window review, but it is not compatible with running many Sonnet frame calls on every included minute at `$99 / 5,000`.
 
+Preflight model-backed check pricing is now calibrated from that observed cost: each model-backed call reserves `0.75` cents of COGS, slightly above the observed `twins` Sonnet frame-call cost. This intentionally downgrades `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch` unless the selected plan/add-on can still hold the 95% margin budget.
+
 ## Expert Panel Synthesis
 
 - AI agent workflow experts: make `/check` a tiny, composable action that returns structured JSON an agent can cite, fix, or route.
@@ -219,6 +221,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: roadmap verifier added through `npm run roadmap:verify`, checking the 50-point plan sequence, expert-panel coverage, NTO replacement addendum, and execution-status markers.
 - Done: observed provider usage is now captured from real QC engine calls. Anthropic frame checks preserve token usage, DashScope/OpenRouter Omni calls preserve OpenAI-compatible usage when present, Scribe checks preserve request/audio seconds, and `VERDICT.json`, job reports, and margin telemetry expose rollups for cost reconciliation.
 - Done: observed provider usage is now priced into post-run COGS. Reports and `/v1/usage/margins` distinguish estimated preflight COGS from observed provider COGS, observed total COGS, observed cost/minute, and observed gross margin.
+- Done: model-backed preflight pricing now uses an observed-cost floor of `0.75` cents per model call, based on the clone-crowd `twins` smoke test, so guardrails do not underprice Sonnet frame review.
 - Done: billing enforcement for included minutes added. Usage metering is idempotent per job and billing period, and declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they exceed included plan minutes.
 - Done: plan-level AI-review budgets added to the cost model and public cost basis. Creator includes `3,600` AI-review seconds, Studio `7,200`, Network `21,600`, and the `$99 / 5,000` stress plan includes `0`; declared jobs that exceed the cumulative allowance return `usage_limit_exceeded` before QC.
 - Done: abuse limits added for file size, declared duration, and active job concurrency. Job/upload requests now fail fast with `duration_limit_exceeded`, `upload_size_limit_exceeded`, or `active_job_limit_exceeded` before QC compute or storage spend.

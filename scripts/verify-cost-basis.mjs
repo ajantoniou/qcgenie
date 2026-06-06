@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { estimateJobCost } from "../cost-model.mjs";
+import { estimateJobCost, estimateModelCheckCost } from "../cost-model.mjs";
 
 const PLAN_IDS = ["creator", "studio", "network", "stress_99_5000"];
 const COST_BASIS_PATH = "public/cost-basis.json";
@@ -20,6 +20,14 @@ export function verifyCostBasis({ costBasisPath = COST_BASIS_PATH } = {}) {
   }
   if (basis.default_guardrail?.mode !== "downgrade") {
     errors.push({ key: "default_guardrail.mode", reason: "wrong_guardrail", detail: "Default cost guardrail should be downgrade." });
+  }
+  const oneTwinCall = estimateModelCheckCost("twins", 1);
+  const modelCheckCallCost = oneTwinCall.modelCheckCents / oneTwinCall.modelCalls;
+  if (basis.cost_assumptions?.model_check_call_cost_cents !== modelCheckCallCost) {
+    errors.push({ key: "cost_assumptions.model_check_call_cost_cents", reason: "model_call_floor_mismatch", detail: `Expected observed-calibrated floor ${modelCheckCallCost}; found ${basis.cost_assumptions?.model_check_call_cost_cents}.` });
+  }
+  if (!String(basis.observed_calibration?.source || "").includes("0.654")) {
+    errors.push({ key: "observed_calibration.source", reason: "missing_observed_source", detail: "Observed calibration must cite the clone-crowd Sonnet frame-call cost." });
   }
 
   const plans = Array.isArray(basis.plans) ? basis.plans : [];

@@ -16,6 +16,8 @@ describe("public cost basis", () => {
     const stress = basis.plans.find((plan) => plan.plan_id === "stress_99_5000");
 
     expect(basis.target_gross_margin_pct).toBe(95);
+    expect(basis.cost_assumptions.model_check_call_cost_cents).toBe(0.75);
+    expect(basis.observed_calibration.source).toContain("0.654");
     expect(stress).toMatchObject({
       price_cents: 9900,
       included_minutes: 5000,
