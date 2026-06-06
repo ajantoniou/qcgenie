@@ -60,7 +60,7 @@
           <article class="card"><span class="eyebrow">Maker comment</span><h2>Built from real production failures</h2><p>We turned repeated creator-production defects into callable QC checks that agents can run before publishing.</p></article>
         </div>
       </section>
-      <footer class="footer">Product Hunt launch should wait until /v1/readiness confirms checkout, custom domain, persistence, storage, and a public demo clip is finalized.</footer>
+      <footer class="footer">Product Hunt launch should wait until GET /v1/launch-status reports product_hunt_ready=true, remaining_blockers is empty, and npm run launch:check passes live readiness, DNS, and HTTP.</footer>
     </main>
   </body>
 </html>

@@ -31,4 +31,13 @@ describe("static SEO/AEO pages", () => {
       expect(sitemap).toContain(`<loc>https://uploadcheck.app/${slug}/</loc>`);
     }
   });
+
+  it("keeps the Product Hunt page tied to live launch status", () => {
+    const html = readFileSync("public/product-hunt/index.html", "utf8");
+
+    expect(html).toContain("GET /v1/launch-status");
+    expect(html).toContain("product_hunt_ready=true");
+    expect(html).toContain("remaining_blockers is empty");
+    expect(html).toContain("npm run launch:check");
+  });
 });
