@@ -49,6 +49,88 @@
           }
         },
         "required": ["jobId", "status", "progressPct", "verdict", "minutesMetered"]
+      },
+      "Upload": {
+        "type": "object",
+        "properties": {
+          "uploadId": { "type": "string" },
+          "filename": { "type": "string" },
+          "contentType": { "type": "string" },
+          "sizeBytes": { "type": "integer" },
+          "status": { "type": "string", "enum": ["created", "uploaded"] },
+          "signedPutUrl": { "type": "string" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "storageMode": { "type": "string", "enum": ["render_temp_storage", "durable_filesystem", "object_storage"] },
+          "objectKey": { "type": "string", "nullable": true },
+          "objectUrl": { "type": "string", "nullable": true }
+        }
+      },
+      "UploadStored": {
+        "type": "object",
+        "properties": {
+          "uploadId": { "type": "string" },
+          "status": { "type": "string", "enum": ["uploaded"] },
+          "storageMode": { "type": "string", "enum": ["render_temp_storage", "durable_filesystem", "object_storage"] },
+          "bytesReceived": { "type": "integer" },
+          "sha256": { "type": "string" },
+          "objectKey": { "type": "string" },
+          "objectUrl": { "type": "string" }
+        },
+        "required": ["uploadId", "status", "storageMode", "bytesReceived", "sha256"]
+      },
+      "WebhookEndpoint": {
+        "type": "object",
+        "properties": {
+          "webhookId": { "type": "string" },
+          "url": { "type": "string" },
+          "eventTypes": { "type": "array", "items": { "type": "string" } },
+          "signingSecretPreview": { "type": "string" },
+          "signingSecret": { "type": "string", "description": "Returned once on creation." },
+          "signingSecretStorage": { "type": "string", "enum": ["encrypted", "plaintext"] }
+        }
+      },
+      "WebhookDelivery": {
+        "type": "object",
+        "properties": {
+          "deliveryId": { "type": "string" },
+          "webhookId": { "type": "string" },
+          "eventType": { "type": "string" },
+          "jobId": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
+          "url": { "type": "string" },
+          "attemptCount": { "type": "integer" },
+          "nextAttemptAt": { "type": ["string", "null"], "format": "date-time" },
+          "lastAttemptAt": { "type": ["string", "null"], "format": "date-time" },
+          "responseStatus": { "type": ["integer", "null"] },
+          "lastError": { "type": ["string", "null"] },
+          "sentAt": { "type": ["string", "null"], "format": "date-time" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "signatureHeader": { "type": "string", "const": "X-UploadCheck-Signature" },
+          "legacySignatureHeader": { "type": "string", "const": "X-QCGenie-Signature" },
+          "signature": { "type": "string" },
+          "payload": { "type": "object" }
+        }
+      },
+      "WebhookDeliveryList": {
+        "type": "object",
+        "properties": {
+          "deliveries": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WebhookDelivery" }
+          }
+        },
+        "required": ["deliveries"]
+      },
+      "WebhookDrainResult": {
+        "type": "object",
+        "properties": {
+          "processed": { "type": "integer" },
+          "results": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WebhookDelivery" }
+          }
+        },
+        "required": ["processed", "results"]
       }
     }
   },
@@ -428,7 +510,14 @@
           }
         },
         "responses": {
-          "201": { "description": "Webhook registered" }
+          "201": {
+            "description": "Webhook registered",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WebhookEndpoint" }
+              }
+            }
+          }
         }
       }
     },
@@ -437,7 +526,15 @@
         "summary": "Preview signed webhook delivery metadata",
         "parameters": [{ "name": "webhook_id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
-          "200": { "description": "Signed delivery preview" }
+          "200": {
+            "description": "Signed delivery preview",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WebhookDelivery" }
+              }
+            }
+          },
+          "404": { "description": "Webhook not found" }
         }
       }
     },
@@ -450,7 +547,14 @@
           { "name": "webhook_id", "in": "query", "schema": { "type": "string" } }
         ],
         "responses": {
-          "200": { "description": "Webhook delivery log entries" }
+          "200": {
+            "description": "Webhook delivery log entries",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WebhookDeliveryList" }
+              }
+            }
+          }
         }
       }
     },
@@ -459,7 +563,14 @@
         "summary": "Retry a pending or failed webhook delivery",
         "parameters": [{ "name": "delivery_id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
-          "200": { "description": "Delivery attempt result" },
+          "200": {
+            "description": "Delivery attempt result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WebhookDelivery" }
+              }
+            }
+          },
           "404": { "description": "Delivery not found" }
         }
       }
@@ -481,40 +592,15 @@
           }
         },
         "responses": {
-          "200": { "description": "Due delivery drain result" }
+          "200": {
+            "description": "Due delivery drain result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WebhookDrainResult" }
+              }
+            }
+          }
         }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Upload": {
-        "type": "object",
-        "properties": {
-          "uploadId": { "type": "string" },
-          "filename": { "type": "string" },
-          "contentType": { "type": "string" },
-          "sizeBytes": { "type": "integer" },
-          "status": { "type": "string", "enum": ["created", "uploaded"] },
-          "signedPutUrl": { "type": "string" },
-          "expiresAt": { "type": "string", "format": "date-time" },
-          "storageMode": { "type": "string", "enum": ["render_temp_storage", "durable_filesystem", "object_storage"] },
-          "objectKey": { "type": "string", "nullable": true },
-          "objectUrl": { "type": "string", "nullable": true }
-        }
-      },
-      "UploadStored": {
-        "type": "object",
-        "properties": {
-          "uploadId": { "type": "string" },
-          "status": { "type": "string", "enum": ["uploaded"] },
-          "storageMode": { "type": "string", "enum": ["render_temp_storage", "durable_filesystem", "object_storage"] },
-          "bytesReceived": { "type": "integer" },
-          "sha256": { "type": "string" },
-          "objectKey": { "type": "string" },
-          "objectUrl": { "type": "string" }
-        },
-        "required": ["uploadId", "status", "storageMode", "bytesReceived", "sha256"]
       }
     }
   }
