@@ -113,7 +113,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
 export function parseArgs(argv) {
   const args = [...argv];
   const command = args.shift();
-  if (!["check", "estimate", "usage", "launch-status"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status");
+  if (!["check", "estimate", "usage", "launch-status", "launch-handoff"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status | uploadcheck launch-handoff");
 
   const target = command === "check" ? args.shift() : null;
   const options = { json: false };
@@ -187,6 +187,17 @@ export function buildLaunchStatusRequest(options = {}) {
   };
 }
 
+export function buildLaunchHandoffRequest(options = {}) {
+  const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
+  return {
+    apiBaseUrl,
+    path: "/v1/launch-handoff",
+    method: "GET",
+    kind: "launch_handoff",
+    public: true
+  };
+}
+
 export function buildUsageRequest(options = {}) {
   const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
   const params = new URLSearchParams();
@@ -248,6 +259,13 @@ export function formatLaunchStatusSummary(payload) {
   const status = payload.product_hunt_ready ? "READY" : "NOT READY";
   const blockers = (payload.remaining_blockers || []).map((blocker) => blocker.id).filter(Boolean);
   return `UploadCheck launch status: ${status}${blockers.length ? ` | blockers ${blockers.join(", ")}` : ""}`;
+}
+
+export function formatLaunchHandoffSummary(payload) {
+  const status = payload.productHuntReady ? "READY" : "NOT READY";
+  const blockers = (payload.remainingBlockers || []).map((blocker) => blocker.id).filter(Boolean);
+  const actions = (payload.requiredActions || []).map((action) => action.id).filter(Boolean);
+  return `UploadCheck launch handoff: ${status}${blockers.length ? ` | blockers ${blockers.join(", ")}` : ""}${actions.length ? ` | required actions ${actions.join(", ")}` : ""}`;
 }
 
 function requireValue(flag, value) {

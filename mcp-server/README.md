@@ -76,7 +76,7 @@ Use `plan_id`, `ai_review_seconds`, and `cost_guardrail` when an agent is asking
 
 Checked minutes mean deterministic pre-upload QC minutes. The old `$99 / 5,000` stress plan leaves only `0.0157` COGS cents/min after deterministic scanning, so unlimited full-video AI review is not included; model-backed deep review must be preflighted, downgraded, blocked, or sold separately to preserve the >95% gross-margin target.
 
-Call `qc_get_launch_status` before launch-sensitive production workflows when an agent needs the live Product Hunt go/no-go state, remaining blockers, and operator commands. This status endpoint is public; the other QC tools still require an API key.
+Call `qc_get_launch_status` before launch-sensitive production workflows when an agent needs the live Product Hunt go/no-go state, remaining blockers, and operator commands. Call `qc_get_launch_handoff` when the agent needs blocker-specific required actions, proof commands, and the no-launch rule. These launch endpoints are public; the other QC tools still require an API key.
 
 Call `qc_estimate_cost` before uploading large media or asking for model-backed checks. It returns the effective checks, removed checks, margin safety, and cost estimate without creating a job.
 
@@ -84,6 +84,7 @@ Call `qc_estimate_cost` before uploading large media or asking for model-backed 
 
 - `qc_estimate_cost`
 - `qc_get_launch_status`
+- `qc_get_launch_handoff`
 - `qc_run_video`
 - `qc_run_local_file`
 - `qc_get_job`

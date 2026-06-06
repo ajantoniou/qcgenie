@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildEstimateRequest, buildJobRequest, buildLaunchStatusRequest, buildUsageRequest, formatJobSummary, formatLaunchStatusSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+import { buildEstimateRequest, buildJobRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildUsageRequest, formatJobSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 describe("UploadCheck CLI request builder", () => {
   it("builds a YouTube job request", () => {
@@ -328,6 +328,26 @@ describe("UploadCheck CLI request builder", () => {
     });
   });
 
+  it("builds and parses a public launch-handoff request", () => {
+    const parsed = parseArgs([
+      "launch-handoff",
+      "--api-base",
+      "https://api.example.test",
+      "--json"
+    ]);
+    const request = buildLaunchHandoffRequest(parsed.options);
+
+    expect(parsed.command).toBe("launch-handoff");
+    expect(parsed.target).toBeNull();
+    expect(request).toEqual({
+      apiBaseUrl: "https://api.example.test",
+      path: "/v1/launch-handoff",
+      method: "GET",
+      kind: "launch_handoff",
+      public: true
+    });
+  });
+
   it("formats a compact job summary", () => {
     expect(formatJobSummary({
       jobId: "job_1",
@@ -393,5 +413,18 @@ describe("UploadCheck CLI request builder", () => {
       product_hunt_ready: true,
       remaining_blockers: []
     })).toBe("UploadCheck launch status: READY");
+  });
+
+  it("formats a compact launch handoff summary", () => {
+    expect(formatLaunchHandoffSummary({
+      productHuntReady: false,
+      remainingBlockers: [{ id: "checkout" }, { id: "storage" }],
+      requiredActions: [{ id: "render_env" }, { id: "checkout" }]
+    })).toBe("UploadCheck launch handoff: NOT READY | blockers checkout, storage | required actions render_env, checkout");
+    expect(formatLaunchHandoffSummary({
+      productHuntReady: true,
+      remainingBlockers: [],
+      requiredActions: []
+    })).toBe("UploadCheck launch handoff: READY");
   });
 });

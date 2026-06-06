@@ -71,6 +71,7 @@
   },
   "tools": [
     "qc_get_launch_status",
+    "qc_get_launch_handoff",
     "qc_estimate_cost",
     "qc_run_video",
     "qc_run_local_file",
@@ -115,6 +116,7 @@
   "primary_endpoints": [
     "GET /v1/readiness",
     "GET /v1/launch-status",
+    "GET /v1/launch-handoff",
     "POST /v1/qc/estimate",
     "POST /v1/qc/jobs",
     "POST /v1/qc/jobs/drain",
@@ -135,7 +137,7 @@
     "GET /v1/usage/margins"
   ],
   "agent_workflow": [
-    "Before launch-sensitive workflows, the agent may call qc_get_launch_status or GET /v1/launch-status to verify the live go/no-go state and remaining blockers.",
+    "Before launch-sensitive workflows, the agent may call qc_get_launch_status or GET /v1/launch-status to verify the live go/no-go state, then qc_get_launch_handoff or GET /v1/launch-handoff for blocker-specific required actions and proof commands.",
     "Before launch-sensitive workflows, the agent may call GET /v1/readiness to verify checkout, custom domain, persistence, storage, demo clip, and Product Hunt readiness.",
     "Pipeline recipes include launch_preflight, cost_preflight, sidecar-aware qc_run_local_file arguments, and repair-loop instructions.",
     "User runs /check with a media file, YouTube URL, upload id, or signed URL.",

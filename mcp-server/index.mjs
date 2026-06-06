@@ -20,6 +20,13 @@ server.tool(
 );
 
 server.tool(
+  "qc_get_launch_handoff",
+  "Fetch live UploadCheck Product Hunt launch handoff with current blockers, required actions, proof commands, and the no-launch rule.",
+  {},
+  async () => jsonTool(await publicApiFetch("/v1/launch-handoff"))
+);
+
+server.tool(
   "qc_estimate_cost",
   "Preflight UploadCheck cost and margin guardrail behavior before uploading or running media.",
   {

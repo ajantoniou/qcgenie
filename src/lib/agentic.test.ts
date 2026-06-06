@@ -6,6 +6,7 @@ describe("agentic integration contract", () => {
   it("exposes a programmatic job lifecycle for external agents", () => {
     expect(AGENT_API_ENDPOINTS.map((endpoint) => endpoint.methodPath)).toEqual([
       "GET /v1/launch-status",
+      "GET /v1/launch-handoff",
       "POST /v1/qc/estimate",
       "POST /v1/qc/jobs",
       "POST /v1/qc/jobs/drain",
@@ -27,6 +28,7 @@ describe("agentic integration contract", () => {
   it("defines MCP tools for Claude and Codex QC workflows", () => {
     expect(getMcpToolNames()).toEqual([
       "qc_get_launch_status",
+      "qc_get_launch_handoff",
       "qc_estimate_cost",
       "qc_run_video",
       "qc_run_local_file",
@@ -42,6 +44,9 @@ describe("agentic integration contract", () => {
     ]);
     const launchStatus = MCP_TOOLS.find((tool) => tool.name === "qc_get_launch_status");
     expect(launchStatus?.outputs).toContain("remaining_blockers");
+    const launchHandoff = MCP_TOOLS.find((tool) => tool.name === "qc_get_launch_handoff");
+    expect(launchHandoff?.outputs).toContain("blockerProofCommands");
+    expect(launchHandoff?.outputs).toContain("rule");
     const runVideo = MCP_TOOLS.find((tool) => tool.name === "qc_run_video");
     expect(runVideo?.inputs).toContain("youtube_url");
     expect(runVideo?.outputs).toContain("verdict");
