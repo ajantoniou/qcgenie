@@ -46,7 +46,7 @@ describe("Product Hunt launch kit", () => {
     expect(kit.ready_when.required_commands).toContain("UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify");
     expect(kit.ready_when.required_commands).toContain("npm run live-web-artifacts:verify");
     expect(kit.ready_when.required_commands).toContain("npm run media-ingress:verify");
-    expect(kit.ready_when.required_commands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+    expect(kit.ready_when.required_commands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     expect(kit.ready_when.required_commands).toContain("npm run launch-status:generate");
     expect(kit.ready_when.required_commands).toContain("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env");
     expect(kit.ready_when.required_commands).toContain("npm run launch:dns");

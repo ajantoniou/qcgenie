@@ -22,13 +22,13 @@ describe("live launch evidence verifier", () => {
       res.end(JSON.stringify({
         name: "UploadCheck.app Remote Launch Evidence",
         contractVersion: "2026-06-06.render-web-proof",
-        source: "https://qcgenie-api.onrender.com/v1/launch-doctor",
+        source: "https://api.uploadcheck.app/v1/launch-doctor",
         productHuntReady: false,
         status: "blocked",
         blockers: ["checkout"],
         commandCoverage: [
           "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
-          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
         ]
       }));
     });
@@ -55,9 +55,9 @@ describe("live launch evidence verifier", () => {
       res.end(JSON.stringify({
         name: "UploadCheck.app Remote Launch Evidence",
         contractVersion: "2026-06-06.render-web-proof",
-        source: "https://qcgenie-api.onrender.com/v1/launch-doctor",
+        source: "https://api.uploadcheck.app/v1/launch-doctor",
         commandCoverage: [
-          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
         ]
       }));
     });
@@ -79,10 +79,10 @@ describe("live launch evidence verifier", () => {
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({
         name: "UploadCheck.app Remote Launch Evidence",
-        source: "https://qcgenie-api.onrender.com/v1/launch-doctor",
+        source: "https://api.uploadcheck.app/v1/launch-doctor",
         commandCoverage: [
           "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
-          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
         ]
       }));
     });

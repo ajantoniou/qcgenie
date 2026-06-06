@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_LAUNCH_EVIDENCE_BASE_URL || "https://qcgenie-api.onrender.com");
+const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_LAUNCH_EVIDENCE_BASE_URL || "https://api.uploadcheck.app");
 const expectedContractVersion = "2026-06-06.render-web-proof";
-const expectedSource = "https://qcgenie-api.onrender.com/v1/launch-doctor";
+const expectedSource = "https://api.uploadcheck.app/v1/launch-doctor";
 const expectedRenderWebCommand = "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify";
 const url = `${baseUrl}/v1/launch-evidence`;
 

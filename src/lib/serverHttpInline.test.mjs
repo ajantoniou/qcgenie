@@ -46,7 +46,7 @@ describe("server inline media API", () => {
       expect(payload.status.api_auth).toBe("pass");
       expect(payload.status.checkout).toBe("blocked");
       expect(payload.remaining_blockers.map((blocker) => blocker.id)).toContain("checkout");
-      expect(payload.public_artifacts.live_launch_status).toBe("https://qcgenie-api.onrender.com/v1/launch-status");
+      expect(payload.public_artifacts.live_launch_status).toBe("https://api.uploadcheck.app/v1/launch-status");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -75,13 +75,13 @@ describe("server inline media API", () => {
 
       expect(response.status).toBe(200);
       expect(payload.name).toBe("UploadCheck.app Launch Handoff");
-      expect(payload.source).toBe("https://qcgenie-api.onrender.com/v1/readiness");
+      expect(payload.source).toBe("https://api.uploadcheck.app/v1/readiness");
       expect(payload.productHuntReady).toBe(false);
       expect(payload.remainingBlockers.map((blocker) => blocker.id)).toContain("checkout");
       expect(payload.requiredActions.map((action) => action.id)).toContain("checkout");
       expect(payload.blockerProofCommands.find((blocker) => blocker.id === "checkout")?.commands).toContain("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
-      expect(payload.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
-      expect(payload.operatorCommandSequence).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+      expect(payload.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+      expect(payload.operatorCommandSequence).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
       expect(payload.rule).toContain("Do not launch on Product Hunt");
     } finally {
       rmSync(dir, { recursive: true, force: true });
@@ -112,9 +112,9 @@ describe("server inline media API", () => {
       expect(response.status).toBe(200);
       expect(payload.name).toBe("UploadCheck.app Launch Doctor");
       expect(payload.contractVersion).toBe("2026-06-06.render-web-proof");
-      expect(payload.handoffUrl).toBe("https://qcgenie-api.onrender.com/v1/launch-handoff");
+      expect(payload.handoffUrl).toBe("https://api.uploadcheck.app/v1/launch-handoff");
       expect(payload.blockerFixPlan.status).toBe("blocked");
-      expect(payload.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+      expect(payload.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -144,7 +144,7 @@ describe("server inline media API", () => {
       expect(response.status).toBe(200);
       expect(payload.name).toBe("UploadCheck.app Remote Launch Evidence");
       expect(payload.contractVersion).toBe("2026-06-06.render-web-proof");
-      expect(payload.source).toBe("https://qcgenie-api.onrender.com/v1/launch-doctor");
+      expect(payload.source).toBe("https://api.uploadcheck.app/v1/launch-doctor");
       expect(payload.productHuntReady).toBe(false);
       expect(payload.status).toBe("blocked");
       expect(payload.blockers).toContain("checkout");

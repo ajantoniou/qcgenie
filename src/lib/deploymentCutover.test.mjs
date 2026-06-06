@@ -7,7 +7,7 @@ describe("deployment cutover docs", () => {
     const text = readFileSync(resolve("docs/DEPLOYMENT-CUTOVER.md"), "utf8");
 
     expect(text).toContain("npm run media-ingress:verify");
-    expect(text).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+    expect(text).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     expect(text).toContain("The hosted media-ingress probe sends tiny inline video/audio payloads and a signed-upload audio payload");
     expect(text).toContain("not the SHA-256 hash stored on Render");
   });

@@ -99,7 +99,7 @@ describe("launch doctor", () => {
     }
     expect(payload.results.find((step) => step.id === "checkout-probe").commandString).toBe("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
     expect(payload.results.find((step) => step.id === "hosted-media-ingress")).toMatchObject({
-      commandString: "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
+      commandString: "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       ok: false
     });
     expect(payload.results.find((step) => step.id === "hosted-media-ingress").stdout).toContain("Missing env: UPLOADCHECK_API_KEY");
@@ -124,7 +124,7 @@ describe("launch doctor", () => {
       "npm run live-public-artifacts:verify",
       "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
       "npm run live-web-artifacts:verify",
-      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
+      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run launch-status:verify",
       "npm run cost-basis:verify",
       "npm run codex:verify-install",

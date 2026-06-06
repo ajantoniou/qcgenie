@@ -24,7 +24,7 @@ describe("live launch doctor verifier", () => {
         contractVersion: "2026-06-06.render-web-proof",
         launchDoctorCommands: [
           "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
-          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
         ],
         blockerFixPlan: { phases: [] },
         remainingBlockers: []
@@ -54,7 +54,7 @@ describe("live launch doctor verifier", () => {
         name: "UploadCheck.app Launch Doctor",
         contractVersion: "2026-06-06.render-web-proof",
         launchDoctorCommands: [
-          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
         ],
         blockerFixPlan: { phases: [] },
         remainingBlockers: []
@@ -80,7 +80,7 @@ describe("live launch doctor verifier", () => {
         name: "UploadCheck.app Launch Doctor",
         launchDoctorCommands: [
           "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
-          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
         ],
         blockerFixPlan: { phases: [] },
         remainingBlockers: []

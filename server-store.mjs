@@ -369,7 +369,7 @@ export class JsonStore {
     const uploadId = `upl_${randomId()}`;
     const uploadToken = `upt_${randomBytes(18).toString("hex")}`;
     const filename = input.filename || "upload.mp4";
-    const baseUrl = (options.baseUrl || "https://qcgenie-api.onrender.com").replace(/\/+$/, "");
+    const baseUrl = (options.baseUrl || "https://api.uploadcheck.app").replace(/\/+$/, "");
     const upload = {
       uploadId,
       filename,

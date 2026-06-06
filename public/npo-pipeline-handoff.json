@@ -3,8 +3,8 @@
   "description": "Focused callable runbook for NPO podcast/audio production pipelines that need UploadCheck before publishing.",
   "profile_id": "npo_podcast_or_audio",
   "mcp_server": "uploadcheck",
-  "api_base_url": "https://qcgenie-api.onrender.com/v1",
-  "source_recipe": "https://qcgenie-api.onrender.com/pipeline-recipes.json#profiles.npo_podcast_or_audio",
+  "api_base_url": "https://api.uploadcheck.app/v1",
+  "source_recipe": "https://api.uploadcheck.app/pipeline-recipes.json#profiles.npo_podcast_or_audio",
   "launch_preflight": {
     "mcp_tool": "qc_get_launch_status",
     "handoff_tool": "qc_get_launch_handoff",

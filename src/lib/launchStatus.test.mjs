@@ -45,7 +45,7 @@ describe("public launch status", () => {
       "npm run live-launch-evidence:verify",
       "npm run launch-status:generate",
       "npm run media-ingress:verify",
-      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
+      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run codex:verify-install",
       "npm run cost-basis:verify",
       "npm run live-cost-basis:verify",
@@ -86,11 +86,11 @@ describe("public launch status", () => {
     const manifest = readJson("public/agent-manifest.json");
     const openapi = readJson("public/openapi.json");
 
-    expect(manifest.launch_status_url).toBe("https://qcgenie-api.onrender.com/launch-status.json");
-    expect(manifest.live_launch_status_url).toBe("https://qcgenie-api.onrender.com/v1/launch-status");
-    expect(manifest.live_launch_handoff_url).toBe("https://qcgenie-api.onrender.com/v1/launch-handoff");
-    expect(manifest.live_launch_doctor_url).toBe("https://qcgenie-api.onrender.com/v1/launch-doctor");
-    expect(manifest.live_launch_evidence_url).toBe("https://qcgenie-api.onrender.com/v1/launch-evidence");
+    expect(manifest.launch_status_url).toBe("https://api.uploadcheck.app/launch-status.json");
+    expect(manifest.live_launch_status_url).toBe("https://api.uploadcheck.app/v1/launch-status");
+    expect(manifest.live_launch_handoff_url).toBe("https://api.uploadcheck.app/v1/launch-handoff");
+    expect(manifest.live_launch_doctor_url).toBe("https://api.uploadcheck.app/v1/launch-doctor");
+    expect(manifest.live_launch_evidence_url).toBe("https://api.uploadcheck.app/v1/launch-evidence");
     expect(manifest.launch_handoff_command).toBe("npm run launch:handoff -- --text");
     expect(openapi.paths["/launch-status.json"].get.security).toEqual([]);
     expect(openapi.paths["/v1/launch-status"].get.security).toEqual([]);
@@ -120,13 +120,13 @@ describe("public launch status", () => {
     expect(status.product_hunt_ready).toBe(true);
     expect(Object.values(status.status).every((value) => value === "pass")).toBe(true);
     expect(status.remaining_blockers).toEqual([]);
-    expect(status.public_artifacts.live_launch_status).toBe("https://qcgenie-api.onrender.com/v1/launch-status");
-    expect(status.public_artifacts.live_launch_handoff).toBe("https://qcgenie-api.onrender.com/v1/launch-handoff");
-    expect(status.public_artifacts.live_launch_doctor).toBe("https://qcgenie-api.onrender.com/v1/launch-doctor");
-    expect(status.public_artifacts.live_launch_evidence).toBe("https://qcgenie-api.onrender.com/v1/launch-evidence");
-    expect(status.public_artifacts.npo_pipeline_handoff).toBe("https://qcgenie-api.onrender.com/npo-pipeline-handoff.json");
-    expect(status.public_artifacts.sample_reports).toBe("https://qcgenie-api.onrender.com/sample-reports/index.json");
-    expect(status.public_artifacts.product_hunt_launch_kit).toBe("https://qcgenie-api.onrender.com/product-hunt-launch-kit.json");
+    expect(status.public_artifacts.live_launch_status).toBe("https://api.uploadcheck.app/v1/launch-status");
+    expect(status.public_artifacts.live_launch_handoff).toBe("https://api.uploadcheck.app/v1/launch-handoff");
+    expect(status.public_artifacts.live_launch_doctor).toBe("https://api.uploadcheck.app/v1/launch-doctor");
+    expect(status.public_artifacts.live_launch_evidence).toBe("https://api.uploadcheck.app/v1/launch-evidence");
+    expect(status.public_artifacts.npo_pipeline_handoff).toBe("https://api.uploadcheck.app/npo-pipeline-handoff.json");
+    expect(status.public_artifacts.sample_reports).toBe("https://api.uploadcheck.app/sample-reports/index.json");
+    expect(status.public_artifacts.product_hunt_launch_kit).toBe("https://api.uploadcheck.app/product-hunt-launch-kit.json");
   });
 
   it("verifies launch status against readiness and discovery metadata", () => {

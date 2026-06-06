@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const THIS_FILE = fileURLToPath(import.meta.url);
 
 async function main() {
-  const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_PIPELINE_HANDOFF_BASE_URL || "https://qcgenie-api.onrender.com");
+  const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_PIPELINE_HANDOFF_BASE_URL || "https://api.uploadcheck.app");
   const url = `${baseUrl}/pipeline-handoff.json`;
 
   try {
@@ -52,7 +52,7 @@ export function validatePipelineHandoff(payload = {}) {
   requireEqual(errors, payload.mcp_server, "uploadcheck", "mcp_server");
   requireEqual(errors, payload.mcp_tool, "qc_get_pipeline_handoff", "mcp_tool");
   requireEqual(errors, payload.cli_command, "uploadcheck pipeline-handoff --json", "cli_command");
-  requireEqual(errors, payload.api_base_url, "https://qcgenie-api.onrender.com/v1", "api_base_url");
+  requireEqual(errors, payload.api_base_url, "https://api.uploadcheck.app/v1", "api_base_url");
 
   for (const profile of ["nto_long_form", "nto_shorts", "npo_podcast_or_audio", "generic_creator_video", "creator_thumbnail"]) {
     requireIncludes(errors, payload.profiles, profile, "profiles");

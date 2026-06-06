@@ -4,21 +4,21 @@
   "mcp_server": "uploadcheck",
   "slash_command": "/check",
   "packages": ["@uploadcheck/cli", "@uploadcheck/mcp"],
-  "api_base_url": "https://qcgenie-api.onrender.com/v1",
-  "openapi_url": "https://qcgenie-api.onrender.com/openapi.json",
-  "pipeline_handoff_url": "https://qcgenie-api.onrender.com/pipeline-handoff.json",
-  "pipeline_recipes_url": "https://qcgenie-api.onrender.com/pipeline-recipes.json",
-  "npo_pipeline_handoff_url": "https://qcgenie-api.onrender.com/npo-pipeline-handoff.json",
-  "launch_targets_url": "https://qcgenie-api.onrender.com/launch-targets.json",
-  "launch_status_url": "https://qcgenie-api.onrender.com/launch-status.json",
-  "live_launch_status_url": "https://qcgenie-api.onrender.com/v1/launch-status",
-  "live_launch_handoff_url": "https://qcgenie-api.onrender.com/v1/launch-handoff",
-  "live_launch_doctor_url": "https://qcgenie-api.onrender.com/v1/launch-doctor",
-  "live_launch_evidence_url": "https://qcgenie-api.onrender.com/v1/launch-evidence",
+  "api_base_url": "https://api.uploadcheck.app/v1",
+  "openapi_url": "https://api.uploadcheck.app/openapi.json",
+  "pipeline_handoff_url": "https://api.uploadcheck.app/pipeline-handoff.json",
+  "pipeline_recipes_url": "https://api.uploadcheck.app/pipeline-recipes.json",
+  "npo_pipeline_handoff_url": "https://api.uploadcheck.app/npo-pipeline-handoff.json",
+  "launch_targets_url": "https://api.uploadcheck.app/launch-targets.json",
+  "launch_status_url": "https://api.uploadcheck.app/launch-status.json",
+  "live_launch_status_url": "https://api.uploadcheck.app/v1/launch-status",
+  "live_launch_handoff_url": "https://api.uploadcheck.app/v1/launch-handoff",
+  "live_launch_doctor_url": "https://api.uploadcheck.app/v1/launch-doctor",
+  "live_launch_evidence_url": "https://api.uploadcheck.app/v1/launch-evidence",
   "launch_handoff_command": "npm run launch:handoff -- --text",
-  "cost_basis_url": "https://qcgenie-api.onrender.com/cost-basis.json",
-  "product_hunt_launch_kit_url": "https://qcgenie-api.onrender.com/product-hunt-launch-kit.json",
-  "sample_reports_url": "https://qcgenie-api.onrender.com/sample-reports/index.json",
+  "cost_basis_url": "https://api.uploadcheck.app/cost-basis.json",
+  "product_hunt_launch_kit_url": "https://api.uploadcheck.app/product-hunt-launch-kit.json",
+  "sample_reports_url": "https://api.uploadcheck.app/sample-reports/index.json",
   "api_url_note": "Live Render URL uses the legacy slug while the Render display name is uploadcheck-api and custom-domain cutover is pending.",
   "pricing": [
     {
@@ -146,7 +146,7 @@
     "launch_handoff": {
       "purpose": "Live launch and Product Hunt blocker handoff for agents and operators.",
       "safe_to_show": ["productHuntReady", "remainingBlockers", "requiredActions", "blockerProofCommands", "launchDoctorCommands", "blockerFixPlan", "operatorCommandSequence", "rule"],
-      "hosted_media_ingress_command": "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+      "hosted_media_ingress_command": "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
     }
   },
   "primary_endpoints": [

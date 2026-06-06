@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://qcgenie-api.onrender.com"
+      "url": "https://api.uploadcheck.app"
     }
   ],
   "security": [

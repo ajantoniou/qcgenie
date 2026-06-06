@@ -1,20 +1,20 @@
 {
   "name": "UploadCheck Production Pipeline Handoff",
   "description": "Callable runbook for NTO, NPO, and creator production pipelines that need UploadCheck before upload.",
-  "api_base_url": "https://qcgenie-api.onrender.com/v1",
+  "api_base_url": "https://api.uploadcheck.app/v1",
   "mcp_server": "uploadcheck",
   "cli_package": "@uploadcheck/cli",
   "mcp_package": "@uploadcheck/mcp",
   "mcp_tool": "qc_get_pipeline_handoff",
   "cli_command": "uploadcheck pipeline-handoff --json",
   "source_artifacts": {
-    "agent_manifest": "https://qcgenie-api.onrender.com/agent-manifest.json",
-    "pipeline_recipes": "https://qcgenie-api.onrender.com/pipeline-recipes.json",
-    "cost_basis": "https://qcgenie-api.onrender.com/cost-basis.json",
-    "launch_status": "https://qcgenie-api.onrender.com/launch-status.json",
-    "live_launch_status": "https://qcgenie-api.onrender.com/v1/launch-status",
-    "live_launch_handoff": "https://qcgenie-api.onrender.com/v1/launch-handoff",
-    "sample_reports": "https://qcgenie-api.onrender.com/sample-reports/index.json"
+    "agent_manifest": "https://api.uploadcheck.app/agent-manifest.json",
+    "pipeline_recipes": "https://api.uploadcheck.app/pipeline-recipes.json",
+    "cost_basis": "https://api.uploadcheck.app/cost-basis.json",
+    "launch_status": "https://api.uploadcheck.app/launch-status.json",
+    "live_launch_status": "https://api.uploadcheck.app/v1/launch-status",
+    "live_launch_handoff": "https://api.uploadcheck.app/v1/launch-handoff",
+    "sample_reports": "https://api.uploadcheck.app/sample-reports/index.json"
   },
   "profiles": [
     "nto_long_form",

@@ -136,7 +136,7 @@ function getLaunchDoctor(req, res) {
     name: "UploadCheck.app Launch Doctor",
     contractVersion: LAUNCH_PROOF_CONTRACT_VERSION,
     description: "Live Product Hunt blocker fix plan and normalized launch-doctor command coverage for UploadCheck.app agents and operators.",
-    handoffUrl: "https://qcgenie-api.onrender.com/v1/launch-handoff"
+    handoffUrl: "https://api.uploadcheck.app/v1/launch-handoff"
   });
 }
 
@@ -148,11 +148,11 @@ function getLaunchEvidence(req, res) {
     name: "UploadCheck.app Launch Doctor",
     contractVersion: LAUNCH_PROOF_CONTRACT_VERSION,
     description: "Live Product Hunt blocker fix plan and normalized launch-doctor command coverage for UploadCheck.app agents and operators.",
-    handoffUrl: "https://qcgenie-api.onrender.com/v1/launch-handoff"
+    handoffUrl: "https://api.uploadcheck.app/v1/launch-handoff"
   };
   return sendJson(res, 200, buildRemoteLaunchEvidence(doctor, {
     generatedAt: readiness.generatedAt,
-    source: "https://qcgenie-api.onrender.com/v1/launch-doctor"
+    source: "https://api.uploadcheck.app/v1/launch-doctor"
   }));
 }
 

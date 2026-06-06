@@ -21,19 +21,19 @@ Agent integration:
 - Launch readiness check: GET /v1/readiness.
 - Live launch status: GET /v1/launch-status.
 - REST API preflight starts at POST /v1/qc/estimate; job lifecycle starts at POST /v1/qc/jobs.
-- OpenAPI: https://qcgenie-api.onrender.com/openapi.json
-- Hosted API base: https://qcgenie-api.onrender.com/v1
-- Production pipeline handoff runbook: https://qcgenie-api.onrender.com/pipeline-handoff.json
-- Pipeline recipes: https://qcgenie-api.onrender.com/pipeline-recipes.json
-- Launch targets and DNS records: https://qcgenie-api.onrender.com/launch-targets.json
-- Machine-readable launch status and blockers: https://qcgenie-api.onrender.com/launch-status.json
-- Live machine-readable launch status and blockers: https://qcgenie-api.onrender.com/v1/launch-status
-- Live launch handoff, required actions, and proof commands: https://qcgenie-api.onrender.com/v1/launch-handoff
-- Live launch doctor, blocker fix plan, and launch-doctor command coverage: https://qcgenie-api.onrender.com/v1/launch-doctor
-- Redacted live launch evidence for agent-safe audits: https://qcgenie-api.onrender.com/v1/launch-evidence
-- Product Hunt launch kit: https://qcgenie-api.onrender.com/product-hunt-launch-kit.json
-- Cost basis and margin assumptions: https://qcgenie-api.onrender.com/cost-basis.json
-- Public sample reports: https://qcgenie-api.onrender.com/sample-reports/index.json
+- OpenAPI: https://api.uploadcheck.app/openapi.json
+- Hosted API base: https://api.uploadcheck.app/v1
+- Production pipeline handoff runbook: https://api.uploadcheck.app/pipeline-handoff.json
+- Pipeline recipes: https://api.uploadcheck.app/pipeline-recipes.json
+- Launch targets and DNS records: https://api.uploadcheck.app/launch-targets.json
+- Machine-readable launch status and blockers: https://api.uploadcheck.app/launch-status.json
+- Live machine-readable launch status and blockers: https://api.uploadcheck.app/v1/launch-status
+- Live launch handoff, required actions, and proof commands: https://api.uploadcheck.app/v1/launch-handoff
+- Live launch doctor, blocker fix plan, and launch-doctor command coverage: https://api.uploadcheck.app/v1/launch-doctor
+- Redacted live launch evidence for agent-safe audits: https://api.uploadcheck.app/v1/launch-evidence
+- Product Hunt launch kit: https://api.uploadcheck.app/product-hunt-launch-kit.json
+- Cost basis and margin assumptions: https://api.uploadcheck.app/cost-basis.json
+- Public sample reports: https://api.uploadcheck.app/sample-reports/index.json
 - The Render service display name is uploadcheck-api, but the live Render URL still uses the legacy qcgenie-api slug until custom-domain cutover.
 - Legacy `QCGENIE_*` environment names are accepted only as migration fallbacks.
 - MCP wrapper package lives in the repository under mcp-server.
@@ -42,7 +42,7 @@ Agent integration:
 - QC job responses include sanitized mediaIngress metadata; inline Render runs report mode=inline_ephemeral plus a sha256 source hash and do not expose temporary server paths.
 - NTO/NPO pipeline profiles are machine-readable through MCP qc_get_pipeline_recipes, CLI uploadcheck recipes --json, and pipeline-recipes.json: nto_long_form, nto_shorts, npo_podcast_or_audio, and generic_creator_video.
 - NTO/NPO and creator production pipelines can call MCP qc_get_pipeline_handoff, run uploadcheck pipeline-handoff --json, or load pipeline-handoff.json for the full call sequence: launch status, launch handoff, recipes, cost basis, estimate, media ingress, job polling, report, marker CSV, "Fix now?", and rerun before upload-ready.
-- NPO podcast/audio pipelines can load https://qcgenie-api.onrender.com/npo-pipeline-handoff.json for a focused audio handoff: qc_estimate_cost, qc_run_local_file, transcript/watchlist/locked-script sidecars, marker CSV, "Fix now?", and rerun before publish-ready.
+- NPO podcast/audio pipelines can load https://api.uploadcheck.app/npo-pipeline-handoff.json for a focused audio handoff: qc_estimate_cost, qc_run_local_file, transcript/watchlist/locked-script sidecars, marker CSV, "Fix now?", and rerun before publish-ready.
 - Large local files use POST /v1/uploads, PUT /v1/uploads/{upload_id}/content?token=..., then POST /v1/qc/jobs with upload_id.
 - Signed-upload bytes use Render temp storage by default or mounted durable filesystem storage when UPLOADCHECK_DURABLE_STORAGE_DIR is configured.
 - API keys are workspace-scoped and should be stored as connector secrets.

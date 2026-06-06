@@ -113,7 +113,7 @@ describe("agentic integration contract", () => {
     expect(manifest.response_fields.observability.safe_to_show).toContain("providerUsageEntries");
     expect(manifest.response_fields.observability.safe_to_show).toContain("stages");
     expect(manifest.response_fields.launch_handoff.safe_to_show).toContain("launchDoctorCommands");
-    expect(manifest.response_fields.launch_handoff.hosted_media_ingress_command).toBe("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+    expect(manifest.response_fields.launch_handoff.hosted_media_ingress_command).toBe("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
   });
 
   it("defines a real async job lifecycle", () => {

@@ -56,12 +56,12 @@ describe("NPO pipeline handoff", () => {
     const status = readJson("public/launch-status.json");
     const llms = readFileSync(resolve("public/llms.txt"), "utf8");
 
-    expect(manifest.npo_pipeline_handoff_url).toBe("https://qcgenie-api.onrender.com/npo-pipeline-handoff.json");
+    expect(manifest.npo_pipeline_handoff_url).toBe("https://api.uploadcheck.app/npo-pipeline-handoff.json");
     expect(manifest.primary_endpoints).toContain("GET /npo-pipeline-handoff.json");
     expect(manifest.agent_workflow.join("\n")).toContain("NPO podcast/audio pipelines");
     expect(openapi.paths["/npo-pipeline-handoff.json"].get.security).toEqual([]);
-    expect(status.public_artifacts.npo_pipeline_handoff).toBe("https://qcgenie-api.onrender.com/npo-pipeline-handoff.json");
+    expect(status.public_artifacts.npo_pipeline_handoff).toBe("https://api.uploadcheck.app/npo-pipeline-handoff.json");
     expect(status.verified_controls.find((control) => control.id === "npo_pipeline_handoff")?.evidence).toContain("live-npo-pipeline-handoff:verify");
-    expect(llms).toContain("https://qcgenie-api.onrender.com/npo-pipeline-handoff.json");
+    expect(llms).toContain("https://api.uploadcheck.app/npo-pipeline-handoff.json");
   });
 });

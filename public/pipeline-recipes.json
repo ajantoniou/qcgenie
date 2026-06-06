@@ -1,7 +1,7 @@
 {
   "name": "UploadCheck Pipeline Recipes",
   "description": "Machine-readable defaults for agentic production pipelines that call UploadCheck before upload.",
-  "api_base_url": "https://qcgenie-api.onrender.com/v1",
+  "api_base_url": "https://api.uploadcheck.app/v1",
   "mcp_server": "uploadcheck",
   "launch_preflight": {
     "tool": "qc_get_launch_status",

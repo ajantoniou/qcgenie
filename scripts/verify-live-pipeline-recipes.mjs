@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const THIS_FILE = fileURLToPath(import.meta.url);
 
 async function main() {
-  const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_PIPELINE_RECIPES_BASE_URL || "https://qcgenie-api.onrender.com");
+  const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_PIPELINE_RECIPES_BASE_URL || "https://api.uploadcheck.app");
   const url = `${baseUrl}/pipeline-recipes.json`;
 
   try {
@@ -50,7 +50,7 @@ export function validatePipelineRecipes(payload = {}) {
   const errors = [];
   requireEqual(errors, payload.name, "UploadCheck Pipeline Recipes", "name");
   requireEqual(errors, payload.mcp_server, "uploadcheck", "mcp_server");
-  requireEqual(errors, payload.api_base_url, "https://qcgenie-api.onrender.com/v1", "api_base_url");
+  requireEqual(errors, payload.api_base_url, "https://api.uploadcheck.app/v1", "api_base_url");
   requireEqual(errors, payload.launch_preflight?.tool, "qc_get_launch_status", "launch_preflight.tool");
   requireEqual(errors, payload.launch_preflight?.handoff_tool, "qc_get_launch_handoff", "launch_preflight.handoff_tool");
   requireEqual(errors, payload.cost_preflight?.tool, "qc_estimate_cost", "cost_preflight.tool");

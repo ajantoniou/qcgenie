@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const THIS_FILE = fileURLToPath(import.meta.url);
 
 async function main() {
-  const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_AGENT_MANIFEST_BASE_URL || "https://qcgenie-api.onrender.com");
+  const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_AGENT_MANIFEST_BASE_URL || "https://api.uploadcheck.app");
   const url = `${baseUrl}/agent-manifest.json`;
 
   try {
@@ -53,10 +53,10 @@ export function validateAgentManifest(payload = {}) {
   requireEqual(errors, payload.name, "UploadCheck.app", "name");
   requireEqual(errors, payload.mcp_server, "uploadcheck", "mcp_server");
   requireEqual(errors, payload.slash_command, "/check", "slash_command");
-  requireEqual(errors, payload.api_base_url, "https://qcgenie-api.onrender.com/v1", "api_base_url");
-  requireEqual(errors, payload.live_launch_evidence_url, "https://qcgenie-api.onrender.com/v1/launch-evidence", "live_launch_evidence_url");
-  requireEqual(errors, payload.cost_basis_url, "https://qcgenie-api.onrender.com/cost-basis.json", "cost_basis_url");
-  requireEqual(errors, payload.npo_pipeline_handoff_url, "https://qcgenie-api.onrender.com/npo-pipeline-handoff.json", "npo_pipeline_handoff_url");
+  requireEqual(errors, payload.api_base_url, "https://api.uploadcheck.app/v1", "api_base_url");
+  requireEqual(errors, payload.live_launch_evidence_url, "https://api.uploadcheck.app/v1/launch-evidence", "live_launch_evidence_url");
+  requireEqual(errors, payload.cost_basis_url, "https://api.uploadcheck.app/cost-basis.json", "cost_basis_url");
+  requireEqual(errors, payload.npo_pipeline_handoff_url, "https://api.uploadcheck.app/npo-pipeline-handoff.json", "npo_pipeline_handoff_url");
   requireIncludes(errors, payload.packages, "@uploadcheck/cli", "packages");
   requireIncludes(errors, payload.packages, "@uploadcheck/mcp", "packages");
   for (const tool of [

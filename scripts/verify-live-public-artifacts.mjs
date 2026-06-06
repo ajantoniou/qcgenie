@@ -29,7 +29,7 @@ export function validateLaunchStatusArtifact(payload) {
     "npm run live-launch-evidence:verify",
     "npm run live-cost-basis:verify",
     "npm run live-openapi:verify",
-    "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+    "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
   ]) {
     if (!commands.includes(command)) {
       errors.push(error("launch_status.operator_commands", "missing_command", `Missing operator command: ${command}`));

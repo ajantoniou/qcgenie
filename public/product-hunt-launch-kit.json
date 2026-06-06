@@ -52,18 +52,18 @@
   "public_links": {
     "product_hunt_page": "https://uploadcheck.app/product-hunt/",
     "demo_clip": "https://uploadcheck.app/demo/uploadcheck-product-hunt-demo.mp4",
-    "sample_reports_index": "https://qcgenie-api.onrender.com/sample-reports/index.json",
-    "block_sample_report": "https://qcgenie-api.onrender.com/sample-reports/duplicate-characters-block.json",
-    "cost_basis": "https://qcgenie-api.onrender.com/cost-basis.json",
-    "pipeline_handoff": "https://qcgenie-api.onrender.com/pipeline-handoff.json",
-    "pipeline_recipes": "https://qcgenie-api.onrender.com/pipeline-recipes.json",
-    "npo_pipeline_handoff": "https://qcgenie-api.onrender.com/npo-pipeline-handoff.json",
-    "agent_manifest": "https://qcgenie-api.onrender.com/agent-manifest.json",
-    "openapi": "https://qcgenie-api.onrender.com/openapi.json",
-    "launch_status": "https://qcgenie-api.onrender.com/launch-status.json",
-    "live_launch_status": "https://qcgenie-api.onrender.com/v1/launch-status",
-    "live_launch_doctor": "https://qcgenie-api.onrender.com/v1/launch-doctor",
-    "live_launch_evidence": "https://qcgenie-api.onrender.com/v1/launch-evidence"
+    "sample_reports_index": "https://api.uploadcheck.app/sample-reports/index.json",
+    "block_sample_report": "https://api.uploadcheck.app/sample-reports/duplicate-characters-block.json",
+    "cost_basis": "https://api.uploadcheck.app/cost-basis.json",
+    "pipeline_handoff": "https://api.uploadcheck.app/pipeline-handoff.json",
+    "pipeline_recipes": "https://api.uploadcheck.app/pipeline-recipes.json",
+    "npo_pipeline_handoff": "https://api.uploadcheck.app/npo-pipeline-handoff.json",
+    "agent_manifest": "https://api.uploadcheck.app/agent-manifest.json",
+    "openapi": "https://api.uploadcheck.app/openapi.json",
+    "launch_status": "https://api.uploadcheck.app/launch-status.json",
+    "live_launch_status": "https://api.uploadcheck.app/v1/launch-status",
+    "live_launch_doctor": "https://api.uploadcheck.app/v1/launch-doctor",
+    "live_launch_evidence": "https://api.uploadcheck.app/v1/launch-evidence"
   },
   "pricing_position": {
     "creator": "$99/mo for 1,200 checked minutes",
@@ -93,7 +93,7 @@
       "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
       "npm run live-web-artifacts:verify",
       "npm run media-ingress:verify",
-      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
+      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run roadmap:verify",
       "npm run launch-status:generate",
       "npm run launch-status:verify",
@@ -106,10 +106,10 @@
       "npm run readiness:check",
       "npm run launch:check"
     ],
-    "source_of_truth": "https://qcgenie-api.onrender.com/v1/launch-status"
+    "source_of_truth": "https://api.uploadcheck.app/v1/launch-status"
   },
   "current_state_snapshot": {
-    "source": "https://qcgenie-api.onrender.com/launch-status.json",
+    "source": "https://api.uploadcheck.app/launch-status.json",
     "product_hunt_ready": false,
     "remaining_blockers": [
       "checkout",

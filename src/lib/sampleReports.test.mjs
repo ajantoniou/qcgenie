@@ -16,7 +16,7 @@ describe("public sample reports", () => {
     ]);
     expect(index.reports.map((report) => report.verdict)).toEqual(["PASS", "WATCH", "BLOCK"]);
     for (const report of index.reports) {
-      expect(report.url).toBe(`https://qcgenie-api.onrender.com/sample-reports/${report.id}.json`);
+      expect(report.url).toBe(`https://api.uploadcheck.app/sample-reports/${report.id}.json`);
     }
   });
 
@@ -67,8 +67,8 @@ describe("public sample reports", () => {
     expect(html).toContain("/sample-reports/clean-upload.json");
     expect(html).toContain("/sample-reports/caption-warning.json");
     expect(html).toContain("/sample-reports/duplicate-characters-block.json");
-    expect(manifest.sample_reports_url).toBe("https://qcgenie-api.onrender.com/sample-reports/index.json");
-    expect(llms).toContain("https://qcgenie-api.onrender.com/sample-reports/index.json");
+    expect(manifest.sample_reports_url).toBe("https://api.uploadcheck.app/sample-reports/index.json");
+    expect(llms).toContain("https://api.uploadcheck.app/sample-reports/index.json");
     expect(llms).toContain("Checked minutes are deterministic pre-upload QC minutes");
     expect(llms).toContain("0.0157 COGS cents/minute");
     expect(llms).toContain("unlimited full-video AI review is not included");

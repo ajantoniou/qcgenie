@@ -87,7 +87,7 @@ export function buildProductHuntLaunchKit(status) {
         "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
         "npm run live-web-artifacts:verify",
         "npm run media-ingress:verify",
-        "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
+        "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
         "npm run roadmap:verify",
         "npm run launch-status:generate",
         "npm run launch-status:verify",

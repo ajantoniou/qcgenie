@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-const DEFAULT_BASE_URL = "https://qcgenie-api.onrender.com";
+const DEFAULT_BASE_URL = "https://api.uploadcheck.app";
 
 export function validateNpoPipelineHandoff(payload = {}) {
   const errors = [];
   requireEqual(errors, payload.name, "UploadCheck NPO Pipeline Handoff", "name");
   requireEqual(errors, payload.profile_id, "npo_podcast_or_audio", "profile_id");
   requireEqual(errors, payload.mcp_server, "uploadcheck", "mcp_server");
-  requireEqual(errors, payload.api_base_url, "https://qcgenie-api.onrender.com/v1", "api_base_url");
+  requireEqual(errors, payload.api_base_url, "https://api.uploadcheck.app/v1", "api_base_url");
   requireIncludes(errors, payload.source_recipe, "pipeline-recipes.json#profiles.npo_podcast_or_audio", "source_recipe");
   requireEqual(errors, payload.launch_preflight?.mcp_tool, "qc_get_launch_status", "launch_preflight.mcp_tool");
   requireEqual(errors, payload.launch_preflight?.handoff_tool, "qc_get_launch_handoff", "launch_preflight.handoff_tool");
