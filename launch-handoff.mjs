@@ -1,4 +1,5 @@
 import { buildReadinessActions } from "./readiness-actions.mjs";
+import { launchDoctorCommandStrings } from "./launch-doctor.mjs";
 
 export function buildLaunchHandoff(report, {
   apiBaseUrl = "https://qcgenie-api.onrender.com",
@@ -31,6 +32,7 @@ export function buildLaunchHandoff(report, {
         docs: action.docs || null
       })),
     blockerProofCommands,
+    launchDoctorCommands: launchDoctorCommandStrings(),
     blockerFixPlan: buildBlockerFixPlan({
       actions,
       remainingBlockers,
@@ -227,6 +229,11 @@ export function formatLaunchHandoff(handoff) {
       lines.push(`- ${blocker.id}:`);
       for (const command of blocker.commands) lines.push(`    ${command}`);
     }
+  }
+  if (handoff.launchDoctorCommands?.length) {
+    lines.push("");
+    lines.push("Launch doctor commands:");
+    for (const command of handoff.launchDoctorCommands) lines.push(`- ${command}`);
   }
   if (handoff.blockerFixPlan?.phases?.length) {
     lines.push("");

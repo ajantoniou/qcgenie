@@ -316,7 +316,8 @@ export function formatLaunchDoctorSummary(payload) {
   const status = payload.productHuntReady ? "READY" : "NOT READY";
   const blockers = (payload.remainingBlockers || []).map((blocker) => blocker.id).filter(Boolean);
   const phases = payload.blockerFixPlan?.phases?.length || 0;
-  return `UploadCheck launch doctor: ${status}${blockers.length ? ` | blockers ${blockers.join(", ")}` : ""}${phases ? ` | fix phases ${phases}` : ""}`;
+  const commands = payload.launchDoctorCommands?.length || 0;
+  return `UploadCheck launch doctor: ${status}${blockers.length ? ` | blockers ${blockers.join(", ")}` : ""}${phases ? ` | fix phases ${phases}` : ""}${commands ? ` | doctor commands ${commands}` : ""}`;
 }
 
 export function formatPipelineRecipesSummary(payload) {

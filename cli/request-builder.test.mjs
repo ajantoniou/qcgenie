@@ -512,8 +512,9 @@ describe("UploadCheck CLI request builder", () => {
     expect(formatLaunchDoctorSummary({
       productHuntReady: false,
       remainingBlockers: [{ id: "checkout" }, { id: "storage" }],
-      blockerFixPlan: { phases: [{ id: "configure-checkout" }, { id: "configure-upload-storage" }] }
-    })).toBe("UploadCheck launch doctor: NOT READY | blockers checkout, storage | fix phases 2");
+      blockerFixPlan: { phases: [{ id: "configure-checkout" }, { id: "configure-upload-storage" }] },
+      launchDoctorCommands: ["npm run launch:doctor", "npm run launch:check"]
+    })).toBe("UploadCheck launch doctor: NOT READY | blockers checkout, storage | fix phases 2 | doctor commands 2");
     expect(formatLaunchDoctorSummary({
       productHuntReady: true,
       remainingBlockers: [],

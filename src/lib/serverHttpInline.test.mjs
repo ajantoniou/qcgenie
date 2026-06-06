@@ -78,6 +78,7 @@ describe("server inline media API", () => {
       expect(payload.remainingBlockers.map((blocker) => blocker.id)).toContain("checkout");
       expect(payload.requiredActions.map((action) => action.id)).toContain("checkout");
       expect(payload.blockerProofCommands.find((blocker) => blocker.id === "checkout")?.commands).toContain("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
+      expect(payload.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
       expect(payload.operatorCommandSequence).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
       expect(payload.rule).toContain("Do not launch on Product Hunt");
     } finally {

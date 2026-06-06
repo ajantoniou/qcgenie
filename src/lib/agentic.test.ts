@@ -51,10 +51,12 @@ describe("agentic integration contract", () => {
     expect(launchStatus?.outputs).toContain("remaining_blockers");
     const launchHandoff = MCP_TOOLS.find((tool) => tool.name === "qc_get_launch_handoff");
     expect(launchHandoff?.outputs).toContain("blockerProofCommands");
+    expect(launchHandoff?.outputs).toContain("launchDoctorCommands");
     expect(launchHandoff?.outputs).toContain("rule");
     const launchDoctor = MCP_TOOLS.find((tool) => tool.name === "qc_get_launch_doctor");
     expect(launchDoctor?.outputs).toContain("blockerFixPlan");
     expect(launchDoctor?.outputs).toContain("blockerProofCommands");
+    expect(launchDoctor?.outputs).toContain("launchDoctorCommands");
     const pipelineHandoff = MCP_TOOLS.find((tool) => tool.name === "qc_get_pipeline_handoff");
     expect(pipelineHandoff?.outputs).toContain("call_sequence");
     expect(pipelineHandoff?.outputs).toContain("media_ingress");
@@ -95,6 +97,8 @@ describe("agentic integration contract", () => {
     ]));
     expect(manifest.response_fields.observability.safe_to_show).toContain("providerUsageEntries");
     expect(manifest.response_fields.observability.safe_to_show).toContain("stages");
+    expect(manifest.response_fields.launch_handoff.safe_to_show).toContain("launchDoctorCommands");
+    expect(manifest.response_fields.launch_handoff.hosted_media_ingress_command).toBe("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
   });
 
   it("defines a real async job lifecycle", () => {

@@ -57,9 +57,9 @@ Agent integration:
 - The machine-readable repair loop contract is in agent-manifest.json and pipeline-recipes.json. Agents must fetch qc_get_report and qc_get_marker_csv, show all flags grouped by BLOCK/WATCH/PASS, ask "Fix now?", apply only reachable fixes, return timestamped source/render instructions for unreachable media defects, and rerun UploadCheck before upload-ready claims.
 - Product Hunt launch state should be verified with GET /v1/readiness before claiming checkout, custom domain, persistence, storage, demo clip, and launch readiness are complete.
 - Agents can call GET /v1/launch-status for a live go/no-go summary derived from the same readiness checks plus operator commands and blockers.
-- Agents can call GET /v1/launch-handoff for the current blocker-specific required actions and proof commands, call MCP qc_get_launch_handoff, or run uploadcheck launch-handoff --json.
-- Agents can call MCP qc_get_launch_doctor when they need the live blocker fix plan from an MCP client.
-- Packaged CLI users outside the repo can run uploadcheck launch-doctor --json to fetch the live blocker fix plan without running local npm scripts.
+- Agents can call GET /v1/launch-handoff for the current blocker-specific required actions, proof commands, and launchDoctorCommands, call MCP qc_get_launch_handoff, or run uploadcheck launch-handoff --json.
+- Agents can call MCP qc_get_launch_doctor when they need the live blocker fix plan and normalized launch-doctor command coverage from an MCP client.
+- Packaged CLI users outside the repo can run uploadcheck launch-doctor --json to fetch the live blocker fix plan and launchDoctorCommands without running local npm scripts.
 - Local operators can run npm run launch:handoff -- --text for the redacted launch handoff, current blockers, required actions, and proof commands.
 
 Pricing:

@@ -76,13 +76,13 @@ export const MCP_TOOLS: McpTool[] = [
     name: "qc_get_launch_handoff",
     purpose: "Fetch live UploadCheck launch blockers, required actions, proof commands, and no-launch rule for agent/operator handoff.",
     inputs: [],
-    outputs: ["productHuntReady", "remainingBlockers", "requiredActions", "blockerProofCommands", "operatorCommandSequence", "rule"]
+    outputs: ["productHuntReady", "remainingBlockers", "requiredActions", "blockerProofCommands", "launchDoctorCommands", "operatorCommandSequence", "rule"]
   },
   {
     name: "qc_get_launch_doctor",
     purpose: "Fetch live UploadCheck launch blocker fix plan for Product Hunt readiness.",
     inputs: [],
-    outputs: ["productHuntReady", "remainingBlockers", "blockerFixPlan", "blockerProofCommands", "operatorCommandSequence", "rule"]
+    outputs: ["productHuntReady", "remainingBlockers", "blockerFixPlan", "blockerProofCommands", "launchDoctorCommands", "operatorCommandSequence", "rule"]
   },
   {
     name: "qc_get_pipeline_handoff",
