@@ -39,6 +39,7 @@ If the DNS provider does not support apex CNAME flattening, use either an `ALIAS
 - API persistent disk: `uploadcheck-data` mounted at `/mnt/uploadcheck`
 - JSON persistence: `UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json`
 - Durable signed-upload media: `UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck/uploads`
+- API auth prompt: `UPLOADCHECK_API_KEY_SHA256` (keep the bearer token private for clients)
 - Optional S3/R2 upload retention: set `UPLOADCHECK_STORAGE_BUCKET`, `UPLOADCHECK_STORAGE_ENDPOINT`, `UPLOADCHECK_STORAGE_ACCESS_KEY_ID`, and `UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY`. Optional: `UPLOADCHECK_STORAGE_REGION`, `UPLOADCHECK_STORAGE_PREFIX`, `UPLOADCHECK_STORAGE_PUBLIC_BASE_URL`.
 - Checkout URL prompts: `UPLOADCHECK_CREATOR_CHECKOUT_URL`, `UPLOADCHECK_STUDIO_CHECKOUT_URL`, `UPLOADCHECK_NETWORK_CHECKOUT_URL`
 - Webhook encryption prompt: `UPLOADCHECK_SECRET_ENCRYPTION_KEY`
@@ -59,6 +60,7 @@ If a Render API key is available locally, the same launch shape can be audited o
 npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env
 # Fill /tmp/uploadcheck-render-launch.env with private values.
 # Generate API/hash material with npm run --silent api-key:generate.
+# Put UPLOADCHECK_API_KEY_SHA256 on Render; keep UPLOADCHECK_API_KEY for clients only.
 # Generate the webhook encryption key with npm run --silent secret:generate.
 # Then load the completed local file:
 set -a

@@ -18,8 +18,13 @@ describe("Render launch blueprint", () => {
     expect(renderYaml).not.toMatch(/key:\s*UPLOADCHECK_STORE_PATH\s*\n\s*value:\s*\/tmp\//);
   });
 
+  it("prompts for hashed API auth instead of plaintext API keys", () => {
+    expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_API_KEY_SHA256\s*\n\s*sync:\s*false/);
+    expect(renderYaml).not.toMatch(/key:\s*UPLOADCHECK_API_KEY\s*\n\s*sync:\s*false/);
+  });
+
   it("passes the launch config verifier", () => {
     const output = execFileSync("node", ["scripts/verify-render-launch-config.mjs"], { encoding: "utf8" });
-    expect(output).toContain("Render launch config includes");
+    expect(output).toContain("hashed API auth");
   });
 });

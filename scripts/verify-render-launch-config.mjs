@@ -8,6 +8,7 @@ const required = [
   ["api persistent disk", /disk:\s*\n\s*name:\s*uploadcheck-data\s*\n\s*mountPath:\s*\/mnt\/uploadcheck\s*\n\s*sizeGB:\s*1/],
   ["durable JSON store path", /key:\s*UPLOADCHECK_STORE_PATH\s*\n\s*value:\s*\/mnt\/uploadcheck\/store\.json/],
   ["durable upload storage path", /key:\s*UPLOADCHECK_DURABLE_STORAGE_DIR\s*\n\s*value:\s*\/mnt\/uploadcheck\/uploads/],
+  ["hashed API key prompt", /key:\s*UPLOADCHECK_API_KEY_SHA256\s*\n\s*sync:\s*false/],
   ["creator checkout prompt", /key:\s*UPLOADCHECK_CREATOR_CHECKOUT_URL\s*\n\s*sync:\s*false/],
   ["studio checkout prompt", /key:\s*UPLOADCHECK_STUDIO_CHECKOUT_URL\s*\n\s*sync:\s*false/],
   ["network checkout prompt", /key:\s*UPLOADCHECK_NETWORK_CHECKOUT_URL\s*\n\s*sync:\s*false/],
@@ -22,4 +23,4 @@ if (missing.length) {
   process.exit(1);
 }
 
-console.log("Render launch config includes custom domains, durable disk paths, checkout prompts, and secret prompts.");
+console.log("Render launch config includes custom domains, durable disk paths, hashed API auth, checkout prompts, and secret prompts.");

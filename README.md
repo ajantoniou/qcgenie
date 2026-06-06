@@ -61,7 +61,7 @@ Public API:
 Persistence state:
 
 - Current hosted API stores jobs, uploads, webhook endpoints, webhook delivery previews, and usage ledger entries through `server-store.mjs`.
-- API auth supports plaintext `UPLOADCHECK_API_KEY` for bootstrapping and SHA-256 hash verification through `UPLOADCHECK_API_KEY_SHA256`. Generate a key/hash pair with `npm run --silent api-key:generate`; save the bearer token privately for clients and set only `UPLOADCHECK_API_KEY_SHA256` on Render when possible. Legacy `QCGENIE_*` names are still accepted during migration.
+- API auth supports plaintext `UPLOADCHECK_API_KEY` for local clients/bootstrap and SHA-256 hash verification through `UPLOADCHECK_API_KEY_SHA256`. Generate a key/hash pair with `npm run --silent api-key:generate`; save the bearer token privately for clients and set `UPLOADCHECK_API_KEY_SHA256` on Render. Legacy `QCGENIE_*` names are still accepted during migration.
 - Webhook delivery previews use HMAC-SHA256 signatures in the `X-UploadCheck-Signature` format. Legacy `X-QCGenie-Signature` aliases are still sent during migration.
 - New webhook signing secrets are returned once on creation and encrypted at rest when a strong `UPLOADCHECK_SECRET_ENCRYPTION_KEY` is configured; legacy plaintext records remain readable for migration. Generate a key with `npm run --silent secret:generate`, then set this env var on Render before treating hosted webhook secrets as encrypted.
 - Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
