@@ -36,9 +36,13 @@ const nav = [
   { label: "Home", icon: Rocket, view: "home" },
   { label: "Dashboard", icon: FileVideo, view: "dashboard" },
   { label: "Agent Workflow", icon: Code2, view: "agents" },
-  { label: "Readiness", icon: BarChart3, view: "readiness" },
-  { label: "Billing", icon: CircleDollarSign, view: "dashboard" }
+  { label: "Readiness", icon: BarChart3, view: "readiness" }
 ] satisfies Array<{ label: string; icon: typeof Rocket; view: View }>;
+
+const publicNav = [
+  { label: "Pricing", icon: CircleDollarSign, href: "/pricing/" },
+  { label: "Sample report", icon: BadgeCheck, href: "/sample-report/" }
+] satisfies Array<{ label: string; icon: typeof Rocket; href: string }>;
 
 const workflowSteps = [
   "/check final-upload.mp4",
@@ -179,6 +183,12 @@ export function App() {
               <item.icon size={18} />
               {item.label}
             </button>
+          ))}
+          {publicNav.map((item) => (
+            <a className="navItem" href={item.href} key={item.label}>
+              <item.icon size={18} />
+              {item.label}
+            </a>
           ))}
         </nav>
 

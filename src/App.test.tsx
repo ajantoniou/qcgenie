@@ -69,4 +69,11 @@ describe("UploadCheck conversion UI", () => {
       "/agentic-media-qc-api/"
     );
   });
+
+  test("exposes pricing and sample report as public conversion links", () => {
+    render(<App />);
+
+    expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "/pricing/");
+    expect(screen.getByRole("link", { name: "Sample report" })).toHaveAttribute("href", "/sample-report/");
+  });
 });
