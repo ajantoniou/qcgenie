@@ -13,6 +13,7 @@
     "render:verify": "node scripts/verify-render-launch-config.mjs",
     "render:env-template": "node scripts/render-launch-ops.mjs env-template",
     "render:plan": "node scripts/render-launch-ops.mjs plan",
+    "render:validate-env": "node scripts/render-launch-ops.mjs validate-env",
     "render:audit": "node scripts/render-launch-ops.mjs audit",
     "render:apply": "node scripts/render-launch-ops.mjs apply",
     "packages:verify": "node scripts/verify-packages.mjs",

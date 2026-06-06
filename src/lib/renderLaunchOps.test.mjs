@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync, spawnSync } from "node:child_process";
-import { buildEnvTemplate, buildRenderLaunchPlan, summarizePlan } from "../../scripts/render-launch-ops.mjs";
+import { buildEnvTemplate, buildRenderLaunchPlan, summarizePlan, validateRenderLaunchEnv } from "../../scripts/render-launch-ops.mjs";
 
 describe("Render launch operations plan", () => {
   it("builds the launch domain and env plan without requiring secrets", () => {
@@ -94,6 +94,46 @@ describe("Render launch operations plan", () => {
     ]));
   });
 
+  it("validates a filled Render launch env before apply", () => {
+    const validation = validateRenderLaunchEnv({
+      RENDER_API_KEY: "rnd_real_render_api_key",
+      UPLOADCHECK_API_KEY_SHA256: "a".repeat(64),
+      UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
+      UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
+      UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+      UPLOADCHECK_SECRET_ENCRYPTION_KEY: "b".repeat(64),
+      UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck/store.json",
+      UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck/uploads"
+    });
+
+    expect(validation.ok).toBe(true);
+    expect(validation.errors).toEqual([]);
+  });
+
+  it("rejects placeholders, weak secrets, invalid URLs, and incomplete object storage before apply", () => {
+    const validation = validateRenderLaunchEnv({
+      RENDER_API_KEY: "<render_api_key>",
+      UPLOADCHECK_API_KEY_SHA256: "not-a-sha",
+      UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://...",
+      UPLOADCHECK_STUDIO_CHECKOUT_URL: "http://checkout.example/studio",
+      UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+      UPLOADCHECK_SECRET_ENCRYPTION_KEY: "secret",
+      UPLOADCHECK_STORE_PATH: "/tmp/uploadcheck/store.json",
+      UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck/uploads",
+      UPLOADCHECK_STORAGE_BUCKET: "uploadcheck-artifacts",
+      UPLOADCHECK_STORAGE_ENDPOINT: "http://r2.example"
+    });
+    const reasons = validation.errors.map((error) => error.reason);
+
+    expect(validation.ok).toBe(false);
+    expect(reasons).toContain("placeholder_value");
+    expect(reasons).toContain("invalid_sha256");
+    expect(reasons).toContain("invalid_url");
+    expect(reasons).toContain("too_short");
+    expect(reasons).toContain("not_durable");
+    expect(reasons).toContain("missing_object_storage_field");
+  });
+
   it("prints a redacted plan without requiring a Render API key", () => {
     const output = execFileSync("node", ["scripts/render-launch-ops.mjs", "plan"], {
       encoding: "utf8",
@@ -138,6 +178,24 @@ describe("Render launch operations plan", () => {
     expect(result.stderr).toContain("Set a real RENDER_API_KEY");
   });
 
+  it("prints failed local env validation without requiring Render API access", () => {
+    const result = spawnSync("node", ["scripts/render-launch-ops.mjs", "validate-env"], {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        RENDER_API_KEY: "",
+        UPLOADCHECK_API_KEY_SHA256: "",
+        UPLOADCHECK_CREATOR_CHECKOUT_URL: ""
+      }
+    });
+    const payload = JSON.parse(result.stdout);
+
+    expect(result.status).toBe(1);
+    expect(payload.ok).toBe(false);
+    expect(payload.errors.map((error) => error.key)).toContain("RENDER_API_KEY");
+    expect(payload.errors.map((error) => error.key)).toContain("UPLOADCHECK_API_KEY_SHA256");
+  });
+
   it("rejects an unfilled Render API key placeholder for audit operations", () => {
     const result = spawnSync("node", ["scripts/render-launch-ops.mjs", "audit"], {
       encoding: "utf8",
@@ -146,5 +204,25 @@ describe("Render launch operations plan", () => {
 
     expect(result.status).toBe(2);
     expect(result.stderr).toContain("Set a real RENDER_API_KEY");
+  });
+
+  it("blocks render apply when launch env validation fails", () => {
+    const result = spawnSync("node", ["scripts/render-launch-ops.mjs", "apply"], {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        RENDER_API_KEY: "rnd_real_render_api_key",
+        UPLOADCHECK_API_KEY_SHA256: "",
+        UPLOADCHECK_API_KEY: "",
+        UPLOADCHECK_CREATOR_CHECKOUT_URL: "",
+        UPLOADCHECK_STUDIO_CHECKOUT_URL: "",
+        UPLOADCHECK_NETWORK_CHECKOUT_URL: "",
+        UPLOADCHECK_SECRET_ENCRYPTION_KEY: ""
+      }
+    });
+
+    expect(result.status).toBe(2);
+    expect(result.stderr).toContain("Render launch env validation failed");
+    expect(result.stderr).toContain("UPLOADCHECK_API_KEY_SHA256");
   });
 });

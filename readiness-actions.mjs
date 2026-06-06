@@ -12,7 +12,7 @@ export function buildReadinessActions(report) {
       commands: [
         "npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env",
         "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
-        "npm run render:plan && npm run render:apply"
+        "npm run render:plan && npm run render:validate-env && npm run render:apply"
       ],
       docs: "docs/DEPLOYMENT-CUTOVER.md"
     });

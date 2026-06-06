@@ -55,7 +55,7 @@ Public API:
 - Product Hunt launch checker: `npm run launch:check`
 - Product Hunt readiness CLI: `npm run readiness:check`
 - Render Blueprint verifier: `npm run render:verify`
-- Render API launch helper: `npm run render:env-template`, `npm run render:plan`, `npm run render:audit`, `npm run render:apply`
+- Render API launch helper: `npm run render:env-template`, `npm run render:plan`, `npm run render:validate-env`, `npm run render:audit`, `npm run render:apply`
 - Package publish verifier: `npm run packages:verify` checks `@uploadcheck/cli` and `@uploadcheck/mcp` identity, bins, lock metadata, and `npm pack --dry-run` contents.
 - CLI margin telemetry: `uploadcheck usage --billing-period YYYY-MM`
 
@@ -85,7 +85,7 @@ Persistence state:
 - `npm run launch:check` combines live readiness, DNS, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
 - `npm run readiness:check` fetches live readiness and prints the exact remaining Render/DNS/checkout actions.
 - `npm run render:verify` checks that `render.yaml` declares custom domains, a mounted disk, durable store/media paths, checkout prompts, and webhook encryption prompts.
-- `npm run render:env-template` prints a fillable local env file for the remaining Render checkout, auth, webhook, optional storage, and API-key inputs. `npm run render:plan`, `npm run render:audit`, and `npm run render:apply` use `RENDER_API_KEY` to inspect or apply Render custom domains, durable env values, provided checkout URLs, and provided secret values.
+- `npm run render:env-template` prints a fillable local env file for the remaining Render checkout, auth, webhook, optional storage, and API-key inputs. `npm run render:validate-env` rejects placeholders, invalid checkout/storage URLs, weak encryption keys, invalid API key hashes, and non-durable paths before `render:apply`. `npm run render:plan`, `npm run render:audit`, and `npm run render:apply` use `RENDER_API_KEY` to inspect or apply Render custom domains, durable env values, provided checkout URLs, and provided secret values.
 
 ## Stack
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildCheckoutUrl } from "../checkout-links.mjs";
+import { getObjectStorageConfig } from "../object-storage.mjs";
+import { validateSecretEncryptionKey } from "../secrets.mjs";
 
 const API_BASE = "https://api.render.com/v1";
 const WEB_SERVICE_ID = process.env.UPLOADCHECK_RENDER_WEB_SERVICE_ID || "srv-d8hk200jo6nc73er93u0";
@@ -82,10 +85,37 @@ export function summarizePlan(plan) {
   };
 }
 
+export function validateRenderLaunchEnv(env = process.env) {
+  const plan = buildRenderLaunchPlan(env);
+  const errors = [];
+  const warnings = [];
+
+  for (const key of plan.placeholderInputs || []) {
+    errors.push({ key, reason: "placeholder_value", detail: "Replace the generated env-template placeholder before running render:apply." });
+  }
+
+  if (!isFilledEnvValue(env.RENDER_API_KEY)) {
+    errors.push({ key: "RENDER_API_KEY", reason: "missing", detail: "Set a real Render API key before render:audit or render:apply." });
+  }
+
+  validateApiAuth(env, errors, warnings);
+  validateCheckout(env, errors);
+  validateSecret(env, errors);
+  validateDurablePaths(env, errors);
+  validateOptionalObjectStorage(env, errors);
+
+  return {
+    ok: errors.length === 0,
+    errors,
+    warnings,
+    plan: summarizePlan(plan)
+  };
+}
+
 export function buildEnvTemplate() {
   const lines = [
     "# UploadCheck Render launch env template",
-    "# Fill these locally, then run: set -a; source /path/to/filled.env; set +a; npm run render:plan && npm run render:apply",
+    "# Fill these locally, then run: set -a; source /path/to/filled.env; set +a; npm run render:plan && npm run render:validate-env && npm run render:apply",
     "# Do not commit a filled copy.",
     "",
     "# Required for npm run render:audit and npm run render:apply",
@@ -136,6 +166,11 @@ async function main() {
     console.log(JSON.stringify(summarizePlan(plan), null, 2));
     return;
   }
+  if (command === "validate-env") {
+    const validation = validateRenderLaunchEnv();
+    console.log(JSON.stringify(validation, null, 2));
+    process.exit(validation.ok ? 0 : 1);
+  }
   const token = process.env.RENDER_API_KEY;
   if (!isFilledEnvValue(token)) {
     console.error("Set a real RENDER_API_KEY before running Render launch operations.");
@@ -146,6 +181,12 @@ async function main() {
     return;
   }
   if (command === "apply") {
+    const validation = validateRenderLaunchEnv();
+    if (!validation.ok) {
+      console.error("Render launch env validation failed. Run npm run render:validate-env and fix the reported inputs before render:apply.");
+      console.error(JSON.stringify({ errors: validation.errors, warnings: validation.warnings }, null, 2));
+      process.exit(2);
+    }
     console.log(JSON.stringify(await applyRenderLaunch(token, plan), null, 2));
     return;
   }
@@ -160,6 +201,89 @@ function isPlaceholderEnvValue(value) {
   if (!value) return false;
   const trimmed = String(value).trim();
   return trimmed === "..." || trimmed === "https://..." || /^<[^>]+>$/.test(trimmed);
+}
+
+function validateApiAuth(env, errors, warnings) {
+  const hash = env.UPLOADCHECK_API_KEY_SHA256 || "";
+  const plaintext = env.UPLOADCHECK_API_KEY || "";
+  if (!hash && !plaintext) {
+    errors.push({ key: "UPLOADCHECK_API_KEY_SHA256", reason: "missing", detail: "Generate API key material with npm run --silent api-key:generate and set the SHA-256 hash on Render." });
+    return;
+  }
+  if (hash && !/^[0-9a-f]{64}$/i.test(hash)) {
+    errors.push({ key: "UPLOADCHECK_API_KEY_SHA256", reason: "invalid_sha256", detail: "Expected a 64-character hex SHA-256 hash." });
+  }
+  if (plaintext) {
+    warnings.push({ key: "UPLOADCHECK_API_KEY", reason: "plaintext_bootstrap", detail: "Prefer UPLOADCHECK_API_KEY_SHA256 on Render and keep the bearer token private for clients." });
+  }
+}
+
+function validateCheckout(env, errors) {
+  for (const plan of ["creator", "studio", "network"]) {
+    const url = buildCheckoutUrl(plan, env);
+    if (!url) {
+      errors.push({ key: `UPLOADCHECK_${plan.toUpperCase()}_CHECKOUT_URL`, reason: "missing", detail: `Set a direct ${plan} checkout URL or Lemon Squeezy store slug plus variant id.` });
+      continue;
+    }
+    if (!isHttpsUrl(url)) {
+      errors.push({ key: `UPLOADCHECK_${plan.toUpperCase()}_CHECKOUT_URL`, reason: "invalid_url", detail: `${plan} checkout must resolve to an https URL.` });
+    }
+  }
+}
+
+function validateSecret(env, errors) {
+  const value = env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || env.QCGENIE_SECRET_ENCRYPTION_KEY || "";
+  const validation = validateSecretEncryptionKey(value);
+  if (!validation.ok) {
+    errors.push({ key: "UPLOADCHECK_SECRET_ENCRYPTION_KEY", reason: validation.reason, detail: "Generate a strong key with npm run --silent secret:generate." });
+  }
+}
+
+function validateDurablePaths(env, errors) {
+  const storePath = env.UPLOADCHECK_STORE_PATH || FIXED_API_ENV.UPLOADCHECK_STORE_PATH;
+  const uploadPath = env.UPLOADCHECK_DURABLE_STORAGE_DIR || FIXED_API_ENV.UPLOADCHECK_DURABLE_STORAGE_DIR;
+  if (!isDurableRenderPath(storePath)) {
+    errors.push({ key: "UPLOADCHECK_STORE_PATH", reason: "not_durable", detail: "Use a mounted Render disk path such as /mnt/uploadcheck/store.json." });
+  }
+  if (!isDurableRenderPath(uploadPath)) {
+    errors.push({ key: "UPLOADCHECK_DURABLE_STORAGE_DIR", reason: "not_durable", detail: "Use a mounted Render disk path such as /mnt/uploadcheck/uploads." });
+  }
+}
+
+function validateOptionalObjectStorage(env, errors) {
+  const keys = [
+    "UPLOADCHECK_STORAGE_BUCKET",
+    "UPLOADCHECK_STORAGE_ENDPOINT",
+    "UPLOADCHECK_STORAGE_ACCESS_KEY_ID",
+    "UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY"
+  ];
+  if (!keys.some((key) => isFilledEnvValue(env[key]))) return;
+  const config = getObjectStorageConfig(env);
+  for (const key of keys) {
+    if (!isFilledEnvValue(env[key])) {
+      errors.push({ key, reason: "missing_object_storage_field", detail: "Object storage is optional, but if configured it needs bucket, endpoint, access key, and secret key." });
+    }
+  }
+  if (config.endpoint && !isHttpsUrl(config.endpoint)) {
+    errors.push({ key: "UPLOADCHECK_STORAGE_ENDPOINT", reason: "invalid_url", detail: "Object storage endpoint must be an https URL." });
+  }
+  if (env.UPLOADCHECK_STORAGE_PUBLIC_BASE_URL && !isHttpsUrl(env.UPLOADCHECK_STORAGE_PUBLIC_BASE_URL)) {
+    errors.push({ key: "UPLOADCHECK_STORAGE_PUBLIC_BASE_URL", reason: "invalid_url", detail: "Public storage base URL must be https when set." });
+  }
+}
+
+function isDurableRenderPath(value) {
+  const normalized = resolve(String(value || ""));
+  return normalized.startsWith("/mnt/");
+}
+
+function isHttpsUrl(value) {
+  try {
+    const parsed = new URL(String(value));
+    return parsed.protocol === "https:" && Boolean(parsed.hostname);
+  } catch {
+    return false;
+  }
 }
 
 export async function auditRenderLaunch(token, plan = buildRenderLaunchPlan()) {

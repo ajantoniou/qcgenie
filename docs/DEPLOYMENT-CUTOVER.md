@@ -68,6 +68,7 @@ source /tmp/uploadcheck-render-launch.env
 set +a
 
 npm run render:plan
+npm run render:validate-env
 npm run render:audit
 npm run render:apply
 npm run launch:check
@@ -76,6 +77,7 @@ npm run readiness:check
 
 The generated env template is safe to commit only while placeholders are intact. A filled copy contains Render, checkout, API, webhook, and optional storage secrets and must stay local.
 `render:plan` reports `placeholderInputs` when a generated placeholder such as `<render_api_key>` or `https://...` is still present. Replace those values before running `render:apply`; the helper ignores placeholders instead of sending them to Render.
+`render:validate-env` checks the filled local env before apply: real Render API key, valid API-key hash or bootstrap key, HTTPS checkout URLs, strong webhook encryption key, durable `/mnt/...` paths, and complete optional object-storage settings. `render:apply` refuses to run when validation fails.
 
 `render:apply` adds the custom domains, sets the fixed durable env values, sets only the secret env values that are present in the local environment, and triggers web/API redeploys. It does not configure DNS; Cloudflare or the domain registrar still needs the CNAME records above.
 
