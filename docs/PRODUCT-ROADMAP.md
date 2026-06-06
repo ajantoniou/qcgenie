@@ -134,7 +134,7 @@ NTO-derived private QC tasks to add to the product:
 6. `audio_script_faithfulness`: compare transcript against locked script/expected narration with WER thresholds.
 7. `pronunciation_watchlist`: flag customer-provided banned words, names, and terms that commonly misrender.
 8. `spoken_leaks`: detect stage directions, URLs, vendor names, prompt text, or production notes spoken aloud.
-9. `dead_air`: block unintended silence longer than customer threshold.
+9. `dead_air`: block unintended silence longer than customer threshold. Implemented in the default gate with ffmpeg `silencedetect`.
 10. `visual_narration_match`: verify every 30-second window visually supports the narration, not just the mood.
 11. `named_entity_visual_match`: if narration names a person/place/event/product, visual should show that thing or a deliberate neutral substitute.
 12. `repeat_fatigue`: block exact clip reuse and source-family dominance windows.
@@ -146,6 +146,16 @@ NTO-derived private QC tasks to add to the product:
 18. `end_screen_tease`: flag missing next-video, CTA, or episode handoff.
 19. `thumbnail_text_readability`: apply text contrast/safe-area rules to thumbnail candidates.
 20. `repair_loop`: after report generation, agent/MCP should show all QC flags and ask the user whether to fix now. Fixable items should be routed to the LLM or local project files; render-source defects should be described with timestamped patch instructions.
+21. `literal_subject_match`: when narration names a person, place, source, date, or event, require an actual matching visual or an explicit neutral/source-card fallback. This is stricter than mood matching.
+22. `source_family_dominance`: flag one source family, motif, or visual bucket dominating a 120-second window even when the exact file is different.
+23. `clip_reuse_ledger`: accept storybook/edit-decision manifests so UploadCheck can catch repeated visuals before export as well as after render.
+24. `spoken_production_leaks`: use transcript patterns for vendor names, URLs, markdown, prompt text, stage directions, and wrong-name substitutions.
+25. `chunk_sidecar_failures`: ingest local render sidecars such as `*.garble-report.json` and failed chunk reports as first-class blockers.
+26. `sentence_boundary`: for voice-clip shorts or extracted clips, block mid-word and mid-sentence endings.
+27. `opening_footer_text_presence`: for text-card Shorts, verify the 0-3s hook card and 50-60s CTA/footer card exist.
+28. `dialogue_in_music_short`: for music-only Shorts, flag any detected spoken dialogue as a format violation.
+29. `contact_sheet_evidence`: require before/after contact-sheet artifacts for repeated founder complaint windows and repair verification.
+30. `repair_regression`: fail a repair when fixing one repeated/mismatched visual introduces another repeat or mismatch.
 
 Private moat note: competitors can copy the public idea of upload QC, but our sticky layer is the accumulated private failure catalog, thresholds, fixtures, and agent repair loops learned from real NTO production. Publish the outcomes and broad categories, not the full validator internals.
 
@@ -163,11 +173,14 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO pipeline reviewed for QC productization tasks.
 - Done: first NTO-derived text contrast gate added to `scripts/qc-engine/check_text_contrast.py` and included in `run_gate.py`.
 - Done: NTO-derived `canvas_fill`, `text_safe_area`, and `shorts_format` deterministic gates added to `scripts/qc-engine/`.
+- Done: NTO-derived `dead_air` deterministic gate added to `scripts/qc-engine/check_dead_air.py` and included in `run_gate.py`.
 - Done: global Codex MCP entry is installed locally through the `uploadcheck` server and was smoke-tested with a live hosted report.
 - Done: authenticated hosted inline-media execution is verified on Render with a blocking `twins` report.
 - Done: checkout route plumbing exists at `/checkout/creator`, `/checkout/studio`, and `/checkout/network`, with env-driven Lemon Squeezy redirects.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
+- Next: add manifest-aware repeat/source-family gates so NTO storybook timelines can be checked before render spend and final masters can be checked after export.
+- Next: add transcript-pattern gates for spoken production leaks, pronunciation watchlists, and optional locked-script faithfulness.
 - Next: add durable object storage or direct-to-bucket upload for production-scale retention beyond Render temp storage.
 - Next: cut over `uploadcheck.app` DNS/custom domains and decide whether to keep legacy Render slugs or recreate services for `uploadcheck-*` subdomains.
 - Partial: Product Hunt launch page and public report examples exist; final launch still needs custom-domain cutover, live checkout proof, and a polished public demo clip.

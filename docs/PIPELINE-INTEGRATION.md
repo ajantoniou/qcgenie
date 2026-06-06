@@ -79,7 +79,7 @@ For NTO long-form episodes, shorts, or NPO media exports:
 
 The hosted API writes inline media to temporary server storage, runs the deterministic gate, parses the gate verdict, stores the report, and deletes the temporary media file after the request finishes.
 
-For NTO specifically, UploadCheck is the replacement target for the current production QC personas and scripts. The product should eventually cover the NTO gates for audio garble, script faithfulness, pronunciation watchlists, visual-to-narration match, canvas/aspect errors, Shorts safe area, low-contrast overlay text, repeat fatigue, cheap filler, dead air, first-three-second hook quality, re-hook cadence, and repair-loop instructions. The current engine already includes `canvas_fill`, `text_contrast`, `text_safe_area`, and opt-in `shorts_format`.
+For NTO specifically, UploadCheck is the replacement target for the current production QC personas and scripts. The product should eventually cover the NTO gates for audio garble, script faithfulness, pronunciation watchlists, visual-to-narration match, literal named-subject match, canvas/aspect errors, Shorts safe area, low-contrast overlay text, repeat fatigue, source-family dominance, cheap filler, dead air, first-three-second hook quality, re-hook cadence, and repair-loop instructions. The current engine already includes `canvas_fill`, `dead_air`, `text_contrast`, `text_safe_area`, and opt-in `shorts_format`.
 
 Agent repair loop:
 
