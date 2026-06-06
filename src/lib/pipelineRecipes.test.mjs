@@ -50,6 +50,7 @@ describe("UploadCheck pipeline recipes", () => {
 
     expect(longForm.tool).toBe("qc_run_local_file");
     expect(longForm.arguments.checks).toContain("repeat_fatigue");
+    expect(longForm.arguments.checks).toContain("speaker_visual_binding");
     expect(longForm.arguments.checks).toContain("script_faithfulness");
     expect(longForm.arguments).toMatchObject({
       manifest_path: "/path/to/storybook.json",
@@ -110,6 +111,10 @@ describe("UploadCheck pipeline recipes", () => {
       callable_check: "sentence_boundary"
     });
     expect(implemented.sentence_boundary.covers).toContain("mid-sentence");
+    expect(implemented.speaker_visual_binding).toMatchObject({
+      callable_check: "speaker_visual_binding"
+    });
+    expect(implemented.speaker_visual_binding.covers).toContain("speaker");
 
     for (const id of [
       "static_head_dominance",
@@ -117,7 +122,6 @@ describe("UploadCheck pipeline recipes", () => {
       "rehook_cadence",
       "end_screen_tease",
       "literal_subject_match",
-      "speaker_visual_binding",
       "contact_sheet_evidence"
     ]) {
       expect(planned.has(id)).toBe(true);
