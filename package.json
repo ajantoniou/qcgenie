@@ -39,6 +39,7 @@
     "render:audit": "node scripts/render-launch-ops.mjs audit",
     "render:apply": "node scripts/render-launch-ops.mjs apply",
     "packages:verify": "node scripts/verify-packages.mjs",
+    "packages:install-smoke": "node scripts/verify-package-install-smoke.mjs",
     "codex:verify-install": "node scripts/verify-codex-install.mjs",
     "cost-basis:verify": "node scripts/verify-cost-basis.mjs",
     "media-ingress:verify": "node scripts/verify-media-ingress.mjs",

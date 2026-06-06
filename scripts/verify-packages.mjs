@@ -11,8 +11,8 @@ const packages = [
     dir: "cli",
     name: "@uploadcheck/cli",
     bin: { uploadcheck: "./index.mjs" },
-    filesField: ["index.mjs", "request-builder.mjs"],
-    packedFiles: ["index.mjs", "package.json", "request-builder.mjs"]
+    filesField: ["index.mjs", "launch-evidence.mjs", "request-builder.mjs"],
+    packedFiles: ["index.mjs", "launch-evidence.mjs", "package.json", "request-builder.mjs"]
   },
   {
     label: "MCP",

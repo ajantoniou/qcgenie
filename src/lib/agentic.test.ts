@@ -25,7 +25,9 @@ describe("agentic integration contract", () => {
       "PUT /v1/uploads/{upload_id}/content",
       "GET /v1/uploads/{upload_id}",
       "GET /v1/qc/jobs?limit=&status=&source_url=",
-      "GET /v1/usage/margins?billing_period=&limit="
+      "GET /v1/usage/margins?billing_period=&limit=",
+      "POST /v1/api-keys",
+      "GET /v1/api-keys?workspace_id="
     ]);
   });
 
@@ -42,7 +44,6 @@ describe("agentic integration contract", () => {
       "qc_estimate_cost",
       "qc_run_video",
       "qc_run_local_file",
-      "qc_run_gemini_backtest",
       "qc_get_job",
       "qc_get_report",
       "qc_get_events",
@@ -59,9 +60,7 @@ describe("agentic integration contract", () => {
     expect(launchHandoff?.outputs).toContain("blockerProofCommands");
     expect(launchHandoff?.outputs).toContain("launchDoctorCommands");
     expect(launchHandoff?.outputs).toContain("rule");
-    const geminiBacktest = MCP_TOOLS.find((tool) => tool.name === "qc_run_gemini_backtest");
-    expect(geminiBacktest?.purpose).toContain("capture-rate");
-    expect(geminiBacktest?.inputs).toContain("transcript_path");
+    expect(MCP_TOOLS.find((tool) => tool.name === "qc_run_gemini_backtest")).toBeUndefined();
     const launchDoctor = MCP_TOOLS.find((tool) => tool.name === "qc_get_launch_doctor");
     expect(launchDoctor?.outputs).toContain("blockerFixPlan");
     expect(launchDoctor?.outputs).toContain("blockerProofCommands");

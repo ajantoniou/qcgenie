@@ -607,6 +607,18 @@ function DashboardView() {
           </section>
 
           <section className="proofCard">
+            <KeyRound size={20} />
+            <strong>Workspace API keys</strong>
+            <p>Create hashed bearer keys for Claude Code, Codex, Cursor, and MCP clients. Keys inherit plan minutes and owner email for overage alerts.</p>
+          </section>
+
+          <section className="proofCard">
+            <AlertTriangle size={20} />
+            <strong>Spend guard</strong>
+            <p>UploadCheck records overage-spend alerts and emails the owner through Resend when extra-minute spend crosses the subscription value.</p>
+          </section>
+
+          <section className="proofCard">
             <BadgeCheck size={20} />
             <strong>No invented hard-fails</strong>
             <p>Review notes are filtered against evidence before they can appear in an upload report.</p>

@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
@@ -699,6 +699,88 @@ describe("server inline media API", () => {
         requestedMinutes: 2,
         minutesRemaining: 1
       });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("creates hashed customer API keys and honors their plan metadata", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-api-key-"));
+    const storePath = join(dir, "store.json");
+    const adminKey = "uck_admin_key";
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const createResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Creator agent",
+          workspace_id: "ws_creator",
+          owner_email: "owner@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          scopes: ["jobs:write", "jobs:read", "reports:read"]
+        })
+      });
+      const created = await createResponse.json();
+
+      expect(createResponse.status).toBe(201);
+      expect(created.apiKey).toMatch(/^uck_/);
+      expect(JSON.stringify(created.key)).not.toContain(created.apiKey);
+      expect(created.key).toMatchObject({
+        workspaceId: "ws_creator",
+        ownerEmail: "owner@example.com",
+        planId: "creator",
+        includedMinutes: 2400,
+        planPriceCents: 9900
+      });
+
+      const jobResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${created.apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/final.mp4",
+          source_type: "signed_url",
+          duration_seconds: 60,
+          checks: "canvas_fill",
+          process_async: true
+        })
+      });
+      const job = await jobResponse.json();
+
+      expect(jobResponse.status).toBe(202);
+      expect(job).toMatchObject({
+        planId: "creator",
+        includedMinutes: 2400,
+        planPriceCents: 9900,
+        workspaceId: "ws_creator",
+        ownerEmail: "owner@example.com"
+      });
+
+      const saved = JSON.parse(readFileSync(storePath, "utf8"));
+      expect(saved.apiKeys[0].tokenHash).toBe(createHash("sha256").update(created.apiKey).digest("hex"));
+      expect(saved.apiKeys[0]).not.toHaveProperty("apiKey");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

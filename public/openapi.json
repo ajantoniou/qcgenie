@@ -108,6 +108,24 @@
         },
         "required": ["jobId", "status", "progressPct", "verdict", "minutesMetered"]
       },
+      "ApiKeyRecord": {
+        "type": "object",
+        "properties": {
+          "keyId": { "type": "string" },
+          "name": { "type": "string" },
+          "workspaceId": { "type": "string" },
+          "ownerEmail": { "type": ["string", "null"] },
+          "tokenPrefix": { "type": "string" },
+          "scopes": { "type": "array", "items": { "type": "string" } },
+          "planId": { "type": ["string", "null"] },
+          "includedMinutes": { "type": ["integer", "null"] },
+          "planPriceCents": { "type": ["integer", "null"] },
+          "overageCapCents": { "type": ["integer", "null"] },
+          "active": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "lastUsedAt": { "type": ["string", "null"], "format": "date-time" }
+        }
+      },
       "Upload": {
         "type": "object",
         "properties": {
@@ -717,6 +735,73 @@
         ],
         "responses": {
           "200": { "description": "Usage COGS, allocated revenue, cost per minute, and gross-margin summary" }
+        }
+      }
+    },
+    "/v1/api-keys": {
+      "post": {
+        "summary": "Create a workspace API key",
+        "description": "Creates a bearer key for agent clients. The raw apiKey is returned once; persisted records store only a SHA-256 hash and token prefix.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "workspace_id": { "type": "string" },
+                  "owner_email": { "type": "string" },
+                  "plan_id": { "type": "string" },
+                  "included_minutes": { "type": "integer" },
+                  "plan_price_cents": { "type": "integer" },
+                  "scopes": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API key created; raw apiKey is shown once.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": { "type": "string" },
+                    "key": { "$ref": "#/components/schemas/ApiKeyRecord" },
+                    "warning": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid admin API key" },
+          "403": { "description": "API key lacks api_keys:write scope" }
+        }
+      },
+      "get": {
+        "summary": "List workspace API keys",
+        "parameters": [
+          { "name": "workspace_id", "in": "query", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Redacted API key records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "keys": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/ApiKeyRecord" }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },

@@ -65,7 +65,9 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "PUT /v1/uploads/{upload_id}/content", purpose: "Send local media bytes to the signed upload URL before creating an upload_id QC job." },
   { methodPath: "GET /v1/uploads/{upload_id}", purpose: "Check upload processing and metadata probe status." },
   { methodPath: "GET /v1/qc/jobs?limit=&status=&source_url=", purpose: "List recent jobs and avoid duplicate agent runs." },
-  { methodPath: "GET /v1/usage/margins?billing_period=&limit=", purpose: "Summarize usage COGS, allocated revenue, cost per minute, and gross margin." }
+  { methodPath: "GET /v1/usage/margins?billing_period=&limit=", purpose: "Summarize usage COGS, allocated revenue, cost per minute, and gross margin." },
+  { methodPath: "POST /v1/api-keys", purpose: "Create a hashed workspace API key for paid Claude Code, Codex, Cursor, and MCP clients." },
+  { methodPath: "GET /v1/api-keys?workspace_id=", purpose: "List redacted API-key records without returning bearer secrets." }
 ];
 
 export const MCP_TOOLS: McpTool[] = [

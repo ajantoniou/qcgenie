@@ -27,7 +27,7 @@ describe("UploadCheck package metadata", () => {
 
     expect(payload.ok).toBe(true);
     expect(payload.packages.map((pkg) => pkg.name)).toEqual(["@uploadcheck/cli", "@uploadcheck/mcp"]);
-    expect(payload.packages[0].packedFiles).toEqual(["index.mjs", "package.json", "request-builder.mjs"]);
+    expect(payload.packages[0].packedFiles).toEqual(["index.mjs", "launch-evidence.mjs", "package.json", "request-builder.mjs"]);
     expect(payload.packages[1].packedFiles).toEqual([
       "README.md",
       "index.mjs",
@@ -50,9 +50,9 @@ describe("UploadCheck package metadata", () => {
         "./request-builder": "./request-builder.mjs"
       }
     });
-    expect(pkg.files).toEqual(["index.mjs", "request-builder.mjs"]);
+    expect(pkg.files).toEqual(["index.mjs", "launch-evidence.mjs", "request-builder.mjs"]);
     expect(pkg.publishConfig).toEqual({ access: "public" });
-    expect(packFiles("cli")).toEqual(["index.mjs", "package.json", "request-builder.mjs"]);
+    expect(packFiles("cli")).toEqual(["index.mjs", "launch-evidence.mjs", "package.json", "request-builder.mjs"]);
   });
 
   it("keeps MCP package standalone-installable", () => {
