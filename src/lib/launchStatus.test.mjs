@@ -41,6 +41,7 @@ describe("public launch status", () => {
       "npm run launch:storage",
       "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
       "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
+      "npm run live-launch-doctor:verify",
       "npm run launch-status:generate",
       "npm run media-ingress:verify",
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",

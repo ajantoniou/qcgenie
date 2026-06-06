@@ -33,6 +33,7 @@ const REQUIRED_EXECUTION_MARKERS = [
   "launch blocker fix plan",
   "machine-readable launch doctor",
   "hosted media ingress launch doctor",
+  "hosted launch doctor endpoint verifier",
   "packaged CLI launch doctor",
   "Product Hunt launch checker",
   "observed provider usage is now priced"

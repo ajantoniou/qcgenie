@@ -48,6 +48,7 @@ describe("launch doctor", () => {
     expect(result.stdout).toContain("BLOCK checkout-probe");
     expect(result.stdout).toContain("BLOCK storage");
     expect(result.stdout).toContain("BLOCK storage-probe");
+    expect(result.stdout).toContain("PASS hosted-launch-doctor");
     expect(result.stdout).toContain("BLOCK hosted-media-ingress");
     expect(result.stdout).toContain("BLOCK launch-handoff");
     expect(result.stdout).toContain("BLOCK readiness");
@@ -66,6 +67,10 @@ describe("launch doctor", () => {
     expect(payload.ok).toBe(false);
     expect(payload.status).toBe("blocked");
     expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "storage", "hosted-media-ingress", "readiness"]));
+    expect(payload.blockers).not.toContain("hosted-launch-doctor");
+    expect(payload.results.find((step) => step.id === "hosted-launch-doctor")).toMatchObject({
+      ok: true
+    });
     expect(payload.results.find((step) => step.id === "checkout-probe").commandString).toBe("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
     expect(payload.results.find((step) => step.id === "hosted-media-ingress")).toMatchObject({
       commandString: "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
@@ -82,6 +87,7 @@ describe("launch doctor", () => {
       "npm run launch:storage",
       "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
       "npm run media-ingress:verify",
+      "npm run live-launch-doctor:verify",
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run launch-status:verify",
       "npm run cost-basis:verify",

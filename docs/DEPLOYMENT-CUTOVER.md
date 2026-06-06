@@ -56,6 +56,7 @@ npm run launch:storage
 UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 npm run media-ingress:verify
 UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
+npm run live-launch-doctor:verify
 npm run render:verify
 npm run launch:check
 npm run readiness:check
@@ -96,6 +97,7 @@ npm run launch:storage
 UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 npm run media-ingress:verify
 UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
+npm run live-launch-doctor:verify
 npm run launch:check
 npm run readiness:check
 ```
@@ -132,6 +134,7 @@ npm run launch:storage
 UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 npm run media-ingress:verify
 UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
+npm run live-launch-doctor:verify
 curl -i https://uploadcheck.app/
 curl -i https://www.uploadcheck.app/
 curl -i https://api.uploadcheck.app/healthz
@@ -146,4 +149,4 @@ Or run the combined verifier:
 npm run launch:check
 ```
 
-Expected API health response after the next backend deploy should identify the service as `uploadcheck`. The currently deployed legacy API still responds with `service: "qcgenie"` on `https://qcgenie-api.onrender.com/healthz`.
+Expected API health response identifies the service as `uploadcheck`, even while the immutable Render host remains `https://qcgenie-api.onrender.com/healthz`.

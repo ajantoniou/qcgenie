@@ -9,6 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "start": "node server.mjs",
     "launch:doctor": "node scripts/launch-doctor.mjs",
+    "live-launch-doctor:verify": "node scripts/verify-live-launch-doctor.mjs",
     "launch:dns": "node scripts/launch-dns.mjs",
     "launch:checkout": "node scripts/launch-checkout.mjs",
     "launch:storage": "node scripts/launch-storage.mjs",

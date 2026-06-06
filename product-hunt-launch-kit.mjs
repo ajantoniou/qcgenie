@@ -70,6 +70,7 @@ export function buildProductHuntLaunchKit(status) {
       required_commands: [
         "npm run launch:doctor",
         "npm run launch:handoff",
+        "npm run live-launch-doctor:verify",
         "npm run codex:verify-install",
         "npm run cost-basis:verify",
         "npm run media-ingress:verify",

@@ -48,6 +48,7 @@ assert(status.go_no_go_rule.includes("npm run launch:handoff"), "launch-status g
 assert(status.go_no_go_rule.includes("npm run launch:doctor exits 0"), "launch-status go/no-go rule must require launch:doctor");
 assert(status.go_no_go_rule.includes("npm run launch:check"), "launch-status go/no-go rule must require launch:check");
 assert(status.operator_commands.includes("npm run launch:doctor"), "launch-status operator commands must include launch:doctor");
+assert(status.operator_commands.includes("npm run live-launch-doctor:verify"), "launch-status operator commands must include live-launch-doctor:verify");
 assert(status.operator_commands.includes("npm run launch:dns"), "launch-status operator commands must include launch:dns");
 assert(status.operator_commands.includes("npm run launch:checkout"), "launch-status operator commands must include launch:checkout");
 assert(status.operator_commands.includes("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout"), "launch-status operator commands must include the explicit checkout probe");
@@ -105,6 +106,7 @@ assert(JSON.stringify(launchKit.current_state_snapshot?.remaining_blockers) === 
 assert(String(launchKit.current_state_snapshot?.note || "").includes("Static snapshot"), "Product Hunt launch kit current snapshot must warn that live status is authoritative");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:doctor"), "Product Hunt launch kit must require launch:doctor");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:handoff"), "Product Hunt launch kit must require launch:handoff");
+assert(launchKit.ready_when?.required_commands?.includes("npm run live-launch-doctor:verify"), "Product Hunt launch kit must require live-launch-doctor:verify");
 assert(launchKit.ready_when?.required_commands?.includes("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"), "Product Hunt launch kit must require hosted media-ingress probe");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch-status:generate"), "Product Hunt launch kit must require launch-status:generate");
 assert(launchKit.ready_when?.required_commands?.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "Product Hunt launch kit must require render:validate-env-file");

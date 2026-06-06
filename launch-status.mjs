@@ -48,6 +48,7 @@ export function buildLaunchStatus(readiness, {
       "npm run render:audit",
       "npm run render:apply",
       "npm run launch:handoff",
+      "npm run live-launch-doctor:verify",
       "npm run launch-status:generate",
       "npm run media-ingress:verify",
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",

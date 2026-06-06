@@ -8,6 +8,7 @@ export const LAUNCH_DOCTOR_STEPS = [
   { id: "storage-probe", label: "Probe writable durable storage", command: ["npm", "run", "--silent", "launch:storage"], env: { UPLOADCHECK_STORAGE_PROBE: "1" } },
   { id: "render-config", label: "Verify Render blueprint", command: ["npm", "run", "--silent", "render:verify"] },
   { id: "media-ingress", label: "Verify programmatic video/audio ingress", command: ["npm", "run", "--silent", "media-ingress:verify"] },
+  { id: "hosted-launch-doctor", label: "Verify hosted launch doctor endpoint", command: ["npm", "run", "--silent", "live-launch-doctor:verify"] },
   {
     id: "hosted-media-ingress",
     label: "Verify hosted Render media ingress",
