@@ -8,6 +8,7 @@ describe("readiness action mapping", () => {
       readyForProductHunt: false,
       checks: {
         checkout: { ok: false, plans: { creator: { configured: false }, studio: { configured: true, ok: true }, network: { configured: false } } },
+        checkoutWebhook: { ok: false },
         customDomain: { ok: false, host: "qcgenie-api.onrender.com" },
         secretEncryption: { ok: false, reason: "missing" },
         apiAuth: { ok: true },
@@ -33,6 +34,7 @@ describe("readiness action mapping", () => {
       "render-env-template",
       "checkout",
       "custom-domain",
+      "checkout-webhook",
       "secret-encryption",
       "persistence",
       "storage"
@@ -44,7 +46,8 @@ describe("readiness action mapping", () => {
     expect(actions[0].commands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     expect(actions[1].env).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
     expect(actions[1].command).toBe("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
-    expect(actions[3].command).toBe("npm run --silent render:bootstrap-env");
+    expect(actions.find((action) => action.id === "checkout-webhook").env).toEqual(["UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET"]);
+    expect(actions.find((action) => action.id === "secret-encryption").command).toBe("npm run --silent render:bootstrap-env");
     expect(actions.find((action) => action.id === "persistence").env).toEqual(["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"]);
     expect(actions.find((action) => action.id === "persistence").detail).toContain("Supabase env alone is not launch-ready");
     expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_ENDPOINT");

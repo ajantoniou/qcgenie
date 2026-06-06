@@ -20,6 +20,7 @@
     "api_auth": "pass",
     "demo_clip": "pass",
     "checkout": "blocked",
+    "checkout_webhook": "blocked",
     "custom_domain": "blocked",
     "secret_encryption": "blocked",
     "persistence": "blocked",
@@ -142,6 +143,14 @@
         "UPLOADCHECK_STUDIO_VARIANT_ID",
         "UPLOADCHECK_NETWORK_VARIANT_ID"
       ]
+    },
+    {
+      "id": "checkout_webhook",
+      "severity": "block",
+      "required_inputs": [
+        "UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET"
+      ],
+      "note": "Signed Lemon Squeezy checkout webhooks must be verified before paid checkout events can provision MCP/API keys."
     },
     {
       "id": "custom_domain",

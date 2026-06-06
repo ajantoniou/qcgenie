@@ -11,6 +11,7 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
     CHECKOUT_PLANS.map((plan) => [plan, checkoutReadinessForPlan(plan, env)])
   );
   const checkoutConfigured = CHECKOUT_PLANS.every((plan) => checkout[plan].ok);
+  const checkoutWebhookSecretConfigured = Boolean(env.UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET || env.LEMONSQUEEZY_WEBHOOK_SECRET);
   const customDomainActive = isUploadCheckHost(host);
   const secretEncryptionKey = env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || env.QCGENIE_SECRET_ENCRYPTION_KEY || "";
   const secretEncryptionValidation = validateSecretEncryptionKey(secretEncryptionKey);
@@ -60,6 +61,14 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
       ok: checkoutConfigured,
       plans: checkout
     },
+    checkoutWebhook: {
+      ok: checkoutWebhookSecretConfigured,
+      provider: "lemonsqueezy",
+      signatureHeader: "X-Signature",
+      detail: checkoutWebhookSecretConfigured
+        ? "Signed Lemon Squeezy checkout webhooks can provision paid MCP/API keys."
+        : "Set UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET so signed checkout webhooks can provision paid MCP/API keys."
+    },
     customDomain: {
       ok: customDomainActive,
       host: host || null,
@@ -101,8 +110,8 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
       detail: demoClipConfigured ? "Public demo clip is configured or bundled." : "Set UPLOADCHECK_DEMO_CLIP_URL or ship public/demo/uploadcheck-product-hunt-demo.mp4 before Product Hunt launch."
     },
     productHunt: {
-      ok: checkoutConfigured && customDomainActive && secretEncryptionConfigured && apiAuthConfigured && persistenceConfigured && durableStorageConfigured && demoClipConfigured,
-      required: ["checkout", "customDomain", "secretEncryption", "apiAuth", "persistence", "storage", "demoClip"]
+      ok: checkoutConfigured && checkoutWebhookSecretConfigured && customDomainActive && secretEncryptionConfigured && apiAuthConfigured && persistenceConfigured && durableStorageConfigured && demoClipConfigured,
+      required: ["checkout", "checkoutWebhook", "customDomain", "secretEncryption", "apiAuth", "persistence", "storage", "demoClip"]
     }
   };
 

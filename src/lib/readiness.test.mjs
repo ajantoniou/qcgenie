@@ -55,6 +55,7 @@ describe("launch readiness report", () => {
         UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
         UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
         UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+        UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
         UPLOADCHECK_SECRET_ENCRYPTION_KEY: strongSecret,
         UPLOADCHECK_API_KEY_SHA256: "hash",
         UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
@@ -75,6 +76,11 @@ describe("launch readiness report", () => {
       host: "checkout.example",
       redactedUrl: "https://checkout.example<checkout_path>"
     });
+    expect(report.checks.checkoutWebhook).toMatchObject({
+      ok: true,
+      provider: "lemonsqueezy",
+      signatureHeader: "X-Signature"
+    });
     expect(report.checks.customDomain.ok).toBe(true);
     expect(report.checks.secretEncryption.ok).toBe(true);
     expect(report.checks.persistence.mode).toBe("durable_json_store");
@@ -89,6 +95,7 @@ describe("launch readiness report", () => {
         UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
         UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
         UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+        UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
         UPLOADCHECK_SECRET_ENCRYPTION_KEY: strongSecret,
         UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
         UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck-storage",
@@ -102,11 +109,37 @@ describe("launch readiness report", () => {
     expect(report.readyForProductHunt).toBe(false);
   });
 
+  it("requires Lemon Squeezy webhook signing secret for Product Hunt readiness", () => {
+    const report = buildReadinessReport({
+      host: "api.uploadcheck.app",
+      env: {
+        UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
+        UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
+        UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+        UPLOADCHECK_SECRET_ENCRYPTION_KEY: strongSecret,
+        UPLOADCHECK_API_KEY_SHA256: "hash",
+        UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
+        UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck-storage",
+        UPLOADCHECK_DEMO_CLIP_URL: "https://uploadcheck.app/demo.mp4"
+      },
+      now: "2026-06-06T00:00:00.000Z"
+    });
+
+    expect(report.checks.checkoutWebhook).toMatchObject({
+      ok: false,
+      provider: "lemonsqueezy",
+      signatureHeader: "X-Signature"
+    });
+    expect(report.checks.productHunt.required).toContain("checkoutWebhook");
+    expect(report.readyForProductHunt).toBe(false);
+  });
+
   it("redacts Lemon Squeezy checkout variant ids in readiness output", () => {
     const report = buildReadinessReport({
       host: "api.uploadcheck.app",
       env: {
         UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG: "uploadcheck",
+        UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
         UPLOADCHECK_CREATOR_VARIANT_ID: "111",
         UPLOADCHECK_STUDIO_VARIANT_ID: "222",
         UPLOADCHECK_NETWORK_VARIANT_ID: "333",
@@ -135,6 +168,7 @@ describe("launch readiness report", () => {
       host: "api.uploadcheck.app",
       env: {
         LEMONSQUEEZY_STORE_URL: "https://creativelabs2016.lemonsqueezy.com",
+        LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
         UPLOADCHECK_CREATOR_VARIANT_ID: "111",
         UPLOADCHECK_STUDIO_VARIANT_ID: "222",
         UPLOADCHECK_NETWORK_VARIANT_ID: "333",
@@ -161,6 +195,7 @@ describe("launch readiness report", () => {
       env: {
         UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
         UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+        UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
         UPLOADCHECK_SECRET_ENCRYPTION_KEY: strongSecret,
         UPLOADCHECK_API_KEY_SHA256: "hash",
         UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
@@ -207,6 +242,7 @@ describe("launch readiness report", () => {
         UPLOADCHECK_CREATOR_CHECKOUT_URL: "http://checkout.example/creator",
         UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
         UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+        UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
         UPLOADCHECK_SECRET_ENCRYPTION_KEY: strongSecret,
         UPLOADCHECK_API_KEY_SHA256: "hash",
         UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",

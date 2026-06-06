@@ -10,6 +10,7 @@ export function buildLaunchStatus(readiness, {
     api_auth: statusFor(checks.apiAuth),
     demo_clip: statusFor(checks.demoClip),
     checkout: statusFor(checks.checkout),
+    checkout_webhook: statusFor(checks.checkoutWebhook),
     custom_domain: statusFor(checks.customDomain),
     secret_encryption: statusFor(checks.secretEncryption),
     persistence: statusFor(checks.persistence),
@@ -218,6 +219,12 @@ function remainingBlockers(status) {
         "UPLOADCHECK_NETWORK_VARIANT_ID"
       ]
     },
+    checkout_webhook: {
+      id: "checkout_webhook",
+      severity: "block",
+      required_inputs: ["UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET"],
+      note: "Signed Lemon Squeezy checkout webhooks must be verified before paid checkout events can provision MCP/API keys."
+    },
     custom_domain: {
       id: "custom_domain",
       severity: "block",
@@ -252,7 +259,7 @@ function remainingBlockers(status) {
     }
   };
 
-  return ["checkout", "custom_domain", "secret_encryption", "persistence", "storage"]
+  return ["checkout", "checkout_webhook", "custom_domain", "secret_encryption", "persistence", "storage"]
     .filter((key) => status[key] === "blocked")
     .map((key) => definitions[key]);
 }

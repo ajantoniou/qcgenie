@@ -19,6 +19,7 @@ describe("Render launch operations plan", () => {
       expect.objectContaining({ key: "UPLOADCHECK_DURABLE_STORAGE_DIR", value: "/mnt/uploadcheck/uploads", secret: false })
     ]));
     expect(plan.missingSecretInputs).toContain("UPLOADCHECK_SECRET_ENCRYPTION_KEY");
+    expect(plan.missingSecretInputs).toContain("UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET");
     expect(plan.missingSecretInputs).toContain("UPLOADCHECK_API_KEY or UPLOADCHECK_API_KEY_SHA256");
     expect(plan.missingSecretInputs).not.toContain("UPLOADCHECK_STORAGE_ACCESS_KEY_ID");
   });
@@ -51,6 +52,7 @@ describe("Render launch operations plan", () => {
   it("treats API plaintext and hashed keys as either-or launch auth inputs", () => {
     const plan = buildRenderLaunchPlan({
       UPLOADCHECK_API_KEY_SHA256: "hash",
+      UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
       UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
       UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
       UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
@@ -68,6 +70,7 @@ describe("Render launch operations plan", () => {
       UPLOADCHECK_CREATOR_VARIANT_ID: "111",
       UPLOADCHECK_STUDIO_VARIANT_ID: "222",
       UPLOADCHECK_NETWORK_VARIANT_ID: "333",
+      UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
       UPLOADCHECK_SECRET_ENCRYPTION_KEY: "b".repeat(64),
       UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck/store.json",
       UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck/uploads"
@@ -93,6 +96,7 @@ describe("Render launch operations plan", () => {
       UPLOADCHECK_CREATOR_VARIANT_ID: "111",
       UPLOADCHECK_STUDIO_VARIANT_ID: "222",
       UPLOADCHECK_NETWORK_VARIANT_ID: "333",
+      UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
       UPLOADCHECK_SECRET_ENCRYPTION_KEY: "b".repeat(64),
       UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck/store.json",
       UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck/uploads"
@@ -115,6 +119,7 @@ describe("Render launch operations plan", () => {
       UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://...",
       UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://...",
       UPLOADCHECK_SECRET_ENCRYPTION_KEY: "<generated_secret_encryption_key>",
+      UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "<lemonsqueezy_webhook_signing_secret>",
       UPLOADCHECK_STORAGE_BUCKET: "uploadcheck-artifacts",
       UPLOADCHECK_STORAGE_ENDPOINT: "https://...",
       UPLOADCHECK_STORAGE_ACCESS_KEY_ID: "<object_storage_access_key>",
@@ -125,12 +130,14 @@ describe("Render launch operations plan", () => {
     expect(plannedKeys).not.toContain("UPLOADCHECK_API_KEY_SHA256");
     expect(plannedKeys).not.toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
     expect(plannedKeys).not.toContain("UPLOADCHECK_SECRET_ENCRYPTION_KEY");
+    expect(plannedKeys).not.toContain("UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET");
     expect(plannedKeys).toContain("UPLOADCHECK_STORAGE_BUCKET");
     expect(plannedKeys).not.toContain("UPLOADCHECK_STORAGE_ENDPOINT");
     expect(plannedKeys).not.toContain("UPLOADCHECK_STORAGE_ACCESS_KEY_ID");
     expect(plan.missingSecretInputs).toEqual([
       "UPLOADCHECK_API_KEY or UPLOADCHECK_API_KEY_SHA256",
       "UPLOADCHECK_SECRET_ENCRYPTION_KEY",
+      "UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET",
       "UPLOADCHECK_CREATOR_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG/URL plus UPLOADCHECK_CREATOR_VARIANT_ID",
       "UPLOADCHECK_STUDIO_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG/URL plus UPLOADCHECK_STUDIO_VARIANT_ID",
       "UPLOADCHECK_NETWORK_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG/URL plus UPLOADCHECK_NETWORK_VARIANT_ID"
@@ -151,6 +158,7 @@ describe("Render launch operations plan", () => {
       UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
       UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
       UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+      UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
       UPLOADCHECK_SECRET_ENCRYPTION_KEY: "b".repeat(64),
       UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck/store.json",
       UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck/uploads"
@@ -186,6 +194,7 @@ UPLOADCHECK_STORAGE_PREFIX=uploads/ # trailing comment
         'UPLOADCHECK_CREATOR_CHECKOUT_URL="https://checkout.example/creator"',
         'UPLOADCHECK_STUDIO_CHECKOUT_URL="https://checkout.example/studio"',
         'UPLOADCHECK_NETWORK_CHECKOUT_URL="https://checkout.example/network"',
+        'UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET="lemon_webhook_secret"',
         `UPLOADCHECK_SECRET_ENCRYPTION_KEY="${"b".repeat(64)}"`,
         'UPLOADCHECK_STORE_PATH="/mnt/uploadcheck/store.json"',
         'UPLOADCHECK_DURABLE_STORAGE_DIR="/mnt/uploadcheck/uploads"',
@@ -209,6 +218,7 @@ UPLOADCHECK_STORAGE_PREFIX=uploads/ # trailing comment
       UPLOADCHECK_STUDIO_CHECKOUT_URL: "http://checkout.example/studio",
       UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
       UPLOADCHECK_SECRET_ENCRYPTION_KEY: "secret",
+      UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "",
       UPLOADCHECK_STORE_PATH: "/tmp/uploadcheck/store.json",
       UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck/uploads",
       UPLOADCHECK_STORAGE_BUCKET: "uploadcheck-artifacts",
@@ -220,6 +230,7 @@ UPLOADCHECK_STORAGE_PREFIX=uploads/ # trailing comment
     expect(reasons).toContain("placeholder_value");
     expect(reasons).toContain("invalid_sha256");
     expect(reasons).toContain("invalid_url");
+    expect(reasons).toContain("missing");
     expect(reasons).toContain("too_short");
     expect(reasons).toContain("not_durable");
     expect(reasons).toContain("missing_object_storage_field");
@@ -248,6 +259,7 @@ UPLOADCHECK_STORAGE_PREFIX=uploads/ # trailing comment
     expect(output).toContain("UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG");
     expect(output).toContain("UPLOADCHECK_LEMONSQUEEZY_STORE_URL");
     expect(output).toContain("UPLOADCHECK_CREATOR_VARIANT_ID");
+    expect(output).toContain("UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET=\"<lemonsqueezy_webhook_signing_secret>\"");
     expect(output).toContain("UPLOADCHECK_STORE_PATH=\"/mnt/uploadcheck/store.json\"");
     expect(output).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=\"https://api.uploadcheck.app\" UPLOADCHECK_API_KEY=\"<generated_bearer_token>\" npm run media-ingress:verify");
     expect(output).toContain("Do not commit a filled copy.");

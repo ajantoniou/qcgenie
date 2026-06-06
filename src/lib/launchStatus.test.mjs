@@ -21,6 +21,7 @@ describe("public launch status", () => {
       api_auth: "pass",
       demo_clip: "pass",
       checkout: "blocked",
+      checkout_webhook: "blocked",
       custom_domain: "blocked",
       secret_encryption: "blocked",
       persistence: "blocked",
@@ -28,6 +29,7 @@ describe("public launch status", () => {
     });
     expect(status.remaining_blockers.map((blocker) => blocker.id)).toEqual([
       "checkout",
+      "checkout_webhook",
       "custom_domain",
       "secret_encryption",
       "persistence",
@@ -107,6 +109,7 @@ describe("public launch status", () => {
         UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
         UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
         UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+        UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "lemon_webhook_secret",
         UPLOADCHECK_SECRET_ENCRYPTION_KEY: "b".repeat(64),
         UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck/store.json",
         UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck/uploads",

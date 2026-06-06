@@ -1,7 +1,7 @@
 export function buildReadinessActions(report) {
   const checks = report?.checks || {};
   const actions = [];
-  const renderConfigBlockers = ["checkout", "secretEncryption", "apiAuth", "persistence", "storage", "demoClip"]
+  const renderConfigBlockers = ["checkout", "checkoutWebhook", "secretEncryption", "apiAuth", "persistence", "storage", "demoClip"]
     .filter((key) => checks[key] && !checks[key].ok);
 
   if (renderConfigBlockers.length) {
@@ -46,6 +46,16 @@ export function buildReadinessActions(report) {
       title: "Finish custom-domain cutover",
       detail: `Current host is ${checks.customDomain.host || "unknown"}; expected api.uploadcheck.app or uploadcheck.app.`,
       env: [],
+      docs: "docs/DEPLOYMENT-CUTOVER.md"
+    });
+  }
+
+  if (checks.checkoutWebhook && !checks.checkoutWebhook.ok) {
+    actions.push({
+      id: "checkout-webhook",
+      title: "Set Lemon Squeezy webhook signing secret",
+      detail: "Configure the Lemon Squeezy webhook signing secret so signed checkout events can provision paid MCP/API keys.",
+      env: ["UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET"],
       docs: "docs/DEPLOYMENT-CUTOVER.md"
     });
   }

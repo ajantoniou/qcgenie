@@ -18,6 +18,8 @@ const required = [
   ["creator variant prompt", /key:\s*UPLOADCHECK_CREATOR_VARIANT_ID\s*\n\s*sync:\s*false/],
   ["studio variant prompt", /key:\s*UPLOADCHECK_STUDIO_VARIANT_ID\s*\n\s*sync:\s*false/],
   ["network variant prompt", /key:\s*UPLOADCHECK_NETWORK_VARIANT_ID\s*\n\s*sync:\s*false/],
+  ["lemon squeezy webhook signing secret prompt", /key:\s*UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET\s*\n\s*sync:\s*false/],
+  ["api key provisioning scopes", /key:\s*UPLOADCHECK_API_SCOPES\s*\n\s*value:\s*jobs:write,jobs:read,reports:read,uploads:write,webhooks:write,api_keys:write,api_keys:read/],
   ["webhook encryption prompt", /key:\s*UPLOADCHECK_SECRET_ENCRYPTION_KEY\s*\n\s*sync:\s*false/]
 ];
 
@@ -29,4 +31,4 @@ if (missing.length) {
   process.exit(1);
 }
 
-console.log("Render launch config includes custom domains, durable disk paths, hashed API auth, direct checkout prompts, Lemon Squeezy checkout prompts, and secret prompts.");
+console.log("Render launch config includes custom domains, durable disk paths, hashed API auth, API-key provisioning scopes, direct checkout prompts, Lemon Squeezy checkout prompts, and secret prompts.");

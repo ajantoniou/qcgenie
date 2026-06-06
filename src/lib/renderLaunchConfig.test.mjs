@@ -34,11 +34,17 @@ describe("Render launch blueprint", () => {
     expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_CREATOR_VARIANT_ID\s*\n\s*sync:\s*false/);
     expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_STUDIO_VARIANT_ID\s*\n\s*sync:\s*false/);
     expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_NETWORK_VARIANT_ID\s*\n\s*sync:\s*false/);
+    expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET\s*\n\s*sync:\s*false/);
+  });
+
+  it("keeps API-key provisioning scopes enabled on Render", () => {
+    expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_API_SCOPES\s*\n\s*value:\s*jobs:write,jobs:read,reports:read,uploads:write,webhooks:write,api_keys:write,api_keys:read/);
   });
 
   it("passes the launch config verifier", () => {
     const output = execFileSync("node", ["scripts/verify-render-launch-config.mjs"], { encoding: "utf8" });
     expect(output).toContain("hashed API auth");
+    expect(output).toContain("API-key provisioning scopes");
     expect(output).toContain("Lemon Squeezy checkout prompts");
   });
 });

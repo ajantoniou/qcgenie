@@ -14,7 +14,7 @@ const API_SERVICE_ID = process.env.UPLOADCHECK_RENDER_API_SERVICE_ID || "srv-d8h
 const FIXED_API_ENV = {
   NODE_ENV: "production",
   NPM_CONFIG_PRODUCTION: "false",
-  UPLOADCHECK_API_SCOPES: "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write",
+  UPLOADCHECK_API_SCOPES: "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write,api_keys:write,api_keys:read",
   UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck/store.json",
   UPLOADCHECK_INLINE_MEDIA_MAX_MB: "128",
   UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck/uploads"
@@ -32,6 +32,8 @@ const SECRET_ENV_KEYS = [
   "UPLOADCHECK_CREATOR_VARIANT_ID",
   "UPLOADCHECK_STUDIO_VARIANT_ID",
   "UPLOADCHECK_NETWORK_VARIANT_ID",
+  "UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET",
+  "LEMONSQUEEZY_WEBHOOK_SECRET",
   "UPLOADCHECK_SECRET_ENCRYPTION_KEY",
   "UPLOADCHECK_DEMO_CLIP_URL",
   "UPLOADCHECK_STORAGE_ACCESS_KEY_ID",
@@ -40,7 +42,8 @@ const SECRET_ENV_KEYS = [
 
 const REQUIRED_SECRET_GROUPS = [
   { label: "UPLOADCHECK_API_KEY or UPLOADCHECK_API_KEY_SHA256", keys: ["UPLOADCHECK_API_KEY", "UPLOADCHECK_API_KEY_SHA256"] },
-  { label: "UPLOADCHECK_SECRET_ENCRYPTION_KEY", keys: ["UPLOADCHECK_SECRET_ENCRYPTION_KEY"] }
+  { label: "UPLOADCHECK_SECRET_ENCRYPTION_KEY", keys: ["UPLOADCHECK_SECRET_ENCRYPTION_KEY"] },
+  { label: "UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET", keys: ["UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET", "LEMONSQUEEZY_WEBHOOK_SECRET"] }
 ];
 
 const OPTIONAL_API_ENV_KEYS = [
@@ -112,6 +115,7 @@ export function validateRenderLaunchEnv(env = process.env) {
 
   validateApiAuth(env, errors, warnings);
   validateCheckout(env, errors);
+  validateLemonSqueezyWebhookSecret(env, errors);
   validateSecret(env, errors);
   validateDurablePaths(env, errors);
   validateOptionalObjectStorage(env, errors);
@@ -201,6 +205,8 @@ function buildEnvTemplateFromValues({ apiKeySha256, secretEncryptionKey }) {
     "# UPLOADCHECK_CREATOR_VARIANT_ID=\"<creator_variant_id>\"",
     "# UPLOADCHECK_STUDIO_VARIANT_ID=\"<studio_variant_id>\"",
     "# UPLOADCHECK_NETWORK_VARIANT_ID=\"<network_variant_id>\"",
+    "# Required for signed Lemon Squeezy checkout webhooks that provision paid MCP/API keys.",
+    "UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET=\"<lemonsqueezy_webhook_signing_secret>\"",
     "",
     "# Webhook secret encryption: required before hosted webhooks are production-ready.",
     "# Generate with: npm run --silent secret:generate",
@@ -330,6 +336,13 @@ function validateCheckout(env, errors) {
 function hasResolvableCheckout(plan, env) {
   const url = buildCheckoutUrl(plan, env);
   return isFilledEnvValue(url) && isHttpsUrl(url);
+}
+
+function validateLemonSqueezyWebhookSecret(env, errors) {
+  const value = env.UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET || env.LEMONSQUEEZY_WEBHOOK_SECRET || "";
+  if (!isFilledEnvValue(value)) {
+    errors.push({ key: "UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET", reason: "missing", detail: "Set the Lemon Squeezy webhook signing secret used to verify X-Signature before provisioning paid MCP/API keys." });
+  }
 }
 
 function validateSecret(env, errors) {

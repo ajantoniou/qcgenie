@@ -46,8 +46,10 @@ services:
         sync: false
       - key: UPLOADCHECK_NETWORK_VARIANT_ID
         sync: false
+      - key: UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET
+        sync: false
       - key: UPLOADCHECK_API_SCOPES
-        value: jobs:write,jobs:read,reports:read,uploads:write,webhooks:write
+        value: jobs:write,jobs:read,reports:read,uploads:write,webhooks:write,api_keys:write,api_keys:read
       - key: UPLOADCHECK_STORE_PATH
         value: /mnt/uploadcheck/store.json
       - key: UPLOADCHECK_SECRET_ENCRYPTION_KEY
