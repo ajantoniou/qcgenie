@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -43,5 +44,14 @@ describe("public launch status", () => {
 
     expect(manifest.launch_status_url).toBe("https://qcgenie-api.onrender.com/launch-status.json");
     expect(openapi.paths["/launch-status.json"].get.security).toEqual([]);
+  });
+
+  it("verifies launch status against readiness and discovery metadata", () => {
+    const output = execFileSync("npm", ["run", "--silent", "launch-status:verify"], {
+      cwd: resolve("."),
+      encoding: "utf8"
+    });
+
+    expect(output).toContain("Launch status metadata matches readiness");
   });
 });

@@ -9,6 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "start": "node server.mjs",
     "launch:check": "node scripts/launch-check.mjs",
+    "launch-status:verify": "node scripts/verify-launch-status.mjs",
     "readiness:check": "node scripts/product-hunt-readiness.mjs",
     "render:verify": "node scripts/verify-render-launch-config.mjs",
     "render:env-template": "node scripts/render-launch-ops.mjs env-template",
