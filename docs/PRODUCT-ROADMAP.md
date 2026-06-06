@@ -148,7 +148,7 @@ NTO-derived private QC tasks to add to the product:
 10. `visual_narration_match`: verify every 30-second window visually supports the narration, not just the mood.
 11. `named_entity_visual_match`: if narration names a person/place/event/product, visual should show that thing or a deliberate neutral substitute.
 12. `repeat_fatigue`: block exact clip reuse and source-family dominance windows. Implemented first as a conservative rendered-frame reuse gate plus optional JSON manifest reuse/source-family analysis.
-13. `static_head_dominance`: block long held talking-head/portrait shots without b-roll, graphic, or motion.
+13. `static_head_dominance`: block long held talking-head/portrait shots without b-roll, graphic, or motion. Implemented first as a deterministic manifest-side gate.
 14. `slow_hanging_motion`: block clips slowed so much they read as frozen, buffering, or still-image drift.
 15. `cheap_filler`: block old/degraded/B&W/silent-film/low-res filler unless explicitly requested.
 16. `first_three_seconds`: flag generic openers, missing hook frame, or title/thumb mismatch.
@@ -189,6 +189,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO-derived `script_faithfulness` deterministic transcript-side WER gate added to `scripts/qc-engine/check_script_faithfulness.py`, plus REST/CLI/MCP expected-script sidecar support.
 - Done: NTO-derived `sentence_boundary` deterministic transcript-side gate added to `scripts/qc-engine/check_sentence_boundary.py`, included in `run_gate.py`, and added to the Shorts recipe default.
 - Done: NTO-derived `speaker_visual_binding` deterministic manifest-side gate added to `scripts/qc-engine/check_speaker_visual_binding.py`, included in `run_gate.py`, and added to the NTO long-form recipe default.
+- Done: NTO-derived `static_head_dominance` deterministic manifest-side gate added to `scripts/qc-engine/check_static_head_dominance.py`, included in `run_gate.py`, and added to the NTO long-form recipe default.
 - Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
 - Done: plan-aware cost guardrail added for declared AI-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked.
 - Done: first per-check model-call accounting added for `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch`; in downgrade mode, margin-breaking model-backed checks are removed before the engine runs.

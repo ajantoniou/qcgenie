@@ -73,6 +73,11 @@
         "callable_check": "speaker_visual_binding"
       },
       {
+        "id": "static_head_dominance",
+        "covers": "Held talking-head or portrait shots that dominate a long-form window without motion, graphic, source-card, or b-roll relief.",
+        "callable_check": "static_head_dominance"
+      },
+      {
         "id": "dead_air",
         "covers": "Unintended long silence or audio dropouts.",
         "callable_check": "dead_air"
@@ -115,10 +120,6 @@
     ],
     "planned_product_gates": [
       {
-        "id": "static_head_dominance",
-        "covers": "Held talking-head or portrait shots that dominate a long-form window without motion, graphic, or b-roll relief."
-      },
-      {
         "id": "first_three_seconds",
         "covers": "Generic openings, missing hook frame, and title/thumbnail/opening-frame mismatch."
       },
@@ -143,10 +144,10 @@
   "profiles": {
     "nto_long_form": {
       "label": "NTO long-form final master",
-      "default_checks": "canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,dead_air,text_contrast,text_safe_area,spoken_leaks,pronunciation_watchlist,script_faithfulness",
+      "default_checks": "canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,dead_air,text_contrast,text_safe_area,spoken_leaks,pronunciation_watchlist,script_faithfulness",
       "optional_model_checks": "twins,cheap_broll,garble,narration_match,omni_watch",
       "recommended_sidecars": {
-        "manifest_path": "Storybook, edit-decision, or visual-timeline JSON for repeat_fatigue and source-family dominance.",
+        "manifest_path": "Storybook, edit-decision, or visual-timeline JSON for repeat_fatigue, speaker_visual_binding, static_head_dominance, and source-family dominance.",
         "transcript_path": "Final transcript text or JSON for spoken_leaks, pronunciation_watchlist, and script_faithfulness.",
         "watchlist_path": "Customer/project terms with expected names and banned misrenders.",
         "expected_script_path": "Locked narration script for script_faithfulness."
@@ -155,7 +156,7 @@
         "tool": "qc_run_local_file",
         "arguments": {
           "file_path": "/path/to/final-master.mp4",
-          "checks": "canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,dead_air,text_contrast,text_safe_area,spoken_leaks,pronunciation_watchlist,script_faithfulness",
+          "checks": "canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,dead_air,text_contrast,text_safe_area,spoken_leaks,pronunciation_watchlist,script_faithfulness",
           "manifest_path": "/path/to/storybook.json",
           "transcript_path": "/path/to/final-transcript.txt",
           "watchlist_path": "/path/to/watchlist.json",
