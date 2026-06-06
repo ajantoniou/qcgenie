@@ -197,6 +197,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: MCP `qc_run_local_file` added for Codex/Claude/Cursor/NTO/NPO local media workflows; small files are encoded inline for Render evaluation and large files fall back to signed upload.
 - Done: Render Blueprint now declares UploadCheck custom domains, a `/mnt/uploadcheck` persistent disk, durable JSON/media paths, checkout URL prompts, and webhook encryption prompts; `npm run render:verify` guards the launch config.
 - Done: Render API launch helper added through `npm run render:plan`, `npm run render:audit`, and `npm run render:apply`; it can add domains, set durable env values, set provided secrets, and trigger deploys when `RENDER_API_KEY` is available.
+- Done: Product Hunt launch checker added through `npm run launch:check`; it combines live readiness, DNS resolution, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
 - Next: add direct object-storage upload for production-scale retention beyond mounted filesystem storage.

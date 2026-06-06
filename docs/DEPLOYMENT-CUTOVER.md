@@ -44,6 +44,7 @@ Before Product Hunt launch, sync the Blueprint or manually apply the same values
 
 ```bash
 npm run render:verify
+npm run launch:check
 npm run readiness:check
 ```
 
@@ -62,6 +63,7 @@ export UPLOADCHECK_NETWORK_CHECKOUT_URL="https://..."
 npm run render:plan
 npm run render:audit
 npm run render:apply
+npm run launch:check
 npm run readiness:check
 ```
 
@@ -77,6 +79,12 @@ curl -i https://www.uploadcheck.app/
 curl -i https://api.uploadcheck.app/healthz
 curl -i https://uploadcheck.app/sitemap.xml
 curl -i https://uploadcheck.app/llms.txt
+```
+
+Or run the combined verifier:
+
+```bash
+npm run launch:check
 ```
 
 Expected API health response after the next backend deploy should identify the service as `uploadcheck`. The currently deployed legacy API still responds with `service: "qcgenie"` on `https://qcgenie-api.onrender.com/healthz`.
