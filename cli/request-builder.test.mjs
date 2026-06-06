@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildEstimateRequest, buildJobRequest, buildUsageRequest, formatJobSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+import { buildEstimateRequest, buildJobRequest, buildLaunchStatusRequest, buildUsageRequest, formatJobSummary, formatLaunchStatusSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 describe("UploadCheck CLI request builder", () => {
   it("builds a YouTube job request", () => {
@@ -277,6 +277,26 @@ describe("UploadCheck CLI request builder", () => {
     });
   });
 
+  it("builds and parses a public launch-status request", () => {
+    const parsed = parseArgs([
+      "launch-status",
+      "--api-base",
+      "https://api.example.test",
+      "--json"
+    ]);
+    const request = buildLaunchStatusRequest(parsed.options);
+
+    expect(parsed.command).toBe("launch-status");
+    expect(parsed.target).toBeNull();
+    expect(request).toEqual({
+      apiBaseUrl: "https://api.example.test",
+      path: "/v1/launch-status",
+      method: "GET",
+      kind: "launch_status",
+      public: true
+    });
+  });
+
   it("formats a compact job summary", () => {
     expect(formatJobSummary({
       jobId: "job_1",
@@ -331,5 +351,16 @@ describe("UploadCheck CLI request builder", () => {
         marginSafe: false
       }
     })).toBe("UploadCheck usage: MARGIN RISK | 1 min | est. COGS $0.0068 | cost/min 0.6833c | margin 65.49% | observed cost/min 0.7364c | observed margin 62.81%");
+  });
+
+  it("formats a compact launch status summary", () => {
+    expect(formatLaunchStatusSummary({
+      product_hunt_ready: false,
+      remaining_blockers: [{ id: "checkout" }, { id: "custom_domain" }]
+    })).toBe("UploadCheck launch status: NOT READY | blockers checkout, custom_domain");
+    expect(formatLaunchStatusSummary({
+      product_hunt_ready: true,
+      remaining_blockers: []
+    })).toBe("UploadCheck launch status: READY");
   });
 });

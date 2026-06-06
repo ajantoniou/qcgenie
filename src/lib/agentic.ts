@@ -45,6 +45,7 @@ export interface QcJobRequest {
 }
 
 export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
+  { methodPath: "GET /v1/launch-status", purpose: "Fetch live Product Hunt launch go/no-go state, blockers, and operator commands." },
   { methodPath: "POST /v1/qc/estimate", purpose: "Preflight cost, margin guardrail behavior, and effective checks before uploading media." },
   { methodPath: "POST /v1/qc/jobs", purpose: "Create a QC job from a YouTube URL, upload id, or signed asset URL." },
   { methodPath: "GET /v1/qc/jobs/{job_id}", purpose: "Poll job status, verdict, gate progress, and minute usage." },
@@ -62,6 +63,12 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
 ];
 
 export const MCP_TOOLS: McpTool[] = [
+  {
+    name: "qc_get_launch_status",
+    purpose: "Fetch live UploadCheck launch readiness, current blockers, and operator commands for agent planning.",
+    inputs: [],
+    outputs: ["product_hunt_ready", "status", "remaining_blockers", "operator_commands"]
+  },
   {
     name: "qc_estimate_cost",
     purpose: "Preflight cost, margin safety, and effective/removed gates before an agent uploads or runs media.",

@@ -111,7 +111,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
 export function parseArgs(argv) {
   const args = [...argv];
   const command = args.shift();
-  if (!["check", "estimate", "usage"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage");
+  if (!["check", "estimate", "usage", "launch-status"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status");
 
   const target = command === "check" ? args.shift() : null;
   const options = { json: false };
@@ -172,6 +172,17 @@ export function parseArgs(argv) {
   return { command, target, options };
 }
 
+export function buildLaunchStatusRequest(options = {}) {
+  const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
+  return {
+    apiBaseUrl,
+    path: "/v1/launch-status",
+    method: "GET",
+    kind: "launch_status",
+    public: true
+  };
+}
+
 export function buildUsageRequest(options = {}) {
   const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
   const params = new URLSearchParams();
@@ -227,6 +238,12 @@ export function formatUsageSummary(payload) {
     ? ` | observed cost/min ${Number(summary.observedCostPerMinuteCents || 0).toFixed(4)}c | observed margin ${Number(summary.observedGrossMarginPct || 0).toFixed(2)}%`
     : "";
   return `UploadCheck usage: ${status} | ${minutes} min | est. COGS $${cogs.toFixed(4)} | cost/min ${costPerMinuteCents.toFixed(4)}c | margin ${grossMarginPct.toFixed(2)}%${observed}`;
+}
+
+export function formatLaunchStatusSummary(payload) {
+  const status = payload.product_hunt_ready ? "READY" : "NOT READY";
+  const blockers = (payload.remaining_blockers || []).map((blocker) => blocker.id).filter(Boolean);
+  return `UploadCheck launch status: ${status}${blockers.length ? ` | blockers ${blockers.join(", ")}` : ""}`;
 }
 
 function requireValue(flag, value) {

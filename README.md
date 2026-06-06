@@ -30,6 +30,7 @@ Current API/MCP tools:
 - Installed Codex skill: `uploadcheck` at `/Users/drantoniou/.codex/skills/uploadcheck`
 
 - `qc_estimate_cost`
+- `qc_get_launch_status`
 - `qc_run_video`
 - `qc_run_local_file`
 - `qc_get_job`

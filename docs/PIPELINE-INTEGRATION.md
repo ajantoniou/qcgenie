@@ -23,11 +23,13 @@ UPLOADCHECK_API_BASE_URL = "https://qcgenie-api.onrender.com"
 UPLOADCHECK_API_KEY = "<workspace_api_key>"
 ```
 
-The server exposes `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_get_margin_telemetry`, and `qc_create_upload_url`.
+The server exposes `qc_get_launch_status`, `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_get_margin_telemetry`, and `qc_create_upload_url`.
 
 The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadcheck`. Use `$uploadcheck` when a project needs the standard preflight -> hosted QC -> report -> repair-loop workflow.
 
 Machine-readable pipeline profiles are published at `https://qcgenie-api.onrender.com/pipeline-recipes.json` for agents that need defaults without scraping prose. The current profiles are `nto_long_form`, `nto_shorts`, `npo_podcast_or_audio`, and `generic_creator_video`.
+
+Before launch-sensitive production workflows, agents can call MCP `qc_get_launch_status` or CLI `uploadcheck launch-status --json` to verify the live go/no-go state and remaining external blockers.
 
 Before publishing package updates or installing from a packed artifact, run:
 

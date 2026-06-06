@@ -1,23 +1,29 @@
 #!/usr/bin/env node
 import { createReadStream } from "node:fs";
-import { buildEstimateRequest, buildJobRequest, buildUsageRequest, formatJobSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+import { buildEstimateRequest, buildJobRequest, buildLaunchStatusRequest, buildUsageRequest, formatJobSummary, formatLaunchStatusSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 try {
   const { command, target, options } = parseArgs(process.argv.slice(2));
   const apiKey = options.apiKey || process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
-  if (!apiKey) throw new Error("Set UPLOADCHECK_API_KEY or pass --api-key.");
 
   const request = command === "estimate"
     ? buildEstimateRequest(options)
-    : (command === "usage" ? buildUsageRequest(options) : buildJobRequest(target, options));
+    : (command === "usage" ? buildUsageRequest(options) : (command === "launch-status" ? buildLaunchStatusRequest(options) : buildJobRequest(target, options)));
+  if (!request.public && !apiKey) throw new Error("Set UPLOADCHECK_API_KEY or pass --api-key.");
   const payload = request.kind === "signed_upload"
     ? await runSignedUploadJob(request, apiKey)
     : (request.method === "GET" ? await getJson(request.apiBaseUrl, request.path, apiKey) : await postJson(request.apiBaseUrl, request.path, request.payload, apiKey));
 
-  console.log(options.json ? JSON.stringify(payload, null, 2) : (request.kind === "usage" ? formatUsageSummary(payload) : formatJobSummary(payload)));
+  console.log(options.json ? JSON.stringify(payload, null, 2) : formatSummary(request.kind, payload));
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;
+}
+
+function formatSummary(kind, payload) {
+  if (kind === "usage") return formatUsageSummary(payload);
+  if (kind === "launch_status") return formatLaunchStatusSummary(payload);
+  return formatJobSummary(payload);
 }
 
 async function runSignedUploadJob(request, apiKey) {
@@ -61,9 +67,9 @@ async function postJson(apiBaseUrl, path, payload, apiKey) {
 async function getJson(apiBaseUrl, path, apiKey) {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: "GET",
-    headers: {
+    headers: apiKey ? {
       authorization: `Bearer ${apiKey}`
-    }
+    } : undefined
   });
   const body = await response.json();
   if (!response.ok) {

@@ -13,6 +13,13 @@ const server = new McpServer({
 });
 
 server.tool(
+  "qc_get_launch_status",
+  "Fetch live UploadCheck Product Hunt launch go/no-go state, current blockers, and operator commands.",
+  {},
+  async () => jsonTool(await publicApiFetch("/v1/launch-status"))
+);
+
+server.tool(
   "qc_estimate_cost",
   "Preflight UploadCheck cost and margin guardrail behavior before uploading or running media.",
   {
@@ -183,6 +190,21 @@ await server.connect(transport);
 
 async function apiFetch(path, options = {}) {
   const response = await authedFetch(path, options);
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(`UploadCheck API ${response.status}: ${JSON.stringify(payload)}`);
+  }
+  return payload;
+}
+
+async function publicApiFetch(path, options = {}) {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: options.method || "GET",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
   const payload = await response.json();
   if (!response.ok) {
     throw new Error(`UploadCheck API ${response.status}: ${JSON.stringify(payload)}`);

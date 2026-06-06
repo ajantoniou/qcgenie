@@ -52,6 +52,7 @@
     "format": "Bearer <workspace_api_key>"
   },
   "tools": [
+    "qc_get_launch_status",
     "qc_estimate_cost",
     "qc_run_video",
     "qc_run_local_file",
@@ -106,6 +107,7 @@
     "GET /v1/usage/margins"
   ],
   "agent_workflow": [
+    "Before launch-sensitive workflows, the agent may call qc_get_launch_status or GET /v1/launch-status to verify the live go/no-go state and remaining blockers.",
     "Before launch-sensitive workflows, the agent may call GET /v1/readiness to verify checkout, custom domain, persistence, storage, demo clip, and Product Hunt readiness.",
     "User runs /check with a media file, YouTube URL, upload id, or signed URL.",
     "The agent calls qc_estimate_cost before uploading or running model-backed checks.",
