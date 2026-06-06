@@ -51,6 +51,7 @@ npm run launch:doctor
 npm run launch:dns
 npm run launch:checkout
 npm run launch:storage
+UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 npm run render:verify
 npm run launch:check
 npm run readiness:check
@@ -79,6 +80,7 @@ npm run launch:doctor
 npm run launch:dns
 npm run launch:checkout
 npm run launch:storage
+UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 npm run launch:check
 npm run readiness:check
 ```
@@ -89,6 +91,8 @@ npm run readiness:check
 
 `render:apply` adds the custom domains, sets the fixed durable env values, sets only the secret env values that are present in the local environment, and triggers web/API redeploys. It does not configure DNS; Cloudflare or the domain registrar still needs the CNAME records above.
 
+After Render redeploys with `UPLOADCHECK_STORE_PATH` and `UPLOADCHECK_DURABLE_STORAGE_DIR`, run `UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage` in the same environment. The regular storage helper validates durable path shape and object-storage completeness without writing; probe mode writes and deletes tiny test files in the mounted store/upload directories so the launch decision does not rely on path names alone.
+
 ## Verification Commands
 
 After DNS propagation:
@@ -98,6 +102,7 @@ npm run launch:doctor
 npm run launch:dns
 npm run launch:checkout
 npm run launch:storage
+UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 curl -i https://uploadcheck.app/
 curl -i https://www.uploadcheck.app/
 curl -i https://api.uploadcheck.app/healthz

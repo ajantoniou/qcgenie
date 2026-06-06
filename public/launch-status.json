@@ -177,6 +177,7 @@
     "npm run launch:dns",
     "npm run launch:checkout",
     "npm run launch:storage",
+    "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
     "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
     "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
     "set -a; source /tmp/uploadcheck-render-launch.env; set +a",

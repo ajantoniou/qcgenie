@@ -72,6 +72,7 @@
       "npm run launch:dns",
       "npm run launch:checkout",
       "npm run launch:storage",
+      "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
       "npm run readiness:check",
       "npm run launch:check"
     ],

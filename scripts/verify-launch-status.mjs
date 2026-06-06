@@ -74,6 +74,8 @@ assert(launchKit.ready_when?.required_commands?.includes("npm run render:validat
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:dns"), "Product Hunt launch kit must require launch:dns");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:checkout"), "Product Hunt launch kit must require launch:checkout");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:storage"), "Product Hunt launch kit must require launch:storage");
+assert(launchKit.ready_when?.required_commands?.includes("UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage"), "Product Hunt launch kit must require the explicit storage probe");
+assert(status.operator_commands.includes("UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage"), "launch-status operator commands must include the explicit storage probe");
 assert(launchKit.public_links?.launch_status === status.public_artifacts.launch_status, "Product Hunt launch kit must link static launch status");
 assert(launchKit.public_links?.sample_reports_index === status.public_artifacts.sample_reports, "Product Hunt launch kit must link sample reports");
 assert(launchKit.public_links?.cost_basis === status.public_artifacts.cost_basis, "Product Hunt launch kit must link cost basis");

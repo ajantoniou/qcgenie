@@ -1,5 +1,7 @@
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
 import { buildStorageSummary, formatStorageSummary } from "../../launch-storage.mjs";
 
@@ -25,6 +27,55 @@ describe("launch storage config helper", () => {
     expect(summary.ok).toBe(true);
     expect(summary.persistence.mode).toBe("durable_json_store");
     expect(summary.storage.mode).toBe("durable_filesystem");
+    expect(summary.persistence.writableProbe.checked).toBe(false);
+  });
+
+  it("can probe writable mounted-style persistence and storage paths when explicitly enabled", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-storage-probe-"));
+
+    try {
+      const summary = buildStorageSummary({
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_DURABLE_STORAGE_DIR: join(dir, "uploads"),
+        UPLOADCHECK_STORAGE_PROBE: "1"
+      }, {
+        durablePathPrefixes: [dir]
+      });
+      const text = formatStorageSummary(summary);
+
+      expect(summary.ok).toBe(true);
+      expect(summary.persistence.writableProbe).toMatchObject({ checked: true, ok: true });
+      expect(summary.storage.writableProbe).toMatchObject({ checked: true, ok: true });
+      expect(text).toContain("writableProbe: pass");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("fails the explicit filesystem probe when durable paths cannot be written", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-storage-probe-fail-"));
+    const blocker = join(dir, "not-a-dir");
+
+    try {
+      writeFileSync(blocker, "this path is intentionally a file");
+      const summary = buildStorageSummary({
+        UPLOADCHECK_STORE_PATH: join(blocker, "store.json"),
+        UPLOADCHECK_DURABLE_STORAGE_DIR: join(blocker, "uploads")
+      }, {
+        probeFilesystem: true,
+        durablePathPrefixes: [dir]
+      });
+      const text = formatStorageSummary(summary);
+
+      expect(summary.ok).toBe(false);
+      expect(summary.persistence.writableProbe.checked).toBe(true);
+      expect(summary.persistence.writableProbe.ok).toBe(false);
+      expect(summary.storage.writableProbe.checked).toBe(true);
+      expect(summary.storage.writableProbe.ok).toBe(false);
+      expect(text).toContain("writableProbe: fail");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("does not pass persistence on Supabase env alone before the server adapter exists", () => {
