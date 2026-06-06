@@ -27,7 +27,9 @@ Current API/MCP tools:
 
 - MCP server: `uploadcheck`
 - CLI/package: `@uploadcheck/cli` or `@uploadcheck/mcp`
+- Installed Codex skill: `uploadcheck` at `/Users/drantoniou/.codex/skills/uploadcheck`
 
+- `qc_estimate_cost`
 - `qc_run_video`
 - `qc_get_job`
 - `qc_get_report`

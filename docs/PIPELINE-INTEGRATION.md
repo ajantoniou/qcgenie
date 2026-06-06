@@ -25,6 +25,8 @@ UPLOADCHECK_API_KEY = "<workspace_api_key>"
 
 The server exposes `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, and `qc_create_upload_url`.
 
+The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadcheck`. Use `$uploadcheck` when a project needs the standard preflight -> hosted QC -> report -> repair-loop workflow.
+
 ## CLI Usage
 
 Estimate a run before uploading or sending media:
