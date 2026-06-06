@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { launchDoctorCommandStrings } from "../../launch-doctor.mjs";
+import { buildProductHuntLaunchKit } from "../../product-hunt-launch-kit.mjs";
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(path), "utf8"));
@@ -13,6 +14,7 @@ describe("Product Hunt launch kit", () => {
     const status = readJson("public/launch-status.json");
     const manifest = readJson("public/agent-manifest.json");
 
+    expect(kit).toEqual(buildProductHuntLaunchKit(status));
     expect(kit.product.name).toBe("UploadCheck.app");
     expect(kit.product.tagline).toBe("Quality check videos, podcasts, and clips before you upload.");
     expect(kit.launch_copy.headline).toContain("Catch upload mistakes");

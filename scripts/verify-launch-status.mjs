@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { buildReadinessReport } from "../readiness.mjs";
 import { buildLaunchStatus } from "../launch-status.mjs";
+import { buildProductHuntLaunchKit } from "../product-hunt-launch-kit.mjs";
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(path), "utf8"));
@@ -69,6 +70,7 @@ assert(llms.includes(status.public_artifacts.launch_status), "llms.txt must link
 assert(llms.includes(status.public_artifacts.live_launch_status), "llms.txt must link live launch-status URL");
 assert(llms.includes(status.public_artifacts.sample_reports), "llms.txt must link sample report artifacts URL");
 assert(llms.includes(status.public_artifacts.product_hunt_launch_kit), "llms.txt must link Product Hunt launch kit URL");
+assert(JSON.stringify(launchKit) === JSON.stringify(buildProductHuntLaunchKit(status)), "Product Hunt launch kit does not match product-hunt-launch-kit.mjs builder");
 assert(launchKit.ready_when?.source_of_truth === status.public_artifacts.live_launch_status, "Product Hunt launch kit must use live launch status as source of truth");
 assert(launchKit.current_state_snapshot?.source === status.public_artifacts.launch_status, "Product Hunt launch kit current snapshot must link static launch status");
 assert(launchKit.current_state_snapshot?.product_hunt_ready === status.product_hunt_ready, "Product Hunt launch kit current snapshot readiness must match static launch status");

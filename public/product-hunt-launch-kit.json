@@ -4,7 +4,15 @@
     "name": "UploadCheck.app",
     "tagline": "Quality check videos, podcasts, and clips before you upload.",
     "category": "Agent-native media QC",
-    "primary_audience": ["creators", "editors", "studios", "agencies", "Claude Code users", "Codex users", "MCP agents"],
+    "primary_audience": [
+      "creators",
+      "editors",
+      "studios",
+      "agencies",
+      "Claude Code users",
+      "Codex users",
+      "MCP agents"
+    ],
     "one_liner": "UploadCheck gives creator agents a final pre-upload QC pass for video, podcast, and clip exports."
   },
   "launch_copy": {
@@ -82,7 +90,13 @@
   "current_state_snapshot": {
     "source": "https://qcgenie-api.onrender.com/launch-status.json",
     "product_hunt_ready": false,
-    "remaining_blockers": ["checkout", "custom_domain", "secret_encryption", "persistence", "storage"],
+    "remaining_blockers": [
+      "checkout",
+      "custom_domain",
+      "secret_encryption",
+      "persistence",
+      "storage"
+    ],
     "note": "Static snapshot only. Use live_launch_status before launch."
   }
 }

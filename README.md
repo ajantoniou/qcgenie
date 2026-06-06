@@ -101,6 +101,7 @@ Persistence state:
 - `/launch-status.json` publishes machine-readable completed controls, current blockers, operator commands, and Product Hunt go/no-go rules; `npm run launch-status:verify` keeps it aligned with readiness and public agent metadata.
 - `/cost-basis.json` publishes the plan-level revenue/minute, max COGS/minute, and full-review margin safety answer; `npm run cost-basis:verify` keeps it aligned with the cost model.
 - `/product-hunt-launch-kit.json` publishes Product Hunt launch copy, demo flow, sample-report links, cost-basis proof, and the launch go/no-go source of truth.
+- `npm run product-hunt-kit:generate` rebuilds `/product-hunt-launch-kit.json` from `/launch-status.json`.
 - `/sample-reports/index.json` publishes PASS, WATCH, and BLOCK report examples with source-hash proof, timestamped flags, editor handoff artifacts, and repair-loop guidance.
 - `npm run roadmap:verify` keeps `docs/PRODUCT-ROADMAP.md` honest about the exact 50-point plan, expert-panel inputs, NTO-derived product tasks, and execution markers.
 - `npm run launch:doctor` runs the local launch helpers, explicit checkout/storage probes, public metadata verifiers, and live readiness/DNS checks in one ordered report.
