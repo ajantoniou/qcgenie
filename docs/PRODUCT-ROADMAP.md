@@ -20,6 +20,9 @@ Research inputs verified on 2026-06-06:
 - Gemini 2.5 Flash standard pricing is `$0.30 / 1M` text/image/video input tokens, `$1.00 / 1M` audio input tokens, and `$2.50 / 1M` output tokens. Source: `https://ai.google.dev/gemini-api/docs/pricing`.
 - Gemini 3 family paid rows are currently higher than the 2.5 Flash-Lite margin baseline for this use case; do not switch default QC review to Gemini 3 without fresh telemetry.
 - OpenAI GPT-Realtime-Whisper is listed at `$0.017 / minute`; OpenAI GPT-Realtime-Translate is listed at `$0.034 / minute`.
+- Anthropic Claude Sonnet 4.5 / 4.6 is `$3 / 1M` input tokens and `$15 / 1M` output tokens; prompt cache reads are `$0.30 / 1M`. Source: `https://platform.claude.com/docs/en/about-claude/pricing`.
+- ElevenLabs Scribe is `$0.22 / hour` for speech-to-text. Source: `https://elevenlabs.io/pricing/api?price.section=speech_to_text`.
+- Qwen Cloud lists `qwen3.5-omni-flash` at `$0.4 / 1M` text/image/video input tokens, `$2.2 / 1M` text output tokens, `$3 / 1M` audio input tokens, and `$11.9 / 1M` text+audio output tokens. Source: `https://www.qwencloud.com/models/qwen3.5-omni-flash`.
 - Render task compute starts at `$0.05 / hour` for starter tasks. Source: `https://render.com/docs/workflows-limits`.
 
 Derived unit economics:
@@ -34,6 +37,8 @@ Derived unit economics:
 Pricing verdict: `$99 / 5,000 minutes` is too generous if every minute receives full Omni/video or hosted transcription. It can work only if most minutes are deterministic-only and AI review is limited to flagged/sampled windows. Launch pricing should either cut included minutes to `1,000-2,000`, meter Omni separately, or define `5,000 deterministic scan minutes` plus a smaller AI-review allowance.
 
 Cost-per-minute target: at `$99 / 5,000`, the COGS ceiling is `$0.00099` per minute. Deterministic-only Render compute at 1x realtime is about `$0.000833` per minute before bandwidth/storage/retries, leaving only about `$0.000157` per minute of overhead. Full Gemini 2.5 Flash-Lite video+audio input alone is about `$0.002154` per media minute before output, which breaks the target. The margin-safe launch shape is therefore deterministic scan minutes plus a capped AI-review allowance, not unlimited full-video AI minutes.
+
+Observed-cost telemetry now prices real provider usage separately from preflight estimates. Example: the June 6 clone-crowd smoke test used `1,637` Anthropic input tokens and `108` output tokens, which prices at about `$0.0065` for that single vision call before Render compute. That is useful for flagged-window review, but it is not compatible with running many Sonnet frame calls on every included minute at `$99 / 5,000`.
 
 ## Expert Panel Synthesis
 
@@ -201,9 +206,10 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: margin telemetry added through `GET /v1/usage/margins` and MCP `qc_get_margin_telemetry`; usage entries now retain cost snapshots with COGS, allocated revenue, cost/minute, and estimated gross margin.
 - Done: CLI margin telemetry added through `uploadcheck usage --billing-period YYYY-MM`, so non-MCP agent workflows can inspect cost/minute and gross margin directly.
 - Done: observed provider usage is now captured from real QC engine calls. Anthropic frame checks preserve token usage, DashScope/OpenRouter Omni calls preserve OpenAI-compatible usage when present, Scribe checks preserve request/audio seconds, and `VERDICT.json`, job reports, and margin telemetry expose rollups for cost reconciliation.
+- Done: observed provider usage is now priced into post-run COGS. Reports and `/v1/usage/margins` distinguish estimated preflight COGS from observed provider COGS, observed total COGS, observed cost/minute, and observed gross margin.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
 - Next: add direct object-storage upload for production-scale retention beyond mounted filesystem storage.
-- Next: replace conservative per-check model-call estimates with observed provider usage from actual Anthropic/DashScope/Scribe responses.
+- Next: use observed provider COGS from live Render runs to set final AI-review allowances per plan.
 - Next: cut over `uploadcheck.app` DNS/custom domains and decide whether to keep legacy Render slugs or recreate services for `uploadcheck-*` subdomains.
 - Partial: Product Hunt launch page, public report examples, and bundled demo clip exist; final launch still needs custom-domain cutover, live checkout proof, mounted persistence/storage envs, and generated secret encryption key configuration.

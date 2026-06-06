@@ -209,7 +209,9 @@ export function formatJobSummary(payload) {
   const cost = payload.costEstimate?.estimatedCogsUsd ?? (
     payload.costEstimate?.estimatedCogsCents == null ? null : payload.costEstimate.estimatedCogsCents / 100
   );
-  const suffix = cost == null ? "" : ` | est. COGS $${Number(cost).toFixed(4)}`;
+  const observed = payload.costEstimate?.observedTotalCogsCents;
+  const observedSuffix = observed == null ? "" : ` | observed COGS $${(Number(observed) / 100).toFixed(4)}`;
+  const suffix = cost == null ? observedSuffix : ` | est. COGS $${Number(cost).toFixed(4)}${observedSuffix}`;
   return `UploadCheck job ${payload.jobId || payload.id || "(unknown)"}: ${status} / ${verdict} | ${minutes} min${suffix}`;
 }
 
@@ -220,7 +222,10 @@ export function formatUsageSummary(payload) {
   const costPerMinuteCents = Number(summary.estimatedCostPerMinuteCents || 0);
   const grossMarginPct = Number(summary.estimatedGrossMarginPct || 0);
   const status = summary.marginSafe === false ? "MARGIN RISK" : "MARGIN SAFE";
-  return `UploadCheck usage: ${status} | ${minutes} min | est. COGS $${cogs.toFixed(4)} | cost/min ${costPerMinuteCents.toFixed(4)}c | margin ${grossMarginPct.toFixed(2)}%`;
+  const observed = summary.observedProviderUsageEntries > 0
+    ? ` | observed cost/min ${Number(summary.observedCostPerMinuteCents || 0).toFixed(4)}c | observed margin ${Number(summary.observedGrossMarginPct || 0).toFixed(2)}%`
+    : "";
+  return `UploadCheck usage: ${status} | ${minutes} min | est. COGS $${cogs.toFixed(4)} | cost/min ${costPerMinuteCents.toFixed(4)}c | margin ${grossMarginPct.toFixed(2)}%${observed}`;
 }
 
 function requireValue(flag, value) {

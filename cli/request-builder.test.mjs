@@ -290,8 +290,8 @@ describe("UploadCheck CLI request builder", () => {
       status: "completed",
       verdict: "PASS",
       minutesMetered: 1,
-      costEstimate: { estimatedCogsCents: 0.0833 }
-    })).toContain("job_2: completed / PASS | 1 min | est. COGS $0.0008");
+      costEstimate: { estimatedCogsCents: 0.0833, observedTotalCogsCents: 0.7364 }
+    })).toContain("job_2: completed / PASS | 1 min | est. COGS $0.0008 | observed COGS $0.0074");
   });
 
   it("formats a compact usage margin summary", () => {
@@ -304,5 +304,20 @@ describe("UploadCheck CLI request builder", () => {
         marginSafe: true
       }
     })).toBe("UploadCheck usage: MARGIN SAFE | 42 min | est. COGS $0.0350 | cost/min 0.0833c | margin 95.79%");
+  });
+
+  it("formats observed usage margin telemetry when provider usage exists", () => {
+    expect(formatUsageSummary({
+      summary: {
+        minutes: 1,
+        estimatedCogsCents: 0.6833,
+        estimatedCostPerMinuteCents: 0.6833,
+        estimatedGrossMarginPct: 65.49,
+        observedProviderUsageEntries: 1,
+        observedCostPerMinuteCents: 0.7364,
+        observedGrossMarginPct: 62.81,
+        marginSafe: false
+      }
+    })).toBe("UploadCheck usage: MARGIN RISK | 1 min | est. COGS $0.0068 | cost/min 0.6833c | margin 65.49% | observed cost/min 0.7364c | observed margin 62.81%");
   });
 });

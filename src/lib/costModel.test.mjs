@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyCostGuardrail, estimateJobCost, estimateModelCheckCost, summarizeUsageMargins, summarizeObservedProviderUsage } from "../../cost-model.mjs";
+import { applyCostGuardrail, estimateJobCost, estimateModelCheckCost, summarizeUsageMargins, summarizeObservedProviderUsage, estimateObservedProviderCost } from "../../cost-model.mjs";
 
 describe("cost model", () => {
   it("computes the 95% margin budget for the $99 / 5,000 minute plan", () => {
@@ -61,7 +61,7 @@ describe("cost model", () => {
       minutesMetered: 5,
       checks: "canvas_fill",
       aiReviewSeconds: 600,
-      providerUsage: [{ input_tokens: 1000, output_tokens: 200, audio_seconds: 30, request_count: 2 }]
+      providerUsage: [{ provider: "anthropic", model: "claude-sonnet-4-5", input_tokens: 1000, output_tokens: 200, audio_seconds: 30, request_count: 2 }]
     });
     const summary = summarizeUsageMargins([
       { roundedMinutes: 10, costSnapshot: first },
@@ -74,6 +74,8 @@ describe("cost model", () => {
     expect(summary.allocatedRevenueCents).toBeGreaterThan(summary.estimatedCogsCents);
     expect(summary.observedProviderInputTokens).toBe(1000);
     expect(summary.observedProviderAudioSeconds).toBe(30);
+    expect(summary.observedProviderCogsCents).toBeGreaterThan(0);
+    expect(summary.observedCostPerMinuteCents).toBeGreaterThan(0);
     expect(summary.marginUnsafeEntries).toBe(1);
   });
 
@@ -90,5 +92,21 @@ describe("cost model", () => {
     expect(summary.totalTokens).toBe(340);
     expect(summary.audioSeconds).toBe(22.5);
     expect(summary.requestCount).toBe(3);
+  });
+
+  it("estimates observed provider COGS from real token and audio usage", () => {
+    const result = estimateObservedProviderCost([
+      { provider: "anthropic", model: "claude-sonnet-4-5", input_tokens: 1637, output_tokens: 108 },
+      { provider: "dashscope", model: "qwen3.5-omni-flash", prompt_tokens: 10000, completion_tokens: 500, audio_included: false },
+      { provider: "elevenlabs", model: "scribe_v1", audio_seconds: 60 }
+    ]);
+
+    expect(result.observedProviderCogsCents).toBeCloseTo(1.5298, 4);
+    expect(result.details).toHaveLength(3);
+    expect(result.details[0]).toMatchObject({
+      provider: "anthropic",
+      inputTokens: 1637,
+      outputTokens: 108
+    });
   });
 });
