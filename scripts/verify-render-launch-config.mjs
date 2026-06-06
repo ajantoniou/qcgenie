@@ -12,6 +12,10 @@ const required = [
   ["creator checkout prompt", /key:\s*UPLOADCHECK_CREATOR_CHECKOUT_URL\s*\n\s*sync:\s*false/],
   ["studio checkout prompt", /key:\s*UPLOADCHECK_STUDIO_CHECKOUT_URL\s*\n\s*sync:\s*false/],
   ["network checkout prompt", /key:\s*UPLOADCHECK_NETWORK_CHECKOUT_URL\s*\n\s*sync:\s*false/],
+  ["lemon squeezy store prompt", /key:\s*UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG\s*\n\s*sync:\s*false/],
+  ["creator variant prompt", /key:\s*UPLOADCHECK_CREATOR_VARIANT_ID\s*\n\s*sync:\s*false/],
+  ["studio variant prompt", /key:\s*UPLOADCHECK_STUDIO_VARIANT_ID\s*\n\s*sync:\s*false/],
+  ["network variant prompt", /key:\s*UPLOADCHECK_NETWORK_VARIANT_ID\s*\n\s*sync:\s*false/],
   ["webhook encryption prompt", /key:\s*UPLOADCHECK_SECRET_ENCRYPTION_KEY\s*\n\s*sync:\s*false/]
 ];
 
@@ -23,4 +27,4 @@ if (missing.length) {
   process.exit(1);
 }
 
-console.log("Render launch config includes custom domains, durable disk paths, hashed API auth, checkout prompts, and secret prompts.");
+console.log("Render launch config includes custom domains, durable disk paths, hashed API auth, direct checkout prompts, Lemon Squeezy checkout prompts, and secret prompts.");

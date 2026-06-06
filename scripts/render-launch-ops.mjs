@@ -23,6 +23,10 @@ const SECRET_ENV_KEYS = [
   "UPLOADCHECK_CREATOR_CHECKOUT_URL",
   "UPLOADCHECK_STUDIO_CHECKOUT_URL",
   "UPLOADCHECK_NETWORK_CHECKOUT_URL",
+  "UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG",
+  "UPLOADCHECK_CREATOR_VARIANT_ID",
+  "UPLOADCHECK_STUDIO_VARIANT_ID",
+  "UPLOADCHECK_NETWORK_VARIANT_ID",
   "UPLOADCHECK_SECRET_ENCRYPTION_KEY",
   "UPLOADCHECK_DEMO_CLIP_URL",
   "UPLOADCHECK_STORAGE_ACCESS_KEY_ID",
@@ -31,9 +35,6 @@ const SECRET_ENV_KEYS = [
 
 const REQUIRED_SECRET_GROUPS = [
   { label: "UPLOADCHECK_API_KEY or UPLOADCHECK_API_KEY_SHA256", keys: ["UPLOADCHECK_API_KEY", "UPLOADCHECK_API_KEY_SHA256"] },
-  { label: "UPLOADCHECK_CREATOR_CHECKOUT_URL", keys: ["UPLOADCHECK_CREATOR_CHECKOUT_URL"] },
-  { label: "UPLOADCHECK_STUDIO_CHECKOUT_URL", keys: ["UPLOADCHECK_STUDIO_CHECKOUT_URL"] },
-  { label: "UPLOADCHECK_NETWORK_CHECKOUT_URL", keys: ["UPLOADCHECK_NETWORK_CHECKOUT_URL"] },
   { label: "UPLOADCHECK_SECRET_ENCRYPTION_KEY", keys: ["UPLOADCHECK_SECRET_ENCRYPTION_KEY"] }
 ];
 
@@ -61,14 +62,20 @@ export function buildRenderLaunchPlan(env = process.env) {
     const value = env[key];
     if (isFilledEnvValue(value)) envVars.push({ serviceId: API_SERVICE_ID, key, value, secret: true });
   }
+  const missingSecretInputs = REQUIRED_SECRET_GROUPS
+    .filter((group) => !group.keys.some((key) => isFilledEnvValue(env[key])))
+    .map((group) => group.label);
+  for (const plan of ["creator", "studio", "network"]) {
+    if (!hasResolvableCheckout(plan, env)) {
+      missingSecretInputs.push(`UPLOADCHECK_${plan.toUpperCase()}_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG plus UPLOADCHECK_${plan.toUpperCase()}_VARIANT_ID`);
+    }
+  }
   return {
     webServiceId: WEB_SERVICE_ID,
     apiServiceId: API_SERVICE_ID,
     domains: DOMAIN_PLAN,
     envVars,
-    missingSecretInputs: REQUIRED_SECRET_GROUPS
-      .filter((group) => !group.keys.some((key) => isFilledEnvValue(env[key])))
-      .map((group) => group.label),
+    missingSecretInputs,
     placeholderInputs: [...OPTIONAL_API_ENV_KEYS, ...SECRET_ENV_KEYS, "RENDER_API_KEY"]
       .filter((key) => isPlaceholderEnvValue(env[key]))
   };
@@ -131,6 +138,11 @@ export function buildEnvTemplate() {
     "UPLOADCHECK_CREATOR_CHECKOUT_URL=\"https://...\"",
     "UPLOADCHECK_STUDIO_CHECKOUT_URL=\"https://...\"",
     "UPLOADCHECK_NETWORK_CHECKOUT_URL=\"https://...\"",
+    "# Alternative checkout setup: comment out direct URLs above and set Lemon Squeezy store + variants.",
+    "# UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG=\"<lemonsqueezy_store_slug>\"",
+    "# UPLOADCHECK_CREATOR_VARIANT_ID=\"<creator_variant_id>\"",
+    "# UPLOADCHECK_STUDIO_VARIANT_ID=\"<studio_variant_id>\"",
+    "# UPLOADCHECK_NETWORK_VARIANT_ID=\"<network_variant_id>\"",
     "",
     "# Webhook secret encryption: required before hosted webhooks are production-ready.",
     "# Generate with: npm run --silent secret:generate",
@@ -229,6 +241,11 @@ function validateCheckout(env, errors) {
       errors.push({ key: `UPLOADCHECK_${plan.toUpperCase()}_CHECKOUT_URL`, reason: "invalid_url", detail: `${plan} checkout must resolve to an https URL.` });
     }
   }
+}
+
+function hasResolvableCheckout(plan, env) {
+  const url = buildCheckoutUrl(plan, env);
+  return isFilledEnvValue(url) && isHttpsUrl(url);
 }
 
 function validateSecret(env, errors) {

@@ -23,8 +23,17 @@ describe("Render launch blueprint", () => {
     expect(renderYaml).not.toMatch(/key:\s*UPLOADCHECK_API_KEY\s*\n\s*sync:\s*false/);
   });
 
+  it("prompts for direct checkout URLs and Lemon Squeezy variant alternatives", () => {
+    expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_CREATOR_CHECKOUT_URL\s*\n\s*sync:\s*false/);
+    expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG\s*\n\s*sync:\s*false/);
+    expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_CREATOR_VARIANT_ID\s*\n\s*sync:\s*false/);
+    expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_STUDIO_VARIANT_ID\s*\n\s*sync:\s*false/);
+    expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_NETWORK_VARIANT_ID\s*\n\s*sync:\s*false/);
+  });
+
   it("passes the launch config verifier", () => {
     const output = execFileSync("node", ["scripts/verify-render-launch-config.mjs"], { encoding: "utf8" });
     expect(output).toContain("hashed API auth");
+    expect(output).toContain("Lemon Squeezy checkout prompts");
   });
 });
