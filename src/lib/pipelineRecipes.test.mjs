@@ -56,6 +56,7 @@ describe("UploadCheck pipeline recipes", () => {
     expect(longForm.arguments.checks).toContain("first_three_seconds");
     expect(longForm.arguments.checks).toContain("end_screen_tease");
     expect(longForm.arguments.checks).toContain("rehook_cadence");
+    expect(longForm.arguments.checks).toContain("contact_sheet_evidence");
     expect(longForm.arguments.checks).toContain("script_faithfulness");
     expect(longForm.arguments).toMatchObject({
       manifest_path: "/path/to/storybook.json",
@@ -142,12 +143,12 @@ describe("UploadCheck pipeline recipes", () => {
       callable_check: "rehook_cadence"
     });
     expect(implemented.rehook_cadence.covers).toContain("pattern interrupt");
+    expect(implemented.contact_sheet_evidence).toMatchObject({
+      callable_check: "contact_sheet_evidence"
+    });
+    expect(implemented.contact_sheet_evidence.covers).toContain("Before/after visual proof");
 
-    for (const id of [
-      "contact_sheet_evidence"
-    ]) {
-      expect(planned.has(id)).toBe(true);
-    }
+    expect(planned.size).toBe(0);
 
     expect(JSON.stringify(replacement)).not.toContain("/Applications/");
     expect(JSON.stringify(replacement)).not.toContain("personas/");
