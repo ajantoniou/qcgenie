@@ -12,6 +12,7 @@
     "launch:dns": "node scripts/launch-dns.mjs",
     "launch:checkout": "node scripts/launch-checkout.mjs",
     "launch:storage": "node scripts/launch-storage.mjs",
+    "launch:handoff": "node scripts/launch-handoff.mjs",
     "launch:check": "node scripts/launch-check.mjs",
     "launch-status:generate": "node scripts/generate-launch-status.mjs",
     "launch-status:verify": "node scripts/verify-launch-status.mjs",

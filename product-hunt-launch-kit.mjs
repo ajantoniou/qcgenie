@@ -66,6 +66,7 @@ export function buildProductHuntLaunchKit(status) {
       remaining_blockers: [],
       required_commands: [
         "npm run launch:doctor",
+        "npm run launch:handoff",
         "npm run codex:verify-install",
         "npm run cost-basis:verify",
         "npm run media-ingress:verify",

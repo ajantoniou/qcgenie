@@ -48,6 +48,7 @@ Before Product Hunt launch, sync the Blueprint or manually apply the same values
 
 ```bash
 npm run launch:doctor
+npm run launch:handoff -- --text
 npm run launch:dns
 npm run launch:checkout
 UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout
@@ -80,6 +81,7 @@ npm run render:validate-env
 npm run render:audit
 npm run render:apply
 npm run launch:doctor
+npm run launch:handoff -- --text
 npm run launch:dns
 npm run launch:checkout
 UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout
@@ -115,6 +117,7 @@ After DNS propagation:
 
 ```bash
 npm run launch:doctor
+npm run launch:handoff -- --text
 npm run launch:dns
 npm run launch:checkout
 UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout
