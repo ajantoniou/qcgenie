@@ -213,6 +213,20 @@
         }
       }
     },
+    "/launch-status.json": {
+      "get": {
+        "summary": "UploadCheck launch status",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Machine-readable Product Hunt launch go/no-go state, completed controls, remaining blockers, and operator commands.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
     "/cost-basis.json": {
       "get": {
         "summary": "UploadCheck cost basis",
