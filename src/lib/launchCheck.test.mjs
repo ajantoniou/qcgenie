@@ -12,7 +12,10 @@ describe("launch check", () => {
           ? ({ product_hunt_ready: true })
           : ({ readyForProductHunt: true })
       }),
-      resolver: async () => [{ address: "216.24.57.1", family: 4 }]
+      resolver: async () => [{ address: "216.24.57.1", family: 4 }],
+      cnameResolver: async (host) => host === "api.uploadcheck.app"
+        ? ["qcgenie-api.onrender.com"]
+        : ["qcgenie-web.onrender.com"]
     });
 
     expect(result.ready).toBe(true);
@@ -35,7 +38,8 @@ describe("launch check", () => {
       resolver: async (host) => {
         if (host === "api.uploadcheck.app") throw new Error("ENOTFOUND");
         return [{ address: "216.24.57.1", family: 4 }];
-      }
+      },
+      cnameResolver: async (host) => host === "api.uploadcheck.app" ? [] : ["qcgenie-web.onrender.com"]
     });
 
     expect(result.ready).toBe(false);
@@ -58,11 +62,35 @@ describe("launch check", () => {
         }
         return { ok: true, status: 200, json: async () => ({}) };
       },
-      resolver: async () => [{ address: "216.24.57.1", family: 4 }]
+      resolver: async () => [{ address: "216.24.57.1", family: 4 }],
+      cnameResolver: async (host) => host === "api.uploadcheck.app"
+        ? ["qcgenie-api.onrender.com"]
+        : ["qcgenie-web.onrender.com"]
     });
 
     expect(result.ready).toBe(false);
     expect(result.blockers).toContain("launch-status");
     expect(result.blockers).toContain("readiness-launch-status-mismatch");
+  });
+
+  it("blocks subdomains that resolve to the wrong DNS target", async () => {
+    const result = await buildLaunchCheck({
+      apiBaseUrl: "https://api.example.test",
+      fetchImpl: async (url) => ({
+        ok: true,
+        status: String(url).includes("/v1/readiness") ? 200 : 200,
+        json: async () => String(url).includes("/v1/launch-status")
+          ? ({ product_hunt_ready: true })
+          : ({ readyForProductHunt: true })
+      }),
+      resolver: async () => [{ address: "203.0.113.10", family: 4 }],
+      cnameResolver: async (host) => host === "uploadcheck.app"
+        ? ["qcgenie-web.onrender.com"]
+        : ["wrong.example.com"]
+    });
+
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toContain("www.uploadcheck.app:dns");
+    expect(result.blockers).toContain("api.uploadcheck.app:dns");
   });
 });

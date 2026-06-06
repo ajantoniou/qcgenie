@@ -8,17 +8,23 @@ const HOSTS = LAUNCH_TARGETS.http_targets.map((target) => ({
   kind: target.kind,
   host: target.host,
   expectedRenderHost: target.expected_render_host,
+  expectedAddresses: target.expected_addresses || [],
   url: target.url
 }));
 
-export async function buildLaunchCheck({ apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || DEFAULT_API_BASE_URL, fetchImpl = fetch, resolver = lookup } = {}) {
+export async function buildLaunchCheck({
+  apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || DEFAULT_API_BASE_URL,
+  fetchImpl = fetch,
+  resolver = lookup,
+  cnameResolver = resolveCname
+} = {}) {
   const normalizedApiBaseUrl = apiBaseUrl.replace(/\/+$/, "");
   const readiness = await fetchJson(fetchImpl, `${normalizedApiBaseUrl}/v1/readiness`);
   const launchStatus = await fetchJson(fetchImpl, `${normalizedApiBaseUrl}/v1/launch-status`);
   const domains = [];
 
   for (const target of HOSTS) {
-    const dns = await checkDns(target, resolver);
+    const dns = await checkDns(target, resolver, cnameResolver);
     const http = await checkHttp(target, fetchImpl);
     domains.push({
       ...target,
@@ -69,14 +75,17 @@ async function fetchJson(fetchImpl, url) {
   return response.json();
 }
 
-async function checkDns(target, resolver) {
+async function checkDns(target, resolver, cnameResolver = resolveCname) {
   try {
-    const cname = await resolveCname(target.host);
+    const cname = await cnameResolver(target.host);
     const addresses = await resolver(target.host, { all: true });
     const cnameMatches = cname.some((value) => stripDot(value) === target.expectedRenderHost);
-    const addressOk = addresses.length > 0;
+    const expectedAddresses = target.expectedAddresses || [];
+    const addressOk = expectedAddresses.length
+      ? addresses.some((item) => expectedAddresses.includes(item.address))
+      : false;
     return {
-      ok: target.host === "uploadcheck.app" ? addressOk : (cnameMatches || addressOk),
+      ok: target.host === "uploadcheck.app" ? (cnameMatches || addressOk) : cnameMatches,
       cname: cname[0] || null,
       addresses: addresses.map((item) => item.address)
     };

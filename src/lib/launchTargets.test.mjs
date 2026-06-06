@@ -29,6 +29,7 @@ describe("UploadCheck launch targets", () => {
       ["api", "qcgenie-api.onrender.com"]
     ]);
     expect(targets.verification_commands).toContain("curl -i https://qcgenie-api.onrender.com/v1/launch-status");
+    expect(targets.http_targets.find((target) => target.host === "uploadcheck.app").expected_addresses).toContain("216.24.57.1");
   });
 
   it("prints copy-paste DNS cutover records from launch-targets.json", () => {
@@ -89,7 +90,10 @@ describe("UploadCheck launch targets", () => {
         status: String(url).includes("/v1/readiness") ? 200 : 200,
         json: async () => ({ readyForProductHunt: true })
       }),
-      resolver: async () => [{ address: "216.24.57.1", family: 4 }]
+      resolver: async () => [{ address: "216.24.57.1", family: 4 }],
+      cnameResolver: async (host) => host === "api.uploadcheck.app"
+        ? ["qcgenie-api.onrender.com"]
+        : ["qcgenie-web.onrender.com"]
     });
 
     expect(result.domains.map((domain) => [domain.host, domain.expectedRenderHost])).toEqual([

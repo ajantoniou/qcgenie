@@ -43,6 +43,7 @@
       "kind": "web",
       "host": "uploadcheck.app",
       "expected_render_host": "qcgenie-web.onrender.com",
+      "expected_addresses": ["216.24.57.1"],
       "url": "https://uploadcheck.app/"
     },
     {

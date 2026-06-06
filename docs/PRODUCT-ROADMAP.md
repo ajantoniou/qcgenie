@@ -215,6 +215,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: Render launch ops now support either direct checkout URLs or Lemon Squeezy store slug + plan variant IDs, so the accepted readiness checkout alternatives are actually applied to Render.
 - Done: Render launch bootstrap env added through `npm run render:bootstrap-env`; it generates the API hash and webhook encryption key into the local Render env file while printing the client bearer token separately.
 - Done: Product Hunt launch checker added through `npm run launch:check`; it combines live readiness, DNS resolution, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
+- Done: Product Hunt launch checker now verifies DNS against expected Render targets, not just generic address resolution; subdomains require the expected CNAME and the apex accepts the expected Render CNAME or Render fallback IP.
 - Done: DNS cutover helper added through `npm run launch:dns`; it prints copy-paste DNS records and verification commands from `public/launch-targets.json`.
 - Done: Checkout config helper added through `npm run launch:checkout`; it verifies Creator, Studio, and Network checkout resolution while redacting direct checkout paths and Lemon Squeezy variant IDs.
 - Done: Persistence/storage config helper added through `npm run launch:storage`; it verifies mounted store paths, durable upload storage, and object-storage completeness without exposing access keys or secret keys.
