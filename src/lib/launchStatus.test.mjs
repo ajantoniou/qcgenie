@@ -43,6 +43,7 @@ describe("public launch status", () => {
     expect(status.verified_controls.find((control) => control.id === "codex_mcp")?.evidence).toContain("codex:verify-install");
     expect(status.verified_controls.find((control) => control.id === "cost_basis")?.evidence).toContain("cost-basis:verify");
     expect(status.verified_controls.find((control) => control.id === "roadmap")?.evidence).toContain("roadmap:verify");
+    expect(status.verified_controls.find((control) => control.id === "sample_reports")?.evidence).toContain("PASS, WATCH, and BLOCK");
     expect(status.verified_controls.find((control) => control.id === "billing_enforcement")?.evidence).toContain("AI-review seconds");
     expect(status.go_no_go_rule).toContain("readyForProductHunt=true");
   });
@@ -78,6 +79,7 @@ describe("public launch status", () => {
     expect(Object.values(status.status).every((value) => value === "pass")).toBe(true);
     expect(status.remaining_blockers).toEqual([]);
     expect(status.public_artifacts.live_launch_status).toBe("https://qcgenie-api.onrender.com/v1/launch-status");
+    expect(status.public_artifacts.sample_reports).toBe("https://qcgenie-api.onrender.com/sample-reports/index.json");
   });
 
   it("verifies launch status against readiness and discovery metadata", () => {

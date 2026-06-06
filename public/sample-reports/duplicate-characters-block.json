@@ -1,0 +1,68 @@
+{
+  "jobId": "sample_duplicate_characters_block",
+  "status": "completed",
+  "verdict": "BLOCK",
+  "gateVerdict": "BLOCK",
+  "minutesMetered": 1,
+  "mediaIngress": {
+    "mode": "inline_ephemeral",
+    "contentType": "video/mp4",
+    "bytes": 12400000,
+    "sha256": "e5af68fdc3bbf14af5b2297f61ec7520b64f520de7ec60ff827e8fb0d9ebc482",
+    "ephemeral": true,
+    "storageMode": "render_temp_storage"
+  },
+  "checks": [
+    "canvas_fill",
+    "twins",
+    "cheap_broll",
+    "loop_freeze"
+  ],
+  "costEstimate": {
+    "planId": "creator",
+    "targetGrossMarginPct": 95,
+    "minutesMetered": 1,
+    "aiReviewSeconds": 3,
+    "aiReviewBudgetSeconds": 3600,
+    "observedProviderUsageEntries": 1,
+    "observedProviderInputTokens": 1637,
+    "observedProviderOutputTokens": 108,
+    "observedProviderCogsCents": 0.654,
+    "deterministicComputeCents": 0.0833,
+    "observedTotalCogsCents": 0.7373,
+    "observedCostPerMinuteCents": 0.7373,
+    "allocatedRevenueCents": 8.25,
+    "observedGrossMarginPct": 91.063,
+    "observedMarginSafe": false,
+    "marginNote": "This is why duplicate-character vision review is sampled/flagged-window only, not unlimited on every included minute."
+  },
+  "flags": [
+    {
+      "flagId": "sample_block_twins",
+      "gate": "twins",
+      "severity": "block",
+      "timestamp": "00:00:00",
+      "summary": "39 near-duplicate characters: repeated faces, hair, and robe silhouettes across the crowd. Regenerate or edit the scene with more character variation.",
+      "evidenceSource": "vision_sample_window",
+      "transcriptEvidence": "needs_more_character_variation=true",
+      "fixability": "source_or_render_required"
+    }
+  ],
+  "artifacts": [
+    {
+      "artifactType": "json_report",
+      "url": "/sample-reports/duplicate-characters-block.json",
+      "metadata": { "format": "json", "publicSample": true }
+    },
+    {
+      "artifactType": "marker_export",
+      "url": "/v1/qc/jobs/sample_duplicate_characters_block/artifacts/markers",
+      "metadata": { "format": "premiere_csv", "sampleRows": 1 }
+    }
+  ],
+  "repairLoop": {
+    "fixableFlags": 0,
+    "sourceOrRenderFlags": 1,
+    "nextAction": "Show the BLOCK flag and ask: Fix now? Because this is a source/render defect, provide timestamped regeneration instructions and rerun UploadCheck after the new render."
+  }
+}

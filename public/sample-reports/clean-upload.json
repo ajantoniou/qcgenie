@@ -1,0 +1,53 @@
+{
+  "jobId": "sample_clean_upload",
+  "status": "completed",
+  "verdict": "PASS",
+  "gateVerdict": "PASS",
+  "minutesMetered": 4,
+  "mediaIngress": {
+    "mode": "inline_ephemeral",
+    "contentType": "video/mp4",
+    "bytes": 18432000,
+    "sha256": "7b5d8f1d3a0f2190d6e7538f1b2e1ed9c5f5a36fd738690c4b59fd562a1f4f31",
+    "ephemeral": true,
+    "storageMode": "render_temp_storage"
+  },
+  "checks": [
+    "canvas_fill",
+    "loop_freeze",
+    "repeat_fatigue",
+    "dead_air",
+    "text_contrast",
+    "text_safe_area"
+  ],
+  "costEstimate": {
+    "planId": "creator",
+    "targetGrossMarginPct": 95,
+    "minutesMetered": 4,
+    "aiReviewSeconds": 0,
+    "deterministicComputeCents": 0.3332,
+    "estimatedCogsCents": 0.3332,
+    "estimatedCostPerMinuteCents": 0.0833,
+    "allocatedRevenueCents": 33,
+    "estimatedGrossMarginPct": 98.9903,
+    "marginSafe": true
+  },
+  "flags": [],
+  "artifacts": [
+    {
+      "artifactType": "json_report",
+      "url": "/sample-reports/clean-upload.json",
+      "metadata": { "format": "json", "publicSample": true }
+    },
+    {
+      "artifactType": "marker_export",
+      "url": "/v1/qc/jobs/sample_clean_upload/artifacts/markers",
+      "metadata": { "format": "premiere_csv", "sampleRows": 0 }
+    }
+  ],
+  "repairLoop": {
+    "fixableFlags": 0,
+    "sourceOrRenderFlags": 0,
+    "nextAction": "No BLOCK or WATCH flags. UploadCheck gates passed."
+  }
+}

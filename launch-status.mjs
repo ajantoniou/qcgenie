@@ -51,6 +51,7 @@ export function buildLaunchStatus(readiness, {
       pipeline_recipes: "https://qcgenie-api.onrender.com/pipeline-recipes.json",
       launch_targets: "https://qcgenie-api.onrender.com/launch-targets.json",
       cost_basis: "https://qcgenie-api.onrender.com/cost-basis.json",
+      sample_reports: "https://qcgenie-api.onrender.com/sample-reports/index.json",
       launch_status: "https://qcgenie-api.onrender.com/launch-status.json",
       live_launch_status: "https://qcgenie-api.onrender.com/v1/launch-status",
       product_hunt_page: "https://uploadcheck.app/product-hunt/",
@@ -100,6 +101,11 @@ function verifiedControls() {
       id: "roadmap",
       status: "done",
       evidence: "npm run roadmap:verify checks the 50-point plan, expert-panel coverage, NTO replacement addendum, and execution-status markers."
+    },
+    {
+      id: "sample_reports",
+      status: "done",
+      evidence: "Public PASS, WATCH, and BLOCK sample report JSON artifacts are linked from /sample-report/, agent-manifest.json, and llms.txt."
     },
     {
       id: "observed_costs",

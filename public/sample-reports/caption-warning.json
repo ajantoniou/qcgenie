@@ -1,0 +1,62 @@
+{
+  "jobId": "sample_caption_warning",
+  "status": "completed",
+  "verdict": "WATCH",
+  "gateVerdict": "WATCH",
+  "minutesMetered": 1,
+  "mediaIngress": {
+    "mode": "signed_upload",
+    "contentType": "video/mp4",
+    "bytes": 8320000,
+    "sha256": "b19ebc7f91f0bc840d52f3a6dcb882c6b510f03a8f6f2d4f54e710667aa31892",
+    "ephemeral": false,
+    "storageMode": "durable_filesystem"
+  },
+  "checks": [
+    "shorts_format",
+    "text_contrast",
+    "text_safe_area",
+    "dead_air"
+  ],
+  "costEstimate": {
+    "planId": "creator",
+    "targetGrossMarginPct": 95,
+    "minutesMetered": 1,
+    "aiReviewSeconds": 0,
+    "deterministicComputeCents": 0.0833,
+    "estimatedCogsCents": 0.0833,
+    "estimatedCostPerMinuteCents": 0.0833,
+    "allocatedRevenueCents": 8.25,
+    "estimatedGrossMarginPct": 98.9903,
+    "marginSafe": true
+  },
+  "flags": [
+    {
+      "flagId": "sample_warn_text_safe_area",
+      "gate": "text_safe_area",
+      "severity": "warn",
+      "timestamp": "00:00:07",
+      "summary": "Caption sits close to the Shorts lower UI safe area.",
+      "evidenceSource": "ocr_frame_window",
+      "transcriptEvidence": "Move caption block 96px upward and rerun UploadCheck.",
+      "fixability": "agent_fixable"
+    }
+  ],
+  "artifacts": [
+    {
+      "artifactType": "json_report",
+      "url": "/sample-reports/caption-warning.json",
+      "metadata": { "format": "json", "publicSample": true }
+    },
+    {
+      "artifactType": "marker_export",
+      "url": "/v1/qc/jobs/sample_caption_warning/artifacts/markers",
+      "metadata": { "format": "premiere_csv", "sampleRows": 1 }
+    }
+  ],
+  "repairLoop": {
+    "fixableFlags": 1,
+    "sourceOrRenderFlags": 0,
+    "nextAction": "Show the WATCH flag and ask: Fix now? If captions are reachable, move the caption upward, rerender, and rerun UploadCheck."
+  }
+}

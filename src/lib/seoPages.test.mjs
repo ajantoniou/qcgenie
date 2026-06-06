@@ -49,4 +49,13 @@ describe("static SEO/AEO pages", () => {
     expect(html).toContain("95% gross-margin target");
     expect(html).not.toContain("We never block a check");
   });
+
+  it("links public sample report JSON artifacts from the sample page", () => {
+    const html = readFileSync("public/sample-report/index.html", "utf8");
+
+    expect(html).toContain("/sample-reports/index.json");
+    expect(html).toContain("/sample-reports/clean-upload.json");
+    expect(html).toContain("/sample-reports/caption-warning.json");
+    expect(html).toContain("/sample-reports/duplicate-characters-block.json");
+  });
 });

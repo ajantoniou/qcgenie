@@ -28,6 +28,7 @@ Agent integration:
 - Machine-readable launch status and blockers: https://qcgenie-api.onrender.com/launch-status.json
 - Live machine-readable launch status and blockers: https://qcgenie-api.onrender.com/v1/launch-status
 - Cost basis and margin assumptions: https://qcgenie-api.onrender.com/cost-basis.json
+- Public sample reports: https://qcgenie-api.onrender.com/sample-reports/index.json
 - The Render service display name is uploadcheck-api, but the live Render URL still uses the legacy qcgenie-api slug until custom-domain cutover.
 - Legacy qcgenie-api environment names are accepted only as migration fallbacks.
 - MCP wrapper package lives in the repository under mcp-server.

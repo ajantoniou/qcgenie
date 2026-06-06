@@ -1,0 +1,24 @@
+{
+  "name": "UploadCheck Public Sample Reports",
+  "description": "Machine-readable PASS, WATCH, and BLOCK report examples for Product Hunt, agents, and creator proof.",
+  "reports": [
+    {
+      "id": "clean-upload",
+      "verdict": "PASS",
+      "url": "https://qcgenie-api.onrender.com/sample-reports/clean-upload.json",
+      "purpose": "Shows a clean upload with deterministic checks, source hash proof, cost estimate, and no flags."
+    },
+    {
+      "id": "caption-warning",
+      "verdict": "WATCH",
+      "url": "https://qcgenie-api.onrender.com/sample-reports/caption-warning.json",
+      "purpose": "Shows a warning-only report with a fixable caption/safe-area issue and editor marker export."
+    },
+    {
+      "id": "duplicate-characters-block",
+      "verdict": "BLOCK",
+      "url": "https://qcgenie-api.onrender.com/sample-reports/duplicate-characters-block.json",
+      "purpose": "Shows a blocking duplicate-character finding requiring more character variation before upload."
+    }
+  ]
+}

@@ -28,7 +28,7 @@
           <h1>Sample UploadCheck Report</h1>
           <p class="tagline">Quality check videos, podcasts, and clips before you upload.</p>
           <p>This sample shows the report shape creators and agents should expect: verdict, timestamp, evidence, fixability, and handoff notes before the file is uploaded.</p>
-          <div class="ctaRow"><a class="button" href="/agentic-media-qc-api/">Use the API</a><a class="button secondary" href="/pricing/">See pricing</a></div>
+          <div class="ctaRow"><a class="button" href="/sample-reports/index.json">View JSON reports</a><a class="button secondary" href="/agentic-media-qc-api/">Use the API</a></div>
         </div>
         <aside class="panel">
           <h2>Verdict examples</h2>
@@ -41,9 +41,9 @@
       </section>
       <section class="section">
         <h2>Public report examples</h2>
-        <article class="reportRow"><time>PASS</time><div><h2>Clean upload</h2><p>No hard quality gates fired. The report records checked minutes, cost estimate, source metadata, and the exact checks that ran.</p></div></article>
-        <article class="reportRow"><time>WATCH</time><div><h2>Caption or layout warning</h2><p>Example: caption text sits close to a Shorts UI safe area. Agent can show the flag and ask whether to move or restyle the overlay before rerunning QC.</p></div></article>
-        <article class="reportRow"><time>BLOCK</time><div><h2>Duplicate crowd characters</h2><p>Example: repeated faces and robe silhouettes appear across a crowd scene. UploadCheck tells the editor to re-render with distinct character variation before upload.</p></div></article>
+        <article class="reportRow"><time>PASS</time><div><h2><a href="/sample-reports/clean-upload.json">Clean upload</a></h2><p>No hard quality gates fired. The report records checked minutes, cost estimate, source metadata, and the exact checks that ran.</p></div></article>
+        <article class="reportRow"><time>WATCH</time><div><h2><a href="/sample-reports/caption-warning.json">Caption or layout warning</a></h2><p>Example: caption text sits close to a Shorts UI safe area. Agent can show the flag and ask whether to move or restyle the overlay before rerunning QC.</p></div></article>
+        <article class="reportRow"><time>BLOCK</time><div><h2><a href="/sample-reports/duplicate-characters-block.json">Duplicate crowd characters</a></h2><p>Example: repeated faces and robe silhouettes appear across a crowd scene. UploadCheck tells the editor to re-render with distinct character variation before upload.</p></div></article>
       </section>
       <section class="section">
         <h2>Timestamped findings</h2>
