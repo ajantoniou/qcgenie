@@ -61,6 +61,8 @@ npm run launch:check
 npm run readiness:check
 ```
 
+`launch:handoff` includes a structured `blockerFixPlan` in JSON mode and a `Fix plan` section in text mode. Use it as the operator sequence for Render env preparation, checkout URLs, mounted persistence, durable upload storage, domain cutover, webhook secret encryption, and final proof commands before Product Hunt launch.
+
 The Blueprint can request Render domains and disk settings, but DNS still has to point to the `qcgenie-*` Render hostnames before `/v1/readiness` can mark `customDomain` ready.
 
 If a Render API key is available locally, the same launch shape can be audited or partially applied without opening the dashboard:

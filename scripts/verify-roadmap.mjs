@@ -29,6 +29,7 @@ const REQUIRED_EXECUTION_MARKERS = [
   "MCP `qc_get_pipeline_handoff`",
   "MCP `qc_get_pipeline_recipes`",
   "pipeline handoff artifact",
+  "launch blocker fix plan",
   "Product Hunt launch checker",
   "observed provider usage is now priced"
 ];
