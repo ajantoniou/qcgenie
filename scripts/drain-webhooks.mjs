@@ -1,9 +1,9 @@
-const apiBaseUrl = process.env.QCGENIE_API_BASE_URL || "https://qcgenie-api.onrender.com";
-const apiKey = process.env.QCGENIE_API_KEY;
-const limit = Number(process.env.QCGENIE_DRAIN_LIMIT || 25);
+const apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || "https://qcgenie-api.onrender.com";
+const apiKey = process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
+const limit = Number(process.env.UPLOADCHECK_DRAIN_LIMIT || process.env.QCGENIE_DRAIN_LIMIT || 25);
 
 if (!apiKey) {
-  throw new Error("QCGENIE_API_KEY is required to drain webhook deliveries.");
+  throw new Error("UPLOADCHECK_API_KEY is required to drain webhook deliveries.");
 }
 
 const response = await fetch(`${apiBaseUrl}/v1/webhooks/deliveries/drain`, {

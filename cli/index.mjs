@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+import { createReadStream } from "node:fs";
+import { buildJobRequest, formatJobSummary, parseArgs } from "./request-builder.mjs";
+
+try {
+  const { target, options } = parseArgs(process.argv.slice(2));
+  const apiKey = options.apiKey || process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
+  if (!apiKey) throw new Error("Set UPLOADCHECK_API_KEY or pass --api-key.");
+
+  const request = buildJobRequest(target, options);
+  const payload = request.kind === "signed_upload"
+    ? await runSignedUploadJob(request, apiKey)
+    : await postJson(request.apiBaseUrl, request.path, request.payload, apiKey);
+
+  console.log(options.json ? JSON.stringify(payload, null, 2) : formatJobSummary(payload));
+} catch (error) {
+  console.error(error.message);
+  process.exitCode = 1;
+}
+
+async function runSignedUploadJob(request, apiKey) {
+  const upload = await postJson(request.apiBaseUrl, request.createUpload.path, request.createUpload.payload, apiKey);
+  const putResponse = await fetch(upload.signedPutUrl, {
+    method: "PUT",
+    headers: {
+      "content-type": request.contentType,
+      "content-length": String(request.sizeBytes)
+    },
+    body: createReadStream(request.filePath),
+    duplex: "half"
+  });
+  if (!putResponse.ok) {
+    const text = await putResponse.text();
+    throw new Error(`UploadCheck upload ${putResponse.status}: ${text}`);
+  }
+  const jobPayload = {
+    ...request.createJob.payload,
+    upload_id: upload.uploadId
+  };
+  return postJson(request.apiBaseUrl, request.createJob.path, jobPayload, apiKey);
+}
+
+async function postJson(apiBaseUrl, path, payload, apiKey) {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${apiKey}`
+    },
+    body: JSON.stringify(payload)
+  });
+  const body = await response.json();
+  if (!response.ok) {
+    throw new Error(`UploadCheck API ${response.status}: ${JSON.stringify(body)}`);
+  }
+  return body;
+}

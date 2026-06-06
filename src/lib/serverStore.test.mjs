@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
@@ -20,8 +20,39 @@ describe("JsonStore", () => {
 
       expect(reloaded.getJob(job.jobId)).toMatchObject({ idempotencyKey: "abc", status: "queued" });
       expect(reloaded.getUpload(upload.uploadId)).toMatchObject({ filename: "rough-cut.mp4", status: "created" });
+      expect(reloaded.getUpload(upload.uploadId).signedPutUrl).toContain(`/v1/uploads/${upload.uploadId}/content?token=`);
       expect(reloaded.getWebhook(webhook.webhookId)).toMatchObject({ url: "https://agent.example.com/qc-callback" });
       expect(reloaded.state.usageLedger[0]).toMatchObject({ usageId: usage.usageId, roundedMinutes: 19 });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("marks uploaded content and creates upload jobs from the stored local file", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+    const mediaPath = join(dir, "master.mp4");
+
+    try {
+      writeFileSync(mediaPath, "fake-video");
+      const store = new JsonStore(path);
+      const upload = store.createUpload({ filename: "master.mp4", content_type: "video/mp4", size_bytes: 10 }, {
+        baseUrl: "http://127.0.0.1:10002"
+      });
+      const stored = store.markUploadStored(upload.uploadId, {
+        contentPath: mediaPath,
+        bytesReceived: 10,
+        sha256: "abc123"
+      });
+      const job = store.createJob({ upload_id: upload.uploadId });
+
+      expect(upload.signedPutUrl).toMatch(new RegExp(`^http://127\\.0\\.0\\.1:10002/v1/uploads/${upload.uploadId}/content\\?token=`));
+      expect(stored).toMatchObject({ status: "uploaded", contentPath: mediaPath, bytesReceived: 10 });
+      expect(job).toMatchObject({
+        source: mediaPath,
+        sourceType: "upload",
+        uploadId: upload.uploadId
+      });
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -149,6 +180,32 @@ describe("JsonStore", () => {
     }
   });
 
+  it("records an honest fallback when a local media file is invalid", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+    const mediaPath = join(dir, "invalid.mp4");
+
+    try {
+      writeFileSync(mediaPath, "not-a-real-video");
+      const store = new JsonStore(path);
+      const job = store.createJob({ source: mediaPath });
+      const completed = store.runDeterministicQc(job.jobId);
+
+      expect(completed).toMatchObject({
+        status: "completed",
+        verdict: "WATCH",
+        gateVerdict: "NEEDS_REVIEW",
+        minutesMetered: 0
+      });
+      expect(store.listFlags(job.jobId)[0]).toMatchObject({
+        gate: "engine",
+        severity: "warn"
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("ingests external gate verdicts into job verdicts, flags, and marker exports", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");
@@ -181,6 +238,80 @@ describe("JsonStore", () => {
       });
       expect(store.listJobEvents(job.jobId).map((event) => event.eventType)).toContain("gate_verdict_ingested");
       expect(store.buildMarkerCsv(job.jobId)).toContain("00:00:42,block,loop_freeze");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("ingests text contrast gate findings with readable summaries", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const job = store.createJob({ source: "/tmp/final-short.mp4" });
+      const result = store.ingestGateVerdict(job.jobId, {
+        verdict: "BLOCK",
+        blocked: ["text_contrast"],
+        skipped: [],
+        per_check: {
+          text_contrast: {
+            pass: false,
+            findings: [{
+              t_start: 12.4,
+              t_end: 14.4,
+              seconds: 2,
+              words: [{ text: "Buried", contrast: 1.42 }, { text: "in", contrast: 1.41 }, { text: "1945", contrast: 1.4 }]
+            }]
+          }
+        }
+      });
+
+      expect(result.importedFlags).toHaveLength(1);
+      expect(store.listFlags(job.jobId)[0]).toMatchObject({
+        gate: "text_contrast",
+        severity: "block",
+        timestamp: "00:00:12",
+        summary: 'Low-contrast overlay text: "Buried in 1945" (contrast 1.42:1)'
+      });
+      expect(store.buildMarkerCsv(job.jobId)).toContain('00:00:12,block,text_contrast,"Low-contrast overlay text: ""Buried in 1945"" (contrast 1.42:1)"');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("ingests text safe-area gate findings with readable summaries", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const job = store.createJob({ source: "/tmp/short.mp4" });
+      const result = store.ingestGateVerdict(job.jobId, {
+        verdict: "BLOCK",
+        blocked: ["text_safe_area"],
+        skipped: [],
+        per_check: {
+          text_safe_area: {
+            pass: false,
+            findings: [{
+              t_start: 2,
+              t_end: 4,
+              seconds: 2,
+              words: [{ text: "Too" }, { text: "low" }]
+            }]
+          }
+        }
+      });
+
+      expect(result.importedFlags).toHaveLength(1);
+      expect(store.listFlags(job.jobId)[0]).toMatchObject({
+        gate: "text_safe_area",
+        severity: "block",
+        timestamp: "00:00:02",
+        summary: 'Overlay text outside safe area: "Too low"'
+      });
+      expect(store.buildMarkerCsv(job.jobId)).toContain('00:00:02,block,text_safe_area,"Overlay text outside safe area: ""Too low"""');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

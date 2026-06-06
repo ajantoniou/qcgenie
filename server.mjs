@@ -1,18 +1,23 @@
-import { createReadStream, existsSync } from "node:fs";
+import { createReadStream, createWriteStream, existsSync, mkdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
+import { Transform } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { JsonStore } from "./server-store.mjs";
+import { cleanupInlineMedia, materializeInlineMedia } from "./inline-media.mjs";
+import { estimateJobCost } from "./cost-model.mjs";
 
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
-const store = new JsonStore(process.env.QCGENIE_STORE_PATH || "/tmp/qcgenie/store.json", {
-  secretEncryptionKey: process.env.QCGENIE_SECRET_ENCRYPTION_KEY
+const uploadDir = process.env.UPLOADCHECK_UPLOAD_DIR || process.env.QCGENIE_UPLOAD_DIR || "/tmp/uploadcheck/uploads";
+const store = new JsonStore(process.env.UPLOADCHECK_STORE_PATH || process.env.QCGENIE_STORE_PATH || "/tmp/uploadcheck/store.json", {
+  secretEncryptionKey: process.env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || process.env.QCGENIE_SECRET_ENCRYPTION_KEY
 });
-const apiKey = process.env.QCGENIE_API_KEY;
-const apiKeyHash = process.env.QCGENIE_API_KEY_SHA256;
-const apiScopes = new Set((process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write").split(","));
+const apiKey = process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
+const apiKeyHash = process.env.UPLOADCHECK_API_KEY_SHA256 || process.env.QCGENIE_API_KEY_SHA256;
+const apiScopes = new Set((process.env.UPLOADCHECK_API_SCOPES || process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write").split(","));
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -28,7 +33,7 @@ createServer(async (req, res) => {
   try {
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
 
-    if (url.pathname === "/healthz") return sendJson(res, 200, { ok: true, service: "qcgenie" });
+    if (url.pathname === "/healthz") return sendJson(res, 200, { ok: true, service: "uploadcheck" });
     if (req.method === "GET" && url.pathname === "/openapi.json") return serveStatic("/openapi.json", res);
     if (req.method === "POST" && url.pathname === "/v1/qc/jobs") return createJob(req, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+$/.test(url.pathname)) return getJob(req, url, res);
@@ -39,6 +44,7 @@ createServer(async (req, res) => {
     if (req.method === "POST" && /^\/v1\/qc\/jobs\/[^/]+\/gate-verdict$/.test(url.pathname)) return ingestGateVerdict(req, url, res);
     if (req.method === "POST" && /^\/v1\/qc\/jobs\/[^/]+\/cancel$/.test(url.pathname)) return cancelJob(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/uploads") return createUpload(req, res);
+    if (req.method === "PUT" && /^\/v1\/uploads\/[^/]+\/content$/.test(url.pathname)) return putUploadContent(req, url, res);
     if (req.method === "GET" && /^\/v1\/uploads\/[^/]+$/.test(url.pathname)) return getUpload(req, url, res);
     if (req.method === "GET" && url.pathname === "/v1/qc/jobs") return listJobs(req, res);
     if (req.method === "GET" && url.pathname === "/v1/usage") return getUsage(req, res);
@@ -60,18 +66,32 @@ async function createJob(req, res) {
   const auth = requireScope(req, "jobs:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
-  const job = store.createJob(body);
-  if (job.idempotentReplay) return sendJson(res, 200, job);
-  const completed = store.runDeterministicQc(job.jobId);
-  store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
-  return sendJson(res, 202, completed || job);
+  const inlineMedia = await materializeInlineMedia(body);
+  try {
+    if (inlineMedia) {
+      body.source = inlineMedia.filePath;
+      body.source_type = "upload";
+      body.inline_media = {
+        content_type: inlineMedia.contentType,
+        bytes: inlineMedia.bytes,
+        ephemeral: true
+      };
+    }
+    const job = store.createJob(body);
+    if (job.idempotentReplay) return sendJson(res, 200, withCostEstimate(job));
+    const completed = store.runDeterministicQc(job.jobId, { checks: body.checks || inlineMedia?.checks });
+    store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
+    return sendJson(res, 202, withCostEstimate(completed || job));
+  } finally {
+    await cleanupInlineMedia(inlineMedia);
+  }
 }
 
 function getJob(req, url, res) {
   const auth = requireScope(req, "jobs:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-1);
-  return sendJson(res, 200, store.getJob(jobId) || completedJob(jobId));
+  return sendJson(res, 200, withCostEstimate(store.getJob(jobId) || completedJob(jobId)));
 }
 
 function getReport(req, url, res) {
@@ -87,6 +107,7 @@ function getReport(req, url, res) {
     jobId,
     verdict: job.verdict || "WATCH",
     usage,
+    costEstimate: estimateJobCost({ minutesMetered: roundedMinutes }),
     flags: flags.length ? flags : [defaultFlag(jobId)],
     artifacts: artifacts.length ? artifacts : defaultArtifacts(jobId)
   });
@@ -149,7 +170,44 @@ async function createUpload(req, res) {
   const auth = requireScope(req, "uploads:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
-  return sendJson(res, 201, store.createUpload(body));
+  return sendJson(res, 201, store.createUpload(body, { baseUrl: requestBaseUrl(req) }));
+}
+
+async function putUploadContent(req, url, res) {
+  const uploadId = url.pathname.split("/").at(-2);
+  const upload = store.getUpload(uploadId);
+  if (!upload) return sendJson(res, 404, { error: "upload_not_found" });
+  if (url.searchParams.get("token") !== upload.uploadToken) return sendJson(res, 403, { error: "invalid_upload_token" });
+  if (new Date(upload.expiresAt).getTime() < Date.now()) return sendJson(res, 410, { error: "upload_url_expired" });
+
+  const expected = Number(upload.sizeBytes || 0);
+  const contentLength = Number(req.headers["content-length"] || 0);
+  if (expected && contentLength && contentLength > expected) return sendJson(res, 413, { error: "upload_too_large" });
+
+  mkdirSync(uploadDir, { recursive: true });
+  const safeName = String(upload.filename || "upload.mp4").replace(/[^a-zA-Z0-9._-]+/g, "_");
+  const contentPath = join(uploadDir, `${upload.uploadId}-${safeName}`);
+  const hash = createHash("sha256");
+  let bytesReceived = 0;
+  const meter = new Transform({
+    transform(chunk, encoding, callback) {
+      bytesReceived += chunk.length;
+      hash.update(chunk);
+      callback(null, chunk);
+    }
+  });
+  await pipeline(req, meter, createWriteStream(contentPath));
+  const stored = store.markUploadStored(uploadId, {
+    contentPath,
+    bytesReceived,
+    sha256: hash.digest("hex")
+  });
+  return sendJson(res, 200, {
+    uploadId,
+    status: stored.status,
+    bytesReceived: stored.bytesReceived,
+    sha256: stored.sha256
+  });
 }
 
 function getUpload(req, url, res) {
@@ -159,6 +217,12 @@ function getUpload(req, url, res) {
   const upload = store.getUpload(uploadId);
   if (!upload) return sendJson(res, 404, { error: "upload_not_found" });
   return sendJson(res, 200, upload);
+}
+
+function requestBaseUrl(req) {
+  const proto = req.headers["x-forwarded-proto"] || "http";
+  const host = req.headers["x-forwarded-host"] || req.headers.host;
+  return `${proto}://${host}`;
 }
 
 function listJobs(req, res) {
@@ -307,6 +371,14 @@ async function readJson(req) {
 function sendJson(res, status, payload) {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify(payload, null, 2));
+}
+
+function withCostEstimate(job) {
+  if (!job) return job;
+  return {
+    ...job,
+    costEstimate: estimateJobCost({ minutesMetered: job.minutesMetered || 0 })
+  };
 }
 
 function requireScope(req, requiredScope) {

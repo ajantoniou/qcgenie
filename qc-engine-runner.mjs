@@ -11,8 +11,8 @@ import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ENGINE = join(HERE, "scripts", "qc-engine", "run_gate.py");
-const PYTHON = process.env.QCGENIE_PYTHON || "python3";
-const YTDLP = process.env.QCGENIE_YTDLP || "yt-dlp";
+const PYTHON = process.env.UPLOADCHECK_PYTHON || process.env.QCGENIE_PYTHON || "python3";
+const YTDLP = process.env.UPLOADCHECK_YTDLP || process.env.QCGENIE_YTDLP || "yt-dlp";
 
 // Resolve a job source (local path / file:// / youtube URL / signed URL) to a local file path.
 // Returns { path, cleanup } or null if it cannot be resolved here.
@@ -75,6 +75,12 @@ export function runQcForJob(job, opts = {}) {
     const p = spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", resolved.path], { encoding: "utf8" });
     durationS = Math.ceil(parseFloat((p.stdout || "0").trim()) || 0);
   } catch {}
+  if (!durationS || durationS <= 0) {
+    if (resolved.cleanup) {
+      try { rmSync(resolved.cleanup, { recursive: true, force: true }); } catch {}
+    }
+    return { ranEngine: false, error: "media probe failed or duration is zero", durationS: 0 };
+  }
   const result = runQcEngine(resolved.path, opts);
   if (resolved.cleanup) {
     try { rmSync(resolved.cleanup, { recursive: true, force: true }); } catch {}

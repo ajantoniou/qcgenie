@@ -1,0 +1,10 @@
+{
+  "name": "@uploadcheck/cli",
+  "version": "0.1.0",
+  "description": "Quality check videos, podcasts, and clips before you upload.",
+  "type": "module",
+  "bin": {
+    "uploadcheck": "./index.mjs"
+  },
+  "license": "UNLICENSED"
+}

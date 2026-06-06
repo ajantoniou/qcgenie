@@ -6,7 +6,7 @@ import { runQcForJob } from "./qc-engine-runner.mjs";
 export class JsonStore {
   constructor(filePath, options = {}) {
     this.filePath = filePath;
-    this.secretEncryptionKey = options.secretEncryptionKey || process.env.QCGENIE_SECRET_ENCRYPTION_KEY || null;
+    this.secretEncryptionKey = options.secretEncryptionKey || process.env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || process.env.QCGENIE_SECRET_ENCRYPTION_KEY || null;
     this.state = {
       jobs: [],
       uploads: [],
@@ -33,6 +33,7 @@ export class JsonStore {
       }
     }
 
+    const upload = input.upload_id || input.uploadId ? this.getUpload(input.upload_id || input.uploadId) : null;
     const jobId = `job_${randomId()}`;
     const now = new Date().toISOString();
     const job = {
@@ -41,8 +42,9 @@ export class JsonStore {
       progressPct: 0,
       verdict: null,
       minutesMetered: 0,
-      source: input.youtube_url || input.source || input.signed_url || input.upload_id || null,
+      source: input.youtube_url || input.source || input.signed_url || upload?.contentPath || input.upload_id || null,
       sourceType: input.youtube_url ? "youtube" : input.upload_id ? "upload" : "signed_url",
+      uploadId: input.upload_id || input.uploadId || null,
       idempotencyKey: input.idempotency_key || null,
       callbackUrl: input.callback_url || null,
       statusUrl: `/v1/qc/jobs/${jobId}`,
@@ -260,15 +262,19 @@ export class JsonStore {
     return rows.map((row) => row.map(csvEscape).join(",")).join("\n") + "\n";
   }
 
-  createUpload(input) {
+  createUpload(input, options = {}) {
     const uploadId = `upl_${randomId()}`;
+    const uploadToken = `upt_${randomBytes(18).toString("hex")}`;
+    const filename = input.filename || "upload.mp4";
+    const baseUrl = (options.baseUrl || "https://qcgenie-api.onrender.com").replace(/\/+$/, "");
     const upload = {
       uploadId,
-      filename: input.filename || "upload.mp4",
+      filename,
       contentType: input.content_type || input.contentType || "application/octet-stream",
       sizeBytes: input.size_bytes || input.sizeBytes || 0,
       status: "created",
-      signedPutUrl: `https://uploads.qcgenie.com/${uploadId}/${encodeURIComponent(input.filename || "upload.mp4")}`,
+      uploadToken,
+      signedPutUrl: `${baseUrl}/v1/uploads/${uploadId}/content?token=${encodeURIComponent(uploadToken)}`,
       expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
       createdAt: new Date().toISOString()
     };
@@ -279,6 +285,18 @@ export class JsonStore {
 
   getUpload(uploadId) {
     return this.state.uploads.find((upload) => upload.uploadId === uploadId) || null;
+  }
+
+  markUploadStored(uploadId, input) {
+    const upload = this.getUpload(uploadId);
+    if (!upload) return null;
+    upload.status = "uploaded";
+    upload.contentPath = input.contentPath;
+    upload.bytesReceived = input.bytesReceived;
+    upload.sha256 = input.sha256;
+    upload.uploadedAt = new Date().toISOString();
+    this.persist();
+    return upload;
   }
 
   createWebhook(input) {
@@ -340,7 +358,7 @@ export class JsonStore {
 
   getWebhookSigningSecret(endpoint) {
     if (endpoint.encryptedSigningSecret) {
-      if (!this.secretEncryptionKey) throw new Error("QCGENIE_SECRET_ENCRYPTION_KEY is required to decrypt webhook signing secrets.");
+      if (!this.secretEncryptionKey) throw new Error("UPLOADCHECK_SECRET_ENCRYPTION_KEY is required to decrypt webhook signing secrets.");
       return decryptSecret(endpoint.encryptedSigningSecret, this.secretEncryptionKey);
     }
     if (endpoint.signingSecret) return endpoint.signingSecret;
@@ -490,8 +508,8 @@ function buildFlagsFromGateVerdict(jobId, verdictPayload) {
       flags.push({
         gate,
         severity: result.pass === false ? "block" : "warn",
-        timestamp: normalizeTimestamp(finding.timestamp || finding.timecode || finding.start || finding.start_s || finding.startSec),
-        summary: finding.summary || finding.reason || finding.label || `${gate} finding`,
+        timestamp: normalizeTimestamp(finding.timestamp || finding.timecode || finding.start || finding.start_s || finding.startSec || finding.t_start),
+        summary: summarizeFinding(gate, finding),
         evidenceSource: finding.evidenceSource || "deterministic",
         transcriptEvidence: finding.transcriptEvidence || finding.transcript || finding.quote || ""
       });
@@ -519,6 +537,24 @@ function normalizeFindings(value) {
   if (Array.isArray(value)) return value.map((item) => typeof item === "object" ? item : { summary: String(item) });
   if (typeof value === "object") return [value];
   return [{ summary: String(value) }];
+}
+
+function summarizeFinding(gate, finding) {
+  if (finding.summary || finding.reason || finding.label) return finding.summary || finding.reason || finding.label;
+  if (gate === "text_contrast" && Array.isArray(finding.words) && finding.words.length) {
+    const sample = finding.words.map((word) => word.text).filter(Boolean).slice(0, 5).join(" ");
+    const contrast = finding.words[0]?.contrast;
+    const suffix = contrast ? ` (contrast ${contrast}:1)` : "";
+    return `Low-contrast overlay text: "${sample}"${suffix}`;
+  }
+  if (gate === "text_safe_area" && Array.isArray(finding.words) && finding.words.length) {
+    const sample = finding.words.map((word) => word.text).filter(Boolean).slice(0, 5).join(" ");
+    return `Overlay text outside safe area: "${sample}"`;
+  }
+  if (finding.seconds && (finding.t_start != null || finding.t_end != null)) {
+    return `${gate} finding over ${finding.seconds}s.`;
+  }
+  return `${gate} finding`;
 }
 
 function normalizeTimestamp(value) {

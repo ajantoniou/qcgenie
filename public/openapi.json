@@ -33,7 +33,16 @@
           "verdict": { "type": ["string", "null"], "enum": ["PASS", "WATCH", "BLOCK", null] },
           "minutesMetered": { "type": "integer" },
           "statusUrl": { "type": "string" },
-          "reportUrl": { "type": "string" }
+          "reportUrl": { "type": "string" },
+          "costEstimate": {
+            "type": "object",
+            "properties": {
+              "estimatedCogsUsd": { "type": "number" },
+              "grossMarginBudgetUsd": { "type": "number" },
+              "grossMarginTargetPct": { "type": "number" },
+              "withinBudget": { "type": "boolean" }
+            }
+          }
         },
         "required": ["jobId", "status", "progressPct", "verdict", "minutesMetered"]
       }
@@ -64,7 +73,17 @@
                   "upload_id": { "type": "string" },
                   "signed_url": { "type": "string" },
                   "callback_url": { "type": "string" },
-                  "idempotency_key": { "type": "string" }
+                  "idempotency_key": { "type": "string" },
+                  "media_base64": { "type": "string" },
+                  "media_content_type": { "type": "string" },
+                  "media_kind": { "type": "string", "enum": ["video", "audio"] },
+                  "video_base64": { "type": "string" },
+                  "video_content_type": { "type": "string" },
+                  "audio_base64": { "type": "string" },
+                  "audio_content_type": { "type": "string" },
+                  "data_url": { "type": "string" },
+                  "filename": { "type": "string" },
+                  "checks": { "type": "string" }
                 }
               }
             }
@@ -214,6 +233,31 @@
         "parameters": [{ "name": "upload_id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Upload status" },
+          "404": { "description": "Upload not found" }
+        }
+      }
+    },
+    "/v1/uploads/{upload_id}/content": {
+      "put": {
+        "summary": "Upload local media bytes to a signed UploadCheck URL",
+        "security": [],
+        "parameters": [
+          { "name": "upload_id", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "token", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": { "schema": { "type": "string", "format": "binary" } },
+            "video/mp4": { "schema": { "type": "string", "format": "binary" } },
+            "audio/mpeg": { "schema": { "type": "string", "format": "binary" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Upload bytes stored for a QC job" },
+          "403": { "description": "Invalid upload token" },
+          "410": { "description": "Upload URL expired" },
+          "413": { "description": "Upload too large" },
           "404": { "description": "Upload not found" }
         }
       }

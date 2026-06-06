@@ -54,6 +54,7 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "POST /v1/qc/jobs/{job_id}/gate-verdict", purpose: "Submit an external full-video gate VERDICT.json into UploadCheck." },
   { methodPath: "POST /v1/qc/jobs/{job_id}/cancel", purpose: "Cancel queued or active work before minutes are finalized." },
   { methodPath: "POST /v1/uploads", purpose: "Create a signed upload target for agents and self-serve users." },
+  { methodPath: "PUT /v1/uploads/{upload_id}/content", purpose: "Send local media bytes to the signed upload URL before creating an upload_id QC job." },
   { methodPath: "GET /v1/uploads/{upload_id}", purpose: "Check upload processing and metadata probe status." },
   { methodPath: "GET /v1/qc/jobs?limit=&status=&source_url=", purpose: "List recent jobs and avoid duplicate agent runs." }
 ];
@@ -62,8 +63,8 @@ export const MCP_TOOLS: McpTool[] = [
   {
     name: "qc_run_video",
     purpose: "Start a full-timeline UploadCheck run from Claude, Codex, or another agent workspace.",
-    inputs: ["youtube_url", "upload_id", "signed_url", "callback_url"],
-    outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered"]
+    inputs: ["youtube_url", "upload_id", "signed_url", "video_base64", "audio_base64", "data_url", "callback_url"],
+    outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered", "cost_estimate"]
   },
   {
     name: "qc_get_job",
@@ -111,7 +112,7 @@ export const MCP_TOOLS: McpTool[] = [
     name: "qc_create_upload_url",
     purpose: "Create a signed upload URL so agents can send local files without handling QC storage directly.",
     inputs: ["filename", "content_type", "size_bytes"],
-    outputs: ["upload_id", "signed_put_url", "expires_at"]
+    outputs: ["upload_id", "signed_put_url", "expires_at", "put_then_run_qc_with_upload_id"]
   }
 ];
 

@@ -23,6 +23,25 @@ def freezedetect_db(video, fmin, noise):
     d = [float(x) for x in re.findall(r"freeze_duration: ([\d.]+)", out)]
     return [{"t_start": round(a,1), "duration": round(b,1)} for a,b in zip(s,d)]
 
+def is_text_card(video, t):
+    """A held frame is an INTENDED static card (Remotion scripture/explainer) — not a freeze defect —
+    if at its midpoint it looks like a graphic card: mostly dark background with concentrated bright
+    text, low photographic mid-tone mass. A frozen photographic clip (e.g. a stuck Jesus close-up) has
+    a broad mid-tone histogram instead. Deterministic, no ML. Returns True for text/graphic cards."""
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tf: fp = tf.name
+    subprocess.run(["ffmpeg","-y","-ss",str(t),"-i",video,"-frames:v","1","-vf","scale=320:180",fp],
+        capture_output=True)
+    try:
+        img = Image.open(fp).convert("L"); px = list(img.getdata()); n = len(px) or 1
+        dark = sum(1 for v in px if v < 40) / n        # letterbox / dark card bg
+        bright = sum(1 for v in px if v > 200) / n     # text glyphs / titles
+        mid = sum(1 for v in px if 70 <= v <= 180) / n # photographic mid-tones (skin/cloth/scene)
+    finally:
+        try: os.unlink(fp)
+        except OSError: pass
+    # Card: lots of dark bg, a sliver of bright text, little photographic mid-tone mass.
+    return dark > 0.45 and bright > 0.005 and mid < 0.40
+
 def dhash(path, size=16):
     img = Image.open(path).convert("L").resize((size+1, size), Image.BILINEAR)
     px = list(img.getdata()); bits = 0
@@ -42,9 +61,20 @@ def main():
     ap.add_argument("--fps", type=float, default=1.0); ap.add_argument("--json", default=None)
     a = ap.parse_args()
     total = dur(a.video)
-    freezes = freezedetect_db(a.video, a.freeze_min, "-50dB")
+    raw_freezes = freezedetect_db(a.video, a.freeze_min, "-50dB")
+    # Classify each held frame: an intended static TEXT/GRAPHIC card (Remotion scripture/explainer)
+    # is NOT a defect; a frozen PHOTOGRAPHIC clip is. Probe the hold midpoint.
+    freezes = []; held_cards = []
+    for f in raw_freezes:
+        mid_t = f["t_start"] + min(f["duration"], 2.0) / 2.0
+        if is_text_card(a.video, mid_t):
+            held_cards.append({**f, "type": "STATIC_CARD_HELD_OK"})
+        else:
+            freezes.append(f)
     freezes_sensitive = [f for f in freezedetect_db(a.video, a.freeze_min, "-60dB")
-                         if not any(abs(f["t_start"]-g["t_start"])<1 for g in freezes)]
+                         if not any(abs(f["t_start"]-g["t_start"])<1 for g in freezes)
+                         and not any(abs(f["t_start"]-c["t_start"])<1 for c in held_cards)
+                         and not is_text_card(a.video, f["t_start"] + min(f["duration"],2.0)/2.0)]
     repeats = []
     if a.detect_repeats:
         H=10; minrun=max(3,int(max(3.0,1.0/a.fps*3)*a.fps))
@@ -67,7 +97,8 @@ def main():
         for f in glob.glob(os.path.join(tmp,"*.jpg")): os.unlink(f)
         os.rmdir(tmp)
     result={"check":"loop_freeze","video":a.video,"duration":round(total,1),
-            "freezes":freezes,"freezes_sensitive_60dB":freezes_sensitive,"repeated_shots":repeats,
+            "freezes":freezes,"freezes_sensitive_60dB":freezes_sensitive,
+            "held_cards_ok":held_cards,"repeated_shots":repeats,
             "pass":(len(freezes)==0 and len(freezes_sensitive)==0 and len(repeats)==0)}
     out=json.dumps(result,indent=2)
     if a.json: open(a.json,"w").write(out)

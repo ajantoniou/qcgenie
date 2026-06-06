@@ -25,6 +25,7 @@ Agent integration:
 - Legacy qcgenie-api environment names are accepted only as migration fallbacks.
 - MCP wrapper package lives in the repository under mcp-server.
 - MCP tools: qc_run_video, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_create_upload_url.
+- Large local files use POST /v1/uploads, PUT /v1/uploads/{upload_id}/content?token=..., then POST /v1/qc/jobs with upload_id.
 - API keys are workspace-scoped and should be stored as connector secrets.
 - Agents should send idempotency_key on retries; repeated keys return the existing QC job instead of creating another run.
 - Webhook endpoints can receive job.completed and job.failed events with X-QCGenie-Signature metadata.

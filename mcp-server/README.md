@@ -25,6 +25,15 @@ Use `/check` from Claude Code, Codex, or another slash-command capable workspace
 /check ./final-upload.mp4
 ```
 
+Small and medium local files can be sent through Render without durable storage by base64-encoding the media and passing one of:
+
+- `video_base64` with `video_content_type`
+- `audio_base64` with `audio_content_type`
+- `media_base64` with `media_content_type` and `media_kind`
+- `data_url`
+
+The API writes the payload to a temp file, runs the gate, and deletes the temp file after processing. Use signed URLs or future direct object storage for large files.
+
 The agent should call `qc_run_video`, poll `qc_get_job`, fetch `qc_get_report`, then list timestamped evidence and fix captions, checklists, and source-level issues it can reach.
 
 ## Tools

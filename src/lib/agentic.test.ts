@@ -13,6 +13,7 @@ describe("agentic integration contract", () => {
       "POST /v1/qc/jobs/{job_id}/gate-verdict",
       "POST /v1/qc/jobs/{job_id}/cancel",
       "POST /v1/uploads",
+      "PUT /v1/uploads/{upload_id}/content",
       "GET /v1/uploads/{upload_id}",
       "GET /v1/qc/jobs?limit=&status=&source_url="
     ]);
