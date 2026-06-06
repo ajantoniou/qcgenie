@@ -30,14 +30,16 @@ describe("readiness action mapping", () => {
     const actions = buildReadinessActions(report);
 
     expect(actions.map((action) => action.id)).toEqual([
+      "render-env-template",
       "checkout",
       "custom-domain",
       "secret-encryption",
       "persistence",
       "storage"
     ]);
-    expect(actions[0].env).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
-    expect(actions[2].command).toBe("npm run --silent secret:generate");
+    expect(actions[0].commands).toContain("npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env");
+    expect(actions[1].env).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
+    expect(actions[3].command).toBe("npm run --silent secret:generate");
     expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_ENDPOINT");
     expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY");
   });
@@ -51,11 +53,12 @@ describe("readiness action mapping", () => {
         persistence: { ok: false, mode: "json_store" },
         productHunt: { ok: false }
       }
-    }, [{ title: "Move job persistence off temp storage", detail: "Set mounted store path.", env: ["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"] }]);
+    }, [{ title: "Move job persistence off temp storage", detail: "Set mounted store path.", commands: ["npm run render:plan"], env: ["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"] }]);
 
     expect(text).toContain("UploadCheck readiness: NOT READY");
     expect(text).toContain("PASS api");
     expect(text).toContain("BLOCK persistence (json_store)");
+    expect(text).toContain("commands: npm run render:plan");
     expect(text).toContain("UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json");
   });
 
@@ -68,6 +71,16 @@ describe("readiness action mapping", () => {
     });
 
     expect(actions).toEqual([{
+      id: "render-env-template",
+      title: "Prepare Render launch env",
+      detail: "Generate and fill the local env template for apiAuth before render:apply.",
+      commands: [
+        "npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env",
+        "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
+        "npm run render:plan && npm run render:apply"
+      ],
+      docs: "docs/DEPLOYMENT-CUTOVER.md"
+    }, {
       id: "api-auth",
       title: "Configure API auth",
       detail: "Generate an UploadCheck bearer key and set the SHA-256 hash on Render before public API use.",

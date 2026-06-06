@@ -1,6 +1,22 @@
 export function buildReadinessActions(report) {
   const checks = report?.checks || {};
   const actions = [];
+  const renderConfigBlockers = ["checkout", "secretEncryption", "apiAuth", "persistence", "storage", "demoClip"]
+    .filter((key) => checks[key] && !checks[key].ok);
+
+  if (renderConfigBlockers.length) {
+    actions.push({
+      id: "render-env-template",
+      title: "Prepare Render launch env",
+      detail: `Generate and fill the local env template for ${renderConfigBlockers.join(", ")} before render:apply.`,
+      commands: [
+        "npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env",
+        "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
+        "npm run render:plan && npm run render:apply"
+      ],
+      docs: "docs/DEPLOYMENT-CUTOVER.md"
+    });
+  }
 
   if (checks.checkout && !checks.checkout.ok) {
     const missingPlans = Object.entries(checks.checkout.plans || {})
@@ -105,6 +121,7 @@ export function formatReadinessSummary(report, actions = buildReadinessActions(r
     for (const action of actions) {
       lines.push(`- ${action.title}: ${action.detail}`);
       if (action.command) lines.push(`  command: ${action.command}`);
+      if (action.commands?.length) lines.push(`  commands: ${action.commands.join(" | ")}`);
       if (action.env?.length) lines.push(`  env: ${action.env.join(", ")}`);
       if (action.docs) lines.push(`  docs: ${action.docs}`);
     }
