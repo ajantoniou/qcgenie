@@ -38,6 +38,8 @@ services:
         sync: false
       - key: UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG
         sync: false
+      - key: UPLOADCHECK_LEMONSQUEEZY_STORE_URL
+        sync: false
       - key: UPLOADCHECK_CREATOR_VARIANT_ID
         sync: false
       - key: UPLOADCHECK_STUDIO_VARIANT_ID

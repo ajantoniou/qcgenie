@@ -85,6 +85,28 @@ describe("Render launch operations plan", () => {
     expect(validation.ok).toBe(true);
   });
 
+  it("applies Lemon Squeezy store URL checkout inputs when slug is absent", () => {
+    const env = {
+      RENDER_API_KEY: "rnd_real_render_api_key",
+      UPLOADCHECK_API_KEY_SHA256: "a".repeat(64),
+      UPLOADCHECK_LEMONSQUEEZY_STORE_URL: "https://uploadcheck.lemonsqueezy.com",
+      UPLOADCHECK_CREATOR_VARIANT_ID: "111",
+      UPLOADCHECK_STUDIO_VARIANT_ID: "222",
+      UPLOADCHECK_NETWORK_VARIANT_ID: "333",
+      UPLOADCHECK_SECRET_ENCRYPTION_KEY: "b".repeat(64),
+      UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck/store.json",
+      UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck/uploads"
+    };
+    const plan = buildRenderLaunchPlan(env);
+    const validation = validateRenderLaunchEnv(env);
+
+    expect(plan.missingSecretInputs).toEqual([]);
+    expect(plan.envVars).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: "UPLOADCHECK_LEMONSQUEEZY_STORE_URL", secret: true })
+    ]));
+    expect(validation.ok).toBe(true);
+  });
+
   it("does not treat unfilled template placeholders as launch env inputs", () => {
     const plan = buildRenderLaunchPlan({
       RENDER_API_KEY: "<render_api_key>",
@@ -109,9 +131,9 @@ describe("Render launch operations plan", () => {
     expect(plan.missingSecretInputs).toEqual([
       "UPLOADCHECK_API_KEY or UPLOADCHECK_API_KEY_SHA256",
       "UPLOADCHECK_SECRET_ENCRYPTION_KEY",
-      "UPLOADCHECK_CREATOR_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG plus UPLOADCHECK_CREATOR_VARIANT_ID",
-      "UPLOADCHECK_STUDIO_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG plus UPLOADCHECK_STUDIO_VARIANT_ID",
-      "UPLOADCHECK_NETWORK_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG plus UPLOADCHECK_NETWORK_VARIANT_ID"
+      "UPLOADCHECK_CREATOR_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG/URL plus UPLOADCHECK_CREATOR_VARIANT_ID",
+      "UPLOADCHECK_STUDIO_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG/URL plus UPLOADCHECK_STUDIO_VARIANT_ID",
+      "UPLOADCHECK_NETWORK_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG/URL plus UPLOADCHECK_NETWORK_VARIANT_ID"
     ]);
     expect(plan.placeholderInputs).toEqual(expect.arrayContaining([
       "RENDER_API_KEY",
@@ -224,6 +246,7 @@ UPLOADCHECK_STORAGE_PREFIX=uploads/ # trailing comment
     expect(output).toContain("UPLOADCHECK_API_KEY_SHA256=\"<generated_sha256>\"");
     expect(output).toContain("UPLOADCHECK_SECRET_ENCRYPTION_KEY=\"<generated_secret_encryption_key>\"");
     expect(output).toContain("UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG");
+    expect(output).toContain("UPLOADCHECK_LEMONSQUEEZY_STORE_URL");
     expect(output).toContain("UPLOADCHECK_CREATOR_VARIANT_ID");
     expect(output).toContain("UPLOADCHECK_STORE_PATH=\"/mnt/uploadcheck/store.json\"");
     expect(output).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=\"https://api.uploadcheck.app\" UPLOADCHECK_API_KEY=\"<generated_bearer_token>\" npm run media-ingress:verify");

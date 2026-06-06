@@ -130,6 +130,31 @@ describe("launch readiness report", () => {
     expect(JSON.stringify(report)).not.toContain("333");
   });
 
+  it("derives Lemon Squeezy store slug from store URL when variant ids are configured", () => {
+    const report = buildReadinessReport({
+      host: "api.uploadcheck.app",
+      env: {
+        LEMONSQUEEZY_STORE_URL: "https://creativelabs2016.lemonsqueezy.com",
+        UPLOADCHECK_CREATOR_VARIANT_ID: "111",
+        UPLOADCHECK_STUDIO_VARIANT_ID: "222",
+        UPLOADCHECK_NETWORK_VARIANT_ID: "333",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "/tmp/does-not-exist-uploadcheck-demo.mp4"
+      },
+      now: "2026-06-06T00:00:00.000Z"
+    });
+
+    expect(report.checks.checkout.ok).toBe(true);
+    expect(report.checks.checkout.plans.creator).toMatchObject({
+      ok: true,
+      configured: true,
+      source: "lemonsqueezy_variant",
+      sourceKey: "LEMONSQUEEZY_STORE_URL+UPLOADCHECK_CREATOR_VARIANT_ID",
+      host: "creativelabs2016.lemonsqueezy.com",
+      redactedUrl: "https://creativelabs2016.lemonsqueezy.com/checkout/buy/<variant_id>"
+    });
+    expect(JSON.stringify(report)).not.toContain("111");
+  });
+
   it("does not let Studio checkout config satisfy missing Creator readiness", () => {
     const report = buildReadinessReport({
       host: "api.uploadcheck.app",

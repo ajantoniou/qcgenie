@@ -22,6 +22,7 @@
     "live-web-artifacts:verify": "node scripts/verify-live-web-artifacts.mjs",
     "launch:dns": "node scripts/launch-dns.mjs",
     "launch:checkout": "node scripts/launch-checkout.mjs",
+    "launch:checkout-discover": "node scripts/launch-checkout-discover.mjs",
     "launch:storage": "node scripts/launch-storage.mjs",
     "launch:handoff": "node scripts/launch-handoff.mjs",
     "launch:check": "node scripts/launch-check.mjs",

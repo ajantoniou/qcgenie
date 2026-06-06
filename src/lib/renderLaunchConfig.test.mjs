@@ -30,6 +30,7 @@ describe("Render launch blueprint", () => {
   it("prompts for direct checkout URLs and Lemon Squeezy variant alternatives", () => {
     expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_CREATOR_CHECKOUT_URL\s*\n\s*sync:\s*false/);
     expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG\s*\n\s*sync:\s*false/);
+    expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_LEMONSQUEEZY_STORE_URL\s*\n\s*sync:\s*false/);
     expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_CREATOR_VARIANT_ID\s*\n\s*sync:\s*false/);
     expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_STUDIO_VARIANT_ID\s*\n\s*sync:\s*false/);
     expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_NETWORK_VARIANT_ID\s*\n\s*sync:\s*false/);

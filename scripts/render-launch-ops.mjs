@@ -27,6 +27,8 @@ const SECRET_ENV_KEYS = [
   "UPLOADCHECK_STUDIO_CHECKOUT_URL",
   "UPLOADCHECK_NETWORK_CHECKOUT_URL",
   "UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG",
+  "UPLOADCHECK_LEMONSQUEEZY_STORE_URL",
+  "LEMONSQUEEZY_STORE_URL",
   "UPLOADCHECK_CREATOR_VARIANT_ID",
   "UPLOADCHECK_STUDIO_VARIANT_ID",
   "UPLOADCHECK_NETWORK_VARIANT_ID",
@@ -70,7 +72,7 @@ export function buildRenderLaunchPlan(env = process.env) {
     .map((group) => group.label);
   for (const plan of ["creator", "studio", "network"]) {
     if (!hasResolvableCheckout(plan, env)) {
-      missingSecretInputs.push(`UPLOADCHECK_${plan.toUpperCase()}_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG plus UPLOADCHECK_${plan.toUpperCase()}_VARIANT_ID`);
+      missingSecretInputs.push(`UPLOADCHECK_${plan.toUpperCase()}_CHECKOUT_URL or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG/URL plus UPLOADCHECK_${plan.toUpperCase()}_VARIANT_ID`);
     }
   }
   return {
@@ -195,6 +197,7 @@ function buildEnvTemplateFromValues({ apiKeySha256, secretEncryptionKey }) {
     "UPLOADCHECK_NETWORK_CHECKOUT_URL=\"https://...\"",
     "# Alternative checkout setup: comment out direct URLs above and set Lemon Squeezy store + variants.",
     "# UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG=\"<lemonsqueezy_store_slug>\"",
+    "# UPLOADCHECK_LEMONSQUEEZY_STORE_URL=\"https://<lemonsqueezy_store_slug>.lemonsqueezy.com\"",
     "# UPLOADCHECK_CREATOR_VARIANT_ID=\"<creator_variant_id>\"",
     "# UPLOADCHECK_STUDIO_VARIANT_ID=\"<studio_variant_id>\"",
     "# UPLOADCHECK_NETWORK_VARIANT_ID=\"<network_variant_id>\"",

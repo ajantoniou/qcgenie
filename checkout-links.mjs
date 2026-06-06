@@ -56,5 +56,17 @@ function variantForPlan(planId, env) {
 function storeSlugForEnv(env) {
   if (env.UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG) return { value: env.UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG, sourceKey: "UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG" };
   if (env.LEMONSQUEEZY_STORE_SLUG) return { value: env.LEMONSQUEEZY_STORE_SLUG, sourceKey: "LEMONSQUEEZY_STORE_SLUG" };
+  const storeUrl = env.UPLOADCHECK_LEMONSQUEEZY_STORE_URL || env.LEMONSQUEEZY_STORE_URL;
+  if (storeUrl) {
+    try {
+      const parsed = new URL(storeUrl);
+      const [slug] = parsed.hostname.split(".");
+      if (slug && parsed.hostname.endsWith(".lemonsqueezy.com")) {
+        return { value: slug, sourceKey: env.UPLOADCHECK_LEMONSQUEEZY_STORE_URL ? "UPLOADCHECK_LEMONSQUEEZY_STORE_URL" : "LEMONSQUEEZY_STORE_URL" };
+      }
+    } catch {
+      return null;
+    }
+  }
   return null;
 }

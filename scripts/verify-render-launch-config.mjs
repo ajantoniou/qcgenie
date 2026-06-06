@@ -14,6 +14,7 @@ const required = [
   ["studio checkout prompt", /key:\s*UPLOADCHECK_STUDIO_CHECKOUT_URL\s*\n\s*sync:\s*false/],
   ["network checkout prompt", /key:\s*UPLOADCHECK_NETWORK_CHECKOUT_URL\s*\n\s*sync:\s*false/],
   ["lemon squeezy store prompt", /key:\s*UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG\s*\n\s*sync:\s*false/],
+  ["lemon squeezy store URL prompt", /key:\s*UPLOADCHECK_LEMONSQUEEZY_STORE_URL\s*\n\s*sync:\s*false/],
   ["creator variant prompt", /key:\s*UPLOADCHECK_CREATOR_VARIANT_ID\s*\n\s*sync:\s*false/],
   ["studio variant prompt", /key:\s*UPLOADCHECK_STUDIO_VARIANT_ID\s*\n\s*sync:\s*false/],
   ["network variant prompt", /key:\s*UPLOADCHECK_NETWORK_VARIANT_ID\s*\n\s*sync:\s*false/],
