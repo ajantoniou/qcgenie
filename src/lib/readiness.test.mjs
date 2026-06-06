@@ -31,8 +31,7 @@ describe("launch readiness report", () => {
         UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
         UPLOADCHECK_SECRET_ENCRYPTION_KEY: "secret",
         UPLOADCHECK_API_KEY_SHA256: "hash",
-        SUPABASE_URL: "https://supabase.example",
-        SUPABASE_SERVICE_ROLE_KEY: "role",
+        UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
         UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck-storage",
         UPLOADCHECK_DEMO_CLIP_URL: "https://uploadcheck.app/demo.mp4"
       },
@@ -43,7 +42,7 @@ describe("launch readiness report", () => {
     expect(report.checks.checkout.plans.creator.configured).toBe(true);
     expect(report.checks.customDomain.ok).toBe(true);
     expect(report.checks.secretEncryption.ok).toBe(true);
-    expect(report.checks.persistence.mode).toBe("supabase_configured");
+    expect(report.checks.persistence.mode).toBe("durable_json_store");
     expect(report.checks.storage.mode).toBe("durable_filesystem");
     expect(report.checks.demoClip.ok).toBe(true);
   });
@@ -60,6 +59,22 @@ describe("launch readiness report", () => {
 
     expect(report.checks.storage.ok).toBe(true);
     expect(report.checks.storage.mode).toBe("object_storage_configured");
+  });
+
+  it("keeps Supabase as the preferred persistence mode when configured", () => {
+    const report = buildReadinessReport({
+      host: "api.uploadcheck.app",
+      env: {
+        SUPABASE_URL: "https://supabase.example",
+        SUPABASE_SERVICE_ROLE_KEY: "role",
+        UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "/tmp/does-not-exist-uploadcheck-demo.mp4"
+      },
+      now: "2026-06-06T00:00:00.000Z"
+    });
+
+    expect(report.checks.persistence.ok).toBe(true);
+    expect(report.checks.persistence.mode).toBe("supabase_configured");
   });
 
   it("accepts a bundled public demo clip as demo proof", () => {

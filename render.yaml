@@ -23,6 +23,8 @@ services:
         value: jobs:write,jobs:read,reports:read,uploads:write,webhooks:write
       - key: UPLOADCHECK_STORE_PATH
         value: /tmp/uploadcheck/store.json
+      # Set to a Render persistent disk mount before Product Hunt, for example:
+      # /mnt/uploadcheck-data/store.json
       - key: UPLOADCHECK_SECRET_ENCRYPTION_KEY
         sync: false
       - key: UPLOADCHECK_INLINE_MEDIA_MAX_MB

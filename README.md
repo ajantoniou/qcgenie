@@ -70,7 +70,8 @@ Persistence state:
 - External full-video gate outputs can be imported with `/v1/qc/jobs/{job_id}/gate-verdict`; imported findings become stored flags, reports, marker CSV rows, and webhook-triggering job verdicts.
 - Reference full-video gate scripts live under `scripts/qc-engine/`.
 - `supabase/schema.sql` includes workspace membership and RLS policies for the production persistence model.
-- Production persistence still needs hosted `UPLOADCHECK_SECRET_ENCRYPTION_KEY` configuration, a live Supabase connection, advisor verification, and legacy webhook secret migration.
+- Production persistence can use a mounted-disk JSON store by setting `UPLOADCHECK_STORE_PATH` outside temp storage, for example `/mnt/uploadcheck-data/store.json`; Supabase remains the future multi-workspace persistence target.
+- Production still needs hosted `UPLOADCHECK_SECRET_ENCRYPTION_KEY` configuration and legacy webhook secret migration.
 - Durable upload retention can use a mounted storage path via `UPLOADCHECK_DURABLE_STORAGE_DIR`; object-storage buckets remain the next storage adapter.
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
 

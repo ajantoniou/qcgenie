@@ -13,6 +13,9 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
   const secretEncryptionConfigured = Boolean(env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || env.QCGENIE_SECRET_ENCRYPTION_KEY);
   const apiAuthConfigured = Boolean(env.UPLOADCHECK_API_KEY || env.QCGENIE_API_KEY || env.UPLOADCHECK_API_KEY_SHA256 || env.QCGENIE_API_KEY_SHA256);
   const supabaseConfigured = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
+  const storePath = env.UPLOADCHECK_STORE_PATH || env.QCGENIE_STORE_PATH || "/tmp/uploadcheck/store.json";
+  const durableJsonStoreConfigured = isDurableStorePath(storePath);
+  const persistenceConfigured = supabaseConfigured || durableJsonStoreConfigured;
   const durableFilesystemConfigured = Boolean(env.UPLOADCHECK_DURABLE_STORAGE_DIR || env.QCGENIE_DURABLE_STORAGE_DIR);
   const objectStorageConfigured = Boolean(env.UPLOADCHECK_STORAGE_BUCKET || env.UPLOADCHECK_S3_BUCKET || env.UPLOADCHECK_R2_BUCKET);
   const durableStorageConfigured = durableFilesystemConfigured || objectStorageConfigured;
@@ -46,9 +49,11 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
       detail: apiAuthConfigured ? "Bearer API key enforcement is configured." : "Set UPLOADCHECK_API_KEY or UPLOADCHECK_API_KEY_SHA256 before public API use."
     },
     persistence: {
-      ok: supabaseConfigured,
-      mode: supabaseConfigured ? "supabase_configured" : "json_store",
-      detail: supabaseConfigured ? "Supabase env is present." : "JSON store is active; production Supabase persistence is still pending."
+      ok: persistenceConfigured,
+      mode: supabaseConfigured ? "supabase_configured" : (durableJsonStoreConfigured ? "durable_json_store" : "json_store"),
+      detail: supabaseConfigured
+        ? "Supabase env is present."
+        : (durableJsonStoreConfigured ? "JSON store path is outside temp storage and suitable for mounted-disk persistence." : "JSON store is active in temp storage; production persistence still needs Supabase or mounted-disk store path.")
     },
     storage: {
       ok: durableStorageConfigured,
@@ -62,7 +67,7 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
       detail: demoClipConfigured ? "Public demo clip is configured or bundled." : "Set UPLOADCHECK_DEMO_CLIP_URL or ship public/demo/uploadcheck-product-hunt-demo.mp4 before Product Hunt launch."
     },
     productHunt: {
-      ok: checkoutConfigured && customDomainActive && secretEncryptionConfigured && supabaseConfigured && durableStorageConfigured && demoClipConfigured,
+      ok: checkoutConfigured && customDomainActive && secretEncryptionConfigured && persistenceConfigured && durableStorageConfigured && demoClipConfigured,
       required: ["checkout", "customDomain", "secretEncryption", "persistence", "storage", "demoClip"]
     }
   };
@@ -78,4 +83,14 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
 function isUploadCheckHost(host) {
   const normalized = String(host || "").toLowerCase().split(":")[0];
   return normalized === "uploadcheck.app" || normalized === "api.uploadcheck.app" || normalized.endsWith(".uploadcheck.app");
+}
+
+function isDurableStorePath(storePath) {
+  const normalized = resolve(String(storePath || "/tmp/uploadcheck/store.json"));
+  return !(
+    normalized.startsWith("/tmp/") ||
+    normalized.startsWith("/var/tmp/") ||
+    normalized.startsWith("/private/tmp/") ||
+    normalized.startsWith("/var/folders/")
+  );
 }
