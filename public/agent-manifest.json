@@ -49,6 +49,7 @@
   "tools": [
     "qc_estimate_cost",
     "qc_run_video",
+    "qc_run_local_file",
     "qc_get_job",
     "qc_get_report",
     "qc_get_events",
@@ -81,7 +82,7 @@
     "Before launch-sensitive workflows, the agent may call GET /v1/readiness to verify checkout, custom domain, persistence, storage, demo clip, and Product Hunt readiness.",
     "User runs /check with a media file, YouTube URL, upload id, or signed URL.",
     "The agent calls qc_estimate_cost before uploading or running model-backed checks.",
-    "The agent calls qc_run_video and polls qc_get_job until completion.",
+    "The agent calls qc_run_local_file for reachable local media or qc_run_video for URLs/upload ids, then polls qc_get_job until completion.",
     "The agent fetches qc_get_report and lists timestamped evidence.",
     "The agent shows all BLOCK and WATCH flags, asks whether to fix now, fixes captions/checklists/source-level issues it can reach, then flags issues requiring a source or render pass."
   ]

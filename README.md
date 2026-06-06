@@ -18,7 +18,7 @@ UploadCheck.app supports self-serve users and programmatic agent workflows.
 - Web users paste a YouTube URL or upload a cut.
 - Agent users run `/check` against a media file, upload id, signed URL, or YouTube URL.
 - Claude, Codex, and other agents call the same REST API through an MCP server or connector.
-- MCP tools are thin wrappers over the API; they do not run QC locally.
+- MCP tools call the hosted API; `qc_run_local_file` only reads/encodes local media before sending it to Render.
 - Customer-facing tools do not expose internal model/provider rails.
 - MCP server name: `uploadcheck`.
 - CLI/package options: `@uploadcheck/cli` and `@uploadcheck/mcp`.
@@ -31,6 +31,7 @@ Current API/MCP tools:
 
 - `qc_estimate_cost`
 - `qc_run_video`
+- `qc_run_local_file`
 - `qc_get_job`
 - `qc_get_report`
 - `qc_get_events`

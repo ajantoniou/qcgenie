@@ -74,6 +74,12 @@ export const MCP_TOOLS: McpTool[] = [
     outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered", "cost_estimate"]
   },
   {
+    name: "qc_run_local_file",
+    purpose: "Read a local media file from an agent workspace and send it through Render inline or signed upload.",
+    inputs: ["file_path", "checks", "manifest_path", "transcript_path", "expected_script_path", "plan_id", "cost_guardrail"],
+    outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered", "cost_estimate"]
+  },
+  {
     name: "qc_get_job",
     purpose: "Poll status, stage, progress, current verdict, and minutes for an active job.",
     inputs: ["job_id"],

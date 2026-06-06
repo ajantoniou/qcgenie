@@ -262,5 +262,12 @@ describe("UploadCheck CLI request builder", () => {
       minutesMetered: 2,
       costEstimate: { estimatedCogsUsd: 0.0017 }
     })).toContain("job_1: completed / WATCH | 2 min | est. COGS $0.0017");
+    expect(formatJobSummary({
+      jobId: "job_2",
+      status: "completed",
+      verdict: "PASS",
+      minutesMetered: 1,
+      costEstimate: { estimatedCogsCents: 0.0833 }
+    })).toContain("job_2: completed / PASS | 1 min | est. COGS $0.0008");
   });
 });

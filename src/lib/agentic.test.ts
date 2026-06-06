@@ -24,6 +24,7 @@ describe("agentic integration contract", () => {
     expect(getMcpToolNames()).toEqual([
       "qc_estimate_cost",
       "qc_run_video",
+      "qc_run_local_file",
       "qc_get_job",
       "qc_get_report",
       "qc_get_events",
@@ -36,6 +37,9 @@ describe("agentic integration contract", () => {
     const runVideo = MCP_TOOLS.find((tool) => tool.name === "qc_run_video");
     expect(runVideo?.inputs).toContain("youtube_url");
     expect(runVideo?.outputs).toContain("verdict");
+    const runLocalFile = MCP_TOOLS.find((tool) => tool.name === "qc_run_local_file");
+    expect(runLocalFile?.inputs).toContain("file_path");
+    expect(runLocalFile?.purpose).toContain("local media file");
   });
 
   it("defines a real async job lifecycle", () => {

@@ -23,7 +23,7 @@ UPLOADCHECK_API_BASE_URL = "https://qcgenie-api.onrender.com"
 UPLOADCHECK_API_KEY = "<workspace_api_key>"
 ```
 
-The server exposes `qc_estimate_cost`, `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, and `qc_create_upload_url`.
+The server exposes `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, and `qc_create_upload_url`.
 
 The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadcheck`. Use `$uploadcheck` when a project needs the standard preflight -> hosted QC -> report -> repair-loop workflow.
 
@@ -129,7 +129,7 @@ For NTO long-form episodes, shorts, or NPO media exports:
 
 1. Render the final candidate to a local file.
 2. Call `qc_estimate_cost` or `uploadcheck estimate --minutes N` with the intended checks and plan so the agent knows whether model-backed checks will run, be downgraded, or need a paid deep-review path.
-3. Call `uploadcheck check <file>`. Small files inline; larger files use signed upload. MCP callers can use `media_base64` for small files or `qc_create_upload_url` + `qc_run_video` with `upload_id` for large files. When a storybook/edit manifest exists, pass `manifest_json` or CLI `--manifest` so `repeat_fatigue` can catch reuse before and after render. When a transcript or script-sidecar exists, pass `transcript_text`, `transcript_json`, or CLI `--transcript` so `spoken_leaks` can catch prompt/stage/vendor leakage without ASR spend. Add `watchlist_json` or CLI `--watchlist` to catch customer-specific pronunciation and wrong-name substitutions. Add `expected_script_text`, `expected_script_json`, or CLI `--expected-script` when a locked script exists so `script_faithfulness` can catch narration drift using WER.
+3. Call `uploadcheck check <file>` or MCP `qc_run_local_file` with `file_path`. Small files inline through Render; larger files use signed upload automatically. Lower-level MCP callers can still use `media_base64` for small files or `qc_create_upload_url` + `qc_run_video` with `upload_id` for large files. When a storybook/edit manifest exists, pass `manifest_path`, `manifest_json`, or CLI `--manifest` so `repeat_fatigue` can catch reuse before and after render. When a transcript or script-sidecar exists, pass `transcript_path`, `transcript_text`, `transcript_json`, or CLI `--transcript` so `spoken_leaks` can catch prompt/stage/vendor leakage without ASR spend. Add `watchlist_path`, `watchlist_json`, or CLI `--watchlist` to catch customer-specific pronunciation and wrong-name substitutions. Add `expected_script_path`, `expected_script_text`, `expected_script_json`, or CLI `--expected-script` when a locked script exists so `script_faithfulness` can catch narration drift using WER.
 4. Poll `qc_get_job` until `status=completed`.
 5. Fetch `qc_get_report` and `qc_get_marker_csv`.
 6. Treat `BLOCK` as stop-ship, `WATCH` as source review, and `PASS` as ready only after the project-specific editorial checklist is also complete.
@@ -140,7 +140,7 @@ For NTO specifically, UploadCheck is the replacement target for the current prod
 
 Agent repair loop:
 
-1. Call `qc_run_video` or `uploadcheck check`.
+1. Call `qc_run_local_file`, `qc_run_video`, or `uploadcheck check`.
 2. Fetch `qc_get_report`.
 3. Show all flags grouped by `BLOCK`, `WATCH`, and fixability.
 4. Ask the user whether to fix now.

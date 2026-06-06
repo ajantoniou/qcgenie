@@ -51,7 +51,7 @@ UploadCheck.app has a credible wedge: full-timeline creator video QC with hard c
 - Added list filters for recent jobs by `limit`, `status`, and `source_url`.
 - Built v0 bearer-token scope enforcement for API endpoints; production still needs hashed key storage and usage logs.
 - Added SHA-256 API-key hash verification support through `UPLOADCHECK_API_KEY_SHA256`; legacy `QCGENIE_API_KEY_SHA256` remains a migration fallback.
-- Built MCP server wrapper artifacts for `qc_estimate_cost`, `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_create_upload_url`.
+- Built MCP server wrapper artifacts for `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_create_upload_url`.
 - Added reference full-video QC engine scripts under `scripts/qc-engine/` and built `POST /v1/qc/jobs/{job_id}/gate-verdict` so external gate `VERDICT.json` results become hosted QC flags, reports, marker exports, and webhook-triggering verdicts.
 - Added public OpenAPI at `/openapi.json`.
 - Built v0 webhook registration and HMAC-SHA256 delivery-preview signatures.

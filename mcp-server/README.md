@@ -34,7 +34,23 @@ Small and medium local files can be sent through Render without durable storage 
 
 The API writes the payload to a temp file, runs the gate, and deletes the temp file after processing. Use signed URLs or future direct object storage for large files.
 
-The agent should call `qc_run_video`, poll `qc_get_job`, fetch `qc_get_report`, then list timestamped evidence and fix captions, checklists, and source-level issues it can reach.
+The agent should call `qc_run_local_file` for a reachable local export, or `qc_run_video` when it already has a YouTube URL, signed URL, upload id, or base64 payload. Then poll `qc_get_job`, fetch `qc_get_report`, and list timestamped evidence plus source-level issues it can reach.
+
+For Codex, Claude Code, Cursor, or NTO/NPO production pipelines, `qc_run_local_file` is the default local workflow:
+
+```json
+{
+  "file_path": "/path/to/final-upload.mp4",
+  "checks": "canvas_fill,loop_freeze,repeat_fatigue,dead_air,text_contrast,text_safe_area",
+  "manifest_path": "/path/to/storybook.json",
+  "transcript_path": "/path/to/transcript.txt",
+  "expected_script_path": "/path/to/locked-script.txt",
+  "plan_id": "creator",
+  "cost_guardrail": "downgrade"
+}
+```
+
+Small files are base64 encoded by the local MCP process and evaluated through Render inline. Larger files use the signed-upload path automatically unless `upload_mode: "inline"` or `upload_mode: "signed"` is specified.
 
 When a project has a storybook, edit decision list, or visual timeline JSON, pass it as `manifest_json` with `checks: "repeat_fatigue"`. UploadCheck will use it to flag exact visual reuse and source-family dominance even before a final render is reviewed.
 
@@ -52,6 +68,7 @@ Call `qc_estimate_cost` before uploading large media or asking for model-backed 
 
 - `qc_estimate_cost`
 - `qc_run_video`
+- `qc_run_local_file`
 - `qc_get_job`
 - `qc_get_report`
 - `qc_get_events`

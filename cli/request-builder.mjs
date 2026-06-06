@@ -188,7 +188,9 @@ export function formatJobSummary(payload) {
   const status = payload.status || "unknown";
   const verdict = payload.verdict || "pending";
   const minutes = payload.minutesMetered ?? 0;
-  const cost = payload.costEstimate?.estimatedCogsUsd;
+  const cost = payload.costEstimate?.estimatedCogsUsd ?? (
+    payload.costEstimate?.estimatedCogsCents == null ? null : payload.costEstimate.estimatedCogsCents / 100
+  );
   const suffix = cost == null ? "" : ` | est. COGS $${Number(cost).toFixed(4)}`;
   return `UploadCheck job ${payload.jobId || payload.id || "(unknown)"}: ${status} / ${verdict} | ${minutes} min${suffix}`;
 }

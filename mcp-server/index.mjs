@@ -2,6 +2,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { runLocalFileRequest } from "./local-file.mjs";
 
 const apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || "https://qcgenie-api.onrender.com";
 const apiKey = process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
@@ -73,6 +74,29 @@ server.tool(
     idempotency_key: z.string().optional()
   },
   async (input) => jsonTool(await apiFetch("/v1/qc/jobs", { method: "POST", body: input }))
+);
+
+server.tool(
+  "qc_run_local_file",
+  "Read a local media file from the agent workspace, send it through Render inline when small, and start an UploadCheck run.",
+  {
+    file_path: z.string(),
+    checks: z.string().optional(),
+    manifest_path: z.string().optional(),
+    transcript_path: z.string().optional(),
+    watchlist_path: z.string().optional(),
+    expected_script_path: z.string().optional(),
+    max_inline_mb: z.number().optional(),
+    upload_mode: z.enum(["auto", "inline", "signed"]).optional(),
+    plan_id: z.string().optional(),
+    plan_price_cents: z.number().optional(),
+    included_minutes: z.number().optional(),
+    ai_review_seconds: z.number().optional(),
+    cost_guardrail: z.enum(["downgrade", "block", "off"]).optional(),
+    callback_url: z.string().optional(),
+    idempotency_key: z.string().optional()
+  },
+  async (input) => jsonTool(await runLocalFileRequest(input, apiKey, apiFetch))
 );
 
 server.tool(
