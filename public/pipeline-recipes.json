@@ -3,6 +3,11 @@
   "description": "Machine-readable defaults for agentic production pipelines that call UploadCheck before upload.",
   "api_base_url": "https://qcgenie-api.onrender.com/v1",
   "mcp_server": "uploadcheck",
+  "launch_preflight": {
+    "tool": "qc_get_launch_status",
+    "fallback_cli": "uploadcheck launch-status --json",
+    "rule": "Before launch-sensitive production workflows, verify product_hunt_ready=true and remaining_blockers is empty. If blockers remain, report them before running publish or Product Hunt launch steps."
+  },
   "cost_preflight": {
     "tool": "qc_estimate_cost",
     "default_plan_id": "creator",

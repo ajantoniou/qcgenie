@@ -27,7 +27,7 @@ The server exposes `qc_get_launch_status`, `qc_estimate_cost`, `qc_run_video`, `
 
 The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadcheck`. Use `$uploadcheck` when a project needs the standard preflight -> hosted QC -> report -> repair-loop workflow.
 
-Machine-readable pipeline profiles are published at `https://qcgenie-api.onrender.com/pipeline-recipes.json` for agents that need defaults without scraping prose. The current profiles are `nto_long_form`, `nto_shorts`, `npo_podcast_or_audio`, and `generic_creator_video`.
+Machine-readable pipeline profiles are published at `https://qcgenie-api.onrender.com/pipeline-recipes.json` for agents that need defaults without scraping prose. The current profiles are `nto_long_form`, `nto_shorts`, `npo_podcast_or_audio`, and `generic_creator_video`. The recipe file includes `launch_preflight`, `cost_preflight`, profile-specific `qc_run_local_file` arguments, and repair-loop instructions.
 
 Before launch-sensitive production workflows, agents can call MCP `qc_get_launch_status` or CLI `uploadcheck launch-status --json` to verify the live go/no-go state and remaining external blockers.
 
