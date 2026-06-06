@@ -89,6 +89,7 @@ After DNS propagation:
 curl -i https://uploadcheck.app/
 curl -i https://www.uploadcheck.app/
 curl -i https://api.uploadcheck.app/healthz
+curl -i https://qcgenie-api.onrender.com/v1/launch-status
 curl -i https://uploadcheck.app/sitemap.xml
 curl -i https://uploadcheck.app/llms.txt
 ```

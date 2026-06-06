@@ -87,7 +87,7 @@ Persistence state:
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
 - `/v1/launch-status` derives a live machine-readable launch go/no-go summary from readiness, including current blockers and operator commands.
 - `/launch-status.json` publishes machine-readable completed controls, current blockers, operator commands, and Product Hunt go/no-go rules; `npm run launch-status:verify` keeps it aligned with readiness and public agent metadata.
-- `npm run launch:check` combines live readiness, DNS, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
+- `npm run launch:check` combines live readiness, live launch status, DNS, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
 - `npm run readiness:check` fetches live readiness and prints the exact remaining Render/DNS/checkout actions.
 - `npm run render:verify` checks that `render.yaml` declares custom domains, a mounted disk, durable store/media paths, checkout prompts, and webhook encryption prompts.
 - `npm run render:env-template` prints a fillable local env file for the remaining Render checkout, auth, webhook, optional storage, and API-key inputs. `npm run render:validate-env` rejects placeholders, invalid checkout/storage URLs, weak encryption keys, invalid API key hashes, and non-durable paths before `render:apply`. `npm run render:plan`, `npm run render:audit`, and `npm run render:apply` use `RENDER_API_KEY` to inspect or apply Render custom domains, durable env values, provided checkout URLs, and provided secret values.

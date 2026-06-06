@@ -60,6 +60,7 @@
   ],
   "verification_commands": [
     "npm run launch:check",
+    "curl -i https://qcgenie-api.onrender.com/v1/launch-status",
     "curl -i https://uploadcheck.app/",
     "curl -i https://www.uploadcheck.app/",
     "curl -i https://api.uploadcheck.app/healthz"

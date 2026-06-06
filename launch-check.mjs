@@ -12,7 +12,9 @@ const HOSTS = LAUNCH_TARGETS.http_targets.map((target) => ({
 }));
 
 export async function buildLaunchCheck({ apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || DEFAULT_API_BASE_URL, fetchImpl = fetch, resolver = lookup } = {}) {
-  const readiness = await fetchJson(fetchImpl, `${apiBaseUrl.replace(/\/+$/, "")}/v1/readiness`);
+  const normalizedApiBaseUrl = apiBaseUrl.replace(/\/+$/, "");
+  const readiness = await fetchJson(fetchImpl, `${normalizedApiBaseUrl}/v1/readiness`);
+  const launchStatus = await fetchJson(fetchImpl, `${normalizedApiBaseUrl}/v1/launch-status`);
   const domains = [];
 
   for (const target of HOSTS) {
@@ -28,6 +30,8 @@ export async function buildLaunchCheck({ apiBaseUrl = process.env.UPLOADCHECK_AP
 
   const blockers = [];
   if (!readiness.readyForProductHunt) blockers.push("readiness");
+  if (!launchStatus.product_hunt_ready) blockers.push("launch-status");
+  if (Boolean(launchStatus.product_hunt_ready) !== Boolean(readiness.readyForProductHunt)) blockers.push("readiness-launch-status-mismatch");
   for (const domain of domains) {
     if (!domain.ok) blockers.push(`${domain.host}:${domain.dns.ok ? "http" : "dns"}`);
   }
@@ -36,6 +40,7 @@ export async function buildLaunchCheck({ apiBaseUrl = process.env.UPLOADCHECK_AP
     ready: blockers.length === 0,
     blockers,
     readiness,
+    launchStatus,
     domains
   };
 }
@@ -44,6 +49,7 @@ export function formatLaunchCheck(result) {
   const lines = [];
   lines.push(`UploadCheck launch: ${result.ready ? "READY" : "NOT READY"}`);
   lines.push(`Readiness: ${result.readiness.readyForProductHunt ? "PASS" : "BLOCK"}`);
+  lines.push(`Launch status: ${result.launchStatus.product_hunt_ready ? "PASS" : "BLOCK"}`);
   lines.push("");
   for (const domain of result.domains) {
     lines.push(`${domain.ok ? "PASS" : "BLOCK"} ${domain.host}`);

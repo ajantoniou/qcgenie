@@ -26,6 +26,7 @@ describe("UploadCheck launch targets", () => {
       ["www", "qcgenie-web.onrender.com"],
       ["api", "qcgenie-api.onrender.com"]
     ]);
+    expect(targets.verification_commands).toContain("curl -i https://qcgenie-api.onrender.com/v1/launch-status");
   });
 
   it("links launch targets from the public agent manifest", () => {

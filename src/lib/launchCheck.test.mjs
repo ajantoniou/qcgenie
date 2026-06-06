@@ -8,7 +8,9 @@ describe("launch check", () => {
       fetchImpl: async (url) => ({
         ok: true,
         status: String(url).includes("/v1/readiness") ? 200 : 200,
-        json: async () => ({ readyForProductHunt: true })
+        json: async () => String(url).includes("/v1/launch-status")
+          ? ({ product_hunt_ready: true })
+          : ({ readyForProductHunt: true })
       }),
       resolver: async () => [{ address: "216.24.57.1", family: 4 }]
     });
@@ -25,6 +27,9 @@ describe("launch check", () => {
         if (String(url).includes("/v1/readiness")) {
           return { ok: true, status: 200, json: async () => ({ readyForProductHunt: false }) };
         }
+        if (String(url).includes("/v1/launch-status")) {
+          return { ok: true, status: 200, json: async () => ({ product_hunt_ready: false }) };
+        }
         return { ok: false, status: 404, json: async () => ({}) };
       },
       resolver: async (host) => {
@@ -35,7 +40,29 @@ describe("launch check", () => {
 
     expect(result.ready).toBe(false);
     expect(result.blockers).toContain("readiness");
+    expect(result.blockers).toContain("launch-status");
     expect(result.blockers).toContain("api.uploadcheck.app:dns");
+    expect(formatLaunchCheck(result)).toContain("Launch status: BLOCK");
     expect(formatLaunchCheck(result)).toContain("Blockers:");
+  });
+
+  it("blocks launch when readiness and live launch status disagree", async () => {
+    const result = await buildLaunchCheck({
+      apiBaseUrl: "https://api.example.test",
+      fetchImpl: async (url) => {
+        if (String(url).includes("/v1/readiness")) {
+          return { ok: true, status: 200, json: async () => ({ readyForProductHunt: true }) };
+        }
+        if (String(url).includes("/v1/launch-status")) {
+          return { ok: true, status: 200, json: async () => ({ product_hunt_ready: false }) };
+        }
+        return { ok: true, status: 200, json: async () => ({}) };
+      },
+      resolver: async () => [{ address: "216.24.57.1", family: 4 }]
+    });
+
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toContain("launch-status");
+    expect(result.blockers).toContain("readiness-launch-status-mismatch");
   });
 });
