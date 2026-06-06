@@ -96,9 +96,18 @@ describe("public OpenAPI spec", () => {
     const uploadPost = spec.paths["/v1/uploads"].post;
 
     expect(jobPost.requestBody.content["application/json"].schema.properties.duration_seconds.description).toContain("abuse-limit");
+    expect(jobPost.requestBody.content["application/json"].schema.properties.process_async.description).toContain("queued");
     expect(jobPost.requestBody.content["application/json"].schema.properties.size_bytes.description).toContain("abuse-limit");
     expect(jobPost.responses["413"].description).toContain("abuse limit");
     expect(jobPost.responses["429"].description).toContain("concurrency");
     expect(uploadPost.responses["413"].description).toContain("maximum size");
+  });
+
+  it("documents queued worker drain execution", () => {
+    const spec = loadSpec();
+
+    expect(spec.paths["/v1/qc/jobs/drain"].post.summary).toContain("Drain queued");
+    expect(spec.paths["/v1/qc/jobs/drain"].post.requestBody.content["application/json"].schema.properties.limit.maximum).toBe(25);
+    expect(spec.paths["/v1/qc/jobs/drain"].post.responses["200"].description).toContain("Queued jobs processed");
   });
 });

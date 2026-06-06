@@ -223,6 +223,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: plan-level AI-review budgets added to the cost model and public cost basis. Creator includes `3,600` AI-review seconds, Studio `7,200`, Network `21,600`, and the `$99 / 5,000` stress plan includes `0`; declared jobs that exceed the cumulative allowance return `usage_limit_exceeded` before QC.
 - Done: abuse limits added for file size, declared duration, and active job concurrency. Job/upload requests now fail fast with `duration_limit_exceeded`, `upload_size_limit_exceeded`, or `active_job_limit_exceeded` before QC compute or storage spend.
 - Done: job observability added for duration, stage timing, provider-usage count, engine mode, and fallback failure reasons. Job responses and reports now preserve `startedAt`, `completedAt`, `processingDurationMs`, `observability.stages`, and `failureReason`.
+- Done: queued worker execution added. `POST /v1/qc/jobs` can accept `process_async=true`, leaving the job queued, and `POST /v1/qc/jobs/drain` processes queued jobs for Render cron/workflow execution.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
 - Next: use observed provider COGS from live Render runs to set final AI-review allowances per plan.

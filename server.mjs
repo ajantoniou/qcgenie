@@ -56,6 +56,7 @@ createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/openapi.json") return serveStatic("/openapi.json", res);
     if (req.method === "GET" && /^\/checkout\/[^/]+$/.test(url.pathname)) return redirectCheckout(url, res);
     if (req.method === "POST" && url.pathname === "/v1/qc/estimate") return estimateQc(req, res);
+    if (req.method === "POST" && url.pathname === "/v1/qc/jobs/drain") return drainQueuedJobs(req, res);
     if (req.method === "POST" && url.pathname === "/v1/qc/jobs") return createJob(req, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+$/.test(url.pathname)) return getJob(req, url, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/report$/.test(url.pathname)) return getReport(req, url, res);
@@ -177,8 +178,24 @@ async function createJob(req, res) {
         ephemeral: true
       };
     }
+    if (shouldQueueJob(body)) {
+      if (inlineMedia || inlineManifest || inlineTranscript || inlineWatchlist || inlineExpectedScript) {
+        return sendJson(res, 400, {
+          error: "async_ephemeral_inputs_unsupported",
+          message: "Queued jobs cannot use inline media or inline sidecars because those temporary files are deleted after the request. Use signed upload, upload_id, YouTube, or remote sidecar URLs for async processing."
+        });
+      }
+    }
     const job = store.createJob(body);
     if (job.idempotentReplay) return sendJson(res, 200, withCostEstimate(job));
+    if (shouldQueueJob(body)) {
+      store.addJobEvent(job.jobId, "queued_for_worker", {
+        requestedAsync: true,
+        drainEndpoint: "/v1/qc/jobs/drain"
+      });
+      store.persist();
+      return sendJson(res, 202, withCostEstimate(job));
+    }
     const completed = store.runDeterministicQc(job.jobId, {
       checks: body.checks || inlineMedia?.checks,
       manifestPath: inlineManifest?.filePath,
@@ -195,6 +212,26 @@ async function createJob(req, res) {
     await cleanupInlineWatchlist(inlineWatchlist);
     await cleanupInlineExpectedScript(inlineExpectedScript);
   }
+}
+
+async function drainQueuedJobs(req, res) {
+  const auth = requireScope(req, "jobs:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const body = await readJson(req);
+  const limit = Math.min(Math.max(Number(body.limit || 5) || 5, 1), 25);
+  const queued = store.listQueuedJobs({ limit });
+  const results = [];
+
+  for (const job of queued) {
+    const completed = store.runDeterministicQc(job.jobId, { checks: job.checks });
+    if (completed) store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
+    results.push(withCostEstimate(completed || job));
+  }
+
+  return sendJson(res, 200, {
+    processed: results.length,
+    jobs: results
+  });
 }
 
 async function materializeInlineManifest(body = {}) {
@@ -818,6 +855,10 @@ function estimateRequestedMinutes(body = {}) {
   const durationSeconds = Number(body.duration_seconds ?? body.durationSeconds);
   if (Number.isFinite(durationSeconds) && durationSeconds > 0) return Math.ceil(durationSeconds / 60);
   return 0;
+}
+
+function shouldQueueJob(body = {}) {
+  return body.process_async === true || body.processAsync === true || body.async === true || process.env.UPLOADCHECK_DEFAULT_ASYNC_JOBS === "1";
 }
 
 function positiveNumberEnv(name, fallback) {

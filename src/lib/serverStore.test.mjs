@@ -64,6 +64,24 @@ describe("JsonStore", () => {
     }
   });
 
+  it("lists queued jobs in FIFO order for worker drains", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const first = store.createJob({ source: "https://example.com/first.mp4" });
+      const second = store.createJob({ source: "https://example.com/second.mp4" });
+      const completed = store.createJob({ source: "https://example.com/done.mp4" });
+      completed.status = "completed";
+
+      expect(store.listQueuedJobs({ limit: 10 }).map((job) => job.jobId)).toEqual([first.jobId, second.jobId]);
+      expect(store.listQueuedJobs({ limit: 1 }).map((job) => job.jobId)).toEqual([first.jobId]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("marks uploaded content and creates upload jobs from the stored local file", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");

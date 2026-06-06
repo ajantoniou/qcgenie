@@ -8,6 +8,7 @@ describe("agentic integration contract", () => {
       "GET /v1/launch-status",
       "POST /v1/qc/estimate",
       "POST /v1/qc/jobs",
+      "POST /v1/qc/jobs/drain",
       "GET /v1/qc/jobs/{job_id}",
       "GET /v1/qc/jobs/{job_id}/report",
       "GET /v1/qc/jobs/{job_id}/events",

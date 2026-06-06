@@ -107,6 +107,7 @@
     "GET /v1/launch-status",
     "POST /v1/qc/estimate",
     "POST /v1/qc/jobs",
+    "POST /v1/qc/jobs/drain",
     "GET /v1/qc/jobs/{job_id}",
     "GET /v1/qc/jobs/{job_id}/report",
     "GET /v1/qc/jobs/{job_id}/events",
@@ -129,6 +130,7 @@
     "Pipeline recipes include launch_preflight, cost_preflight, sidecar-aware qc_run_local_file arguments, and repair-loop instructions.",
     "User runs /check with a media file, YouTube URL, upload id, or signed URL.",
     "The agent calls qc_estimate_cost before uploading or running model-backed checks.",
+    "For queued execution, agents can create jobs with process_async=true and a worker can call POST /v1/qc/jobs/drain. Inline media and inline sidecars remain synchronous because their temporary files are deleted after the request.",
     "The agent calls qc_run_local_file for reachable local media or qc_run_video for URLs/upload ids, then polls qc_get_job until completion.",
     "The agent fetches qc_get_report and lists timestamped evidence.",
     "The agent shows all BLOCK and WATCH flags, asks whether to fix now, fixes captions/checklists/source-level issues it can reach, then flags issues requiring a source or render pass."

@@ -47,6 +47,7 @@ describe("public launch status", () => {
     expect(status.verified_controls.find((control) => control.id === "billing_enforcement")?.evidence).toContain("AI-review seconds");
     expect(status.verified_controls.find((control) => control.id === "abuse_limits")?.evidence).toContain("active_job_limit_exceeded");
     expect(status.verified_controls.find((control) => control.id === "job_observability")?.evidence).toContain("processingDurationMs");
+    expect(status.verified_controls.find((control) => control.id === "queued_worker")?.evidence).toContain("/v1/qc/jobs/drain");
     expect(status.go_no_go_rule).toContain("readyForProductHunt=true");
   });
 

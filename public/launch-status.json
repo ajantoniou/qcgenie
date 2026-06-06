@@ -85,6 +85,11 @@
       "evidence": "Jobs persist startedAt, completedAt, processingDurationMs, stage elapsed times, provider usage entry counts, and fallback failureReason telemetry."
     },
     {
+      "id": "queued_worker",
+      "status": "done",
+      "evidence": "POST /v1/qc/jobs supports process_async=true and POST /v1/qc/jobs/drain processes queued jobs for Render worker/cron execution."
+    },
+    {
       "id": "package_verify",
       "status": "done",
       "evidence": "npm run packages:verify checks @uploadcheck/cli and @uploadcheck/mcp pack contents."

@@ -368,6 +368,10 @@
                   "audio_content_type": { "type": "string" },
                   "data_url": { "type": "string" },
                   "filename": { "type": "string" },
+                  "process_async": {
+                    "description": "When true, leave the job queued for POST /v1/qc/jobs/drain instead of running QC in the create request. Inline media and inline sidecars are not supported in queued mode.",
+                    "type": "boolean"
+                  },
                   "duration_seconds": {
                     "description": "Declared media duration used for cost, usage, and abuse-limit preflight.",
                     "type": "number"
@@ -465,6 +469,30 @@
         ],
         "responses": {
           "200": { "description": "Recent jobs" }
+        }
+      }
+    },
+    "/v1/qc/jobs/drain": {
+      "post": {
+        "summary": "Drain queued async QC jobs",
+        "security": [{ "bearerApiKey": [] }],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "limit": { "type": "integer", "minimum": 1, "maximum": 25 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Queued jobs processed" },
+          "401": { "description": "Missing or invalid API key" },
+          "403": { "description": "Insufficient scope" }
         }
       }
     },

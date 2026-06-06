@@ -48,6 +48,7 @@ Agent integration:
 - Current v0 API persists jobs, uploads, webhook endpoints, webhook delivery previews, and usage entries to a server-side JSON store. Set UPLOADCHECK_STORE_PATH outside temp storage for mounted-disk persistence; Supabase persistence is still planned for multi-workspace scale.
 - Report reads append rounded-minute usage entries visible through GET /v1/usage, with gross-margin telemetry summarized at GET /v1/usage/margins.
 - Creating a QC job currently runs deterministic v0 processing immediately and stores lifecycle events, warning flags, and JSON/marker-export artifact records.
+- For queued execution, create jobs with process_async=true and process them through POST /v1/qc/jobs/drain. Inline media and inline sidecars remain synchronous because temporary files are deleted after the create request.
 - Marker exports are available as CSV at GET /v1/qc/jobs/{job_id}/artifacts/markers for editor handoff.
 - The machine-readable repair loop contract is in agent-manifest.json and pipeline-recipes.json. Agents must fetch qc_get_report and qc_get_marker_csv, show all flags grouped by BLOCK/WATCH/PASS, ask "Fix now?", apply only reachable fixes, return timestamped source/render instructions for unreachable media defects, and rerun UploadCheck before upload-ready claims.
 - Product Hunt launch state should be verified with GET /v1/readiness before claiming checkout, custom domain, persistence, storage, demo clip, and launch readiness are complete.

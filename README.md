@@ -82,6 +82,7 @@ Persistence state:
 - `uploadcheck usage` reads `/v1/usage/margins` and prints current estimated COGS, cost/minute, and gross margin.
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
 - Jobs persist observability telemetry: `startedAt`, `completedAt`, `processingDurationMs`, stage elapsed times, provider-usage entry counts, and fallback `failureReason`.
+- Queued execution is available with `process_async=true` on `POST /v1/qc/jobs`; workers or Render cron/workflows can process queued jobs with `POST /v1/qc/jobs/drain`. Inline media and inline sidecars remain synchronous because their temporary files are deleted after the create request.
 - When a job source resolves to a local video or downloadable URL, `qc-engine-runner.mjs` can run the reference gate; otherwise the hosted job records a `WATCH` engine warning instead of pretending the asset passed.
 - Editor marker CSV exports are available at `/v1/qc/jobs/{job_id}/artifacts/markers`.
 - Job creation honors `idempotency_key` so agent retries return the existing job instead of creating duplicate QC runs.

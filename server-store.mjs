@@ -94,6 +94,13 @@ export class JsonStore {
       .reverse();
   }
 
+  listQueuedJobs(options = {}) {
+    const limit = Math.min(Math.max(Number(options.limit || 10) || 10, 1), 100);
+    return this.state.jobs
+      .filter((job) => job.status === "queued")
+      .slice(0, limit);
+  }
+
   cancelJob(jobId) {
     const job = this.getJob(jobId);
     if (!job) return null;

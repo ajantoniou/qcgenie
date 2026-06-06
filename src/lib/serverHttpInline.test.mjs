@@ -105,6 +105,112 @@ describe("server inline media API", () => {
     }
   }, 20000);
 
+  it("queues async jobs and drains them through the worker endpoint", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-async-drain-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const apiKey = "uck_test_async_drain";
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const createResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/queued-final.mp4",
+          source_type: "signed_url",
+          process_async: true,
+          duration_seconds: 30,
+          checks: "canvas_fill"
+        })
+      });
+      const created = await createResponse.json();
+
+      expect(createResponse.status).toBe(202);
+      expect(created.status).toBe("queued");
+      expect(created.verdict).toBeNull();
+
+      const drainResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs/drain`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({ limit: 1 })
+      });
+      const drained = await drainResponse.json();
+
+      expect(drainResponse.status).toBe(200);
+      expect(drained.processed).toBe(1);
+      expect(drained.jobs[0]).toMatchObject({
+        jobId: created.jobId,
+        status: "completed",
+        verdict: "WATCH",
+        gateVerdict: "NEEDS_REVIEW"
+      });
+      expect(drained.jobs[0].observability.processingDurationMs).toBeGreaterThanOrEqual(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("rejects async jobs with ephemeral inline media", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-async-inline-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const apiKey = "uck_test_async_inline";
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          media_base64: Buffer.from("fake-mp4").toString("base64"),
+          media_content_type: "video/mp4",
+          media_kind: "video",
+          process_async: true,
+          checks: "canvas_fill"
+        })
+      });
+      const payload = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(payload.error).toBe("async_ephemeral_inputs_unsupported");
+      expect(payload.message).toContain("Queued jobs cannot use inline media");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
   it("rejects declared jobs that exceed the max duration limit", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-duration-limit-"));
     const port = 19000 + Math.floor(Math.random() * 1000);

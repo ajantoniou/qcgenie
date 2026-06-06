@@ -48,6 +48,7 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "GET /v1/launch-status", purpose: "Fetch live Product Hunt launch go/no-go state, blockers, and operator commands." },
   { methodPath: "POST /v1/qc/estimate", purpose: "Preflight cost, margin guardrail behavior, and effective checks before uploading media." },
   { methodPath: "POST /v1/qc/jobs", purpose: "Create a QC job from a YouTube URL, upload id, or signed asset URL." },
+  { methodPath: "POST /v1/qc/jobs/drain", purpose: "Process queued async QC jobs for Render cron/workflow worker execution." },
   { methodPath: "GET /v1/qc/jobs/{job_id}", purpose: "Poll job status, verdict, gate progress, and minute usage." },
   { methodPath: "GET /v1/qc/jobs/{job_id}/report", purpose: "Fetch shareable JSON/PDF-ready defects, timestamps, and evidence." },
   { methodPath: "GET /v1/qc/jobs/{job_id}/events", purpose: "Inspect lifecycle events for agent explanations and progress audit." },
