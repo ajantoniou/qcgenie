@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildApiKeyMaterial } from "../api-auth.mjs";
 import { buildCheckoutUrl } from "../checkout-links.mjs";
 import { getObjectStorageConfig } from "../object-storage.mjs";
-import { validateSecretEncryptionKey } from "../secrets.mjs";
+import { generateSecretEncryptionKey, validateSecretEncryptionKey } from "../secrets.mjs";
 
 const API_BASE = "https://api.render.com/v1";
 const WEB_SERVICE_ID = process.env.UPLOADCHECK_RENDER_WEB_SERVICE_ID || "srv-d8hk200jo6nc73er93u0";
@@ -120,6 +121,17 @@ export function validateRenderLaunchEnv(env = process.env) {
 }
 
 export function buildEnvTemplate() {
+  return buildEnvTemplateFromValues({
+    apiKeySha256: "<generated_sha256>",
+    secretEncryptionKey: "<generated_secret_encryption_key>"
+  });
+}
+
+export function buildBootstrapEnvTemplate({ apiKeySha256, secretEncryptionKey }) {
+  return buildEnvTemplateFromValues({ apiKeySha256, secretEncryptionKey });
+}
+
+function buildEnvTemplateFromValues({ apiKeySha256, secretEncryptionKey }) {
   const lines = [
     "# UploadCheck Render launch env template",
     "# Fill these locally, then run: set -a; source /path/to/filled.env; set +a; npm run render:plan && npm run render:validate-env && npm run render:apply",
@@ -130,7 +142,7 @@ export function buildEnvTemplate() {
     "",
     "# API auth: prefer setting only the generated SHA-256 hash on Render.",
     "# Generate with: npm run --silent api-key:generate",
-    "UPLOADCHECK_API_KEY_SHA256=\"<generated_sha256>\"",
+    `UPLOADCHECK_API_KEY_SHA256=${JSON.stringify(apiKeySha256)}`,
     "# Keep UPLOADCHECK_API_KEY private for clients; only set it on Render for bootstrap/testing.",
     "# UPLOADCHECK_API_KEY=\"<generated_bearer_token>\"",
     "",
@@ -146,7 +158,7 @@ export function buildEnvTemplate() {
     "",
     "# Webhook secret encryption: required before hosted webhooks are production-ready.",
     "# Generate with: npm run --silent secret:generate",
-    "UPLOADCHECK_SECRET_ENCRYPTION_KEY=\"<generated_secret_encryption_key>\"",
+    `UPLOADCHECK_SECRET_ENCRYPTION_KEY=${JSON.stringify(secretEncryptionKey)}`,
     "",
     "# Optional public demo URL if the bundled demo clip is not shipped.",
     "# UPLOADCHECK_DEMO_CLIP_URL=\"https://...\"",
@@ -172,6 +184,14 @@ async function main() {
   const plan = buildRenderLaunchPlan();
   if (command === "env-template") {
     console.log(buildEnvTemplate());
+    return;
+  }
+  if (command === "bootstrap-env") {
+    const material = buildApiKeyMaterial();
+    const secretEncryptionKey = generateSecretEncryptionKey();
+    console.error("# Store this bearer token in your password manager. It is for clients, not Render.");
+    console.error(`UPLOADCHECK_API_KEY=${material.apiKey}`);
+    console.log(buildBootstrapEnvTemplate({ apiKeySha256: material.sha256, secretEncryptionKey }));
     return;
   }
   if (command === "plan") {
@@ -202,7 +222,7 @@ async function main() {
     console.log(JSON.stringify(await applyRenderLaunch(token, plan), null, 2));
     return;
   }
-  throw new Error("Usage: render-launch-ops.mjs [env-template|plan|audit|apply]");
+  throw new Error("Usage: render-launch-ops.mjs [env-template|bootstrap-env|plan|audit|apply]");
 }
 
 function isFilledEnvValue(value) {

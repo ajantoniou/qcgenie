@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync, spawnSync } from "node:child_process";
-import { buildEnvTemplate, buildRenderLaunchPlan, summarizePlan, validateRenderLaunchEnv } from "../../scripts/render-launch-ops.mjs";
+import { buildBootstrapEnvTemplate, buildEnvTemplate, buildRenderLaunchPlan, summarizePlan, validateRenderLaunchEnv } from "../../scripts/render-launch-ops.mjs";
 
 describe("Render launch operations plan", () => {
   it("builds the launch domain and env plan without requiring secrets", () => {
@@ -184,6 +184,33 @@ describe("Render launch operations plan", () => {
     expect(output).toContain("UPLOADCHECK_STORE_PATH=\"/mnt/uploadcheck/store.json\"");
     expect(output).toContain("Do not commit a filled copy.");
     expect(output).not.toContain(process.env.RENDER_API_KEY || "render-secret-never-present");
+  });
+
+  it("builds a bootstrap env template with generated auth and encryption values only", () => {
+    const output = buildBootstrapEnvTemplate({
+      apiKeySha256: "a".repeat(64),
+      secretEncryptionKey: "b".repeat(43)
+    });
+
+    expect(output).toContain(`UPLOADCHECK_API_KEY_SHA256="${"a".repeat(64)}"`);
+    expect(output).toContain(`UPLOADCHECK_SECRET_ENCRYPTION_KEY="${"b".repeat(43)}"`);
+    expect(output).toContain("RENDER_API_KEY=\"<render_api_key>\"");
+    expect(output).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL=\"https://...\"");
+    expect(output).not.toContain("UPLOADCHECK_API_KEY=uck_");
+  });
+
+  it("prints bootstrap env to stdout and the client bearer token to stderr", () => {
+    const result = spawnSync("node", ["scripts/render-launch-ops.mjs", "bootstrap-env"], {
+      encoding: "utf8",
+      env: { ...process.env, RENDER_API_KEY: "" }
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("UPLOADCHECK_API_KEY_SHA256=");
+    expect(result.stdout).toContain("UPLOADCHECK_SECRET_ENCRYPTION_KEY=");
+    expect(result.stdout).toContain("RENDER_API_KEY=\"<render_api_key>\"");
+    expect(result.stdout).not.toContain("UPLOADCHECK_API_KEY=uck_");
+    expect(result.stderr).toContain("UPLOADCHECK_API_KEY=uck_");
   });
 
   it("keeps the env template aligned with fixed Render launch env values", () => {

@@ -10,7 +10,7 @@ export function buildReadinessActions(report) {
       title: "Prepare Render launch env",
       detail: `Generate and fill the local env template for ${renderConfigBlockers.join(", ")} before render:apply.`,
       commands: [
-        "npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env",
+        "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
         "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
         "npm run render:plan && npm run render:validate-env && npm run render:apply"
       ],
@@ -49,8 +49,8 @@ export function buildReadinessActions(report) {
     actions.push({
       id: "secret-encryption",
       title: "Set a strong webhook encryption key",
-      detail: "Generate a key and set UPLOADCHECK_SECRET_ENCRYPTION_KEY on Render.",
-      command: "npm run --silent secret:generate",
+      detail: "Use render:bootstrap-env to prefill UPLOADCHECK_SECRET_ENCRYPTION_KEY, or generate a standalone key and set it on Render.",
+      command: "npm run --silent render:bootstrap-env",
       env: ["UPLOADCHECK_SECRET_ENCRYPTION_KEY"]
     });
   }

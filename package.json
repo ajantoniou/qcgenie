@@ -13,6 +13,7 @@
     "readiness:check": "node scripts/product-hunt-readiness.mjs",
     "render:verify": "node scripts/verify-render-launch-config.mjs",
     "render:env-template": "node scripts/render-launch-ops.mjs env-template",
+    "render:bootstrap-env": "node scripts/render-launch-ops.mjs bootstrap-env",
     "render:plan": "node scripts/render-launch-ops.mjs plan",
     "render:validate-env": "node scripts/render-launch-ops.mjs validate-env",
     "render:audit": "node scripts/render-launch-ops.mjs audit",

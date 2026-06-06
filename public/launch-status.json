@@ -102,7 +102,7 @@
     {
       "id": "render_env_validation",
       "status": "done",
-      "evidence": "npm run render:validate-env rejects placeholders, weak secrets, invalid URLs, invalid API hashes, incomplete object storage, and non-durable paths before render:apply."
+      "evidence": "npm run render:bootstrap-env pre-fills generated API hash and webhook encryption values; npm run render:validate-env rejects placeholders, weak secrets, invalid URLs, invalid API hashes, incomplete object storage, and non-durable paths before render:apply."
     }
   ],
   "remaining_blockers": [
@@ -125,27 +125,48 @@
       "id": "custom_domain",
       "severity": "block",
       "required_dns": [
-        { "type": "CNAME", "name": "@", "target": "qcgenie-web.onrender.com" },
-        { "type": "CNAME", "name": "www", "target": "qcgenie-web.onrender.com" },
-        { "type": "CNAME", "name": "api", "target": "qcgenie-api.onrender.com" }
+        {
+          "type": "CNAME",
+          "name": "@",
+          "target": "qcgenie-web.onrender.com"
+        },
+        {
+          "type": "CNAME",
+          "name": "www",
+          "target": "qcgenie-web.onrender.com"
+        },
+        {
+          "type": "CNAME",
+          "name": "api",
+          "target": "qcgenie-api.onrender.com"
+        }
       ]
     },
     {
       "id": "secret_encryption",
       "severity": "block",
-      "required_inputs": ["UPLOADCHECK_SECRET_ENCRYPTION_KEY"],
-      "generator": "npm run --silent secret:generate"
+      "required_inputs": [
+        "UPLOADCHECK_SECRET_ENCRYPTION_KEY"
+      ],
+      "generator": "npm run --silent render:bootstrap-env"
     },
     {
       "id": "persistence",
       "severity": "block",
-      "required_inputs": ["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"],
-      "alternative_inputs": ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
+      "required_inputs": [
+        "UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"
+      ],
+      "alternative_inputs": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ]
     },
     {
       "id": "storage",
       "severity": "block",
-      "required_inputs": ["UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck/uploads"],
+      "required_inputs": [
+        "UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck/uploads"
+      ],
       "alternative_inputs": [
         "UPLOADCHECK_STORAGE_BUCKET",
         "UPLOADCHECK_STORAGE_ENDPOINT",
@@ -155,7 +176,7 @@
     }
   ],
   "operator_commands": [
-    "npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env",
+    "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
     "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
     "npm run render:plan",
     "npm run render:validate-env",

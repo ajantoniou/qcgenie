@@ -37,9 +37,9 @@ describe("readiness action mapping", () => {
       "persistence",
       "storage"
     ]);
-    expect(actions[0].commands).toContain("npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env");
+    expect(actions[0].commands).toContain("npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env");
     expect(actions[1].env).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
-    expect(actions[3].command).toBe("npm run --silent secret:generate");
+    expect(actions[3].command).toBe("npm run --silent render:bootstrap-env");
     expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_ENDPOINT");
     expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY");
   });
@@ -75,7 +75,7 @@ describe("readiness action mapping", () => {
       title: "Prepare Render launch env",
       detail: "Generate and fill the local env template for apiAuth before render:apply.",
       commands: [
-        "npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env",
+        "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
         "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
         "npm run render:plan && npm run render:validate-env && npm run render:apply"
       ],

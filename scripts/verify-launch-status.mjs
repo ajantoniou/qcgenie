@@ -38,6 +38,7 @@ assert(JSON.stringify(status.remaining_blockers) === JSON.stringify(expected.rem
 assert(JSON.stringify(status.verified_controls) === JSON.stringify(expected.verified_controls), "launch-status verified controls do not match launch-status builder");
 assert(JSON.stringify(status.operator_commands) === JSON.stringify(expected.operator_commands), "launch-status operator commands do not match launch-status builder");
 assert(status.go_no_go_rule.includes("readyForProductHunt=true"), "launch-status go/no-go rule must cite readyForProductHunt=true");
+assert(status.operator_commands.includes("npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env"), "launch-status operator commands must include render:bootstrap-env");
 assert(status.operator_commands.includes("npm run render:validate-env"), "launch-status operator commands must include render:validate-env");
 assert(status.operator_commands.includes("npm run codex:verify-install"), "launch-status operator commands must include codex:verify-install");
 assert(status.operator_commands.includes("npm run cost-basis:verify"), "launch-status operator commands must include cost-basis:verify");

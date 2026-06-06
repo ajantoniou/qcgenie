@@ -57,11 +57,9 @@ The Blueprint can request Render domains and disk settings, but DNS still has to
 If a Render API key is available locally, the same launch shape can be audited or partially applied without opening the dashboard:
 
 ```bash
-npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env
+npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env
 # Fill /tmp/uploadcheck-render-launch.env with private values.
-# Generate API/hash material with npm run --silent api-key:generate.
-# Put UPLOADCHECK_API_KEY_SHA256 on Render; keep UPLOADCHECK_API_KEY for clients only.
-# Generate the webhook encryption key with npm run --silent secret:generate.
+# The generated UPLOADCHECK_API_KEY bearer token is printed to stderr; store it privately for clients.
 # Then load the completed local file:
 set -a
 source /tmp/uploadcheck-render-launch.env
@@ -75,7 +73,7 @@ npm run launch:check
 npm run readiness:check
 ```
 
-The generated env template is safe to commit only while placeholders are intact. A filled copy contains Render, checkout, API, webhook, and optional storage secrets and must stay local.
+`render:bootstrap-env` is the recommended launch handoff because it pre-fills a hashed API key and webhook encryption key while leaving Render, checkout, and optional object-storage values for the operator. `render:env-template` is still available when you need a placeholders-only file. The generated env template is safe to commit only while placeholders are intact. A filled copy contains Render, checkout, API, webhook, and optional storage secrets and must stay local.
 `render:plan` reports `placeholderInputs` when a generated placeholder such as `<render_api_key>` or `https://...` is still present. Replace those values before running `render:apply`; the helper ignores placeholders instead of sending them to Render.
 `render:validate-env` checks the filled local env before apply: real Render API key, valid API-key hash or bootstrap key, HTTPS checkout URLs or Lemon Squeezy store/variant inputs, strong webhook encryption key, durable `/mnt/...` paths, and complete optional object-storage settings. `render:apply` refuses to run when validation fails.
 

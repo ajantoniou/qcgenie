@@ -33,7 +33,7 @@ export function buildLaunchStatus(readiness, {
     verified_controls: verifiedControls(),
     remaining_blockers: remainingBlockers(status),
     operator_commands: [
-      "npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env",
+      "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
       "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
       "npm run render:plan",
       "npm run render:validate-env",
@@ -146,7 +146,7 @@ function verifiedControls() {
     {
       id: "render_env_validation",
       status: "done",
-      evidence: "npm run render:validate-env rejects placeholders, weak secrets, invalid URLs, invalid API hashes, incomplete object storage, and non-durable paths before render:apply."
+      evidence: "npm run render:bootstrap-env pre-fills generated API hash and webhook encryption values; npm run render:validate-env rejects placeholders, weak secrets, invalid URLs, invalid API hashes, incomplete object storage, and non-durable paths before render:apply."
     }
   ];
 }
@@ -181,7 +181,7 @@ function remainingBlockers(status) {
       id: "secret_encryption",
       severity: "block",
       required_inputs: ["UPLOADCHECK_SECRET_ENCRYPTION_KEY"],
-      generator: "npm run --silent secret:generate"
+      generator: "npm run --silent render:bootstrap-env"
     },
     persistence: {
       id: "persistence",
