@@ -23,6 +23,7 @@ describe("Product Hunt launch kit", () => {
     expect(kit.ready_when.source_of_truth).toBe(status.public_artifacts.live_launch_status);
     expect(kit.ready_when.required_commands).toContain("npm run launch:dns");
     expect(kit.ready_when.required_commands).toContain("npm run launch:checkout");
+    expect(kit.ready_when.required_commands).toContain("npm run launch:storage");
     expect(kit.ready_when.required_commands).toContain("npm run launch:check");
     expect(kit.pricing_position.margin_rule).toContain("95% gross-margin target");
     expect(manifest.product_hunt_launch_kit_url).toBe(status.public_artifacts.product_hunt_launch_kit);

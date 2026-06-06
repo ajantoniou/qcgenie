@@ -69,6 +69,7 @@
       "npm run launch-status:verify",
       "npm run launch:dns",
       "npm run launch:checkout",
+      "npm run launch:storage",
       "npm run readiness:check",
       "npm run launch:check"
     ],

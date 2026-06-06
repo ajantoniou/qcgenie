@@ -10,6 +10,7 @@
     "start": "node server.mjs",
     "launch:dns": "node scripts/launch-dns.mjs",
     "launch:checkout": "node scripts/launch-checkout.mjs",
+    "launch:storage": "node scripts/launch-storage.mjs",
     "launch:check": "node scripts/launch-check.mjs",
     "launch-status:verify": "node scripts/verify-launch-status.mjs",
     "readiness:check": "node scripts/product-hunt-readiness.mjs",

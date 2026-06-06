@@ -214,6 +214,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: Product Hunt launch checker added through `npm run launch:check`; it combines live readiness, DNS resolution, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
 - Done: DNS cutover helper added through `npm run launch:dns`; it prints copy-paste DNS records and verification commands from `public/launch-targets.json`.
 - Done: Checkout config helper added through `npm run launch:checkout`; it verifies Creator, Studio, and Network checkout resolution while redacting direct checkout paths and Lemon Squeezy variant IDs.
+- Done: Persistence/storage config helper added through `npm run launch:storage`; it verifies mounted store paths, durable upload storage, and object-storage completeness without exposing access keys or secret keys.
 - Done: public machine-readable launch status added at `/launch-status.json` and live status added at `GET /v1/launch-status` with completed controls, current blockers, operator commands, and the Product Hunt go/no-go rule; `npm run launch-status:verify` keeps it aligned with readiness, OpenAPI, llms.txt, and the agent manifest.
 - Done: agent access to live launch status added through MCP `qc_get_launch_status` and CLI `uploadcheck launch-status`, so Codex/Claude/Cursor projects can inspect go/no-go state without custom HTTP.
 - Done: machine-readable pipeline recipes now include `launch_preflight` so NTO/NPO and creator agents can check live blockers before launch-sensitive runs.

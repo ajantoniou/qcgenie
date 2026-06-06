@@ -49,6 +49,7 @@ Before Product Hunt launch, sync the Blueprint or manually apply the same values
 ```bash
 npm run launch:dns
 npm run launch:checkout
+npm run launch:storage
 npm run render:verify
 npm run launch:check
 npm run readiness:check
@@ -73,6 +74,7 @@ npm run render:audit
 npm run render:apply
 npm run launch:dns
 npm run launch:checkout
+npm run launch:storage
 npm run launch:check
 npm run readiness:check
 ```
@@ -90,6 +92,7 @@ After DNS propagation:
 ```bash
 npm run launch:dns
 npm run launch:checkout
+npm run launch:storage
 curl -i https://uploadcheck.app/
 curl -i https://www.uploadcheck.app/
 curl -i https://api.uploadcheck.app/healthz
