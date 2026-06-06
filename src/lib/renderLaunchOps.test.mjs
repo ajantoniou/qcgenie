@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync, spawnSync } from "node:child_process";
-import { buildRenderLaunchPlan, summarizePlan } from "../../scripts/render-launch-ops.mjs";
+import { buildEnvTemplate, buildRenderLaunchPlan, summarizePlan } from "../../scripts/render-launch-ops.mjs";
 
 describe("Render launch operations plan", () => {
   it("builds the launch domain and env plan without requiring secrets", () => {
@@ -66,6 +66,29 @@ describe("Render launch operations plan", () => {
 
     expect(payload.domains).toContain("api.uploadcheck.app");
     expect(JSON.stringify(payload)).not.toContain("QCGENIE_API_KEY");
+  });
+
+  it("prints a fillable launch env template without requiring a Render API key", () => {
+    const output = execFileSync("node", ["scripts/render-launch-ops.mjs", "env-template"], {
+      encoding: "utf8",
+      env: { ...process.env, RENDER_API_KEY: "" }
+    });
+
+    expect(output).toContain("RENDER_API_KEY=\"<render_api_key>\"");
+    expect(output).toContain("UPLOADCHECK_API_KEY_SHA256=\"<generated_sha256>\"");
+    expect(output).toContain("UPLOADCHECK_SECRET_ENCRYPTION_KEY=\"<generated_secret_encryption_key>\"");
+    expect(output).toContain("UPLOADCHECK_STORE_PATH=\"/mnt/uploadcheck/store.json\"");
+    expect(output).toContain("Do not commit a filled copy.");
+    expect(output).not.toContain(process.env.RENDER_API_KEY || "render-secret-never-present");
+  });
+
+  it("keeps the env template aligned with fixed Render launch env values", () => {
+    const template = buildEnvTemplate();
+    const plan = buildRenderLaunchPlan({});
+
+    for (const item of plan.envVars.filter((env) => !env.secret)) {
+      expect(template).toContain(`${item.key}=${JSON.stringify(item.value)}`);
+    }
   });
 
   it("requires a Render API key for audit operations", () => {

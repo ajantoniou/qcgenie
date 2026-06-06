@@ -79,9 +79,56 @@ export function summarizePlan(plan) {
   };
 }
 
+export function buildEnvTemplate() {
+  const lines = [
+    "# UploadCheck Render launch env template",
+    "# Fill these locally, then run: set -a; source /path/to/filled.env; set +a; npm run render:plan && npm run render:apply",
+    "# Do not commit a filled copy.",
+    "",
+    "# Required for npm run render:audit and npm run render:apply",
+    "RENDER_API_KEY=\"<render_api_key>\"",
+    "",
+    "# API auth: prefer setting only the generated SHA-256 hash on Render.",
+    "# Generate with: npm run --silent api-key:generate",
+    "UPLOADCHECK_API_KEY_SHA256=\"<generated_sha256>\"",
+    "# Keep UPLOADCHECK_API_KEY private for clients; only set it on Render for bootstrap/testing.",
+    "# UPLOADCHECK_API_KEY=\"<generated_bearer_token>\"",
+    "",
+    "# Checkout URLs: required for Product Hunt readiness.",
+    "UPLOADCHECK_CREATOR_CHECKOUT_URL=\"https://...\"",
+    "UPLOADCHECK_STUDIO_CHECKOUT_URL=\"https://...\"",
+    "UPLOADCHECK_NETWORK_CHECKOUT_URL=\"https://...\"",
+    "",
+    "# Webhook secret encryption: required before hosted webhooks are production-ready.",
+    "# Generate with: npm run --silent secret:generate",
+    "UPLOADCHECK_SECRET_ENCRYPTION_KEY=\"<generated_secret_encryption_key>\"",
+    "",
+    "# Optional public demo URL if the bundled demo clip is not shipped.",
+    "# UPLOADCHECK_DEMO_CLIP_URL=\"https://...\"",
+    "",
+    "# Optional object storage retention. Mounted Render disk is the default durable path.",
+    "# UPLOADCHECK_STORAGE_BUCKET=\"uploadcheck-artifacts\"",
+    "# UPLOADCHECK_STORAGE_ENDPOINT=\"https://...\"",
+    "# UPLOADCHECK_STORAGE_REGION=\"auto\"",
+    "# UPLOADCHECK_STORAGE_PREFIX=\"uploads/\"",
+    "# UPLOADCHECK_STORAGE_PUBLIC_BASE_URL=\"https://...\"",
+    "# UPLOADCHECK_STORAGE_ACCESS_KEY_ID=\"<object_storage_access_key>\"",
+    "# UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY=\"<object_storage_secret_key>\"",
+    "",
+    "# Fixed durable settings applied by render:apply; included here for audit visibility.",
+    ...Object.entries(FIXED_API_ENV).map(([key, value]) => `${key}=${JSON.stringify(value)}`),
+    ""
+  ];
+  return lines.join("\n");
+}
+
 async function main() {
   const command = process.argv[2] || "audit";
   const plan = buildRenderLaunchPlan();
+  if (command === "env-template") {
+    console.log(buildEnvTemplate());
+    return;
+  }
   if (command === "plan") {
     console.log(JSON.stringify(summarizePlan(plan), null, 2));
     return;
@@ -99,7 +146,7 @@ async function main() {
     console.log(JSON.stringify(await applyRenderLaunch(token, plan), null, 2));
     return;
   }
-  throw new Error("Usage: render-launch-ops.mjs [plan|audit|apply]");
+  throw new Error("Usage: render-launch-ops.mjs [env-template|plan|audit|apply]");
 }
 
 export async function auditRenderLaunch(token, plan = buildRenderLaunchPlan()) {

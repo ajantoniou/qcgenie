@@ -54,19 +54,14 @@ The Blueprint can request Render domains and disk settings, but DNS still has to
 If a Render API key is available locally, the same launch shape can be audited or partially applied without opening the dashboard:
 
 ```bash
-export RENDER_API_KEY="<render_api_key>"
-# Generate once, save UPLOADCHECK_API_KEY privately, and set only the hash on Render:
-npm run --silent api-key:generate
-export UPLOADCHECK_API_KEY_SHA256="<generated_sha256>"
-export UPLOADCHECK_SECRET_ENCRYPTION_KEY="$(npm run --silent secret:generate)"
-export UPLOADCHECK_CREATOR_CHECKOUT_URL="https://..."
-export UPLOADCHECK_STUDIO_CHECKOUT_URL="https://..."
-export UPLOADCHECK_NETWORK_CHECKOUT_URL="https://..."
-# Optional S3/R2 upload retention, only if you do not want mounted-disk-only retention:
-export UPLOADCHECK_STORAGE_BUCKET="uploadcheck-artifacts"
-export UPLOADCHECK_STORAGE_ENDPOINT="https://..."
-export UPLOADCHECK_STORAGE_ACCESS_KEY_ID="..."
-export UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY="..."
+npm run --silent render:env-template > /tmp/uploadcheck-render-launch.env
+# Fill /tmp/uploadcheck-render-launch.env with private values.
+# Generate API/hash material with npm run --silent api-key:generate.
+# Generate the webhook encryption key with npm run --silent secret:generate.
+# Then load the completed local file:
+set -a
+source /tmp/uploadcheck-render-launch.env
+set +a
 
 npm run render:plan
 npm run render:audit
@@ -74,6 +69,8 @@ npm run render:apply
 npm run launch:check
 npm run readiness:check
 ```
+
+The generated env template is safe to commit only while placeholders are intact. A filled copy contains Render, checkout, API, webhook, and optional storage secrets and must stay local.
 
 `render:apply` adds the custom domains, sets the fixed durable env values, sets only the secret env values that are present in the local environment, and triggers web/API redeploys. It does not configure DNS; Cloudflare or the domain registrar still needs the CNAME records above.
 
