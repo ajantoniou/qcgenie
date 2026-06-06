@@ -70,6 +70,10 @@ assert(llms.includes(status.public_artifacts.live_launch_status), "llms.txt must
 assert(llms.includes(status.public_artifacts.sample_reports), "llms.txt must link sample report artifacts URL");
 assert(llms.includes(status.public_artifacts.product_hunt_launch_kit), "llms.txt must link Product Hunt launch kit URL");
 assert(launchKit.ready_when?.source_of_truth === status.public_artifacts.live_launch_status, "Product Hunt launch kit must use live launch status as source of truth");
+assert(launchKit.current_state_snapshot?.source === status.public_artifacts.launch_status, "Product Hunt launch kit current snapshot must link static launch status");
+assert(launchKit.current_state_snapshot?.product_hunt_ready === status.product_hunt_ready, "Product Hunt launch kit current snapshot readiness must match static launch status");
+assert(JSON.stringify(launchKit.current_state_snapshot?.remaining_blockers) === JSON.stringify(status.remaining_blockers.map((blocker) => blocker.id)), "Product Hunt launch kit current snapshot blockers must match static launch status");
+assert(String(launchKit.current_state_snapshot?.note || "").includes("Static snapshot"), "Product Hunt launch kit current snapshot must warn that live status is authoritative");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:doctor"), "Product Hunt launch kit must require launch:doctor");
 assert(launchKit.ready_when?.required_commands?.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "Product Hunt launch kit must require render:validate-env-file");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:dns"), "Product Hunt launch kit must require launch:dns");

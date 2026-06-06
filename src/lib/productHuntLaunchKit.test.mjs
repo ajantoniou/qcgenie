@@ -21,6 +21,12 @@ describe("Product Hunt launch kit", () => {
     expect(kit.public_links.sample_reports_index).toBe(status.public_artifacts.sample_reports);
     expect(kit.public_links.cost_basis).toBe(status.public_artifacts.cost_basis);
     expect(kit.public_links.launch_status).toBe(status.public_artifacts.launch_status);
+    expect(kit.current_state_snapshot).toMatchObject({
+      source: status.public_artifacts.launch_status,
+      product_hunt_ready: status.product_hunt_ready,
+      remaining_blockers: status.remaining_blockers.map((blocker) => blocker.id)
+    });
+    expect(kit.current_state_snapshot.note).toContain("Static snapshot only");
     expect(kit.ready_when.source_of_truth).toBe(status.public_artifacts.live_launch_status);
     expect(kit.ready_when.required_commands).toContain("npm run launch:doctor");
     expect(kit.ready_when.required_commands).toContain("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env");
