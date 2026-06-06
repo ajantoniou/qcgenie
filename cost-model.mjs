@@ -38,6 +38,7 @@ const PLAN_PRESETS = {
 export function estimateJobCost(input = {}) {
   const minutes = Math.max(0, Number(input.minutesMetered || input.minutes || 0));
   const aiReviewSeconds = Math.max(0, Number(input.aiReviewSeconds || 0));
+  const observedUsage = summarizeObservedProviderUsage(input.providerUsage || input.provider_usage || []);
   const checkCost = estimateModelCheckCost(input.checks, minutes || 1);
   const plan = resolvePlanEconomics(input);
   const planPriceCents = plan.planPriceCents;
@@ -76,6 +77,12 @@ export function estimateJobCost(input = {}) {
     modelCheckCents: round(checkCost.modelCheckCents),
     modelBackedChecks: checkCost.modelBackedChecks,
     deterministicChecks: checkCost.deterministicChecks,
+    observedProviderUsageEntries: observedUsage.entries,
+    observedProviderInputTokens: observedUsage.inputTokens,
+    observedProviderOutputTokens: observedUsage.outputTokens,
+    observedProviderTotalTokens: observedUsage.totalTokens,
+    observedProviderAudioSeconds: observedUsage.audioSeconds,
+    observedProviderRequestCount: observedUsage.requestCount,
     estimatedCogsCents: round(estimatedCogsCents),
     estimatedCostPerMinuteCents: round(minutes ? estimatedCogsCents / minutes : 0),
     allocatedRevenueCents: round(allocatedRevenueCents),
@@ -98,6 +105,12 @@ export function summarizeUsageMargins(entries = []) {
     const cogs = Number(snapshot.estimatedCogsCents || 0) || 0;
     const revenue = Number(snapshot.allocatedRevenueCents || 0) || 0;
     const allowed = Number(snapshot.allowedCogsForJobCents || 0) || 0;
+    acc.observedProviderUsageEntries += Number(snapshot.observedProviderUsageEntries || 0) || 0;
+    acc.observedProviderInputTokens += Number(snapshot.observedProviderInputTokens || 0) || 0;
+    acc.observedProviderOutputTokens += Number(snapshot.observedProviderOutputTokens || 0) || 0;
+    acc.observedProviderTotalTokens += Number(snapshot.observedProviderTotalTokens || 0) || 0;
+    acc.observedProviderAudioSeconds += Number(snapshot.observedProviderAudioSeconds || 0) || 0;
+    acc.observedProviderRequestCount += Number(snapshot.observedProviderRequestCount || 0) || 0;
     acc.entries += 1;
     acc.minutes += minutes;
     acc.estimatedCogsCents += cogs;
@@ -111,7 +124,13 @@ export function summarizeUsageMargins(entries = []) {
     estimatedCogsCents: 0,
     allocatedRevenueCents: 0,
     allowedCogsCents: 0,
-    marginUnsafeEntries: 0
+    marginUnsafeEntries: 0,
+    observedProviderUsageEntries: 0,
+    observedProviderInputTokens: 0,
+    observedProviderOutputTokens: 0,
+    observedProviderTotalTokens: 0,
+    observedProviderAudioSeconds: 0,
+    observedProviderRequestCount: 0
   });
 
   const grossMarginPct = summary.allocatedRevenueCents > 0
@@ -126,11 +145,38 @@ export function summarizeUsageMargins(entries = []) {
     allocatedRevenueCents: round(summary.allocatedRevenueCents),
     allocatedRevenueUsd: round(summary.allocatedRevenueCents / 100),
     allowedCogsCents: round(summary.allowedCogsCents),
+    observedProviderUsageEntries: summary.observedProviderUsageEntries,
+    observedProviderInputTokens: summary.observedProviderInputTokens,
+    observedProviderOutputTokens: summary.observedProviderOutputTokens,
+    observedProviderTotalTokens: summary.observedProviderTotalTokens,
+    observedProviderAudioSeconds: round(summary.observedProviderAudioSeconds),
+    observedProviderRequestCount: summary.observedProviderRequestCount,
     estimatedCostPerMinuteCents: round(summary.minutes ? summary.estimatedCogsCents / summary.minutes : 0),
     estimatedGrossMarginPct: round(grossMarginPct),
     marginSafe: summary.marginUnsafeEntries === 0 && summary.estimatedCogsCents <= summary.allowedCogsCents,
     marginUnsafeEntries: summary.marginUnsafeEntries
   };
+}
+
+export function summarizeObservedProviderUsage(entries = []) {
+  const list = Array.isArray(entries) ? entries : [];
+  return list.reduce((acc, entry) => {
+    if (!entry || typeof entry !== "object") return acc;
+    acc.entries += 1;
+    acc.inputTokens += number(entry.input_tokens ?? entry.prompt_tokens ?? entry.inputTokens ?? entry.promptTokens);
+    acc.outputTokens += number(entry.output_tokens ?? entry.completion_tokens ?? entry.outputTokens ?? entry.completionTokens);
+    acc.totalTokens += number(entry.total_tokens ?? entry.totalTokens);
+    acc.audioSeconds += number(entry.audio_seconds ?? entry.audioSeconds ?? entry.window_seconds ?? entry.windowSeconds);
+    acc.requestCount += number(entry.request_count ?? entry.requestCount ?? 1);
+    return acc;
+  }, {
+    entries: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    totalTokens: 0,
+    audioSeconds: 0,
+    requestCount: 0
+  });
 }
 
 export function resolvePlanEconomics(input = {}) {
@@ -226,6 +272,11 @@ function normalizeGuardrail(value) {
   if (["off", "none", "disabled"].includes(normalized)) return "off";
   if (["block", "enforce", "strict"].includes(normalized)) return "block";
   return "downgrade";
+}
+
+function number(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function round(value) {

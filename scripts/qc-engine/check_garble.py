@@ -44,7 +44,10 @@ def scribe(audio, key, lang):
     req=urllib.request.Request("https://api.elevenlabs.io/v1/speech-to-text",data=body,
         headers={"xi-api-key":key,"Content-Type":f"multipart/form-data; boundary={b}"},method="POST")
     try:
-        with urllib.request.urlopen(req,timeout=120) as r: return json.loads(r.read())
+        with urllib.request.urlopen(req,timeout=120) as r:
+            data=json.loads(r.read())
+            data["_provider_usage"]={"provider":"elevenlabs","model":"scribe_v1","operation":"speech_to_text","request_count":1,"audio_bytes":len(fb)}
+            return data
     except urllib.error.HTTPError as e: return {"_error":f"HTTP {e.code}"}
 
 def main():
@@ -55,7 +58,7 @@ def main():
     key=load_key()
     if not key:
         print(json.dumps({"check":"garble","pass":None,"skipped":True,"reason":"ELEVENLABS_API_KEY missing"},indent=2)); sys.exit(0)
-    total=dur(a.media); findings=[]; advisories=[]; checked=0; t=0.0
+    total=dur(a.media); findings=[]; advisories=[]; checked=0; t=0.0; provider_usage=[]
     while t<total:
         seg=min(a.window,total-t)
         if seg<3: break
@@ -64,6 +67,10 @@ def main():
         loud=rms_db(wav)
         if loud>SPEECH_RMS_FLOOR_DB:
             checked+=1; res=scribe(wav,key,a.lang); text=(res.get("text") or "").strip(); words=res.get("words") or []
+            usage=res.pop("_provider_usage",None)
+            if usage:
+                usage["audio_seconds"]=round(seg,2)
+                provider_usage.append(usage)
             cps=len(text)/seg
             # GARBLE = audible SPEECH that yields no readable text. But MUSIC-ONLY audio (no VO) also
             # yields no text and must NOT be flagged. Distinguish: if Scribe found essentially ZERO
@@ -91,7 +98,7 @@ def main():
                     else: run=0
         os.unlink(wav); t+=seg
     result={"check":"garble","media":a.media,"windows_with_speech":checked,
-            "findings":findings,"advisories":advisories,"pass":len(findings)==0}
+            "provider_usage":provider_usage,"findings":findings,"advisories":advisories,"pass":len(findings)==0}
     out=json.dumps(result,indent=2)
     if a.json: open(a.json,"w").write(out)
     print(out); sys.exit(0 if result["pass"] else 1)

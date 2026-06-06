@@ -36,7 +36,7 @@ def b64f(p): return base64.b64encode(open(p,"rb").read()).decode()
 def spoken(words,lo,hi):
     return " ".join(w["text"] for w in words if w.get("start") is not None and w["start"]<hi and w.get("end",w["start"])>lo).strip()
 
-def omni(url,key,frames,audio_b64,narr,extra):
+def omni(url,key,provider,frames,audio_b64,narr,extra):
     content=[{"type":"text","text":QC+(f'\nNARRATION: "{narr}"' if narr else "\nNARRATION: (none/music)")}]
     for fb in frames: content.append({"type":"image_url","image_url":{"url":"data:image/jpeg;base64,"+fb}})
     if audio_b64: content.append({"type":"input_audio","input_audio":{"data":audio_b64,"format":"mp3"}})
@@ -44,16 +44,24 @@ def omni(url,key,frames,audio_b64,narr,extra):
     h={"Authorization":f"Bearer {key}","Content-Type":"application/json"}
     if extra: h.update(extra)
     req=urllib.request.Request(url,data=body,headers=h,method="POST")
-    with urllib.request.urlopen(req,timeout=120) as r: txt=json.loads(r.read())["choices"][0]["message"]["content"]
-    s=txt.find("{"); e=txt.rfind("}"); return json.loads(txt[s:e+1])
+    with urllib.request.urlopen(req,timeout=120) as r: data=json.loads(r.read())
+    txt=data["choices"][0]["message"]["content"]
+    s=txt.find("{"); e=txt.rfind("}")
+    parsed=json.loads(txt[s:e+1])
+    parsed["_provider_usage"]={"provider":provider,"model":"qwen3.5-omni-flash","operation":"multimodal_window",**(data.get("usage") or {})}
+    return parsed
 
 def anthropic_fb(key,frames,narr):
     content=[{"type":"text","text":QC+"\n(NOTE: audio unavailable; judge frames + given narration only.)"+(f'\nNARRATION: "{narr}"' if narr else "")}]
     for fb in frames: content.append({"type":"image","source":{"type":"base64","media_type":"image/jpeg","data":fb}})
     body=json.dumps({"model":"claude-sonnet-4-5","max_tokens":400,"messages":[{"role":"user","content":content}]}).encode()
     req=urllib.request.Request(ANTHROPIC_URL,data=body,headers={"x-api-key":key,"anthropic-version":"2023-06-01","content-type":"application/json"},method="POST")
-    with urllib.request.urlopen(req,timeout=90) as r: txt=json.loads(r.read())["content"][0]["text"]
-    s=txt.find("{"); e=txt.rfind("}"); return json.loads(txt[s:e+1])
+    with urllib.request.urlopen(req,timeout=90) as r: data=json.loads(r.read())
+    txt=data["content"][0]["text"]
+    s=txt.find("{"); e=txt.rfind("}")
+    parsed=json.loads(txt[s:e+1])
+    parsed["_provider_usage"]={"provider":"anthropic","model":"claude-sonnet-4-5","operation":"omni_fallback_frame_window",**(data.get("usage") or {})}
+    return parsed
 
 def main():
     ap=argparse.ArgumentParser()
@@ -71,7 +79,7 @@ def main():
     if isinstance(words,dict): words=words.get("words",[])
     total=dur(a.video); wins=[]; t=0.0
     while t<total and len(wins)<a.max_windows: wins.append((t,min(a.window,total-t))); t+=a.window
-    flags=[]; checked=0; errors=0
+    flags=[]; checked=0; errors=0; provider_usage=[]
     for ws,wl in wins:
         tmp=tempfile.mkdtemp(prefix="omni_")
         subprocess.run(["ffmpeg","-y","-ss",str(ws),"-i",a.video,"-t",str(wl),"-vf",f"fps={a.fps},scale=512:-1",os.path.join(tmp,"f_%03d.jpg")],capture_output=True)
@@ -82,7 +90,13 @@ def main():
         narr=spoken(words,ws,ws+wl) if words else ""
         has_audio=(prov[0]!="anthropic-fallback") and bool(ab)
         try:
-            v=anthropic_fb(prov[2],fb,narr) if prov[0]=="anthropic-fallback" else omni(prov[1],prov[2],fb,ab,narr,prov[3])
+            v=anthropic_fb(prov[2],fb,narr) if prov[0]=="anthropic-fallback" else omni(prov[1],prov[2],prov[0],fb,ab,narr,prov[3])
+            usage=v.pop("_provider_usage",None)
+            if usage:
+                usage["window_seconds"]=round(wl,2)
+                usage["frame_count"]=len(fb)
+                usage["audio_included"]=bool(has_audio)
+                provider_usage.append(usage)
             checked+=1
             for fl in v.get("flags",[]):
                 ty=fl.get("type","")
@@ -95,7 +109,7 @@ def main():
         os.rmdir(tmp)
     blocks=[f for f in flags if f.get("severity")=="block"]
     result={"check":"omni_watch","provider":prov[0],"video":a.video,"windows_checked":checked,
-            "errors":errors,"flags":flags,"pass":len(blocks)==0}
+            "errors":errors,"provider_usage":provider_usage,"flags":flags,"pass":len(blocks)==0}
     out=json.dumps(result,indent=2)
     if a.json: open(a.json,"w").write(out)
     print(out); sys.exit(0 if result["pass"] else 1)

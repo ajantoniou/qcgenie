@@ -30,6 +30,7 @@ def dur(f):
 def scribe_words(media, key, lang):
     with tempfile.NamedTemporaryFile(suffix=".mp3",delete=False) as tf: wav=tf.name
     subprocess.run(["ffmpeg","-y","-i",media,"-vn","-ar","44100","-ac","1",wav],capture_output=True)
+    audio_seconds=dur(wav); audio_bytes=os.path.getsize(wav) if os.path.exists(wav) else 0
     b="----qcnm"; fb=open(wav,"rb").read()
     body=b"".join([
         (f'--{b}\r\nContent-Disposition: form-data; name="model_id"\r\n\r\nscribe_v1\r\n').encode(),
@@ -40,7 +41,9 @@ def scribe_words(media, key, lang):
     req=urllib.request.Request("https://api.elevenlabs.io/v1/speech-to-text",data=body,
         headers={"xi-api-key":key,"Content-Type":f"multipart/form-data; boundary={b}"},method="POST")
     with urllib.request.urlopen(req,timeout=300) as r: d=json.loads(r.read())
-    os.unlink(wav); return d.get("words",[])
+    usage={"provider":"elevenlabs","model":"scribe_v1","operation":"speech_to_text","request_count":1,
+        "audio_seconds":round(audio_seconds,2),"audio_bytes":audio_bytes}
+    os.unlink(wav); return d.get("words",[]), usage
 
 def spoken(words,lo,hi):
     return " ".join(w["text"] for w in words if w.get("start") is not None and w["start"]<hi and w.get("end",w["start"])>lo).strip()
@@ -59,8 +62,11 @@ def vmatch(key,jpg,sp):
     req=urllib.request.Request("https://api.anthropic.com/v1/messages",data=body,
         headers={"x-api-key":key,"anthropic-version":"2023-06-01","content-type":"application/json"},method="POST")
     try:
-        with urllib.request.urlopen(req,timeout=60) as r: txt=json.loads(r.read())["content"][0]["text"]
-        s=txt.find("{"); e=txt.rfind("}"); return json.loads(txt[s:e+1])
+        with urllib.request.urlopen(req,timeout=60) as r: data=json.loads(r.read())
+        txt=data["content"][0]["text"]; s=txt.find("{"); e=txt.rfind("}")
+        parsed=json.loads(txt[s:e+1])
+        parsed["_provider_usage"]={"provider":"anthropic","model":MODEL,"operation":"narration_frame_match",**(data.get("usage") or {})}
+        return parsed
     except Exception as ex: return {"_error":str(ex)[:120]}
 
 def main():
@@ -72,7 +78,8 @@ def main():
     ek=load_key("ELEVENLABS_API_KEY"); ak=load_key("ANTHROPIC_API_KEY","NT_ANTHROPIC_API_KEY")
     if not ek or not ak:
         print(json.dumps({"check":"narration_match","pass":None,"skipped":True,"reason":"need ELEVENLABS+ANTHROPIC keys"},indent=2)); sys.exit(0)
-    words=scribe_words(a.video,ek,a.lang)
+    words,scribe_usage=scribe_words(a.video,ek,a.lang)
+    provider_usage=[scribe_usage]
     tmp=tempfile.mkdtemp(prefix="qcnm_")
     subprocess.run(["ffmpeg","-y","-i",a.video,"-vf",f"fps={a.fps},scale=768:-1",os.path.join(tmp,"n_%05d.jpg")],capture_output=True)
     frames=sorted(glob.glob(os.path.join(tmp,"n_*.jpg")))
@@ -82,6 +89,8 @@ def main():
         if not sp: pf.append({"t":round(t,1),"match":True,"spoken":""}); continue
         v=vmatch(ak,fp,sp)
         if "_error" in v: pf.append({"t":round(t,1),"match":True}); continue
+        usage=v.pop("_provider_usage",None)
+        if usage: provider_usage.append(usage)
         pf.append({"t":round(t,1),"match":bool(v.get("match")),"frame":v.get("frame",""),"spoken":sp[:70],"why":v.get("why","")})
     for f in glob.glob(os.path.join(tmp,"*.jpg")): os.unlink(f)
     os.rmdir(tmp)
@@ -99,6 +108,7 @@ def main():
             "seconds":round(run[-1]["t"]-run[0]["t"]+step,1),"spoken":run[0].get("spoken",""),
             "frame":run[0].get("frame",""),"why":run[0].get("why","")})
     result={"check":"narration_match","video":a.video,"frames":len(pf),
+            "provider_usage":provider_usage,
             "divergences_over_threshold":flags,"max_divergence_s":a.max_divergence,"pass":len(flags)==0}
     out=json.dumps(result,indent=2)
     if a.json: open(a.json,"w").write(out)

@@ -58,8 +58,11 @@ def vision(key,jpg):
     req=urllib.request.Request("https://api.anthropic.com/v1/messages",data=body,
         headers={"x-api-key":key,"anthropic-version":"2023-06-01","content-type":"application/json"},method="POST")
     try:
-        with urllib.request.urlopen(req,timeout=60) as r: txt=json.loads(r.read())["content"][0]["text"]
-        s=txt.find("{"); e=txt.rfind("}"); return json.loads(txt[s:e+1])
+        with urllib.request.urlopen(req,timeout=60) as r: data=json.loads(r.read())
+        txt=data["content"][0]["text"]; s=txt.find("{"); e=txt.rfind("}")
+        parsed=json.loads(txt[s:e+1])
+        parsed["_provider_usage"]={"provider":"anthropic","model":MODEL,"operation":"vision_frame",**(data.get("usage") or {})}
+        return parsed
     except Exception as ex: return {"_error":str(ex)[:120]}
 
 def main():
@@ -82,10 +85,12 @@ def main():
         out=json.dumps(result,indent=2)
         if a.json: open(a.json,"w").write(out)
         print(out); sys.exit(0)
-    findings=[]; checked=0; errors=0
+    findings=[]; checked=0; errors=0; provider_usage=[]
     for i,fp in enumerate(frames):
         v=vision(key,fp)
         if "_error" in v: errors+=1; continue
+        usage=v.pop("_provider_usage",None)
+        if usage: provider_usage.append(usage)
         checked+=1
         if v.get("has_twins"):
             findings.append({
@@ -100,6 +105,7 @@ def main():
     if checked == 0 and errors:
         findings.append({"t":0,"reason":"Twins vision model failed on every sampled frame.","action":"Fix the vision-model/runtime error and rerun UploadCheck before shipping."})
     result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video","frames_checked":checked,"vision_errors":errors,
+            "provider_usage":provider_usage,
             "findings":findings,"pass":False if (checked == 0 and errors) else len(findings)==0}
     out=json.dumps(result,indent=2)
     if a.json: open(a.json,"w").write(out)

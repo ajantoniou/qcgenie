@@ -56,8 +56,11 @@ def vision(key,jpg):
     req=urllib.request.Request("https://api.anthropic.com/v1/messages",data=body,
         headers={"x-api-key":key,"anthropic-version":"2023-06-01","content-type":"application/json"},method="POST")
     try:
-        with urllib.request.urlopen(req,timeout=60) as r: txt=json.loads(r.read())["content"][0]["text"]
-        s=txt.find("{"); e=txt.rfind("}"); return json.loads(txt[s:e+1])
+        with urllib.request.urlopen(req,timeout=60) as r: data=json.loads(r.read())
+        txt=data["content"][0]["text"]; s=txt.find("{"); e=txt.rfind("}")
+        parsed=json.loads(txt[s:e+1])
+        parsed["_provider_usage"]={"provider":"anthropic","model":MODEL,"operation":"vision_frame",**(data.get("usage") or {})}
+        return parsed
     except Exception as ex:
         return {"_error":str(ex)[:120]}
 
@@ -76,10 +79,12 @@ def main():
     subprocess.run(["ffmpeg","-y","-i",a.video,"-vf",f"fps={a.fps},scale=512:-1",
         os.path.join(tmp,"f_%05d.jpg")],capture_output=True)
     frames=sorted(glob.glob(os.path.join(tmp,"f_*.jpg")))[:a.max_frames]
-    per=[]; errors=0
+    per=[]; errors=0; provider_usage=[]
     for i,fp in enumerate(frames):
         t=i/a.fps; v=vision(key,fp)
         if "_error" in v: errors+=1; per.append((t,False,"")); continue
+        usage=v.pop("_provider_usage",None)
+        if usage: provider_usage.append(usage)
         per.append((t,bool(v.get("cheap")),v.get("reason","")))
     for f in glob.glob(os.path.join(tmp,"*.jpg")): os.unlink(f)
     os.rmdir(tmp)
@@ -93,7 +98,7 @@ def main():
     if cur and (cur[-1][0]-cur[0][0]+step)>=a.min_run:
         runs.append({"t_start":round(cur[0][0],1),"t_end":round(cur[-1][0]+step,1),"reason":cur[0][1]})
     result={"check":"cheap_broll","video":a.video,"frames_checked":len(per)-errors,
-            "vision_errors":errors,"cheap_runs":runs,"pass":len(runs)==0}
+            "vision_errors":errors,"provider_usage":provider_usage,"cheap_runs":runs,"pass":len(runs)==0}
     out=json.dumps(result,indent=2)
     if a.json: open(a.json,"w").write(out)
     print(out); sys.exit(0 if result["pass"] else 1)

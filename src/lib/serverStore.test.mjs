@@ -296,6 +296,13 @@ describe("JsonStore", () => {
         verdict: "BLOCK",
         blocked: ["twins"],
         skipped: [],
+        provider_usage: [{
+          check: "twins",
+          provider: "anthropic",
+          model: "claude-sonnet-4-5",
+          input_tokens: 1200,
+          output_tokens: 80
+        }],
         per_check: {
           twins: {
             pass: false,
@@ -317,6 +324,13 @@ describe("JsonStore", () => {
         timestamp: "00:00:00",
         summary: "12 near-duplicate characters: Multiple background men share the same face, hair, and robe silhouette. Regenerate or edit the crowd with more character variation."
       });
+      expect(store.getJob(job.jobId).providerUsage).toEqual([{
+        check: "twins",
+        provider: "anthropic",
+        model: "claude-sonnet-4-5",
+        input_tokens: 1200,
+        output_tokens: 80
+      }]);
       expect(store.buildMarkerCsv(job.jobId)).toContain("more character variation");
     } finally {
       rmSync(dir, { recursive: true, force: true });

@@ -310,6 +310,7 @@ function getReport(req, url, res) {
     verdict: job.verdict || "WATCH",
     usage,
     costEstimate,
+    providerUsage: job.providerUsage || [],
     flags: flags.length ? flags : (realJob ? [] : [defaultFlag(jobId)]),
     artifacts: artifacts.length ? artifacts : (realJob ? [] : defaultArtifacts(jobId))
   });
@@ -610,6 +611,7 @@ function estimateCostForJob(job, minutesMetered) {
     minutesMetered,
     aiReviewSeconds: job.aiReviewSeconds || 0,
     checks: job.checks,
+    providerUsage: job.providerUsage,
     planId: job.planId,
     planPriceCents: job.planPriceCents,
     includedMinutes: job.includedMinutes

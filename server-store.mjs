@@ -181,13 +181,15 @@ export class JsonStore {
     job.progressPct = 100;
     job.verdict = importedVerdict;
     job.gateVerdict = verdictPayload.verdict || importedVerdict;
+    job.providerUsage = normalizeProviderUsage(verdictPayload);
     job.completedAt = new Date().toISOString();
     job.updatedAt = job.completedAt;
 
     this.addJobEvent(jobId, "gate_verdict_ingested", {
       verdict: job.verdict,
       blocked: blockedChecks,
-      skipped: skippedChecks
+      skipped: skippedChecks,
+      providerUsageEntries: job.providerUsage.length
     });
 
     const importedFlags = buildFlagsFromGateVerdict(jobId, verdictPayload);
@@ -200,7 +202,8 @@ export class JsonStore {
         format: "json",
         source: "qc_engine",
         blocked: blockedChecks,
-        skipped: skippedChecks
+        skipped: skippedChecks,
+        providerUsageEntries: job.providerUsage.length
       }
     });
 
@@ -557,6 +560,31 @@ function normalizeFindings(value) {
   if (Array.isArray(value)) return value.map((item) => typeof item === "object" ? item : { summary: String(item) });
   if (typeof value === "object") return [value];
   return [{ summary: String(value) }];
+}
+
+function normalizeProviderUsage(verdictPayload) {
+  const direct = Array.isArray(verdictPayload.provider_usage) ? verdictPayload.provider_usage : [];
+  const perCheck = verdictPayload.per_check && typeof verdictPayload.per_check === "object" ? verdictPayload.per_check : {};
+  const nested = Object.entries(perCheck).flatMap(([check, payload]) => {
+    const usage = payload?.provider_usage || payload?.usage || [];
+    const items = Array.isArray(usage) ? usage : usage && typeof usage === "object" ? [usage] : [];
+    return items.map((entry) => ({ check, ...entry }));
+  });
+  const source = direct.length ? direct : nested;
+  return source
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => sanitizeProviderUsageEntry(entry));
+}
+
+function sanitizeProviderUsageEntry(entry) {
+  const safe = {};
+  for (const [key, value] of Object.entries(entry)) {
+    if (typeof value === "string") safe[key] = value.slice(0, 160);
+    else if (typeof value === "number" && Number.isFinite(value)) safe[key] = value;
+    else if (typeof value === "boolean") safe[key] = value;
+    else if (value == null) safe[key] = value;
+  }
+  return safe;
 }
 
 function summarizeFinding(gate, finding) {

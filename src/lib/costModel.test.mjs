@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyCostGuardrail, estimateJobCost, estimateModelCheckCost, summarizeUsageMargins } from "../../cost-model.mjs";
+import { applyCostGuardrail, estimateJobCost, estimateModelCheckCost, summarizeUsageMargins, summarizeObservedProviderUsage } from "../../cost-model.mjs";
 
 describe("cost model", () => {
   it("computes the 95% margin budget for the $99 / 5,000 minute plan", () => {
@@ -56,7 +56,13 @@ describe("cost model", () => {
 
   it("summarizes usage ledger margin telemetry", () => {
     const first = estimateJobCost({ planId: "creator", minutesMetered: 10, checks: "canvas_fill" });
-    const second = estimateJobCost({ planId: "creator", minutesMetered: 5, checks: "canvas_fill", aiReviewSeconds: 600 });
+    const second = estimateJobCost({
+      planId: "creator",
+      minutesMetered: 5,
+      checks: "canvas_fill",
+      aiReviewSeconds: 600,
+      providerUsage: [{ input_tokens: 1000, output_tokens: 200, audio_seconds: 30, request_count: 2 }]
+    });
     const summary = summarizeUsageMargins([
       { roundedMinutes: 10, costSnapshot: first },
       { roundedMinutes: 5, costSnapshot: second }
@@ -66,6 +72,23 @@ describe("cost model", () => {
     expect(summary.minutes).toBe(15);
     expect(summary.estimatedCostPerMinuteCents).toBeGreaterThan(0);
     expect(summary.allocatedRevenueCents).toBeGreaterThan(summary.estimatedCogsCents);
+    expect(summary.observedProviderInputTokens).toBe(1000);
+    expect(summary.observedProviderAudioSeconds).toBe(30);
     expect(summary.marginUnsafeEntries).toBe(1);
+  });
+
+  it("rolls up observed provider usage from token and audio providers", () => {
+    const summary = summarizeObservedProviderUsage([
+      { provider: "anthropic", input_tokens: 1200, output_tokens: 80 },
+      { provider: "dashscope", prompt_tokens: 300, completion_tokens: 40, total_tokens: 340 },
+      { provider: "elevenlabs", audio_seconds: 22.5, request_count: 1 }
+    ]);
+
+    expect(summary.entries).toBe(3);
+    expect(summary.inputTokens).toBe(1500);
+    expect(summary.outputTokens).toBe(120);
+    expect(summary.totalTokens).toBe(340);
+    expect(summary.audioSeconds).toBe(22.5);
+    expect(summary.requestCount).toBe(3);
   });
 });

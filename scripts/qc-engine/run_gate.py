@@ -36,6 +36,18 @@ def run(check,video,lang,outdir,fast,manifest=None,transcript=None,watchlist=Non
     except Exception: data={"check":check,"pass":None,"error":(p.stderr or p.stdout)[-300:]}
     data["_seconds"]=round(time.time()-t0,1); data["_returncode"]=p.returncode; return data
 
+def provider_usage_for(check,result):
+    usage=result.get("provider_usage") or result.get("usage") or []
+    if isinstance(usage,dict): usage=[usage]
+    if not isinstance(usage,list): return []
+    out=[]
+    for item in usage:
+        if not isinstance(item,dict): continue
+        enriched=dict(item)
+        enriched.setdefault("check",check)
+        out.append(enriched)
+    return out
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("video"); ap.add_argument("--checks",default=",".join(DEFAULT))
@@ -58,10 +70,15 @@ def main():
         print(f"[ gate ] {c}: {tag} ({results[c].get('_seconds')}s)",flush=True)
     blocked=[c for c,r in results.items() if r.get("pass") is False]
     skipped=[c for c,r in results.items() if r.get("pass") is None]
+    provider_usage=[]
+    for c,r in results.items():
+        provider_usage.extend(provider_usage_for(c,r))
     summary={"video":a.video,"verdict":"SHIP-OK" if not blocked else "BLOCK","blocked":blocked,"skipped":skipped,
              "per_check":{c:{"pass":r.get("pass"),
                 "findings":(r.get("findings") or r.get("divergences_over_threshold") or r.get("cheap_runs") or r.get("low_contrast_runs") or r.get("unsafe_text_runs") or r.get("flags") or [])[:8],
-                "freezes":r.get("freezes")} for c,r in results.items()}}
+                "freezes":r.get("freezes"),
+                "provider_usage":provider_usage_for(c,r)} for c,r in results.items()},
+             "provider_usage":provider_usage}
     open(os.path.join(outdir,"VERDICT.json"),"w").write(json.dumps(summary,indent=2))
     print("\n=== VIDEO QC GATE VERDICT ===")
     print(json.dumps({"verdict":summary["verdict"],"blocked":blocked,"skipped":skipped},indent=2))
