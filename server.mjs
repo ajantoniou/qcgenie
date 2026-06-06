@@ -8,7 +8,7 @@ import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { JsonStore } from "./server-store.mjs";
 import { cleanupInlineMedia, materializeInlineMedia } from "./inline-media.mjs";
-import { applyCostGuardrail, estimateJobCost, summarizeUsageMargins } from "./cost-model.mjs";
+import { applyCostGuardrail, estimateJobCost, resolvePlanEconomics, summarizeUsageMargins } from "./cost-model.mjs";
 import { buildCheckoutUrl, normalizePlanId } from "./checkout-links.mjs";
 import { buildReadinessReport } from "./readiness.mjs";
 import { buildLaunchStatus } from "./launch-status.mjs";
@@ -124,7 +124,8 @@ async function createJob(req, res) {
   const inlineWatchlist = await materializeInlineWatchlist(body);
   const inlineExpectedScript = await materializeInlineExpectedScript(body);
   try {
-    const guardrail = applyCostGuardrail(body);
+    const declaredMinutes = estimateRequestedMinutes(body);
+    const guardrail = applyCostGuardrail(declaredMinutes ? { ...body, minutes: declaredMinutes } : body);
     if (!guardrail.ok) {
       return sendJson(res, 402, {
         error: "cost_guardrail_blocked",
@@ -141,6 +142,20 @@ async function createJob(req, res) {
     body.cost_guardrail = guardrail.costGuardrail;
     body.cost_guardrail_action = guardrail.action;
     body.cost_guardrail_reason = guardrail.reason || null;
+
+    const usageLimit = checkUsageLimit(body);
+    if (!usageLimit.ok) {
+      return sendJson(res, 402, {
+        error: "usage_limit_exceeded",
+        message: usageLimit.reason,
+        planId: usageLimit.planId,
+        billingPeriod: usageLimit.billingPeriod,
+        includedMinutes: usageLimit.includedMinutes,
+        minutesUsed: usageLimit.minutesUsed,
+        requestedMinutes: usageLimit.requestedMinutes,
+        minutesRemaining: usageLimit.minutesRemaining
+      });
+    }
 
     if (inlineMedia) {
       body.source = inlineMedia.filePath;
@@ -657,6 +672,49 @@ function estimateCostForJob(job, minutesMetered) {
     planPriceCents: job.planPriceCents,
     includedMinutes: job.includedMinutes
   });
+}
+
+function checkUsageLimit(body = {}) {
+  const planId = String(body.plan_id || body.planId || "").toLowerCase();
+  if (!planId) return { ok: true };
+  const requestedMinutes = estimateRequestedMinutes(body);
+  if (!requestedMinutes) return { ok: true };
+  const plan = resolvePlanEconomics(body);
+  if (!plan.includedMinutes) return { ok: true };
+  const usage = store.summarizePlanUsage({
+    planId,
+    billingPeriod: body.billing_period || body.billingPeriod,
+    includedMinutes: plan.includedMinutes
+  });
+  if (usage.minutesUsed + requestedMinutes <= plan.includedMinutes) {
+    return {
+      ok: true,
+      planId,
+      billingPeriod: usage.billingPeriod,
+      includedMinutes: plan.includedMinutes,
+      minutesUsed: usage.minutesUsed,
+      requestedMinutes,
+      minutesRemaining: plan.includedMinutes - usage.minutesUsed
+    };
+  }
+  return {
+    ok: false,
+    planId,
+    billingPeriod: usage.billingPeriod,
+    includedMinutes: plan.includedMinutes,
+    minutesUsed: usage.minutesUsed,
+    requestedMinutes,
+    minutesRemaining: Math.max(0, plan.includedMinutes - usage.minutesUsed),
+    reason: `Plan ${planId} has ${usage.minutesUsed}/${plan.includedMinutes} minutes used for ${usage.billingPeriod}; this ${requestedMinutes} minute job exceeds the included allowance.`
+  };
+}
+
+function estimateRequestedMinutes(body = {}) {
+  const explicit = Number(body.minutes_metered ?? body.minutesMetered ?? body.minutes);
+  if (Number.isFinite(explicit) && explicit > 0) return Math.ceil(explicit);
+  const durationSeconds = Number(body.duration_seconds ?? body.durationSeconds);
+  if (Number.isFinite(durationSeconds) && durationSeconds > 0) return Math.ceil(durationSeconds / 60);
+  return 0;
 }
 
 function requireScope(req, requiredScope) {

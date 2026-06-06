@@ -43,6 +43,7 @@ describe("public launch status", () => {
     expect(status.verified_controls.find((control) => control.id === "codex_mcp")?.evidence).toContain("codex:verify-install");
     expect(status.verified_controls.find((control) => control.id === "cost_basis")?.evidence).toContain("cost-basis:verify");
     expect(status.verified_controls.find((control) => control.id === "roadmap")?.evidence).toContain("roadmap:verify");
+    expect(status.verified_controls.find((control) => control.id === "billing_enforcement")?.evidence).toContain("usage_limit_exceeded");
     expect(status.go_no_go_rule).toContain("readyForProductHunt=true");
   });
 

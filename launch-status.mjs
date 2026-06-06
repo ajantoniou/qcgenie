@@ -107,6 +107,11 @@ function verifiedControls() {
       evidence: "Reports and margin telemetry distinguish estimated and observed provider COGS."
     },
     {
+      id: "billing_enforcement",
+      status: "done",
+      evidence: "Plan usage metering is idempotent per job/billing period, and declared jobs that exceed included minutes return usage_limit_exceeded before QC runs."
+    },
+    {
       id: "package_verify",
       status: "done",
       evidence: "npm run packages:verify checks @uploadcheck/cli and @uploadcheck/mcp pack contents."

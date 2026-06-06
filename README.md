@@ -77,6 +77,7 @@ Persistence state:
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
 - Render cron can run `node scripts/drain-webhooks.mjs` with `UPLOADCHECK_API_KEY`, `UPLOADCHECK_API_BASE_URL`, and `UPLOADCHECK_DRAIN_LIMIT` to process due deliveries on a schedule.
 - Report reads append rounded-minute usage ledger entries.
+- Usage metering is idempotent per job and billing period; declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they would exceed included plan minutes.
 - `uploadcheck usage` reads `/v1/usage/margins` and prints current estimated COGS, cost/minute, and gross margin.
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
 - When a job source resolves to a local video or downloadable URL, `qc-engine-runner.mjs` can run the reference gate; otherwise the hosted job records a `WATCH` engine warning instead of pretending the asset passed.

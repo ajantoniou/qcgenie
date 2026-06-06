@@ -46,6 +46,7 @@ assert(status.operator_commands.includes("npm run readiness:check"), "launch-sta
 assert(status.verified_controls.some((control) => control.id === "codex_mcp" && control.evidence.includes("codex:verify-install")), "launch-status Codex MCP evidence must cite codex:verify-install");
 assert(status.verified_controls.some((control) => control.id === "cost_basis" && control.evidence.includes("cost-basis:verify")), "launch-status cost-basis evidence must cite cost-basis:verify");
 assert(status.verified_controls.some((control) => control.id === "roadmap" && control.evidence.includes("roadmap:verify")), "launch-status roadmap evidence must cite roadmap:verify");
+assert(status.verified_controls.some((control) => control.id === "billing_enforcement" && control.evidence.includes("usage_limit_exceeded")), "launch-status billing enforcement evidence must cite usage_limit_exceeded");
 assert(manifest.launch_status_url === status.public_artifacts.launch_status, "agent manifest launch_status_url must match launch-status public artifact URL");
 assert(manifest.live_launch_status_url === status.public_artifacts.live_launch_status, "agent manifest live_launch_status_url must match launch-status public artifact URL");
 assert(openapi.paths["/launch-status.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /launch-status.json metadata");

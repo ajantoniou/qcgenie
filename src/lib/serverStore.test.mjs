@@ -32,6 +32,33 @@ describe("JsonStore", () => {
     }
   });
 
+  it("meters each job only once per billing period and summarizes plan allowance", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const job = store.createJob({ source: "/tmp/master.mp4", plan_id: "creator", included_minutes: 1200 });
+      const first = store.appendUsage(job.jobId, 7, "2026-06", { planId: "creator", includedMinutes: 1200 });
+      const replay = store.appendUsage(job.jobId, 7, "2026-06", { planId: "creator", includedMinutes: 1200 });
+      const summary = store.summarizePlanUsage({ planId: "creator", billingPeriod: "2026-06", includedMinutes: 1200 });
+
+      expect(first.usageId).toBe(replay.usageId);
+      expect(replay.idempotentReplay).toBe(true);
+      expect(store.state.usageLedger).toHaveLength(1);
+      expect(summary).toMatchObject({
+        planId: "creator",
+        billingPeriod: "2026-06",
+        includedMinutes: 1200,
+        minutesUsed: 7,
+        minutesRemaining: 1193,
+        usageEntryCount: 1
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("marks uploaded content and creates upload jobs from the stored local file", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");

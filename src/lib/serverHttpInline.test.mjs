@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
+import { JsonStore } from "../../server-store.mjs";
 
 const servers = [];
 
@@ -103,6 +104,61 @@ describe("server inline media API", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   }, 20000);
+
+  it("rejects declared jobs that exceed included plan minutes", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-usage-limit-"));
+    const storePath = join(dir, "store.json");
+    const apiKey = "uck_test_usage_limit";
+    const seedStore = new JsonStore(storePath);
+    const seededJob = seedStore.createJob({ source: "/tmp/previous.mp4", plan_id: "creator", included_minutes: 1200 });
+    seedStore.appendUsage(seededJob.jobId, 1199, currentTestBillingPeriod(), { planId: "creator", includedMinutes: 1200 });
+
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/final.mp4",
+          source_type: "signed_url",
+          plan_id: "creator",
+          duration_seconds: 120,
+          checks: "canvas_fill",
+          cost_guardrail: "downgrade"
+        })
+      });
+      const payload = await response.json();
+
+      expect(response.status).toBe(402);
+      expect(payload).toMatchObject({
+        error: "usage_limit_exceeded",
+        planId: "creator",
+        includedMinutes: 1200,
+        minutesUsed: 1199,
+        requestedMinutes: 2,
+        minutesRemaining: 1
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
 });
 
 async function waitForHealth(port) {
@@ -118,4 +174,8 @@ async function waitForHealth(port) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   throw lastError || new Error("server did not become healthy");
+}
+
+function currentTestBillingPeriod() {
+  return new Date().toISOString().slice(0, 7);
 }

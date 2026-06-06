@@ -218,6 +218,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: roadmap verifier added through `npm run roadmap:verify`, checking the 50-point plan sequence, expert-panel coverage, NTO replacement addendum, and execution-status markers.
 - Done: observed provider usage is now captured from real QC engine calls. Anthropic frame checks preserve token usage, DashScope/OpenRouter Omni calls preserve OpenAI-compatible usage when present, Scribe checks preserve request/audio seconds, and `VERDICT.json`, job reports, and margin telemetry expose rollups for cost reconciliation.
 - Done: observed provider usage is now priced into post-run COGS. Reports and `/v1/usage/margins` distinguish estimated preflight COGS from observed provider COGS, observed total COGS, observed cost/minute, and observed gross margin.
+- Done: billing enforcement for included minutes added. Usage metering is idempotent per job and billing period, and declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they exceed included plan minutes.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
 - Next: use observed provider COGS from live Render runs to set final AI-review allowances per plan.

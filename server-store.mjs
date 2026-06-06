@@ -446,17 +446,46 @@ export class JsonStore {
   }
 
   appendUsage(jobId, roundedMinutes, billingPeriod = currentBillingPeriod(), costSnapshot = null) {
+    const period = billingPeriod || currentBillingPeriod();
+    const existing = this.state.usageLedger.find((entry) => entry.jobId === jobId && entry.billingPeriod === period);
+    if (existing) {
+      existing.idempotentReplay = true;
+      return existing;
+    }
+    const job = this.getJob(jobId);
     const entry = {
       usageId: `use_${randomId()}`,
       jobId,
       roundedMinutes,
-      billingPeriod,
+      billingPeriod: period,
+      planId: job?.planId || costSnapshot?.planId || null,
+      includedMinutes: numberOrNull(job?.includedMinutes ?? costSnapshot?.includedMinutes),
       costSnapshot,
       createdAt: new Date().toISOString()
     };
     this.state.usageLedger.push(entry);
     this.persist();
     return entry;
+  }
+
+  summarizePlanUsage({ planId, billingPeriod = currentBillingPeriod(), includedMinutes = null } = {}) {
+    const normalizedPlanId = String(planId || "").toLowerCase();
+    const period = billingPeriod || currentBillingPeriod();
+    const entries = this.state.usageLedger.filter((entry) => {
+      if (entry.billingPeriod !== period) return false;
+      if (!normalizedPlanId) return true;
+      return String(entry.planId || entry.costSnapshot?.planId || "").toLowerCase() === normalizedPlanId;
+    });
+    const minutesUsed = entries.reduce((sum, entry) => sum + (Number(entry.roundedMinutes) || 0), 0);
+    const limit = numberOrNull(includedMinutes) || entries.find((entry) => entry.includedMinutes)?.includedMinutes || null;
+    return {
+      planId: normalizedPlanId || null,
+      billingPeriod: period,
+      includedMinutes: limit,
+      minutesUsed,
+      minutesRemaining: limit ? Math.max(0, limit - minutesUsed) : null,
+      usageEntryCount: entries.length
+    };
   }
 
   load() {
