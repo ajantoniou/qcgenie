@@ -6,7 +6,8 @@ describe("launch readiness report", () => {
     const report = buildReadinessReport({
       host: "qcgenie-api.onrender.com",
       env: {
-        UPLOADCHECK_API_KEY_SHA256: "hash"
+        UPLOADCHECK_API_KEY_SHA256: "hash",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "/tmp/does-not-exist-uploadcheck-demo.mp4"
       },
       now: "2026-06-06T00:00:00.000Z"
     });
@@ -44,6 +45,18 @@ describe("launch readiness report", () => {
     expect(report.checks.secretEncryption.ok).toBe(true);
     expect(report.checks.persistence.mode).toBe("supabase_configured");
     expect(report.checks.storage.mode).toBe("durable_object_storage_configured");
+    expect(report.checks.demoClip.ok).toBe(true);
+  });
+
+  it("accepts a bundled public demo clip as demo proof", () => {
+    const report = buildReadinessReport({
+      host: "api.uploadcheck.app",
+      env: {
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      now: "2026-06-06T00:00:00.000Z"
+    });
+
     expect(report.checks.demoClip.ok).toBe(true);
   });
 });

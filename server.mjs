@@ -28,6 +28,11 @@ const mimeTypes = {
   ".css": "text/css",
   ".json": "application/json",
   ".svg": "image/svg+xml",
+  ".mp4": "video/mp4",
+  ".mov": "video/quicktime",
+  ".webm": "video/webm",
+  ".mp3": "audio/mpeg",
+  ".wav": "audio/wav",
   ".txt": "text/plain; charset=utf-8",
   ".xml": "application/xml"
 };

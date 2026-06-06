@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { buildCheckoutUrl } from "./checkout-links.mjs";
 
 const PLANS = ["creator", "studio", "network"];
@@ -12,7 +14,8 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
   const apiAuthConfigured = Boolean(env.UPLOADCHECK_API_KEY || env.QCGENIE_API_KEY || env.UPLOADCHECK_API_KEY_SHA256 || env.QCGENIE_API_KEY_SHA256);
   const supabaseConfigured = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
   const durableStorageConfigured = Boolean(env.UPLOADCHECK_STORAGE_BUCKET || env.UPLOADCHECK_S3_BUCKET || env.UPLOADCHECK_R2_BUCKET);
-  const demoClipConfigured = Boolean(env.UPLOADCHECK_DEMO_CLIP_URL || env.UPLOADCHECK_PUBLIC_DEMO_URL);
+  const bundledDemoClipPath = env.UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH || resolve("dist/demo/uploadcheck-product-hunt-demo.mp4");
+  const demoClipConfigured = Boolean(env.UPLOADCHECK_DEMO_CLIP_URL || env.UPLOADCHECK_PUBLIC_DEMO_URL || existsSync(bundledDemoClipPath));
 
   const checks = {
     api: {
@@ -52,7 +55,7 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
     },
     demoClip: {
       ok: demoClipConfigured,
-      detail: demoClipConfigured ? "Public demo clip URL is configured." : "Set UPLOADCHECK_DEMO_CLIP_URL before Product Hunt launch."
+      detail: demoClipConfigured ? "Public demo clip is configured or bundled." : "Set UPLOADCHECK_DEMO_CLIP_URL or ship public/demo/uploadcheck-product-hunt-demo.mp4 before Product Hunt launch."
     },
     productHunt: {
       ok: checkoutConfigured && customDomainActive && secretEncryptionConfigured && supabaseConfigured && durableStorageConfigured && demoClipConfigured,
