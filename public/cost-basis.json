@@ -1,0 +1,101 @@
+{
+  "name": "UploadCheck Cost Basis",
+  "description": "Public, machine-readable cost-per-minute and gross-margin assumptions for UploadCheck launch decisions.",
+  "currency": "USD",
+  "target_gross_margin_pct": 95,
+  "unit_notes": {
+    "cents": "US cents",
+    "cost_per_minute_cents": "COGS cents per checked media minute",
+    "revenue_per_minute_cents": "Allocated subscription revenue cents per included checked media minute"
+  },
+  "default_guardrail": {
+    "mode": "downgrade",
+    "rule": "Run deterministic checks by default and remove margin-breaking model-backed checks or deep AI review unless the user explicitly buys a paid deep-review path."
+  },
+  "cost_assumptions": {
+    "deterministic_render_compute_cents_per_minute": 0.0833,
+    "sampled_ai_review_cents_per_minute": 0.2154,
+    "full_gemini_flash_lite_video_audio_input_cents_per_minute": 0.2154,
+    "full_gemini_flash_video_audio_input_cents_per_minute": 0.6654,
+    "model_check_call_cost_cents": 0.05
+  },
+  "verdict": {
+    "stress_99_5000": "$99 for 5,000 checked minutes is too generous for unlimited full-video AI review. It is only margin-safe as deterministic scan minutes with model-backed review capped, sampled, downgraded, or sold separately.",
+    "launch_shape": "Use Creator $99 / 1,200, Studio $299 / 5,000, Network $799 / 18,000, with cost_guardrail=downgrade as the default."
+  },
+  "plans": [
+    {
+      "plan_id": "creator",
+      "price_cents": 9900,
+      "included_minutes": 1200,
+      "revenue_per_minute_cents": 8.25,
+      "max_cogs_cents_at_95_margin": 495,
+      "max_cost_per_minute_cents_at_95_margin": 0.4125,
+      "deterministic_full_allowance_cogs_cents": 99.96,
+      "deterministic_full_allowance_gross_margin_pct": 98.9903,
+      "full_gemini_flash_lite_video_audio_input_cogs_cents": 258.48,
+      "full_gemini_flash_video_audio_input_cogs_cents": 798.48,
+      "deterministic_margin_safe": true,
+      "full_flash_lite_input_margin_safe": true,
+      "full_flash_input_margin_safe": false
+    },
+    {
+      "plan_id": "studio",
+      "price_cents": 29900,
+      "included_minutes": 5000,
+      "revenue_per_minute_cents": 5.98,
+      "max_cogs_cents_at_95_margin": 1495,
+      "max_cost_per_minute_cents_at_95_margin": 0.299,
+      "deterministic_full_allowance_cogs_cents": 416.5,
+      "deterministic_full_allowance_gross_margin_pct": 98.607,
+      "full_gemini_flash_lite_video_audio_input_cogs_cents": 1077,
+      "full_gemini_flash_video_audio_input_cogs_cents": 3327,
+      "deterministic_margin_safe": true,
+      "full_flash_lite_input_margin_safe": true,
+      "full_flash_input_margin_safe": false
+    },
+    {
+      "plan_id": "network",
+      "price_cents": 79900,
+      "included_minutes": 18000,
+      "revenue_per_minute_cents": 4.4389,
+      "max_cogs_cents_at_95_margin": 3995,
+      "max_cost_per_minute_cents_at_95_margin": 0.2219,
+      "deterministic_full_allowance_cogs_cents": 1499.4,
+      "deterministic_full_allowance_gross_margin_pct": 98.1234,
+      "full_gemini_flash_lite_video_audio_input_cogs_cents": 3877.2,
+      "full_gemini_flash_video_audio_input_cogs_cents": 11977.2,
+      "deterministic_margin_safe": true,
+      "full_flash_lite_input_margin_safe": true,
+      "full_flash_input_margin_safe": false
+    },
+    {
+      "plan_id": "stress_99_5000",
+      "price_cents": 9900,
+      "included_minutes": 5000,
+      "revenue_per_minute_cents": 1.98,
+      "max_cogs_cents_at_95_margin": 495,
+      "max_cost_per_minute_cents_at_95_margin": 0.099,
+      "deterministic_full_allowance_cogs_cents": 416.5,
+      "deterministic_full_allowance_gross_margin_pct": 95.7929,
+      "full_gemini_flash_lite_video_audio_input_cogs_cents": 1077,
+      "full_gemini_flash_video_audio_input_cogs_cents": 3327,
+      "deterministic_margin_safe": true,
+      "full_flash_lite_input_margin_safe": false,
+      "full_flash_input_margin_safe": false
+    }
+  ],
+  "model_backed_checks": {
+    "checks": ["twins", "cheap_broll", "garble", "narration_match", "omni_watch"],
+    "rule": "Preflight these checks with qc_estimate_cost. In downgrade mode, remove them when they exceed the selected plan's 95% gross-margin budget."
+  },
+  "telemetry": {
+    "preflight_endpoint": "POST /v1/qc/estimate",
+    "usage_endpoint": "GET /v1/usage/margins",
+    "mcp_tools": ["qc_estimate_cost", "qc_get_margin_telemetry"],
+    "cli_commands": [
+      "uploadcheck estimate --minutes N --checks CHECKS --plan creator --cost-guardrail downgrade --json",
+      "uploadcheck usage --billing-period YYYY-MM --json"
+    ]
+  }
+}
