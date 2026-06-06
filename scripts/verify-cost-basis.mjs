@@ -35,6 +35,9 @@ export function verifyCostBasis({ basis: suppliedBasis = null, costBasisPath = C
   if (!Array.isArray(basis.transcription_cost_reduction?.options) || !basis.transcription_cost_reduction.options.some((option) => option.model === "gpt-4o-mini-transcribe" && option.stress_99_5000_margin_safe === false)) {
     errors.push({ key: "transcription_cost_reduction.options", reason: "missing_transcription_guardrail", detail: "Cost basis must show cheaper transcription still breaks the $99 / 5,000 stress plan when run on every minute." });
   }
+  if (!Array.isArray(basis.omni_cost_reduction?.options) || !basis.omni_cost_reduction.options.some((option) => option.model === "qwen3.5-omni-flash" && option.full_video_audio_input_cents_per_minute === 1.2072 && option.stress_99_5000_margin_safe === false)) {
+    errors.push({ key: "omni_cost_reduction.options", reason: "missing_omni_guardrail", detail: "Cost basis must expose Qwen/Omni full-input cost and reject it as a default stress-plan path." });
+  }
   if (!String(basis.observed_calibration?.source || "").includes("0.654")) {
     errors.push({ key: "observed_calibration.source", reason: "missing_observed_source", detail: "Observed calibration must cite the clone-crowd Sonnet frame-call cost." });
   }
@@ -71,8 +74,10 @@ export function verifyCostBasis({ basis: suppliedBasis = null, costBasisPath = C
     compare(errors, plan, "deterministic_full_allowance_gross_margin_pct", estimate.estimatedGrossMarginPct);
     compare(errors, plan, "full_gemini_flash_lite_video_audio_input_cogs_cents", estimate.fullGeminiFlashLiteVideoAudioInputCents);
     compare(errors, plan, "full_gemini_flash_video_audio_input_cogs_cents", estimate.fullGeminiFlashVideoAudioInputCents);
+    compare(errors, plan, "full_gemini_flash_batch_video_audio_input_cogs_cents", estimate.fullGeminiFlashBatchVideoAudioInputCents);
+    compare(errors, plan, "full_qwen_omni_flash_video_audio_input_cogs_cents", estimate.fullQwenOmniFlashVideoAudioInputCents);
     compare(errors, plan, "deterministic_margin_safe", true);
-    compare(errors, plan, "full_flash_input_margin_safe", false);
+    compare(errors, plan, "full_flash_input_margin_safe", estimate.fullGeminiFlashVideoAudioInputCents <= estimate.maxCogsCents);
   }
 
   const stress = plans.find((plan) => plan.plan_id === "stress_99_5000");
@@ -96,7 +101,9 @@ export function verifyCostBasis({ basis: suppliedBasis = null, costBasisPath = C
       remainingCostPerMinuteAfterDeterministicCents: plan.remaining_cost_per_minute_after_deterministic_full_allowance_cents,
       deterministicMarginSafe: plan.deterministic_margin_safe,
       fullFlashLiteInputMarginSafe: plan.full_flash_lite_input_margin_safe,
-      fullFlashInputMarginSafe: plan.full_flash_input_margin_safe
+      fullFlashInputMarginSafe: plan.full_flash_input_margin_safe,
+      fullFlashBatchInputCogsCents: plan.full_gemini_flash_batch_video_audio_input_cogs_cents,
+      fullQwenOmniInputCogsCents: plan.full_qwen_omni_flash_video_audio_input_cogs_cents
     })),
     stressVerdict: basis.verdict?.stress_99_5000 || "",
     errors

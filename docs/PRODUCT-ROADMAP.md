@@ -17,8 +17,8 @@ Research inputs verified on 2026-06-06:
 - Google Gemini counts video at about `263 tokens / second`, so one video minute is about `15,780` input tokens. Source: `https://ai.google.dev/gemini-api/docs/tokens`.
 - Google Gemini counts audio at about `32 tokens / second`, so one audio minute is about `1,920` input tokens. Source: `https://ai.google.dev/gemini-api/docs/tokens`.
 - Gemini 2.5 Flash-Lite standard pricing is `$0.10 / 1M` text/image/video input tokens, `$0.30 / 1M` audio input tokens, and `$0.40 / 1M` output tokens. Source: `https://ai.google.dev/gemini-api/docs/pricing`.
-- Gemini 2.5 Flash standard pricing is `$0.30 / 1M` text/image/video input tokens, `$1.00 / 1M` audio input tokens, and `$2.50 / 1M` output tokens. Source: `https://ai.google.dev/gemini-api/docs/pricing`.
-- Gemini 3 family paid rows are currently higher than the 2.5 Flash-Lite margin baseline for this use case; do not switch default QC review to Gemini 3 without fresh telemetry.
+- Gemini 2.5 Flash standard pricing is `$0.15 / 1M` text/image/video input tokens, `$0.50 / 1M` audio input tokens, and `$2.50 / 1M` output tokens; Batch/Flex input rows are half the standard input price. Source: `https://ai.google.dev/gemini-api/docs/pricing`.
+- Gemini 3.1 Flash-Lite Batch/Flex is a useful queued-review candidate, but current 2.5 Flash-Lite remains the cheaper default full video+audio input baseline for this use case.
 - OpenAI lists `gpt-4o-mini-transcribe` at `$0.003 / minute`, `gpt-4o-transcribe` at `$0.006 / minute`, GPT-Realtime-Whisper at `$0.017 / minute`, and GPT-Realtime-Translate at `$0.034 / minute`. Source: `https://platform.openai.com/docs/pricing`.
 - Anthropic Claude Sonnet 4.5 / 4.6 is `$3 / 1M` input tokens and `$15 / 1M` output tokens; prompt cache reads are `$0.30 / 1M`. Source: `https://platform.claude.com/docs/en/about-claude/pricing`.
 - ElevenLabs Scribe is `$0.22 / hour` for speech-to-text. Source: `https://elevenlabs.io/pricing/api?price.section=speech_to_text`.
@@ -31,14 +31,16 @@ Derived unit economics:
 | --- | ---: | ---: | ---: |
 | Deterministic ffmpeg/Python only, task compute at 1x realtime | about `$0.00083` before platform overhead | about `$4.17` | about `95.8%` before bandwidth/storage |
 | Gemini 2.5 Flash-Lite full video+audio input only | about `$0.00215` before output | about `$10.77` | about `89.1%` |
-| Gemini 2.5 Flash full video+audio input only | about `$0.00665` before output | about `$33.27` | about `66.4%` |
+| Gemini 2.5 Flash full video+audio input only | about `$0.00333` before output | about `$16.64` | about `83.2%` |
+| Gemini 2.5 Flash Batch/Flex full video+audio input only | about `$0.00166` before output | about `$8.32` | about `91.6%` |
+| Qwen3.5-Omni-Flash full video+audio input only | about `$0.01207` before output | about `$60.36` | about `39.0%` |
 | OpenAI gpt-4o-mini-transcribe every minute | `$0.003` | `$15.00` | about `84.8%` |
 | OpenAI gpt-4o-transcribe every minute | `$0.006` | `$30.00` | about `69.7%` |
 | OpenAI GPT-Realtime-Whisper every minute | `$0.017` | `$85.00` | about `14.1%` |
 
 Pricing verdict: `$99 / 5,000 minutes` is too generous if every minute receives full Omni/video or hosted transcription. It can work only if most minutes are deterministic-only and AI review is limited to flagged/sampled windows. Launch pricing should either cut included minutes to `1,000-2,000`, meter Omni separately, or define `5,000 deterministic scan minutes` plus a smaller AI-review allowance.
 
-Cost-per-minute target: at `$99 / 5,000`, the COGS ceiling is `$0.00099` per minute. Deterministic-only Render compute at 1x realtime is about `$0.000833` per minute before bandwidth/storage/retries, leaving only about `$0.000157` per minute of overhead. Full Gemini 2.5 Flash-Lite video+audio input alone is about `$0.002154` per media minute before output, which breaks the target. The margin-safe launch shape is therefore deterministic scan minutes plus a capped AI-review allowance, not unlimited full-video AI minutes.
+Cost-per-minute target: at `$99 / 5,000`, the COGS ceiling is `$0.00099` per minute. Deterministic-only Render compute at 1x realtime is about `$0.000833` per minute before bandwidth/storage/retries, leaving only about `$0.000157` per minute of overhead. Full Gemini 2.5 Flash-Lite video+audio input alone is about `$0.002154` per media minute before output, Gemini 2.5 Flash Batch/Flex is about `$0.001664`, and Qwen3.5-Omni-Flash full video+audio input is about `$0.012072`; all break the stress-plan target before output. The margin-safe launch shape is therefore deterministic scan minutes plus a capped AI-review allowance, not unlimited full-video AI minutes.
 
 Speech-cost update: current OpenAI `gpt-4o-mini-transcribe` is a lower-cost fallback than realtime Whisper and slightly below ElevenLabs Scribe, but it still costs about `0.3` cents/minute. Running it across all `5,000` included stress-plan minutes would cost about `$15` before deterministic compute, so it remains a paid/sampled-window path, not a default included-minute path.
 
@@ -54,7 +56,7 @@ Preflight model-backed check pricing is now calibrated from that observed cost: 
 - MCP experts: keep the MCP server a thin authenticated wrapper; do not hide expensive or long-running side effects behind ambiguous tools.
 - API experts: every job must expose lifecycle, artifacts, costs, and exact checks run.
 - Plugin/skill experts: pair MCP with a short `UploadCheck` skill so agents know when to run deterministic checks and when to avoid expensive Omni.
-- Omni/base-layer experts: use Omni/vision as escalation, not default metering; sample scene windows and deterministic defects first.
+- Omni/base-layer experts: use Qwen/Omni as a private escalation layer on selected windows, not default metering; at about `1.2072` COGS cents per full input minute before output, full Omni review is incompatible with `$99 / 5,000`.
 - Video QC experts: deterministic gates remain the verdict source; multimodal review explains and prioritizes defects.
 - SaaS pricing experts: sell outcomes and reserve gross margin with hard cost caps, not unlimited “AI minutes.”
 - Product Hunt launch experts: ship a crisp demo, public sample report, cost-safe beta limits, and proof that agents can catch real upload mistakes.
@@ -72,7 +74,7 @@ Preflight model-backed check pricing is now calibrated from that observed cost: 
 6. Add a `deterministic_minutes` vs `ai_review_seconds` usage split.
 7. Add a “margin mode” default: deterministic scan all, Omni only suspicious windows.
 8. Add a “deep review” paid add-on for full multimodal review.
-9. Prefer Gemini 2.5 Flash-Lite or cheaper equivalent for advisory windows.
+9. Prefer Gemini 2.5 Flash-Lite or queued Gemini 2.5 Flash Batch/Flex for advisory windows; keep Qwen/Omni for selected private escalations.
 10. Avoid hosted transcription on all minutes; run transcription only when garble/caption checks require it.
 
 ### P0 - Programmatic Render Ingest
@@ -312,6 +314,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: `twins` now has a Pillow-only local appearance-cluster fallback before the vision call, so repeated-character crowd scenes can block with `needs_more_character_variation` and zero provider usage when the local evidence is strong.
 - Done: public cost basis now includes a primary-source pricing audit and OpenAI transcription alternatives. `gpt-4o-mini-transcribe` is tracked at `0.3` cents/minute for observed COGS, but still marked unsafe for default every-minute transcription on the `$99 / 5,000` stress plan.
 - Done: billing enforcement for included minutes added. Usage metering is idempotent per job and billing period, and declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they exceed included plan minutes.
+- Done: completed jobs now record usage and cost snapshots at completion time, so margin telemetry does not depend on a later report fetch; unknown-duration no-run fallbacks no longer invent a 19-minute charge.
 - Done: plan-level AI-review budgets added to the cost model and public cost basis. Creator includes `3,600` AI-review seconds, Studio `7,200`, Network `21,600`, and the `$99 / 5,000` stress plan includes `0`; declared jobs that exceed the cumulative allowance return `usage_limit_exceeded` before QC.
 - Done: abuse limits added for file size, declared duration, and active job concurrency. Job/upload requests now fail fast with `duration_limit_exceeded`, `upload_size_limit_exceeded`, or `active_job_limit_exceeded` before QC compute or storage spend.
 - Done: job observability added for duration, stage timing, provider-usage count, engine mode, and fallback failure reasons. Job responses and reports now preserve `startedAt`, `completedAt`, `processingDurationMs`, `observability.stages`, and `failureReason`.

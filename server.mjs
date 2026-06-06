@@ -585,9 +585,11 @@ function getReport(req, url, res) {
   const jobId = url.pathname.split("/").at(-2);
   const realJob = store.getJob(jobId);
   const job = realJob || completedJob(jobId);
-  const roundedMinutes = Math.max(1, Math.ceil(job.minutesMetered || 19));
-  const costEstimate = estimateCostForJob(job, roundedMinutes);
-  const usage = store.appendUsage(jobId, roundedMinutes, undefined, costEstimate);
+  const fallbackMinutes = Math.max(1, Math.ceil(job.minutesMetered || 19));
+  const usage = realJob
+    ? store.recordCompletedUsage(jobId)
+    : store.appendUsage(jobId, fallbackMinutes, undefined, estimateCostForJob(job, fallbackMinutes));
+  const costEstimate = estimateCostForJob(job, usage?.roundedMinutes ?? (realJob ? Math.max(0, Math.ceil(Number(job.minutesMetered || 0))) : fallbackMinutes));
   const flags = store.listFlags(jobId);
   const artifacts = store.listArtifacts(jobId);
   return sendJson(res, 200, {

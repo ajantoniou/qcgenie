@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from "node:crypto";
+import { estimateJobCost } from "./cost-model.mjs";
 import { runQcForJob } from "./qc-engine-runner.mjs";
 
 export class JsonStore {
@@ -154,6 +155,7 @@ export class JsonStore {
         skipped: engine.verdict.skipped || [],
         processingDurationMs: completedJob?.processingDurationMs || 0
       });
+      this.recordCompletedUsage(jobId);
       this.addArtifact(jobId, {
         artifactType: "marker_export",
         url: `/v1/qc/jobs/${jobId}/artifacts/markers`,
@@ -197,6 +199,7 @@ export class JsonStore {
       processingDurationMs: job.processingDurationMs,
       failureReason: job.failureReason || null
     });
+    this.recordCompletedUsage(jobId);
     this.persist();
     return job;
   }
@@ -290,6 +293,7 @@ export class JsonStore {
       }
     });
 
+    this.recordCompletedUsage(jobId);
     this.persist();
     return {
       job,
@@ -549,6 +553,28 @@ export class JsonStore {
     this.state.usageLedger.push(entry);
     this.persist();
     return entry;
+  }
+
+  recordCompletedUsage(jobId, billingPeriod = currentBillingPeriod()) {
+    const job = this.getJob(jobId);
+    if (!job || job.status !== "completed") return null;
+    const roundedMinutes = roundedBillableMinutes(job);
+    if (roundedMinutes <= 0) return null;
+    const costSnapshot = estimateCostSnapshotForJob(job, roundedMinutes);
+    const usage = this.appendUsage(jobId, roundedMinutes, billingPeriod, costSnapshot);
+    if (!usage.idempotentReplay) {
+      this.addJobEvent(jobId, "usage_recorded", {
+        usageId: usage.usageId,
+        roundedMinutes,
+        billingPeriod: usage.billingPeriod,
+        estimatedCogsCents: costSnapshot.estimatedCogsCents,
+        observedTotalCogsCents: costSnapshot.observedTotalCogsCents,
+        marginSafe: costSnapshot.marginSafe,
+        observedMarginSafe: costSnapshot.observedMarginSafe
+      });
+      this.persist();
+    }
+    return usage;
   }
 
   summarizePlanUsage({ planId, billingPeriod = currentBillingPeriod(), includedMinutes = null } = {}) {
@@ -815,6 +841,27 @@ function elapsedMsBetween(startIso, endIso) {
   const end = Date.parse(endIso);
   if (!Number.isFinite(start) || !Number.isFinite(end)) return 0;
   return Math.max(0, end - start);
+}
+
+function roundedBillableMinutes(job) {
+  const minutes = Number(job?.minutesMetered || 0);
+  if (Number.isFinite(minutes) && minutes > 0) return Math.ceil(minutes);
+  const hasProviderUsage = Array.isArray(job?.providerUsage) && job.providerUsage.length > 0;
+  const hasAiReview = Number(job?.aiReviewSeconds || 0) > 0;
+  return hasProviderUsage || hasAiReview ? 1 : 0;
+}
+
+function estimateCostSnapshotForJob(job, minutesMetered) {
+  return estimateJobCost({
+    minutesMetered,
+    aiReviewSeconds: job.aiReviewSeconds || 0,
+    checks: job.checks,
+    providerUsage: job.providerUsage,
+    planId: job.planId,
+    planPriceCents: job.planPriceCents,
+    includedMinutes: job.includedMinutes,
+    aiReviewBudgetSeconds: job.aiReviewBudgetSeconds
+  });
 }
 
 function csvEscape(value) {

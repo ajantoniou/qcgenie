@@ -32,6 +32,7 @@ describe("UploadCheck package metadata", () => {
       "README.md",
       "index.mjs",
       "local-file.mjs",
+      "mcp-install.json",
       "package.json",
       "request-builder.mjs",
       "run-uploadcheck-mcp.sh"
@@ -56,6 +57,7 @@ describe("UploadCheck package metadata", () => {
   it("keeps MCP package standalone-installable", () => {
     const pkg = readJson("mcp-server/package.json");
     const lock = readJson("mcp-server/package-lock.json");
+    const install = readJson("mcp-server/mcp-install.json");
     const localFile = readFileSync(resolve("mcp-server/local-file.mjs"), "utf8");
 
     expect(pkg.name).toBe("@uploadcheck/mcp");
@@ -71,6 +73,7 @@ describe("UploadCheck package metadata", () => {
     expect(pkg.files).toEqual([
       "index.mjs",
       "local-file.mjs",
+      "mcp-install.json",
       "request-builder.mjs",
       "run-uploadcheck-mcp.sh",
       "README.md"
@@ -80,10 +83,21 @@ describe("UploadCheck package metadata", () => {
       "README.md",
       "index.mjs",
       "local-file.mjs",
+      "mcp-install.json",
       "package.json",
       "request-builder.mjs",
       "run-uploadcheck-mcp.sh"
     ]);
+    expect(install).toMatchObject({
+      name: "uploadcheck",
+      package: "@uploadcheck/mcp",
+      binary: "uploadcheck-mcp",
+      hosted_api_base_url: "https://qcgenie-api.onrender.com"
+    });
+    expect(install.claude_desktop.json.mcpServers.uploadcheck.args).toEqual(["-y", "@uploadcheck/mcp"]);
+    expect(install.cursor.json.mcpServers.uploadcheck.args).toEqual(["-y", "@uploadcheck/mcp"]);
+    expect(install.codex_local.toml).toContain("[mcp_servers.uploadcheck]");
+    expect(install.recommended_first_calls).toContain("qc_get_npo_pipeline_handoff");
   });
 
   it("verifies the global Codex UploadCheck MCP and skill install shape", () => {

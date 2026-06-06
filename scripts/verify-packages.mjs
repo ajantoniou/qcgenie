@@ -22,6 +22,7 @@ const packages = [
     filesField: [
       "index.mjs",
       "local-file.mjs",
+      "mcp-install.json",
       "request-builder.mjs",
       "run-uploadcheck-mcp.sh",
       "README.md"
@@ -30,6 +31,7 @@ const packages = [
       "README.md",
       "index.mjs",
       "local-file.mjs",
+      "mcp-install.json",
       "package.json",
       "request-builder.mjs",
       "run-uploadcheck-mcp.sh"
@@ -81,6 +83,7 @@ for (const spec of packages) {
 
   const packedFiles = packFiles(spec.dir);
   assertDeepEqual(`${spec.label} npm pack files`, packedFiles, spec.packedFiles);
+  if (spec.dir === "mcp-server") verifyMcpInstallManifest(readJson("mcp-server/mcp-install.json"));
 
   results.push({
     name: pkg.name,
@@ -91,3 +94,20 @@ for (const spec of packages) {
 }
 
 console.log(JSON.stringify({ ok: true, packages: results }, null, 2));
+
+function verifyMcpInstallManifest(manifest) {
+  if (manifest.name !== "uploadcheck") throw new Error("MCP install manifest must name the uploadcheck server.");
+  if (manifest.package !== "@uploadcheck/mcp") throw new Error("MCP install manifest must reference @uploadcheck/mcp.");
+  if (manifest.binary !== "uploadcheck-mcp") throw new Error("MCP install manifest must reference uploadcheck-mcp.");
+  if (manifest.hosted_api_base_url !== "https://qcgenie-api.onrender.com") throw new Error("MCP install manifest must preserve the current hosted API base URL until DNS cutover.");
+  if (!manifest.codex_local?.toml?.includes("[mcp_servers.uploadcheck]")) throw new Error("MCP install manifest must include Codex TOML.");
+  for (const client of ["claude_desktop", "cursor"]) {
+    const server = manifest[client]?.json?.mcpServers?.uploadcheck;
+    if (!server) throw new Error(`MCP install manifest missing ${client} uploadcheck server.`);
+    assertDeepEqual(`${client} command`, server.command, "npx");
+    assertDeepEqual(`${client} args`, server.args, ["-y", "@uploadcheck/mcp"]);
+  }
+  if (!manifest.recommended_first_calls?.includes("qc_get_npo_pipeline_handoff")) {
+    throw new Error("MCP install manifest must recommend the NPO pipeline handoff tool.");
+  }
+}

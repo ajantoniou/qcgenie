@@ -9,6 +9,7 @@
   "files": [
     "index.mjs",
     "local-file.mjs",
+    "mcp-install.json",
     "request-builder.mjs",
     "run-uploadcheck-mcp.sh",
     "README.md"

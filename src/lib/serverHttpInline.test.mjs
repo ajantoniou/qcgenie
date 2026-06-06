@@ -238,6 +238,20 @@ describe("server inline media API", () => {
       expect(payload.source).toBeUndefined();
       expect(JSON.stringify(payload)).not.toContain("uploadcheck-inline-");
       expect(payload.verdict).toBe("WATCH");
+
+      const reportResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs/${payload.jobId}/report`, {
+        headers: { authorization: `Bearer ${apiKey}` }
+      });
+      const report = await reportResponse.json();
+      const usageResponse = await fetch(`http://127.0.0.1:${port}/v1/usage`, {
+        headers: { authorization: `Bearer ${apiKey}` }
+      });
+      const usage = await usageResponse.json();
+
+      expect(reportResponse.status).toBe(200);
+      expect(report.usage).toBeNull();
+      expect(report.costEstimate.minutesMetered).toBe(0);
+      expect(usage.usageLedger).toEqual([]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

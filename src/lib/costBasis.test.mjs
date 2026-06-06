@@ -17,6 +17,9 @@ describe("public cost basis", () => {
 
     expect(basis.target_gross_margin_pct).toBe(95);
     expect(basis.cost_assumptions.model_check_call_cost_cents).toBe(0.75);
+    expect(basis.cost_assumptions.full_gemini_flash_video_audio_input_cents_per_minute).toBe(0.3327);
+    expect(basis.cost_assumptions.full_gemini_flash_batch_video_audio_input_cents_per_minute).toBe(0.1664);
+    expect(basis.cost_assumptions.full_qwen_omni_flash_video_audio_input_cents_per_minute).toBe(1.2072);
     expect(basis.cost_assumptions.openai_gpt_4o_mini_transcribe_cents_per_minute).toBe(0.3);
     expect(basis.source_audit.primary_sources.map((source) => source.provider)).toContain("OpenAI");
     expect(basis.transcription_cost_reduction.options.find((option) => option.model === "gpt-4o-mini-transcribe")).toMatchObject({
@@ -24,6 +27,10 @@ describe("public cost basis", () => {
       stress_99_5000_margin_safe: false
     });
     expect(basis.observed_calibration.source).toContain("0.654");
+    expect(basis.omni_cost_reduction.options.find((option) => option.model === "qwen3.5-omni-flash")).toMatchObject({
+      full_video_audio_input_cents_per_minute: 1.2072,
+      stress_99_5000_margin_safe: false
+    });
     expect(basis.telemetry.mcp_tools).toContain("qc_get_cost_basis");
     expect(basis.telemetry.cli_commands).toContain("uploadcheck cost-basis --json");
     expect(stress).toMatchObject({
@@ -36,6 +43,9 @@ describe("public cost basis", () => {
       remaining_cogs_after_deterministic_full_allowance_cents: 78.5,
       remaining_cost_per_minute_after_deterministic_full_allowance_cents: 0.0157,
       full_gemini_flash_lite_video_audio_input_cogs_cents: 1077,
+      full_gemini_flash_video_audio_input_cogs_cents: 1663.5,
+      full_gemini_flash_batch_video_audio_input_cogs_cents: 832,
+      full_qwen_omni_flash_video_audio_input_cogs_cents: 6036,
       deterministic_margin_safe: true,
       full_flash_lite_input_margin_safe: false
     });
@@ -65,6 +75,8 @@ describe("public cost basis", () => {
       expect(plan.deterministic_full_allowance_gross_margin_pct).toBe(estimate.estimatedGrossMarginPct);
       expect(plan.full_gemini_flash_lite_video_audio_input_cogs_cents).toBe(estimate.fullGeminiFlashLiteVideoAudioInputCents);
       expect(plan.full_gemini_flash_video_audio_input_cogs_cents).toBe(estimate.fullGeminiFlashVideoAudioInputCents);
+      expect(plan.full_gemini_flash_batch_video_audio_input_cogs_cents).toBe(estimate.fullGeminiFlashBatchVideoAudioInputCents);
+      expect(plan.full_qwen_omni_flash_video_audio_input_cogs_cents).toBe(estimate.fullQwenOmniFlashVideoAudioInputCents);
     }
   });
 

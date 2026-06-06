@@ -16,7 +16,9 @@
     "deterministic_render_compute_cents_per_minute": 0.0833,
     "sampled_ai_review_cents_per_minute": 0.2154,
     "full_gemini_flash_lite_video_audio_input_cents_per_minute": 0.2154,
-    "full_gemini_flash_video_audio_input_cents_per_minute": 0.6654,
+    "full_gemini_flash_video_audio_input_cents_per_minute": 0.3327,
+    "full_gemini_flash_batch_video_audio_input_cents_per_minute": 0.1664,
+    "full_qwen_omni_flash_video_audio_input_cents_per_minute": 1.2072,
     "model_check_call_cost_cents": 0.75,
     "openai_gpt_4o_mini_transcribe_cents_per_minute": 0.3,
     "openai_gpt_4o_transcribe_cents_per_minute": 0.6,
@@ -30,7 +32,7 @@
       {
         "provider": "Google Gemini",
         "url": "https://ai.google.dev/gemini-api/docs/pricing",
-        "used_for": "Gemini 2.5 Flash-Lite and Flash input cost baseline."
+        "used_for": "Gemini 2.5 Flash-Lite, Gemini 2.5 Flash, and Batch/Flex input cost baselines."
       },
       {
         "provider": "Google Gemini",
@@ -50,7 +52,7 @@
       {
         "provider": "Qwen Cloud",
         "url": "https://www.qwencloud.com/models/qwen3.5-omni-flash",
-        "used_for": "qwen3.5-omni-flash text/image/video and audio token pricing."
+        "used_for": "qwen3.5-omni-flash text/image/video and audio token pricing for Omni escalation economics."
       },
       {
         "provider": "ElevenLabs",
@@ -101,6 +103,35 @@
     "source": "June 6 clone-crowd twins smoke test priced one Anthropic Sonnet vision frame call at about 0.654 cents before Render compute.",
     "rule": "Use the observed-cost floor for preflight guardrails so model-backed checks are downgraded or sold separately unless the selected plan can still hold 95% gross margin."
   },
+  "omni_cost_reduction": {
+    "rule": "Use Omni as an escalation layer over flagged windows, not a default every-minute input path.",
+    "options": [
+      {
+        "provider": "Google",
+        "model": "gemini-2.5-flash-lite",
+        "mode": "standard",
+        "full_video_audio_input_cents_per_minute": 0.2154,
+        "stress_99_5000_margin_safe": false,
+        "use": "Lowest current default full video+audio input baseline, still unsafe for the $99 / 5,000 stress plan."
+      },
+      {
+        "provider": "Google",
+        "model": "gemini-2.5-flash",
+        "mode": "batch_or_flex",
+        "full_video_audio_input_cents_per_minute": 0.1664,
+        "stress_99_5000_margin_safe": false,
+        "use": "Cheaper queued advisory review when latency is not important; still not safe as unlimited stress-plan review."
+      },
+      {
+        "provider": "Qwen Cloud",
+        "model": "qwen3.5-omni-flash",
+        "mode": "standard",
+        "full_video_audio_input_cents_per_minute": 1.2072,
+        "stress_99_5000_margin_safe": false,
+        "use": "Private Omni/base-layer escalation for selected windows, not included-minute default review."
+      }
+    ]
+  },
   "verdict": {
     "stress_99_5000": "$99 for 5,000 checked minutes is too generous for unlimited full-video AI review. It is only margin-safe as deterministic scan minutes with model-backed review capped, sampled, downgraded, or sold separately.",
     "launch_shape": "Use Creator $99 / 1,200, Studio $299 / 5,000, Network $799 / 18,000, with cost_guardrail=downgrade as the default."
@@ -120,10 +151,12 @@
       "remaining_cost_per_minute_after_deterministic_full_allowance_cents": 0.3292,
       "deterministic_full_allowance_gross_margin_pct": 98.9903,
       "full_gemini_flash_lite_video_audio_input_cogs_cents": 258.48,
-      "full_gemini_flash_video_audio_input_cogs_cents": 798.48,
+      "full_gemini_flash_video_audio_input_cogs_cents": 399.24,
+      "full_gemini_flash_batch_video_audio_input_cogs_cents": 199.68,
+      "full_qwen_omni_flash_video_audio_input_cogs_cents": 1448.64,
       "deterministic_margin_safe": true,
       "full_flash_lite_input_margin_safe": true,
-      "full_flash_input_margin_safe": false
+      "full_flash_input_margin_safe": true
     },
     {
       "plan_id": "studio",
@@ -139,7 +172,9 @@
       "remaining_cost_per_minute_after_deterministic_full_allowance_cents": 0.2157,
       "deterministic_full_allowance_gross_margin_pct": 98.607,
       "full_gemini_flash_lite_video_audio_input_cogs_cents": 1077,
-      "full_gemini_flash_video_audio_input_cogs_cents": 3327,
+      "full_gemini_flash_video_audio_input_cogs_cents": 1663.5,
+      "full_gemini_flash_batch_video_audio_input_cogs_cents": 832,
+      "full_qwen_omni_flash_video_audio_input_cogs_cents": 6036,
       "deterministic_margin_safe": true,
       "full_flash_lite_input_margin_safe": true,
       "full_flash_input_margin_safe": false
@@ -158,7 +193,9 @@
       "remaining_cost_per_minute_after_deterministic_full_allowance_cents": 0.1386,
       "deterministic_full_allowance_gross_margin_pct": 98.1234,
       "full_gemini_flash_lite_video_audio_input_cogs_cents": 3877.2,
-      "full_gemini_flash_video_audio_input_cogs_cents": 11977.2,
+      "full_gemini_flash_video_audio_input_cogs_cents": 5988.6,
+      "full_gemini_flash_batch_video_audio_input_cogs_cents": 2995.2,
+      "full_qwen_omni_flash_video_audio_input_cogs_cents": 21729.6,
       "deterministic_margin_safe": true,
       "full_flash_lite_input_margin_safe": true,
       "full_flash_input_margin_safe": false
@@ -177,7 +214,9 @@
       "remaining_cost_per_minute_after_deterministic_full_allowance_cents": 0.0157,
       "deterministic_full_allowance_gross_margin_pct": 95.7929,
       "full_gemini_flash_lite_video_audio_input_cogs_cents": 1077,
-      "full_gemini_flash_video_audio_input_cogs_cents": 3327,
+      "full_gemini_flash_video_audio_input_cogs_cents": 1663.5,
+      "full_gemini_flash_batch_video_audio_input_cogs_cents": 832,
+      "full_qwen_omni_flash_video_audio_input_cogs_cents": 6036,
       "deterministic_margin_safe": true,
       "full_flash_lite_input_margin_safe": false,
       "full_flash_input_margin_safe": false

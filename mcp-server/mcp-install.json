@@ -1,0 +1,68 @@
+{
+  "name": "uploadcheck",
+  "description": "Quality check videos, podcasts, and clips before you upload.",
+  "package": "@uploadcheck/mcp",
+  "binary": "uploadcheck-mcp",
+  "hosted_api_base_url": "https://qcgenie-api.onrender.com",
+  "canonical_api_base_url_after_dns_cutover": "https://api.uploadcheck.app",
+  "environment": {
+    "UPLOADCHECK_API_BASE_URL": "https://qcgenie-api.onrender.com",
+    "UPLOADCHECK_API_KEY": "<workspace_api_key>"
+  },
+  "codex_local": {
+    "config_file": "~/.codex/config.toml",
+    "toml": "[mcp_servers.uploadcheck]\ncommand = \"/Applications/DrAntoniou Projects/UploadCheck/mcp-server/run-uploadcheck-mcp.sh\"\nargs = []\nstartup_timeout_sec = 60\n\n[mcp_servers.uploadcheck.env]\nUPLOADCHECK_API_BASE_URL = \"https://qcgenie-api.onrender.com\""
+  },
+  "claude_desktop": {
+    "config_file": "claude_desktop_config.json",
+    "json": {
+      "mcpServers": {
+        "uploadcheck": {
+          "command": "npx",
+          "args": ["-y", "@uploadcheck/mcp"],
+          "env": {
+            "UPLOADCHECK_API_BASE_URL": "https://qcgenie-api.onrender.com",
+            "UPLOADCHECK_API_KEY": "<workspace_api_key>"
+          }
+        }
+      }
+    }
+  },
+  "cursor": {
+    "config_file": ".cursor/mcp.json",
+    "json": {
+      "mcpServers": {
+        "uploadcheck": {
+          "command": "npx",
+          "args": ["-y", "@uploadcheck/mcp"],
+          "env": {
+            "UPLOADCHECK_API_BASE_URL": "https://qcgenie-api.onrender.com",
+            "UPLOADCHECK_API_KEY": "<workspace_api_key>"
+          }
+        }
+      }
+    }
+  },
+  "generic_stdio": {
+    "command": "npx",
+    "args": ["-y", "@uploadcheck/mcp"],
+    "env": {
+      "UPLOADCHECK_API_BASE_URL": "https://qcgenie-api.onrender.com",
+      "UPLOADCHECK_API_KEY": "<workspace_api_key>"
+    }
+  },
+  "recommended_first_calls": [
+    "qc_get_launch_status",
+    "qc_get_cost_basis",
+    "qc_get_npo_pipeline_handoff",
+    "qc_estimate_cost",
+    "qc_run_local_file"
+  ],
+  "notes": [
+    "Use qc_run_local_file for reachable local videos, podcasts, clips, stills, and NPO audio files.",
+    "Small local files are encoded inline and evaluated through Render temp storage.",
+    "Large local files use signed upload automatically in upload_mode auto.",
+    "Run qc_get_cost_basis before model-backed checks or deep review.",
+    "Do not claim Product Hunt launch readiness until qc_get_launch_status reports product_hunt_ready true and no remaining blockers."
+  ]
+}

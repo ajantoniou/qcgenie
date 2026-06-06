@@ -284,6 +284,7 @@ describe("JsonStore", () => {
       expect(reloaded.listJobEvents(job.jobId).at(-1)).toMatchObject({ eventType: "completed" });
       expect(reloaded.listFlags(job.jobId)).toHaveLength(1);
       expect(reloaded.listArtifacts(job.jobId)).toHaveLength(1);
+      expect(reloaded.state.usageLedger).toHaveLength(0);
       expect(reloaded.buildMarkerCsv(job.jobId)).toContain("timecode,severity,gate,summary");
       expect(reloaded.buildMarkerCsv(job.jobId)).toContain("00:00:00,warn,engine");
     } finally {
@@ -355,6 +356,59 @@ describe("JsonStore", () => {
       });
       expect(store.listJobEvents(job.jobId).map((event) => event.eventType)).toContain("gate_verdict_ingested");
       expect(store.buildMarkerCsv(job.jobId)).toContain("00:00:42,block,loop_freeze");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("records completed known-duration jobs into usage ledger before report fetch", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const job = store.createJob({
+        source: "/tmp/final-master.mp4",
+        plan_id: "creator",
+        included_minutes: 1200,
+        ai_review_seconds: 30,
+        checks: "canvas_fill,twins"
+      });
+      job.minutesMetered = 2.2;
+      const result = store.ingestGateVerdict(job.jobId, {
+        verdict: "PASS",
+        blocked: [],
+        skipped: [],
+        provider_usage: [{
+          check: "twins",
+          provider: "anthropic",
+          model: "claude-sonnet-4-5",
+          input_tokens: 100,
+          output_tokens: 20
+        }],
+        per_check: {
+          twins: { pass: true, findings: [] }
+        }
+      });
+      const usage = store.state.usageLedger[0];
+      const replay = store.recordCompletedUsage(job.jobId, "2026-06");
+
+      expect(result.job).toMatchObject({ status: "completed", verdict: "PASS" });
+      expect(store.state.usageLedger).toHaveLength(1);
+      expect(usage).toMatchObject({
+        jobId: job.jobId,
+        roundedMinutes: 3,
+        planId: "creator",
+        includedMinutes: 1200,
+        aiReviewSeconds: 30
+      });
+      expect(usage.costSnapshot).toMatchObject({
+        planId: "creator",
+        minutesMetered: 3,
+        observedProviderUsageEntries: 1
+      });
+      expect(replay.usageId).toBe(usage.usageId);
+      expect(store.listJobEvents(job.jobId).map((event) => event.eventType)).toContain("usage_recorded");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -443,6 +497,13 @@ describe("JsonStore", () => {
         input_tokens: 1200,
         output_tokens: 80
       }]);
+      expect(store.state.usageLedger[0]).toMatchObject({
+        jobId: job.jobId,
+        roundedMinutes: 1,
+        costSnapshot: {
+          observedProviderUsageEntries: 1
+        }
+      });
       expect(store.buildMarkerCsv(job.jobId)).toContain("more distinct characters");
     } finally {
       rmSync(dir, { recursive: true, force: true });

@@ -117,3 +117,10 @@ cd mcp-server
 npm install
 node index.mjs
 ```
+
+## Client Config Snippets
+
+Machine-readable install snippets for Codex, Claude Desktop, Cursor, and generic
+stdio MCP clients are published in `mcp-install.json`. Keep this file aligned
+with the package name `@uploadcheck/mcp`, binary `uploadcheck-mcp`, current
+hosted API base URL, and first-call sequence for NPO/NTO production pipelines.

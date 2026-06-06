@@ -4,6 +4,10 @@ const DEFAULT_INCLUDED_MINUTES = 5000;
 const DEFAULT_AI_REVIEW_COST_PER_MINUTE_CENTS = 0.2154;
 const DEFAULT_DETERMINISTIC_COST_PER_MINUTE_CENTS = 0.0833;
 const DEFAULT_MODEL_CHECK_CALL_COST_CENTS = 0.75;
+const GEMINI_25_FLASH_LITE_VIDEO_AUDIO_INPUT_CENTS_PER_MINUTE = 0.2154;
+const GEMINI_25_FLASH_VIDEO_AUDIO_INPUT_CENTS_PER_MINUTE = 0.3327;
+const GEMINI_25_FLASH_BATCH_VIDEO_AUDIO_INPUT_CENTS_PER_MINUTE = 0.1664;
+const QWEN_35_OMNI_FLASH_VIDEO_AUDIO_INPUT_CENTS_PER_MINUTE = 1.2072;
 const PROVIDER_PRICING = {
   anthropic: {
     defaultInputUsdPerMTok: 3,
@@ -89,8 +93,10 @@ export function estimateJobCost(input = {}) {
   const revenuePerMinuteCents = includedMinutes > 0 ? planPriceCents / includedMinutes : 0;
 
   const deterministicComputeCents = minutes * DEFAULT_DETERMINISTIC_COST_PER_MINUTE_CENTS; // Render starter task at about $0.05/hour, 1x realtime.
-  const flashLiteVideoAudioInputCents = minutes * 0.2154;
-  const flashVideoAudioInputCents = minutes * 0.6654;
+  const flashLiteVideoAudioInputCents = minutes * GEMINI_25_FLASH_LITE_VIDEO_AUDIO_INPUT_CENTS_PER_MINUTE;
+  const flashVideoAudioInputCents = minutes * GEMINI_25_FLASH_VIDEO_AUDIO_INPUT_CENTS_PER_MINUTE;
+  const flashBatchVideoAudioInputCents = minutes * GEMINI_25_FLASH_BATCH_VIDEO_AUDIO_INPUT_CENTS_PER_MINUTE;
+  const qwenOmniVideoAudioInputCents = minutes * QWEN_35_OMNI_FLASH_VIDEO_AUDIO_INPUT_CENTS_PER_MINUTE;
   const sampledAiCents = (aiReviewSeconds / 60) * DEFAULT_AI_REVIEW_COST_PER_MINUTE_CENTS;
   const estimatedCogsCents = deterministicComputeCents + sampledAiCents + checkCost.modelCheckCents;
   const observedTotalCogsCents = deterministicComputeCents + observedProviderCost.observedProviderCogsCents;
@@ -145,6 +151,8 @@ export function estimateJobCost(input = {}) {
     marginSafe: estimatedCogsCents <= allowedCogsForJobCents,
     fullGeminiFlashLiteVideoAudioInputCents: round(flashLiteVideoAudioInputCents),
     fullGeminiFlashVideoAudioInputCents: round(flashVideoAudioInputCents),
+    fullGeminiFlashBatchVideoAudioInputCents: round(flashBatchVideoAudioInputCents),
+    fullQwenOmniFlashVideoAudioInputCents: round(qwenOmniVideoAudioInputCents),
     warning: flashLiteVideoAudioInputCents > minutes * maxCostPerMinuteCents
       ? `Full-video Gemini review exceeds the 95% margin budget for ${plan.planId || "this plan"}.`
       : null
