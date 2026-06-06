@@ -69,13 +69,13 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
 async function main() {
   const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_WEB_BASE_URL || DEFAULT_WEB_BASE_URL);
   const urls = {
-    productHunt: `${baseUrl}/product-hunt/`,
-    pricing: `${baseUrl}/pricing/`,
-    sampleReport: `${baseUrl}/sample-report/`,
-    agenticApi: `${baseUrl}/agentic-media-qc-api/`,
-    sitemap: `${baseUrl}/sitemap.xml`,
-    llms: `${baseUrl}/llms.txt`,
-    demo: `${baseUrl}/demo/uploadcheck-product-hunt-demo.mp4`
+    productHunt: cacheBustUrl(`${baseUrl}/product-hunt/`),
+    pricing: cacheBustUrl(`${baseUrl}/pricing/`),
+    sampleReport: cacheBustUrl(`${baseUrl}/sample-report/`),
+    agenticApi: cacheBustUrl(`${baseUrl}/agentic-media-qc-api/`),
+    sitemap: cacheBustUrl(`${baseUrl}/sitemap.xml`),
+    llms: cacheBustUrl(`${baseUrl}/llms.txt`),
+    demo: cacheBustUrl(`${baseUrl}/demo/uploadcheck-product-hunt-demo.mp4`)
   };
 
   try {
@@ -105,14 +105,22 @@ async function main() {
 }
 
 async function fetchText(url, label) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  const response = await fetch(url, {
+    cache: "no-store",
+    headers: { "cache-control": "no-cache" },
+    signal: AbortSignal.timeout(8000)
+  });
   const text = await response.text();
   if (!response.ok) throw new Error(`${label} ${url} returned HTTP ${response.status}`);
   return text;
 }
 
 async function fetchBinaryMeta(url, label) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  const response = await fetch(url, {
+    cache: "no-store",
+    headers: { "cache-control": "no-cache" },
+    signal: AbortSignal.timeout(8000)
+  });
   const contentType = response.headers.get("content-type") || "";
   const contentLength = Number(response.headers.get("content-length") || 0);
   const body = await response.arrayBuffer();
@@ -143,6 +151,12 @@ function fail(message) {
 
 function trimTrailingSlash(value) {
   return String(value || "").replace(/\/+$/, "");
+}
+
+function cacheBustUrl(value) {
+  const parsed = new URL(value);
+  parsed.searchParams.set("uploadcheck_verify", String(Date.now()));
+  return parsed.toString();
 }
 
 if (process.argv[1] && import.meta.url === new URL(process.argv[1], "file://").href) {
