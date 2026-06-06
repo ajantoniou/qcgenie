@@ -132,4 +132,4 @@ Trust rule:
 - Advisory review notes cannot create invented hard-fails.
 - Agents should distinguish direct fixes from issues requiring a human source/render pass.
 
-- NTO final-master production should run qc_run_gemini_backtest after deterministic QC when GEMINI_API_KEY is available; Gemini is the internal capture-rate oracle, not the customer verdict.
+- NTO final-master production should run the private repo-only `scripts/qc-engine/gemini_watch.py` oracle after deterministic QC when GEMINI_API_KEY is available; Gemini is the internal capture-rate oracle, not the public MCP tool, customer verdict, or included-minute review.

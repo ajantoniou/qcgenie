@@ -1,6 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, test } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { App } from "./App";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("UploadCheck conversion UI", () => {
   test("leads with UploadCheck.app branding, final-export insurance, and sample proof", () => {
@@ -40,6 +44,36 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getByText(/Use the GitHub\/local install path until the npm packages are published/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open install guide" })).toHaveAttribute("href", "/agent-install/");
     expect(screen.getByText(/qc_get_cost_basis -> qc_run_local_file -> qc_get_report -> qc_get_marker_csv/)).toBeInTheDocument();
+  });
+
+  test("dashboard creates a workspace API key and shows the bearer once", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        apiKey: "uck_created_customer_key",
+        key: { tokenPrefix: "uck_created" }
+      })
+    } as Response);
+
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    fireEvent.change(screen.getByLabelText("Provisioning bearer"), { target: { value: "uck_admin_key" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create API key" }));
+
+    await waitFor(() => expect(screen.getByText("uck_created_customer_key")).toBeInTheDocument());
+    expect(screen.getByText("Status: Created")).toBeInTheDocument();
+    expect(globalThis.fetch).toHaveBeenCalledWith("https://api.uploadcheck.app/v1/api-keys", expect.objectContaining({
+      method: "POST",
+      headers: expect.objectContaining({ authorization: "Bearer uck_admin_key" })
+    }));
+    const request = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(String(request.body))).toMatchObject({
+      workspace_id: "creator-workspace",
+      owner_email: "owner@example.com",
+      plan_id: "creator",
+      included_minutes: 2400,
+      plan_price_cents: 9900
+    });
   });
 
   test("positions the metered pricing model around the $99 creator plan", () => {

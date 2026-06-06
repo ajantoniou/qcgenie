@@ -32,6 +32,7 @@ const store = new JsonStore(process.env.UPLOADCHECK_STORE_PATH || process.env.QC
 const apiKey = process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
 const apiKeyHash = process.env.UPLOADCHECK_API_KEY_SHA256 || process.env.QCGENIE_API_KEY_SHA256;
 const apiScopes = new Set((process.env.UPLOADCHECK_API_SCOPES || process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write,api_keys:write,api_keys:read").split(","));
+const corsOrigins = new Set((process.env.UPLOADCHECK_CORS_ORIGINS || "https://uploadcheck.app,https://www.uploadcheck.app,http://localhost:5173,http://127.0.0.1:5173").split(",").map((origin) => origin.trim()).filter(Boolean));
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -51,6 +52,7 @@ const mimeTypes = {
 createServer(async (req, res) => {
   try {
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
+    if (applyCors(req, res)) return;
 
     if (url.pathname === "/healthz") return sendJson(res, 200, { ok: true, service: "uploadcheck" });
     if (req.method === "GET" && url.pathname === "/v1/readiness") return getReadiness(req, res);
@@ -662,6 +664,7 @@ async function ingestGateVerdict(req, url, res) {
   const body = await readJson(req);
   const result = store.ingestGateVerdict(jobId, body);
   if (!result) return sendJson(res, 404, { error: "job_not_found" });
+  await maybeAlertOwnerForSpend(result.job);
   store.createWebhookDeliveriesForJob(jobId, "job.completed");
   return sendJson(res, 200, {
     jobId,
@@ -998,6 +1001,20 @@ function sendJson(res, status, payload) {
   res.end(JSON.stringify(payload, null, 2));
 }
 
+function applyCors(req, res) {
+  const origin = req.headers.origin;
+  if (origin && corsOrigins.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Headers", "authorization, content-type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+  }
+  if (req.method !== "OPTIONS") return false;
+  res.writeHead(origin && corsOrigins.has(origin) ? 204 : 403);
+  res.end();
+  return true;
+}
+
 function withCostEstimate(job) {
   if (!job) return job;
   const safeJob = publicJob(job);
@@ -1151,9 +1168,10 @@ async function maybeAlertOwnerForSpend(job) {
 async function sendOwnerSpendAlert({ alert, job, usage }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.UPLOADCHECK_ALERT_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || "UploadCheck <alerts@uploadcheck.app>";
+  const resendApiUrl = process.env.UPLOADCHECK_RESEND_API_URL || process.env.RESEND_API_URL || "https://api.resend.com/emails";
   if (!apiKey) return { ok: false, provider: "resend", error: "RESEND_API_KEY missing" };
   try {
-    const response = await fetch("https://api.resend.com/emails", {
+    const response = await fetch(resendApiUrl, {
       method: "POST",
       headers: {
         authorization: `Bearer ${apiKey}`,

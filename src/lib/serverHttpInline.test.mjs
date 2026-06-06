@@ -786,6 +786,42 @@ describe("server inline media API", () => {
     }
   }, 20000);
 
+  it("allows the web dashboard to preflight API-key creation", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-api-key-cors-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: "uck_admin_key",
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "OPTIONS",
+        headers: {
+          origin: "https://uploadcheck.app",
+          "access-control-request-method": "POST",
+          "access-control-request-headers": "authorization, content-type"
+        }
+      });
+
+      expect(response.status).toBe(204);
+      expect(response.headers.get("access-control-allow-origin")).toBe("https://uploadcheck.app");
+      expect(response.headers.get("access-control-allow-headers")).toContain("authorization");
+      expect(response.headers.get("access-control-allow-methods")).toContain("POST");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
   it("rejects declared jobs that exceed included AI-review seconds", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-ai-limit-"));
     const storePath = join(dir, "store.json");

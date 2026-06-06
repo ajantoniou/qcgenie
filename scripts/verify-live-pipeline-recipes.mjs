@@ -112,11 +112,11 @@ export function validatePipelineRecipes(payload = {}) {
   const longFormBacktest = JSON.stringify(payload.profiles?.nto_long_form?.internal_capture_rate_backtest || {});
   const shortsBacktest = JSON.stringify(payload.profiles?.nto_shorts?.internal_capture_rate_backtest || {});
   for (const [key, value] of [["profiles.nto_long_form.internal_capture_rate_backtest", longFormBacktest], ["profiles.nto_shorts.internal_capture_rate_backtest", shortsBacktest]]) {
-    if (!value.includes("qc_run_gemini_backtest") || !value.includes("90")) {
+    if (!value.includes("gemini_watch.py") || !value.includes("90")) {
       errors.push({ key, reason: "missing_gemini_capture_rate_backtest", detail: "NTO profiles must publish the Gemini capture-rate backtest contract." });
     }
   }
-  if (!String(payload.nto_replacement_qc?.internal_capture_rate_metric?.oracle || "").includes("qc_run_gemini_backtest")) {
+  if (!String(payload.nto_replacement_qc?.internal_capture_rate_metric?.oracle || "").includes("gemini_watch.py")) {
     errors.push({ key: "nto_replacement_qc.internal_capture_rate_metric", reason: "missing_capture_rate_metric", detail: "Recipes must identify Gemini as the internal capture-rate oracle." });
   }
   const audioChecks = String(payload.profiles?.npo_podcast_or_audio?.mcp_call?.arguments?.checks || "");

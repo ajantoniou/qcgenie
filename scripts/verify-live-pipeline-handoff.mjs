@@ -66,7 +66,7 @@ export function validatePipelineHandoff(payload = {}) {
     "qc_get_cost_basis",
     "qc_estimate_cost",
     "qc_run_local_file",
-    "qc_run_gemini_backtest",
+    "gemini_watch.py",
     "qc_run_video",
     "qc_create_upload_url",
     "qc_get_job",
@@ -98,7 +98,7 @@ export function validatePipelineHandoff(payload = {}) {
       detail: "Pipeline handoff must preserve the 95% gross-margin target and $99 / 5,000 stress-plan COGS ceiling."
     });
   }
-  if (!String(payload.margin_rules?.internal_capture_rate_oracle || "").includes("qc_run_gemini_backtest")) {
+  if (!String(payload.margin_rules?.internal_capture_rate_oracle || "").includes("gemini_watch.py")) {
     errors.push({
       key: "margin_rules.internal_capture_rate_oracle",
       reason: "missing_internal_capture_rate_oracle",

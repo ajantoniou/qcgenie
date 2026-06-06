@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import {
   AlertTriangle,
   BadgeCheck,
@@ -32,6 +32,8 @@ import {
 } from "./data/demo";
 
 type View = "home" | "dashboard" | "agents" | "readiness";
+
+const apiBaseUrl = import.meta.env.VITE_UPLOADCHECK_API_BASE_URL || "https://api.uploadcheck.app";
 
 const nav = [
   { label: "Home", icon: Rocket, view: "home" },
@@ -549,6 +551,49 @@ function AgentTranscript() {
 }
 
 function DashboardView() {
+  const [apiKeyResult, setApiKeyResult] = useState<{ apiKey: string; tokenPrefix: string } | null>(null);
+  const [apiKeyStatus, setApiKeyStatus] = useState("Ready");
+  const [apiKeyError, setApiKeyError] = useState("");
+
+  async function createDashboardApiKey(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const provisioningToken = String(form.get("provisioning_token") || "").trim();
+    setApiKeyStatus("Creating");
+    setApiKeyError("");
+    setApiKeyResult(null);
+    if (!provisioningToken) {
+      setApiKeyStatus("Ready");
+      setApiKeyError("Provisioning bearer token required");
+      return;
+    }
+    try {
+      const response = await fetch(`${apiBaseUrl}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${provisioningToken}`
+        },
+        body: JSON.stringify({
+          name: form.get("name"),
+          workspace_id: form.get("workspace_id"),
+          owner_email: form.get("owner_email"),
+          plan_id: form.get("plan_id"),
+          included_minutes: Number(form.get("included_minutes")),
+          plan_price_cents: Number(form.get("plan_price_cents")),
+          scopes: ["jobs:write", "jobs:read", "reports:read", "uploads:write"]
+        })
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "api_key_create_failed");
+      setApiKeyResult({ apiKey: payload.apiKey, tokenPrefix: payload.key?.tokenPrefix || "" });
+      setApiKeyStatus("Created");
+    } catch (error) {
+      setApiKeyStatus("Failed");
+      setApiKeyError(error instanceof Error ? error.message : "API key creation failed");
+    }
+  }
+
   return (
     <div className="pageStack">
       <header className="topbar">
@@ -586,6 +631,59 @@ function DashboardView() {
           <EditorHandoffPanel />
           <ReviewTimeline />
           <ReportsPanel />
+          <section className="apiKeyPanel">
+            <div className="sectionTitle">
+              <KeyRound size={19} />
+              <h2>Create workspace API key</h2>
+            </div>
+            <form className="apiKeyForm" onSubmit={createDashboardApiKey}>
+              <label>
+                Key name
+                <input name="name" defaultValue="Creator MCP key" />
+              </label>
+              <label>
+                Workspace
+                <input name="workspace_id" defaultValue="creator-workspace" />
+              </label>
+              <label>
+                Owner email
+                <input name="owner_email" type="email" defaultValue="owner@example.com" />
+              </label>
+              <label>
+                Provisioning bearer
+                <input name="provisioning_token" type="password" autoComplete="off" />
+              </label>
+              <label>
+                Plan
+                <select name="plan_id" defaultValue="creator">
+                  <option value="creator">Creator</option>
+                  <option value="studio">Studio</option>
+                  <option value="network">Network</option>
+                </select>
+              </label>
+              <label>
+                Included minutes
+                <input name="included_minutes" type="number" defaultValue={2400} min={1} />
+              </label>
+              <label>
+                Plan price cents
+                <input name="plan_price_cents" type="number" defaultValue={9900} min={1} />
+              </label>
+              <button type="submit">
+                <KeyRound size={17} />
+                Create API key
+              </button>
+            </form>
+            <p className="apiKeyStatus">Status: {apiKeyStatus}</p>
+            {apiKeyResult && (
+              <div className="apiKeyResult" role="status">
+                <span>Shown once</span>
+                <code>{apiKeyResult.apiKey}</code>
+                <small>Stored as hash. Prefix: {apiKeyResult.tokenPrefix}</small>
+              </div>
+            )}
+            {apiKeyError && <p className="apiKeyError" role="alert">{apiKeyError}</p>}
+          </section>
         </div>
 
         <aside className="inspector">

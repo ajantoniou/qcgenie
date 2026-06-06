@@ -764,6 +764,7 @@ h2 {
 .gatePanel,
 .timelinePanel,
 .reportsPanel,
+.apiKeyPanel,
 .inspector > section,
 .agentRunPanel {
   background: rgba(255, 255, 255, 0.92);
@@ -814,8 +815,87 @@ h2 {
 
 .gatePanel,
 .timelinePanel,
-.reportsPanel {
+.reportsPanel,
+.apiKeyPanel {
   padding: 18px;
+}
+
+.apiKeyForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.apiKeyForm label {
+  display: grid;
+  gap: 6px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.apiKeyForm input,
+.apiKeyForm select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cfd8e3;
+  border-radius: 8px;
+  padding: 10px 11px;
+  color: #334155;
+  background: #f8fafc;
+}
+
+.apiKeyForm button {
+  border: 0;
+  border-radius: 8px;
+  background: #101827;
+  color: #ffffff;
+  padding: 11px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  align-self: end;
+  min-height: 42px;
+}
+
+.apiKeyStatus,
+.apiKeyError {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.apiKeyError {
+  color: #b91c1c;
+}
+
+.apiKeyResult {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.apiKeyResult span,
+.apiKeyResult small {
+  color: #166534;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.apiKeyResult code {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  color: #14532d;
 }
 
 .gateList {
