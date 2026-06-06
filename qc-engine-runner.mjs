@@ -16,6 +16,7 @@ const PYTHON = process.env.UPLOADCHECK_PYTHON || process.env.QCGENIE_PYTHON || "
 const YTDLP = process.env.UPLOADCHECK_YTDLP || process.env.QCGENIE_YTDLP || "yt-dlp";
 const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"]);
 let pythonDepsReady = false;
+let pythonDepsPath = null;
 
 function isImagePath(path) {
   const lower = String(path || "").toLowerCase();
@@ -64,7 +65,7 @@ export function runQcEngine(videoPath, opts = {}) {
   if (opts.lang) args.push("--lang", opts.lang);
   if (opts.fast !== false) args.push("--fast"); // default fast for the SaaS pre-pass
 
-  const r = spawnSync(PYTHON, args, { encoding: "utf8", timeout: 1000 * 60 * 30 });
+  const r = spawnSync(PYTHON, args, { encoding: "utf8", timeout: 1000 * 60 * 30, env: pythonEnv() });
   const verdictPath = join(outdir, "VERDICT.json");
   if (existsSync(verdictPath)) {
     try {
@@ -79,7 +80,7 @@ export function runQcEngine(videoPath, opts = {}) {
 
 function ensurePythonGateDeps() {
   if (pythonDepsReady) return { ok: true };
-  const probe = spawnSync(PYTHON, ["-c", "import PIL"], { encoding: "utf8", timeout: 1000 * 15 });
+  const probe = spawnSync(PYTHON, ["-c", "import PIL"], { encoding: "utf8", timeout: 1000 * 15, env: pythonEnv() });
   if (probe.status === 0) {
     pythonDepsReady = true;
     return { ok: true };
@@ -87,19 +88,29 @@ function ensurePythonGateDeps() {
   if (!existsSync(REQUIREMENTS)) {
     return { ok: false, error: "Python gate dependency check failed and requirements.txt is missing" };
   }
-  const install = spawnSync(PYTHON, ["-m", "pip", "install", "--user", "-r", REQUIREMENTS], {
+  pythonDepsPath = join(tmpdir(), "uploadcheck-python-deps");
+  const install = spawnSync(PYTHON, ["-m", "pip", "install", "--target", pythonDepsPath, "-r", REQUIREMENTS], {
     encoding: "utf8",
     timeout: 1000 * 60 * 5
   });
   if (install.status !== 0) {
     return { ok: false, error: `Python gate dependency install failed: ${(install.stderr || install.stdout || "").slice(-400)}` };
   }
-  const verify = spawnSync(PYTHON, ["-c", "import PIL"], { encoding: "utf8", timeout: 1000 * 15 });
+  const verify = spawnSync(PYTHON, ["-c", "import PIL"], { encoding: "utf8", timeout: 1000 * 15, env: pythonEnv() });
   if (verify.status !== 0) {
     return { ok: false, error: `Python gate dependency verify failed: ${(verify.stderr || verify.stdout || "").slice(-400)}` };
   }
   pythonDepsReady = true;
   return { ok: true };
+}
+
+function pythonEnv() {
+  if (!pythonDepsPath) return process.env;
+  const existing = process.env.PYTHONPATH || "";
+  return {
+    ...process.env,
+    PYTHONPATH: existing ? `${pythonDepsPath}:${existing}` : pythonDepsPath
+  };
 }
 
 // Convenience: resolve source + run engine. Returns { verdict, ranEngine, error, durationS }.
