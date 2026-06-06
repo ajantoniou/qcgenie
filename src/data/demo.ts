@@ -46,7 +46,7 @@ export const recentJobs = [
   { title: "Paid ad v3", type: "Ad", minutes: 1.4, verdict: "WATCH", date: "Yesterday" }
 ] as const;
 
-export const usage = calculateUsage(PLANS.studio, recentJobs.map((job) => job.minutes));
+export const usage = calculateUsage(PLANS.creator, recentJobs.map((job) => job.minutes));
 
 export const editorHandoff = [
   {

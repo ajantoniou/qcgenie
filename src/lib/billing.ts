@@ -1,4 +1,4 @@
-export type PlanId = "studio" | "growth";
+export type PlanId = "creator" | "studio";
 export type UsageStatus = "healthy" | "overage-risk" | "exhausted";
 
 export interface Plan {
@@ -10,15 +10,15 @@ export interface Plan {
 }
 
 export const PLANS: Record<PlanId, Plan> = {
-  studio: {
-    id: "studio",
+  creator: {
+    id: "creator",
     name: "Creator",
     monthlyPrice: 99,
     monthlyMinutes: 1200,
     checkoutLabel: "Start Creator"
   },
-  growth: {
-    id: "growth",
+  studio: {
+    id: "studio",
     name: "Studio",
     monthlyPrice: 299,
     monthlyMinutes: 5000,

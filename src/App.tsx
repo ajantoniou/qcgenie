@@ -196,9 +196,9 @@ export function App() {
         </nav>
 
         <div className="sidebarFooter">
-          <span>{PLANS.studio.name} plan</span>
-          <strong>${PLANS.studio.monthlyPrice}/mo</strong>
-          <small>{PLANS.studio.monthlyMinutes.toLocaleString()} check minutes included</small>
+          <span>{PLANS.creator.name} plan</span>
+          <strong>${PLANS.creator.monthlyPrice}/mo</strong>
+          <small>{PLANS.creator.monthlyMinutes.toLocaleString()} check minutes included</small>
         </div>
       </aside>
 
@@ -453,7 +453,7 @@ function DashboardView() {
             <span>Ready for creator workflows</span>
             <strong>App + CLI + MCP</strong>
             <p>Designed for video first, with the same gate model extensible to podcasts, ads, demos, and courses.</p>
-            <a className="planButton" href="/checkout/creator">{PLANS.studio.checkoutLabel}</a>
+            <a className="planButton" href="/checkout/creator">{PLANS.creator.checkoutLabel}</a>
           </section>
         </aside>
       </section>
