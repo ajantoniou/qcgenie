@@ -8,7 +8,8 @@ const pages = [
   ["audio-garble-checker", "Audio Garble and Dropout Checker"],
   ["agentic-media-qc-api", "Agentic Media QC API and MCP Server"],
   ["pricing", "UploadCheck Pricing"],
-  ["sample-report", "Sample UploadCheck Report"]
+  ["sample-report", "Sample UploadCheck Report"],
+  ["product-hunt", "UploadCheck Product Hunt Launch"]
 ];
 
 describe("static SEO/AEO pages", () => {

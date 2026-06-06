@@ -31,20 +31,25 @@
           <div class="ctaRow"><a class="button" href="/agentic-media-qc-api/">Use the API</a><a class="button secondary" href="/pricing/">See pricing</a></div>
         </div>
         <aside class="panel">
-          <h2>Verdict: WATCH</h2>
+          <h2>Verdict examples</h2>
           <ul>
-            <li>4 review items before upload.</li>
-            <li>2 agent-fixable handoff tasks.</li>
-            <li>2 source/render issues for editor review.</li>
+            <li>PASS: clean upload evidence.</li>
+            <li>WATCH: fixable caption or layout warnings.</li>
+            <li>BLOCK: source/render issues before publishing.</li>
           </ul>
         </aside>
       </section>
       <section class="section">
+        <h2>Public report examples</h2>
+        <article class="reportRow"><time>PASS</time><div><h2>Clean upload</h2><p>No hard quality gates fired. The report records checked minutes, cost estimate, source metadata, and the exact checks that ran.</p></div></article>
+        <article class="reportRow"><time>WATCH</time><div><h2>Caption or layout warning</h2><p>Example: caption text sits close to a Shorts UI safe area. Agent can show the flag and ask whether to move or restyle the overlay before rerunning QC.</p></div></article>
+        <article class="reportRow"><time>BLOCK</time><div><h2>Duplicate crowd characters</h2><p>Example: repeated faces and robe silhouettes appear across a crowd scene. UploadCheck tells the editor to re-render with distinct character variation before upload.</p></div></article>
+      </section>
+      <section class="section">
         <h2>Timestamped findings</h2>
+        <article class="reportRow"><time>00:00.0</time><div><h2>Near-duplicate characters</h2><p>39 near-duplicate characters detected in one scene. Editor handoff: re-render with varied character models so background people read as distinct individuals.</p></div></article>
         <article class="reportRow"><time>00:12.4</time><div><h2>Frozen frame detected</h2><p>Frame hash held for 2.9s. Needs source or render review.</p></div></article>
-        <article class="reportRow"><time>01:08.7</time><div><h2>Right-channel audio dropout</h2><p>Waveform evidence saved. Needs audio stem or render pass.</p></div></article>
         <article class="reportRow"><time>02:44.0</time><div><h2>Caption mismatch</h2><p>Subtitle differs from spoken words. Agent can update the caption file.</p></div></article>
-        <article class="reportRow"><time>09:16.2</time><div><h2>Black frame before end card</h2><p>Visual evidence requires review before upload.</p></div></article>
       </section>
       <footer class="footer">UploadCheck reports separate direct fixes from issues that require a human source or render pass.</footer>
     </main>

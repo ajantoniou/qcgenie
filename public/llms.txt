@@ -65,6 +65,7 @@ Crawlable public pages:
 - https://uploadcheck.app/agentic-media-qc-api/ for CLI, MCP, API, and slash-command workflows.
 - https://uploadcheck.app/pricing/ for metered pricing.
 - https://uploadcheck.app/sample-report/ for timestamped report proof.
+- https://uploadcheck.app/product-hunt/ for launch copy, demo script, and proof points.
 
 FAQ:
 - How many checked minutes do most creators need per month? Most serious solo creators fit around 300-900 checked minutes, and the Creator plan includes 1,200.
