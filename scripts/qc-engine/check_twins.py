@@ -63,11 +63,21 @@ def main():
     ap.add_argument("media"); ap.add_argument("--fps",type=float,default=0.25)
     ap.add_argument("--max-frames",type=int,default=200); ap.add_argument("--json",default=None)
     a=ap.parse_args()
-    key=load_key()
-    if not key:
-        print(json.dumps({"check":"twins","pass":None,"skipped":True,"reason":"ANTHROPIC_API_KEY missing"},indent=2)); sys.exit(0)
     tmp=tempfile.mkdtemp(prefix="qctw_")
     frames=extract_frames(a.media,tmp,a.fps)[:a.max_frames]
+    if not frames:
+        result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video","frames_checked":0,"vision_errors":0,
+                "findings":[{"t":0,"reason":"Could not decode any image/video frames for twins check.","action":"Verify the media file is a real image/video and rerun UploadCheck before shipping."}],"pass":False}
+        out=json.dumps(result,indent=2)
+        if a.json: open(a.json,"w").write(out)
+        print(out); sys.exit(1)
+    key=load_key()
+    if not key:
+        result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video","frames_checked":0,"vision_errors":0,
+                "skipped":True,"reason":"ANTHROPIC_API_KEY missing","pass":None}
+        out=json.dumps(result,indent=2)
+        if a.json: open(a.json,"w").write(out)
+        print(out); sys.exit(0)
     findings=[]; checked=0; errors=0
     for i,fp in enumerate(frames):
         v=vision(key,fp)
@@ -83,8 +93,10 @@ def main():
             })
     for f in glob.glob(os.path.join(tmp,"*.jpg")): os.unlink(f)
     os.rmdir(tmp)
+    if checked == 0 and errors:
+        findings.append({"t":0,"reason":"Twins vision model failed on every sampled frame.","action":"Fix the vision-model/runtime error and rerun UploadCheck before shipping."})
     result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video","frames_checked":checked,"vision_errors":errors,
-            "findings":findings,"pass":len(findings)==0}
+            "findings":findings,"pass":False if (checked == 0 and errors) else len(findings)==0}
     out=json.dumps(result,indent=2)
     if a.json: open(a.json,"w").write(out)
     print(out); sys.exit(0 if result["pass"] else 1)
