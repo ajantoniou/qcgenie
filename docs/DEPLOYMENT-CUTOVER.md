@@ -53,6 +53,8 @@ npm run launch:checkout
 UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout
 npm run launch:storage
 UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
+npm run media-ingress:verify
+UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
 npm run render:verify
 npm run launch:check
 npm run readiness:check
@@ -83,6 +85,8 @@ npm run launch:checkout
 UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout
 npm run launch:storage
 UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
+npm run media-ingress:verify
+UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
 npm run launch:check
 npm run readiness:check
 ```
@@ -97,6 +101,14 @@ After checkout env is configured, run `UPLOADCHECK_CHECKOUT_PROBE=1 npm run laun
 
 After Render redeploys with `UPLOADCHECK_STORE_PATH` and `UPLOADCHECK_DURABLE_STORAGE_DIR`, run `UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage` in the same environment. The regular storage helper validates durable path shape and object-storage completeness without writing; probe mode writes and deletes tiny test files in the mounted store/upload directories so the launch decision does not rely on path names alone.
 
+After the API redeploys with auth, run `npm run media-ingress:verify` locally and then run the hosted probe with the private client bearer token:
+
+```bash
+UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
+```
+
+The hosted media-ingress probe sends tiny inline video/audio payloads and a signed-upload audio payload, then verifies `mediaIngress`, source redaction, hashes, byte counts, and no temporary path leaks. Keep `<private_bearer>` out of commits and logs; it is the client token printed to stderr by `render:bootstrap-env`, not the SHA-256 hash stored on Render.
+
 ## Verification Commands
 
 After DNS propagation:
@@ -108,6 +120,8 @@ npm run launch:checkout
 UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout
 npm run launch:storage
 UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
+npm run media-ingress:verify
+UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
 curl -i https://uploadcheck.app/
 curl -i https://www.uploadcheck.app/
 curl -i https://api.uploadcheck.app/healthz
