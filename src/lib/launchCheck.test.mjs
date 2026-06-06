@@ -93,4 +93,26 @@ describe("launch check", () => {
     expect(result.blockers).toContain("www.uploadcheck.app:dns");
     expect(result.blockers).toContain("api.uploadcheck.app:dns");
   });
+
+  it("accepts Cloudflare-proxied DNS when custom-domain HTTP passes", async () => {
+    const result = await buildLaunchCheck({
+      apiBaseUrl: "https://api.example.test",
+      fetchImpl: async (url) => ({
+        ok: true,
+        status: String(url).includes("/v1/readiness") ? 200 : 200,
+        json: async () => String(url).includes("/v1/launch-status")
+          ? ({ product_hunt_ready: true })
+          : ({ readyForProductHunt: true })
+      }),
+      resolver: async () => [
+        { address: "104.21.93.220", family: 4 },
+        { address: "2606:4700:3032::ac43:d753", family: 6 }
+      ],
+      cnameResolver: async () => []
+    });
+
+    expect(result.ready).toBe(true);
+    expect(result.domains.every((domain) => domain.dns.proxied)).toBe(true);
+    expect(formatLaunchCheck(result)).toContain("proxied=cloudflare");
+  });
 });

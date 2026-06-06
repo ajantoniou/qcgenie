@@ -26,11 +26,12 @@ export async function buildLaunchCheck({
   for (const target of HOSTS) {
     const dns = await checkDns(target, resolver, cnameResolver);
     const http = await checkHttp(target, fetchImpl);
+    const domainOk = http.ok && (dns.ok || dns.proxied);
     domains.push({
       ...target,
       dns,
       http,
-      ok: dns.ok && http.ok
+      ok: domainOk
     });
   }
 
@@ -59,7 +60,7 @@ export function formatLaunchCheck(result) {
   lines.push("");
   for (const domain of result.domains) {
     lines.push(`${domain.ok ? "PASS" : "BLOCK"} ${domain.host}`);
-    lines.push(`  dns: ${domain.dns.ok ? "PASS" : "BLOCK"}${domain.dns.cname ? ` cname=${domain.dns.cname}` : ""}${domain.dns.addresses?.length ? ` addresses=${domain.dns.addresses.join(",")}` : ""}`);
+    lines.push(`  dns: ${domain.dns.ok || domain.dns.proxied ? "PASS" : "BLOCK"}${domain.dns.proxied ? " proxied=cloudflare" : ""}${domain.dns.cname ? ` cname=${domain.dns.cname}` : ""}${domain.dns.addresses?.length ? ` addresses=${domain.dns.addresses.join(",")}` : ""}`);
     lines.push(`  http: ${domain.http.ok ? "PASS" : "BLOCK"}${domain.http.status ? ` status=${domain.http.status}` : ""}${domain.http.error ? ` error=${domain.http.error}` : ""}`);
   }
   if (result.blockers.length) {
@@ -84,14 +85,32 @@ async function checkDns(target, resolver, cnameResolver = resolveCname) {
     const addressOk = expectedAddresses.length
       ? addresses.some((item) => expectedAddresses.includes(item.address))
       : false;
+    const proxied = addresses.some((item) => isCloudflareProxyAddress(item.address));
     return {
       ok: target.host === "uploadcheck.app" ? (cnameMatches || addressOk) : cnameMatches,
+      proxied,
       cname: cname[0] || null,
       addresses: addresses.map((item) => item.address)
     };
   } catch (error) {
     return { ok: false, cname: null, addresses: [], error: error instanceof Error ? error.message : "dns_error" };
   }
+}
+
+function isCloudflareProxyAddress(address) {
+  const value = String(address || "").toLowerCase();
+  if (value.startsWith("2606:4700:")) return true;
+  const match = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(value);
+  if (!match) return false;
+  const [a, b] = match.slice(1).map(Number);
+  if (a === 104 && b >= 16 && b <= 31) return true;
+  if (a === 172 && b >= 64 && b <= 71) return true;
+  if (a === 162 && b >= 158 && b <= 159) return true;
+  if (a === 188 && b === 114) return true;
+  if (a === 190 && b === 93) return true;
+  if (a === 197 && b === 234) return true;
+  if (a === 198 && b >= 41 && b <= 42) return true;
+  return false;
 }
 
 async function resolveCname(host) {
