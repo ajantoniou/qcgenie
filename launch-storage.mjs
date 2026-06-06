@@ -5,11 +5,12 @@ export function buildStorageSummary(env = process.env) {
   const storePath = env.UPLOADCHECK_STORE_PATH || env.QCGENIE_STORE_PATH || "/tmp/uploadcheck/store.json";
   const durableUploadPath = env.UPLOADCHECK_DURABLE_STORAGE_DIR || env.QCGENIE_DURABLE_STORAGE_DIR || "";
   const objectStorage = getObjectStorageConfig(env);
+  const supabaseEnvPresent = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
   const persistence = {
-    ok: isDurablePath(storePath) || Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
-    mode: env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY ? "supabase_configured" : (isDurablePath(storePath) ? "durable_json_store" : "json_store"),
+    ok: isDurablePath(storePath),
+    mode: isDurablePath(storePath) ? "durable_json_store" : "json_store",
     storePath,
-    supabaseConfigured: Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY)
+    supabaseEnvPresent
   };
   const storage = {
     ok: Boolean(durableUploadPath) || objectStorage.configured,
@@ -39,7 +40,10 @@ export function formatStorageSummary(summary = buildStorageSummary()) {
   lines.push("");
   lines.push(`${summary.persistence.ok ? "PASS" : "BLOCK"} persistence (${summary.persistence.mode})`);
   lines.push(`  storePath: ${summary.persistence.storePath}`);
-  lines.push(`  supabaseConfigured: ${summary.persistence.supabaseConfigured ? "yes" : "no"}`);
+  lines.push(`  supabaseEnvPresent: ${summary.persistence.supabaseEnvPresent ? "yes" : "no"}`);
+  if (summary.persistence.supabaseEnvPresent) {
+    lines.push("  supabaseStatus: env_present_but_json_store_adapter_active");
+  }
   lines.push("");
   lines.push(`${summary.storage.ok ? "PASS" : "BLOCK"} storage (${summary.storage.mode})`);
   lines.push(`  durableUploadPath: ${summary.storage.durableUploadPath || "missing"}`);

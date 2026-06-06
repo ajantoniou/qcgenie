@@ -15,10 +15,10 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
   const secretEncryptionValidation = validateSecretEncryptionKey(secretEncryptionKey);
   const secretEncryptionConfigured = secretEncryptionValidation.ok;
   const apiAuthConfigured = Boolean(env.UPLOADCHECK_API_KEY || env.QCGENIE_API_KEY || env.UPLOADCHECK_API_KEY_SHA256 || env.QCGENIE_API_KEY_SHA256);
-  const supabaseConfigured = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
+  const supabaseEnvPresent = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
   const storePath = env.UPLOADCHECK_STORE_PATH || env.QCGENIE_STORE_PATH || "/tmp/uploadcheck/store.json";
   const durableJsonStoreConfigured = isDurableStorePath(storePath);
-  const persistenceConfigured = supabaseConfigured || durableJsonStoreConfigured;
+  const persistenceConfigured = durableJsonStoreConfigured;
   const durableFilesystemConfigured = Boolean(env.UPLOADCHECK_DURABLE_STORAGE_DIR || env.QCGENIE_DURABLE_STORAGE_DIR);
   const objectStorage = getObjectStorageConfig(env);
   const objectStorageConfigured = objectStorage.configured;
@@ -55,10 +55,11 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
     },
     persistence: {
       ok: persistenceConfigured,
-      mode: supabaseConfigured ? "supabase_configured" : (durableJsonStoreConfigured ? "durable_json_store" : "json_store"),
-      detail: supabaseConfigured
-        ? "Supabase env is present."
-        : (durableJsonStoreConfigured ? "JSON store path is outside temp storage and suitable for mounted-disk persistence." : "JSON store is active in temp storage; production persistence still needs Supabase or mounted-disk store path.")
+      mode: durableJsonStoreConfigured ? "durable_json_store" : "json_store",
+      supabaseEnvPresent,
+      detail: supabaseEnvPresent
+        ? "Supabase env is present, but the current server still uses JsonStore; configure mounted-disk persistence until the Supabase store adapter ships."
+        : (durableJsonStoreConfigured ? "JSON store path is outside temp storage and suitable for mounted-disk persistence." : "JSON store is active in temp storage; production persistence still needs mounted-disk store path.")
     },
     storage: {
       ok: durableStorageConfigured,

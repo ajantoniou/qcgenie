@@ -1,7 +1,7 @@
 {
   "name": "UploadCheck.app Launch Status",
   "description": "Machine-readable Product Hunt launch state for UploadCheck.app agents and operators.",
-  "generated_from": "local launch audit",
+  "generated_from": "representative static readiness",
   "last_verified_date": "2026-06-06",
   "product_hunt_ready": false,
   "canonical_surfaces": {
@@ -156,10 +156,7 @@
       "required_inputs": [
         "UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"
       ],
-      "alternative_inputs": [
-        "SUPABASE_URL",
-        "SUPABASE_SERVICE_ROLE_KEY"
-      ]
+      "note": "Supabase schema exists for future multi-workspace persistence, but Product Hunt readiness currently requires the mounted JsonStore path because the server adapter is JsonStore."
     },
     {
       "id": "storage",

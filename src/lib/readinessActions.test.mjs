@@ -40,6 +40,8 @@ describe("readiness action mapping", () => {
     expect(actions[0].commands).toContain("npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env");
     expect(actions[1].env).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
     expect(actions[3].command).toBe("npm run --silent render:bootstrap-env");
+    expect(actions.find((action) => action.id === "persistence").env).toEqual(["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"]);
+    expect(actions.find((action) => action.id === "persistence").detail).toContain("Supabase env alone is not launch-ready");
     expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_ENDPOINT");
     expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY");
   });

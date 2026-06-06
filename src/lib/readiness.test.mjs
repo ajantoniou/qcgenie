@@ -158,20 +158,21 @@ describe("launch readiness report", () => {
     expect(report.checks.storage.objectStorage.configured).toBe(true);
   });
 
-  it("keeps Supabase as the preferred persistence mode when configured", () => {
+  it("does not accept Supabase env as launch-ready persistence until the server adapter ships", () => {
     const report = buildReadinessReport({
       host: "api.uploadcheck.app",
       env: {
         SUPABASE_URL: "https://supabase.example",
         SUPABASE_SERVICE_ROLE_KEY: "role",
-        UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
         UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "/tmp/does-not-exist-uploadcheck-demo.mp4"
       },
       now: "2026-06-06T00:00:00.000Z"
     });
 
-    expect(report.checks.persistence.ok).toBe(true);
-    expect(report.checks.persistence.mode).toBe("supabase_configured");
+    expect(report.checks.persistence.ok).toBe(false);
+    expect(report.checks.persistence.mode).toBe("json_store");
+    expect(report.checks.persistence.supabaseEnvPresent).toBe(true);
+    expect(report.checks.persistence.detail).toContain("current server still uses JsonStore");
   });
 
   it("accepts a bundled public demo clip as demo proof", () => {

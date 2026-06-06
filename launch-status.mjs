@@ -191,7 +191,7 @@ function remainingBlockers(status) {
       id: "persistence",
       severity: "block",
       required_inputs: ["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"],
-      alternative_inputs: ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
+      note: "Supabase schema exists for future multi-workspace persistence, but Product Hunt readiness currently requires the mounted JsonStore path because the server adapter is JsonStore."
     },
     storage: {
       id: "storage",

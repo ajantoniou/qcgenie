@@ -59,8 +59,8 @@ export function buildReadinessActions(report) {
     actions.push({
       id: "persistence",
       title: "Move job persistence off temp storage",
-      detail: "Attach a Render persistent disk or configure Supabase, then set the store path outside /tmp.",
-      env: ["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json", "or SUPABASE_URL plus SUPABASE_SERVICE_ROLE_KEY"]
+      detail: "Attach a Render persistent disk, then set the store path outside /tmp. Supabase env alone is not launch-ready until the server store adapter ships.",
+      env: ["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"]
     });
   }
 

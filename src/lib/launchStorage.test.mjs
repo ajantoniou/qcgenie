@@ -27,6 +27,19 @@ describe("launch storage config helper", () => {
     expect(summary.storage.mode).toBe("durable_filesystem");
   });
 
+  it("does not pass persistence on Supabase env alone before the server adapter exists", () => {
+    const summary = buildStorageSummary({
+      SUPABASE_URL: "https://supabase.example",
+      SUPABASE_SERVICE_ROLE_KEY: "role"
+    });
+    const text = formatStorageSummary(summary);
+
+    expect(summary.ok).toBe(false);
+    expect(summary.persistence.mode).toBe("json_store");
+    expect(summary.persistence.supabaseEnvPresent).toBe(true);
+    expect(text).toContain("supabaseStatus: env_present_but_json_store_adapter_active");
+  });
+
   it("passes complete object storage without exposing access keys", () => {
     const summary = buildStorageSummary({
       UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck/store.json",
