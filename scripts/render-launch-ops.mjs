@@ -21,7 +21,17 @@ const SECRET_ENV_KEYS = [
   "UPLOADCHECK_STUDIO_CHECKOUT_URL",
   "UPLOADCHECK_NETWORK_CHECKOUT_URL",
   "UPLOADCHECK_SECRET_ENCRYPTION_KEY",
-  "UPLOADCHECK_DEMO_CLIP_URL"
+  "UPLOADCHECK_DEMO_CLIP_URL",
+  "UPLOADCHECK_STORAGE_ACCESS_KEY_ID",
+  "UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY"
+];
+
+const OPTIONAL_API_ENV_KEYS = [
+  "UPLOADCHECK_STORAGE_BUCKET",
+  "UPLOADCHECK_STORAGE_ENDPOINT",
+  "UPLOADCHECK_STORAGE_REGION",
+  "UPLOADCHECK_STORAGE_PREFIX",
+  "UPLOADCHECK_STORAGE_PUBLIC_BASE_URL"
 ];
 
 const DOMAIN_PLAN = [
@@ -32,6 +42,10 @@ const DOMAIN_PLAN = [
 
 export function buildRenderLaunchPlan(env = process.env) {
   const envVars = Object.entries(FIXED_API_ENV).map(([key, value]) => ({ serviceId: API_SERVICE_ID, key, value, secret: false }));
+  for (const key of OPTIONAL_API_ENV_KEYS) {
+    const value = env[key];
+    if (value) envVars.push({ serviceId: API_SERVICE_ID, key, value, secret: false });
+  }
   for (const key of SECRET_ENV_KEYS) {
     const value = env[key];
     if (value) envVars.push({ serviceId: API_SERVICE_ID, key, value, secret: true });

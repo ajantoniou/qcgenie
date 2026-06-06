@@ -22,15 +22,25 @@ describe("Render launch operations plan", () => {
     const plan = buildRenderLaunchPlan({
       UPLOADCHECK_API_KEY: "secret-api-key",
       UPLOADCHECK_SECRET_ENCRYPTION_KEY: "secret-encryption-key",
-      UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator"
+      UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
+      UPLOADCHECK_STORAGE_BUCKET: "uploadcheck-artifacts",
+      UPLOADCHECK_STORAGE_ENDPOINT: "https://r2.example",
+      UPLOADCHECK_STORAGE_ACCESS_KEY_ID: "secret-access-key",
+      UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY: "secret-storage-key"
     });
     const summary = summarizePlan(plan);
 
     expect(JSON.stringify(summary)).not.toContain("secret-api-key");
     expect(JSON.stringify(summary)).not.toContain("secret-encryption-key");
     expect(JSON.stringify(summary)).not.toContain("https://checkout.example/creator");
+    expect(JSON.stringify(summary)).not.toContain("secret-access-key");
+    expect(JSON.stringify(summary)).not.toContain("secret-storage-key");
     expect(summary.envVars).toContainEqual({ key: "UPLOADCHECK_API_KEY", value: "<provided-secret>" });
     expect(summary.envVars).toContainEqual({ key: "UPLOADCHECK_SECRET_ENCRYPTION_KEY", value: "<provided-secret>" });
+    expect(summary.envVars).toContainEqual({ key: "UPLOADCHECK_STORAGE_BUCKET", value: "uploadcheck-artifacts" });
+    expect(summary.envVars).toContainEqual({ key: "UPLOADCHECK_STORAGE_ENDPOINT", value: "https://r2.example" });
+    expect(summary.envVars).toContainEqual({ key: "UPLOADCHECK_STORAGE_ACCESS_KEY_ID", value: "<provided-secret>" });
+    expect(summary.envVars).toContainEqual({ key: "UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY", value: "<provided-secret>" });
   });
 
   it("prints a redacted plan without requiring a Render API key", () => {

@@ -60,6 +60,11 @@ export UPLOADCHECK_SECRET_ENCRYPTION_KEY="$(npm run --silent secret:generate)"
 export UPLOADCHECK_CREATOR_CHECKOUT_URL="https://..."
 export UPLOADCHECK_STUDIO_CHECKOUT_URL="https://..."
 export UPLOADCHECK_NETWORK_CHECKOUT_URL="https://..."
+# Optional S3/R2 upload retention:
+export UPLOADCHECK_STORAGE_BUCKET="uploadcheck-artifacts"
+export UPLOADCHECK_STORAGE_ENDPOINT="https://..."
+export UPLOADCHECK_STORAGE_ACCESS_KEY_ID="..."
+export UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY="..."
 
 npm run render:plan
 npm run render:audit

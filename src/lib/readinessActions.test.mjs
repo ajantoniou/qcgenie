@@ -12,7 +12,16 @@ describe("readiness action mapping", () => {
         secretEncryption: { ok: false, reason: "missing" },
         apiAuth: { ok: true },
         persistence: { ok: false, mode: "json_store" },
-        storage: { ok: false, mode: "render_temp_storage" },
+        storage: {
+          ok: false,
+          mode: "render_temp_storage",
+          objectStorage: {
+            bucketConfigured: true,
+            endpointConfigured: false,
+            accessKeyConfigured: false,
+            secretKeyConfigured: false
+          }
+        },
         demoClip: { ok: true },
         productHunt: { ok: false }
       }
@@ -29,6 +38,8 @@ describe("readiness action mapping", () => {
     ]);
     expect(actions[0].env).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
     expect(actions[2].command).toBe("npm run --silent secret:generate");
+    expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_ENDPOINT");
+    expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY");
   });
 
   it("formats a concise readiness summary", () => {

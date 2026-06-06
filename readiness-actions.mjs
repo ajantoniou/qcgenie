@@ -49,11 +49,20 @@ export function buildReadinessActions(report) {
   }
 
   if (checks.storage && !checks.storage.ok) {
+    const objectStorage = checks.storage.objectStorage || {};
+    const missingObjectStorageEnv = [];
+    if (!objectStorage.bucketConfigured) missingObjectStorageEnv.push("UPLOADCHECK_STORAGE_BUCKET");
+    if (!objectStorage.endpointConfigured) missingObjectStorageEnv.push("UPLOADCHECK_STORAGE_ENDPOINT");
+    if (!objectStorage.accessKeyConfigured) missingObjectStorageEnv.push("UPLOADCHECK_STORAGE_ACCESS_KEY_ID");
+    if (!objectStorage.secretKeyConfigured) missingObjectStorageEnv.push("UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY");
     actions.push({
       id: "storage",
       title: "Move signed-upload media off temp storage",
-      detail: "Attach a Render persistent disk for uploaded media or configure object storage.",
-      env: ["UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck/uploads", "or UPLOADCHECK_STORAGE_BUCKET / UPLOADCHECK_S3_BUCKET / UPLOADCHECK_R2_BUCKET"]
+      detail: "Attach a Render persistent disk for uploaded media or configure complete S3/R2-compatible object storage.",
+      env: [
+        "UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck/uploads",
+        `or ${missingObjectStorageEnv.length ? missingObjectStorageEnv.join(" + ") : "UPLOADCHECK_STORAGE_BUCKET + UPLOADCHECK_STORAGE_ENDPOINT + UPLOADCHECK_STORAGE_ACCESS_KEY_ID + UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY"}`
+      ]
     });
   }
 
