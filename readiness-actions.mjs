@@ -44,7 +44,7 @@ export function buildReadinessActions(report) {
       id: "persistence",
       title: "Move job persistence off temp storage",
       detail: "Attach a Render persistent disk or configure Supabase, then set the store path outside /tmp.",
-      env: ["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck-data/store.json", "or SUPABASE_URL plus SUPABASE_SERVICE_ROLE_KEY"]
+      env: ["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json", "or SUPABASE_URL plus SUPABASE_SERVICE_ROLE_KEY"]
     });
   }
 
@@ -53,7 +53,7 @@ export function buildReadinessActions(report) {
       id: "storage",
       title: "Move signed-upload media off temp storage",
       detail: "Attach a Render persistent disk for uploaded media or configure object storage.",
-      env: ["UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck-storage", "or UPLOADCHECK_STORAGE_BUCKET / UPLOADCHECK_S3_BUCKET / UPLOADCHECK_R2_BUCKET"]
+      env: ["UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck/uploads", "or UPLOADCHECK_STORAGE_BUCKET / UPLOADCHECK_S3_BUCKET / UPLOADCHECK_R2_BUCKET"]
     });
   }
 

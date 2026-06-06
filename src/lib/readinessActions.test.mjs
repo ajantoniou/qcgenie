@@ -40,11 +40,11 @@ describe("readiness action mapping", () => {
         persistence: { ok: false, mode: "json_store" },
         productHunt: { ok: false }
       }
-    }, [{ title: "Move job persistence off temp storage", detail: "Set mounted store path.", env: ["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck-data/store.json"] }]);
+    }, [{ title: "Move job persistence off temp storage", detail: "Set mounted store path.", env: ["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"] }]);
 
     expect(text).toContain("UploadCheck readiness: NOT READY");
     expect(text).toContain("PASS api");
     expect(text).toContain("BLOCK persistence (json_store)");
-    expect(text).toContain("UPLOADCHECK_STORE_PATH=/mnt/uploadcheck-data/store.json");
+    expect(text).toContain("UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json");
   });
 });

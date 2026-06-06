@@ -9,6 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "start": "node server.mjs",
     "readiness:check": "node scripts/product-hunt-readiness.mjs",
+    "render:verify": "node scripts/verify-render-launch-config.mjs",
     "secret:generate": "node scripts/generate-secret-key.mjs",
     "test": "vitest run",
     "test:watch": "vitest"

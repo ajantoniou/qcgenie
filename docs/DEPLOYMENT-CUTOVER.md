@@ -28,6 +28,27 @@ Cloudflare SSL/TLS mode should be `Full`, and any `AAAA` records for these names
 
 If the DNS provider does not support apex CNAME flattening, use either an `ALIAS`/`ANAME` record for `@` pointing to `qcgenie-web.onrender.com`, or an `A` record to Render's load balancer IP `216.24.57.1`. Keep `www` and `api` as CNAME records to their Render subdomains.
 
+## Render Blueprint Sync
+
+`render.yaml` declares the Product Hunt launch shape:
+
+- Static site custom domains: `uploadcheck.app`, `www.uploadcheck.app`
+- API custom domain: `api.uploadcheck.app`
+- API persistent disk: `uploadcheck-data` mounted at `/mnt/uploadcheck`
+- JSON persistence: `UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json`
+- Durable signed-upload media: `UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck/uploads`
+- Checkout URL prompts: `UPLOADCHECK_CREATOR_CHECKOUT_URL`, `UPLOADCHECK_STUDIO_CHECKOUT_URL`, `UPLOADCHECK_NETWORK_CHECKOUT_URL`
+- Webhook encryption prompt: `UPLOADCHECK_SECRET_ENCRYPTION_KEY`
+
+Before Product Hunt launch, sync the Blueprint or manually apply the same values in Render, then run:
+
+```bash
+npm run render:verify
+npm run readiness:check
+```
+
+The Blueprint can request Render domains and disk settings, but DNS still has to point to the `qcgenie-*` Render hostnames before `/v1/readiness` can mark `customDomain` ready.
+
 ## Verification Commands
 
 After DNS propagation:

@@ -53,6 +53,7 @@ Public API:
 - MCP wrapper package: `mcp-server/`
 - CLI package: `cli/`
 - Product Hunt readiness CLI: `npm run readiness:check`
+- Render Blueprint verifier: `npm run render:verify`
 
 Persistence state:
 
@@ -77,6 +78,7 @@ Persistence state:
 - Durable upload retention can use a mounted storage path via `UPLOADCHECK_DURABLE_STORAGE_DIR`; object-storage buckets remain the next storage adapter.
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
 - `npm run readiness:check` fetches live readiness and prints the exact remaining Render/DNS/checkout actions.
+- `npm run render:verify` checks that `render.yaml` declares custom domains, a mounted disk, durable store/media paths, checkout prompts, and webhook encryption prompts.
 
 ## Stack
 

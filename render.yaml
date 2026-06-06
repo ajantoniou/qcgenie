@@ -4,6 +4,9 @@ services:
     runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: dist
+    domains:
+      - uploadcheck.app
+      - www.uploadcheck.app
     envVars:
       - key: VITE_SUPABASE_URL
         sync: false
@@ -14,17 +17,27 @@ services:
     runtime: node
     buildCommand: python3 -m pip install -r requirements.txt && npm install && npm run build
     startCommand: npm start
+    domains:
+      - api.uploadcheck.app
+    disk:
+      name: uploadcheck-data
+      mountPath: /mnt/uploadcheck
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: UPLOADCHECK_API_KEY
         sync: false
+      - key: UPLOADCHECK_CREATOR_CHECKOUT_URL
+        sync: false
+      - key: UPLOADCHECK_STUDIO_CHECKOUT_URL
+        sync: false
+      - key: UPLOADCHECK_NETWORK_CHECKOUT_URL
+        sync: false
       - key: UPLOADCHECK_API_SCOPES
         value: jobs:write,jobs:read,reports:read,uploads:write,webhooks:write
       - key: UPLOADCHECK_STORE_PATH
-        value: /tmp/uploadcheck/store.json
-      # Set to a Render persistent disk mount before Product Hunt, for example:
-      # /mnt/uploadcheck-data/store.json
+        value: /mnt/uploadcheck/store.json
       - key: UPLOADCHECK_SECRET_ENCRYPTION_KEY
         sync: false
       - key: UPLOADCHECK_INLINE_MEDIA_MAX_MB
@@ -32,4 +45,4 @@ services:
       - key: UPLOADCHECK_DEMO_CLIP_URL
         sync: false
       - key: UPLOADCHECK_DURABLE_STORAGE_DIR
-        sync: false
+        value: /mnt/uploadcheck/uploads
