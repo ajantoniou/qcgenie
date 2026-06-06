@@ -30,6 +30,7 @@ describe("agentic integration contract", () => {
     expect(getMcpToolNames()).toEqual([
       "qc_get_launch_status",
       "qc_get_launch_handoff",
+      "qc_get_launch_doctor",
       "qc_get_pipeline_handoff",
       "qc_get_pipeline_recipes",
       "qc_get_cost_basis",
@@ -51,6 +52,9 @@ describe("agentic integration contract", () => {
     const launchHandoff = MCP_TOOLS.find((tool) => tool.name === "qc_get_launch_handoff");
     expect(launchHandoff?.outputs).toContain("blockerProofCommands");
     expect(launchHandoff?.outputs).toContain("rule");
+    const launchDoctor = MCP_TOOLS.find((tool) => tool.name === "qc_get_launch_doctor");
+    expect(launchDoctor?.outputs).toContain("blockerFixPlan");
+    expect(launchDoctor?.outputs).toContain("blockerProofCommands");
     const pipelineHandoff = MCP_TOOLS.find((tool) => tool.name === "qc_get_pipeline_handoff");
     expect(pipelineHandoff?.outputs).toContain("call_sequence");
     expect(pipelineHandoff?.outputs).toContain("media_ingress");

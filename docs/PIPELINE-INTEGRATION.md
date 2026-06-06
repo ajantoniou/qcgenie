@@ -23,7 +23,7 @@ UPLOADCHECK_API_BASE_URL = "https://qcgenie-api.onrender.com"
 UPLOADCHECK_API_KEY = "<workspace_api_key>"
 ```
 
-The server exposes `qc_get_launch_status`, `qc_get_launch_handoff`, `qc_get_pipeline_handoff`, `qc_get_pipeline_recipes`, `qc_get_cost_basis`, `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_get_margin_telemetry`, and `qc_create_upload_url`.
+The server exposes `qc_get_launch_status`, `qc_get_launch_handoff`, `qc_get_launch_doctor`, `qc_get_pipeline_handoff`, `qc_get_pipeline_recipes`, `qc_get_cost_basis`, `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_get_margin_telemetry`, and `qc_create_upload_url`.
 
 The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadcheck`. Use `$uploadcheck` when a project needs the standard preflight -> hosted QC -> report -> repair-loop workflow.
 
@@ -31,7 +31,7 @@ Machine-readable production handoff is available through MCP `qc_get_pipeline_ha
 
 Machine-readable pipeline profiles are available through MCP `qc_get_pipeline_recipes`, CLI `uploadcheck recipes --json`, and `https://qcgenie-api.onrender.com/pipeline-recipes.json` for agents that need profile defaults. The current profiles are `nto_long_form`, `nto_shorts`, `npo_podcast_or_audio`, and `generic_creator_video`. The recipe file includes `launch_preflight`, `cost_preflight`, profile-specific `qc_run_local_file` arguments, and repair-loop instructions.
 
-Before launch-sensitive production workflows, agents can call MCP `qc_get_launch_status` for the live go/no-go state and MCP `qc_get_launch_handoff` for blocker-specific required actions and proof commands. CLI fallback: `uploadcheck launch-status --json` or `uploadcheck launch-handoff --json`.
+Before launch-sensitive production workflows, agents can call MCP `qc_get_launch_status` for the live go/no-go state, MCP `qc_get_launch_handoff` for blocker-specific required actions and proof commands, and MCP `qc_get_launch_doctor` for the blocker fix plan. CLI fallback: `uploadcheck launch-status --json`, `uploadcheck launch-handoff --json`, or `uploadcheck launch-doctor --json`.
 
 Agents outside this repository can run `uploadcheck launch-doctor --json` to fetch the live launch handoff plus blocker fix plan without local npm scripts. Local operators in this repo can still run `npm run launch:doctor -- --json` for executable repo checks.
 

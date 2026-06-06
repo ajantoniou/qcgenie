@@ -79,6 +79,12 @@ export const MCP_TOOLS: McpTool[] = [
     outputs: ["productHuntReady", "remainingBlockers", "requiredActions", "blockerProofCommands", "operatorCommandSequence", "rule"]
   },
   {
+    name: "qc_get_launch_doctor",
+    purpose: "Fetch live UploadCheck launch blocker fix plan for Product Hunt readiness.",
+    inputs: [],
+    outputs: ["productHuntReady", "remainingBlockers", "blockerFixPlan", "blockerProofCommands", "operatorCommandSequence", "rule"]
+  },
+  {
     name: "qc_get_pipeline_handoff",
     purpose: "Fetch the production pipeline handoff runbook for NTO/NPO and creator workflows.",
     inputs: [],

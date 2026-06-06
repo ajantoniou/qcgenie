@@ -27,6 +27,13 @@ server.tool(
 );
 
 server.tool(
+  "qc_get_launch_doctor",
+  "Fetch live UploadCheck launch doctor blocker fix plan for Product Hunt readiness.",
+  {},
+  async () => jsonTool(await publicApiFetch("/v1/launch-handoff"))
+);
+
+server.tool(
   "qc_get_pipeline_handoff",
   "Fetch the UploadCheck production pipeline handoff runbook for NTO/NPO and creator workflows.",
   {},
