@@ -62,6 +62,37 @@
         }
       }
     },
+    "/v1/qc/estimate": {
+      "post": {
+        "summary": "Preflight cost and margin estimate",
+        "security": [{ "bearerApiKey": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "minutes": { "type": "number" },
+                  "duration_seconds": { "type": "number" },
+                  "checks": { "type": "string" },
+                  "plan_id": { "type": "string" },
+                  "plan_price_cents": { "type": "integer" },
+                  "included_minutes": { "type": "integer" },
+                  "ai_review_seconds": { "type": "number" },
+                  "cost_guardrail": { "type": "string", "enum": ["downgrade", "block", "off"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Cost estimate and effective guardrail behavior" },
+          "401": { "description": "Missing or invalid API key" },
+          "403": { "description": "Insufficient scope" }
+        }
+      }
+    },
     "/v1/qc/jobs": {
       "post": {
         "summary": "Create a QC job",

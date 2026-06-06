@@ -12,6 +12,22 @@ const server = new McpServer({
 });
 
 server.tool(
+  "qc_estimate_cost",
+  "Preflight UploadCheck cost and margin guardrail behavior before uploading or running media.",
+  {
+    minutes: z.number().optional(),
+    duration_seconds: z.number().optional(),
+    checks: z.string().optional(),
+    plan_id: z.string().optional(),
+    plan_price_cents: z.number().optional(),
+    included_minutes: z.number().optional(),
+    ai_review_seconds: z.number().optional(),
+    cost_guardrail: z.enum(["downgrade", "block", "off"]).optional()
+  },
+  async (input) => jsonTool(await apiFetch("/v1/qc/estimate", { method: "POST", body: input }))
+);
+
+server.tool(
   "qc_run_video",
   "Start an UploadCheck quality check from a YouTube URL, upload id, or signed URL.",
   {

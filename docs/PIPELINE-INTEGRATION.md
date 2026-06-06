@@ -27,6 +27,18 @@ The server exposes `qc_run_video`, `qc_get_job`, `qc_get_report`, `qc_get_events
 
 ## CLI Usage
 
+Estimate a run before uploading or sending media:
+
+```bash
+UPLOADCHECK_API_KEY="<workspace_api_key>" \
+node "/Applications/DrAntoniou Projects/QCGenie/cli/index.mjs" estimate \
+  --minutes 42 \
+  --checks canvas_fill,loop_freeze,twins \
+  --plan creator \
+  --cost-guardrail downgrade \
+  --json
+```
+
 Run a local video through the hosted API as an ephemeral inline payload:
 
 ```bash
@@ -114,10 +126,11 @@ Signed-upload flow:
 For NTO long-form episodes, shorts, or NPO media exports:
 
 1. Render the final candidate to a local file.
-2. Call `uploadcheck check <file>`. Small files inline; larger files use signed upload. MCP callers can use `media_base64` for small files or `qc_create_upload_url` + `qc_run_video` with `upload_id` for large files. When a storybook/edit manifest exists, pass `manifest_json` or CLI `--manifest` so `repeat_fatigue` can catch reuse before and after render. When a transcript or script-sidecar exists, pass `transcript_text`, `transcript_json`, or CLI `--transcript` so `spoken_leaks` can catch prompt/stage/vendor leakage without ASR spend. Add `watchlist_json` or CLI `--watchlist` to catch customer-specific pronunciation and wrong-name substitutions. Add `expected_script_text`, `expected_script_json`, or CLI `--expected-script` when a locked script exists so `script_faithfulness` can catch narration drift using WER.
-3. Poll `qc_get_job` until `status=completed`.
-4. Fetch `qc_get_report` and `qc_get_marker_csv`.
-5. Treat `BLOCK` as stop-ship, `WATCH` as source review, and `PASS` as ready only after the project-specific editorial checklist is also complete.
+2. Call `qc_estimate_cost` or `uploadcheck estimate --minutes N` with the intended checks and plan so the agent knows whether model-backed checks will run, be downgraded, or need a paid deep-review path.
+3. Call `uploadcheck check <file>`. Small files inline; larger files use signed upload. MCP callers can use `media_base64` for small files or `qc_create_upload_url` + `qc_run_video` with `upload_id` for large files. When a storybook/edit manifest exists, pass `manifest_json` or CLI `--manifest` so `repeat_fatigue` can catch reuse before and after render. When a transcript or script-sidecar exists, pass `transcript_text`, `transcript_json`, or CLI `--transcript` so `spoken_leaks` can catch prompt/stage/vendor leakage without ASR spend. Add `watchlist_json` or CLI `--watchlist` to catch customer-specific pronunciation and wrong-name substitutions. Add `expected_script_text`, `expected_script_json`, or CLI `--expected-script` when a locked script exists so `script_faithfulness` can catch narration drift using WER.
+4. Poll `qc_get_job` until `status=completed`.
+5. Fetch `qc_get_report` and `qc_get_marker_csv`.
+6. Treat `BLOCK` as stop-ship, `WATCH` as source review, and `PASS` as ready only after the project-specific editorial checklist is also complete.
 
 The hosted API writes inline media to temporary server storage, runs the deterministic gate, parses the gate verdict, stores the report, and deletes the temporary media file after the request finishes.
 

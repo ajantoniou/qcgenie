@@ -183,6 +183,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
 - Done: plan-aware cost guardrail added for declared AI-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked.
 - Done: first per-check model-call accounting added for `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch`; in downgrade mode, margin-breaking model-backed checks are removed before the engine runs.
+- Done: preflight cost estimation added through `POST /v1/qc/estimate`, CLI `uploadcheck estimate`, and MCP `qc_estimate_cost`, so agents can check effective/removed gates before sending media to Render.
 - Done: global Codex MCP entry is installed locally through the `uploadcheck` server and was smoke-tested with a live hosted report.
 - Done: authenticated hosted inline-media execution is verified on Render with a blocking `twins` report.
 - Done: checkout route plumbing exists at `/checkout/creator`, `/checkout/studio`, and `/checkout/network`, with env-driven Lemon Squeezy redirects.

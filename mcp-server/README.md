@@ -46,8 +46,11 @@ When a project has a locked narration script and final transcript, pass `expecte
 
 Use `plan_id`, `ai_review_seconds`, and `cost_guardrail` when an agent is asking for paid AI review beyond deterministic checks. The default guardrail is `downgrade`: margin-breaking AI review is removed and the job runs deterministic checks. Use `block` to reject unsafe requests, or `off` only for internal experiments/deep-review add-ons.
 
+Call `qc_estimate_cost` before uploading large media or asking for model-backed checks. It returns the effective checks, removed checks, margin safety, and cost estimate without creating a job.
+
 ## Tools
 
+- `qc_estimate_cost`
 - `qc_run_video`
 - `qc_get_job`
 - `qc_get_report`

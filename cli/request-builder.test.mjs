@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildJobRequest, formatJobSummary, parseArgs } from "./request-builder.mjs";
+import { buildEstimateRequest, buildJobRequest, formatJobSummary, parseArgs } from "./request-builder.mjs";
 
 describe("UploadCheck CLI request builder", () => {
   it("builds a YouTube job request", () => {
@@ -202,6 +202,39 @@ describe("UploadCheck CLI request builder", () => {
       aiReviewSeconds: "45",
       costGuardrail: "block",
       json: true
+    });
+  });
+
+  it("builds and parses a preflight estimate request", () => {
+    const parsed = parseArgs([
+      "estimate",
+      "--api-base",
+      "https://api.example.test",
+      "--minutes",
+      "10",
+      "--checks",
+      "canvas_fill,twins",
+      "--plan",
+      "creator",
+      "--cost-guardrail",
+      "downgrade",
+      "--json"
+    ]);
+    expect(parsed.command).toBe("estimate");
+    expect(parsed.target).toBeNull();
+
+    const request = buildEstimateRequest(parsed.options);
+    expect(request).toMatchObject({
+      apiBaseUrl: "https://api.example.test",
+      path: "/v1/qc/estimate",
+      method: "POST",
+      kind: "estimate"
+    });
+    expect(request.payload).toEqual({
+      checks: "canvas_fill,twins",
+      minutes: 10,
+      plan_id: "creator",
+      cost_guardrail: "downgrade"
     });
   });
 

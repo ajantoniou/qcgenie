@@ -38,6 +38,7 @@ createServer(async (req, res) => {
     if (url.pathname === "/healthz") return sendJson(res, 200, { ok: true, service: "uploadcheck" });
     if (req.method === "GET" && url.pathname === "/openapi.json") return serveStatic("/openapi.json", res);
     if (req.method === "GET" && /^\/checkout\/[^/]+$/.test(url.pathname)) return redirectCheckout(url, res);
+    if (req.method === "POST" && url.pathname === "/v1/qc/estimate") return estimateQc(req, res);
     if (req.method === "POST" && url.pathname === "/v1/qc/jobs") return createJob(req, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+$/.test(url.pathname)) return getJob(req, url, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/report$/.test(url.pathname)) return getReport(req, url, res);
@@ -64,6 +65,30 @@ createServer(async (req, res) => {
 }).listen(port, () => {
   console.log(`UploadCheck.app web service listening on ${port}`);
 });
+
+async function estimateQc(req, res) {
+  const auth = requireScope(req, "jobs:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const body = await readJson(req);
+  const minutes = Number(body.minutes ?? body.minutes_metered ?? body.minutesMetered ?? 0);
+  const durationSeconds = Number(body.duration_seconds ?? body.durationSeconds ?? 0);
+  const estimatedMinutes = minutes > 0 ? minutes : (durationSeconds > 0 ? Math.ceil(durationSeconds / 60) : 1);
+  const guardrail = applyCostGuardrail({ ...body, minutes: estimatedMinutes });
+  return sendJson(res, 200, {
+    minutesEstimated: estimatedMinutes,
+    costGuardrail: guardrail.costGuardrail,
+    action: guardrail.action,
+    effectiveChecks: guardrail.checks,
+    requestedChecks: guardrail.requestedChecks,
+    removedChecks: guardrail.removedChecks,
+    aiReviewSeconds: guardrail.aiReviewSeconds,
+    requestedAiReviewSeconds: guardrail.requestedAiReviewSeconds,
+    marginSafe: guardrail.estimate.marginSafe,
+    reason: guardrail.reason || null,
+    costEstimate: guardrail.estimate,
+    originalCostEstimate: guardrail.originalEstimate || null
+  });
+}
 
 async function createJob(req, res) {
   const auth = requireScope(req, "jobs:write");

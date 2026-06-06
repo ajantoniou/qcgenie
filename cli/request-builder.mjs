@@ -107,9 +107,9 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
 export function parseArgs(argv) {
   const args = [...argv];
   const command = args.shift();
-  if (command !== "check") throw new Error("Usage: uploadcheck check <file-or-url>");
+  if (!["check", "estimate"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N");
 
-  const target = args.shift();
+  const target = command === "check" ? args.shift() : null;
   const options = { json: false };
 
   while (args.length) {
@@ -146,6 +146,10 @@ export function parseArgs(argv) {
       const mode = requireValue(arg, args.shift());
       if (!["downgrade", "block", "off"].includes(mode)) throw new Error("--cost-guardrail must be downgrade, block, or off");
       options.costGuardrail = mode;
+    } else if (arg === "--minutes") {
+      options.minutes = requireValue(arg, args.shift());
+    } else if (arg === "--duration-seconds") {
+      options.durationSeconds = requireValue(arg, args.shift());
     } else if (arg === "--max-inline-mb") {
       options.maxInlineMb = requireValue(arg, args.shift());
     } else if (arg === "--upload-mode") {
@@ -158,6 +162,22 @@ export function parseArgs(argv) {
   }
 
   return { command, target, options };
+}
+
+export function buildEstimateRequest(options = {}) {
+  const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
+  const payload = {};
+  if (options.checks) payload.checks = options.checks;
+  if (options.minutes) payload.minutes = Number(options.minutes);
+  if (options.durationSeconds) payload.duration_seconds = Number(options.durationSeconds);
+  attachCostOptions(payload, options);
+  return {
+    apiBaseUrl,
+    path: "/v1/qc/estimate",
+    method: "POST",
+    kind: "estimate",
+    payload
+  };
 }
 
 export function formatJobSummary(payload) {

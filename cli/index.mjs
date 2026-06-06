@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import { createReadStream } from "node:fs";
-import { buildJobRequest, formatJobSummary, parseArgs } from "./request-builder.mjs";
+import { buildEstimateRequest, buildJobRequest, formatJobSummary, parseArgs } from "./request-builder.mjs";
 
 try {
-  const { target, options } = parseArgs(process.argv.slice(2));
+  const { command, target, options } = parseArgs(process.argv.slice(2));
   const apiKey = options.apiKey || process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
   if (!apiKey) throw new Error("Set UPLOADCHECK_API_KEY or pass --api-key.");
 
-  const request = buildJobRequest(target, options);
+  const request = command === "estimate" ? buildEstimateRequest(options) : buildJobRequest(target, options);
   const payload = request.kind === "signed_upload"
     ? await runSignedUploadJob(request, apiKey)
     : await postJson(request.apiBaseUrl, request.path, request.payload, apiKey);
