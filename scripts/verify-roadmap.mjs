@@ -24,6 +24,7 @@ const REQUIRED_EXECUTION_MARKERS = [
   "public cost-basis verifier",
   "machine-readable repair-loop contract",
   "MCP `qc_run_local_file`",
+  "MCP `qc_get_launch_handoff`",
   "Product Hunt launch checker",
   "observed provider usage is now priced"
 ];

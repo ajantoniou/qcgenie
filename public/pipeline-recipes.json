@@ -5,8 +5,10 @@
   "mcp_server": "uploadcheck",
   "launch_preflight": {
     "tool": "qc_get_launch_status",
+    "handoff_tool": "qc_get_launch_handoff",
     "fallback_cli": "uploadcheck launch-status --json",
-    "rule": "Before launch-sensitive production workflows, verify product_hunt_ready=true and remaining_blockers is empty. If blockers remain, report them before running publish or Product Hunt launch steps."
+    "handoff_fallback_cli": "uploadcheck launch-handoff --json",
+    "rule": "Before launch-sensitive production workflows, verify product_hunt_ready=true and remaining_blockers is empty. If blockers remain, call the handoff tool or handoff CLI, report blocker-specific required actions and proof commands, and stop before publish or Product Hunt launch steps."
   },
   "cost_preflight": {
     "tool": "qc_estimate_cost",

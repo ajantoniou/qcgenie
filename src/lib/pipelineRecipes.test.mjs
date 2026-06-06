@@ -14,9 +14,12 @@ describe("UploadCheck pipeline recipes", () => {
     expect(recipes.mcp_server).toBe("uploadcheck");
     expect(recipes.launch_preflight).toMatchObject({
       tool: "qc_get_launch_status",
-      fallback_cli: "uploadcheck launch-status --json"
+      handoff_tool: "qc_get_launch_handoff",
+      fallback_cli: "uploadcheck launch-status --json",
+      handoff_fallback_cli: "uploadcheck launch-handoff --json"
     });
     expect(recipes.launch_preflight.rule).toContain("remaining_blockers");
+    expect(recipes.launch_preflight.rule).toContain("proof commands");
     expect(recipes.cost_preflight).toMatchObject({
       tool: "qc_estimate_cost",
       default_cost_guardrail: "downgrade"
