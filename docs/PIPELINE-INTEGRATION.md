@@ -29,6 +29,14 @@ The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadche
 
 Machine-readable pipeline profiles are published at `https://qcgenie-api.onrender.com/pipeline-recipes.json` for agents that need defaults without scraping prose. The current profiles are `nto_long_form`, `nto_shorts`, `npo_podcast_or_audio`, and `generic_creator_video`.
 
+Before publishing package updates or installing from a packed artifact, run:
+
+```bash
+npm run packages:verify
+```
+
+That command checks the public package names, CLI/MCP bins, MCP lock metadata, and `npm pack --dry-run` file lists for `@uploadcheck/cli` and `@uploadcheck/mcp`.
+
 ## CLI Usage
 
 Estimate a run before uploading or sending media:

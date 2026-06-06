@@ -56,6 +56,7 @@ Public API:
 - Product Hunt readiness CLI: `npm run readiness:check`
 - Render Blueprint verifier: `npm run render:verify`
 - Render API launch helper: `npm run render:env-template`, `npm run render:plan`, `npm run render:audit`, `npm run render:apply`
+- Package publish verifier: `npm run packages:verify` checks `@uploadcheck/cli` and `@uploadcheck/mcp` identity, bins, lock metadata, and `npm pack --dry-run` contents.
 - CLI margin telemetry: `uploadcheck usage --billing-period YYYY-MM`
 
 Persistence state:
@@ -106,4 +107,5 @@ npm run dev
 ```bash
 npm test
 npm run build
+npm run packages:verify
 ```

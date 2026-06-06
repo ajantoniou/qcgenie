@@ -16,6 +16,26 @@ function packFiles(cwd) {
 }
 
 describe("UploadCheck package metadata", () => {
+  it("exposes an operator package verification command", () => {
+    const output = execFileSync("npm", ["run", "--silent", "packages:verify"], {
+      cwd: resolve("."),
+      encoding: "utf8"
+    });
+    const payload = JSON.parse(output);
+
+    expect(payload.ok).toBe(true);
+    expect(payload.packages.map((pkg) => pkg.name)).toEqual(["@uploadcheck/cli", "@uploadcheck/mcp"]);
+    expect(payload.packages[0].packedFiles).toEqual(["index.mjs", "package.json", "request-builder.mjs"]);
+    expect(payload.packages[1].packedFiles).toEqual([
+      "README.md",
+      "index.mjs",
+      "local-file.mjs",
+      "package.json",
+      "request-builder.mjs",
+      "run-uploadcheck-mcp.sh"
+    ]);
+  });
+
   it("keeps CLI package install metadata aligned with public naming", () => {
     const pkg = readJson("cli/package.json");
 
