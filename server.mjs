@@ -8,6 +8,7 @@ import { pipeline } from "node:stream/promises";
 import { JsonStore } from "./server-store.mjs";
 import { cleanupInlineMedia, materializeInlineMedia } from "./inline-media.mjs";
 import { estimateJobCost } from "./cost-model.mjs";
+import { buildCheckoutUrl, normalizePlanId } from "./checkout-links.mjs";
 
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
@@ -35,6 +36,7 @@ createServer(async (req, res) => {
 
     if (url.pathname === "/healthz") return sendJson(res, 200, { ok: true, service: "uploadcheck" });
     if (req.method === "GET" && url.pathname === "/openapi.json") return serveStatic("/openapi.json", res);
+    if (req.method === "GET" && /^\/checkout\/[^/]+$/.test(url.pathname)) return redirectCheckout(url, res);
     if (req.method === "POST" && url.pathname === "/v1/qc/jobs") return createJob(req, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+$/.test(url.pathname)) return getJob(req, url, res);
     if (req.method === "GET" && /^\/v1\/qc\/jobs\/[^/]+\/report$/.test(url.pathname)) return getReport(req, url, res);
@@ -85,6 +87,27 @@ async function createJob(req, res) {
   } finally {
     await cleanupInlineMedia(inlineMedia);
   }
+}
+
+function redirectCheckout(url, res) {
+  const rawPlan = url.pathname.split("/").at(-1);
+  const plan = normalizePlanId(rawPlan);
+  if (!plan) return sendJson(res, 404, { error: "unknown_plan", plan: rawPlan });
+
+  const checkoutUrl = buildCheckoutUrl(plan);
+  if (!checkoutUrl) {
+    return sendJson(res, 503, {
+      error: "checkout_not_configured",
+      plan,
+      requiredEnv: [
+        `UPLOADCHECK_${plan.toUpperCase()}_CHECKOUT_URL`,
+        "or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG plus UPLOADCHECK_<PLAN>_VARIANT_ID"
+      ]
+    });
+  }
+
+  res.writeHead(302, { Location: checkoutUrl });
+  res.end();
 }
 
 function getJob(req, url, res) {

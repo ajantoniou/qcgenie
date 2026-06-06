@@ -71,6 +71,7 @@ const pricingTiers = [
     price: "$99/mo",
     minutes: "1,200",
     overage: "$0.12/min",
+    checkoutHref: "/checkout/creator",
     detail: "Built for creators who publish weekly, batch clips, and want every final export checked before upload."
   },
   {
@@ -79,6 +80,7 @@ const pricingTiers = [
     price: "$299/mo",
     minutes: "5,000",
     overage: "$0.09/min",
+    checkoutHref: "/checkout/studio",
     detail: "For editors, agencies, and teams checking multiple shows, clients, or channels."
   },
   {
@@ -87,6 +89,7 @@ const pricingTiers = [
     price: "$799/mo",
     minutes: "18,000",
     overage: "$0.06/min",
+    checkoutHref: "/checkout/network",
     detail: "For high-volume teams running daily uploads, large clip batches, or multi-channel operations."
   }
 ] as const;
@@ -298,6 +301,7 @@ function LandingView({ onOpenDashboard, onOpenAgents }: { onOpenDashboard: () =>
                 {tier.minutes} checked minutes/month. {tier.detail}
               </p>
               <small>{tier.overage} overage after included minutes</small>
+              <a className="priceCta" href={tier.checkoutHref}>Start {tier.name}</a>
             </article>
           ))}
         </div>
@@ -448,7 +452,7 @@ function DashboardView() {
             <span>Ready for creator workflows</span>
             <strong>App + CLI + MCP</strong>
             <p>Designed for video first, with the same gate model extensible to podcasts, ads, demos, and courses.</p>
-            <button type="button">{PLANS.studio.checkoutLabel}</button>
+            <a className="planButton" href="/checkout/creator">{PLANS.studio.checkoutLabel}</a>
           </section>
         </aside>
       </section>

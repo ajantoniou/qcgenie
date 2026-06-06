@@ -165,7 +165,9 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO-derived `canvas_fill`, `text_safe_area`, and `shorts_format` deterministic gates added to `scripts/qc-engine/`.
 - Done: global Codex MCP entry is installed locally through the `uploadcheck` server and was smoke-tested with a live hosted report.
 - Done: authenticated hosted inline-media execution is verified on Render with a blocking `twins` report.
+- Done: checkout route plumbing exists at `/checkout/creator`, `/checkout/studio`, and `/checkout/network`, with env-driven Lemon Squeezy redirects.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
+- Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
 - Next: add durable object storage or direct-to-bucket upload for production-scale retention beyond Render temp storage.
 - Next: cut over `uploadcheck.app` DNS/custom domains and decide whether to keep legacy Render slugs or recreate services for `uploadcheck-*` subdomains.
-- Partial: Product Hunt launch page and public report examples exist; final launch still needs custom-domain cutover, checkout/billing proof, and a polished public demo clip.
+- Partial: Product Hunt launch page and public report examples exist; final launch still needs custom-domain cutover, live checkout proof, and a polished public demo clip.

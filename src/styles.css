@@ -447,6 +447,23 @@ code {
   margin-top: 14px;
 }
 
+.priceCta,
+.planButton {
+  align-items: center;
+  background: #101827;
+  border: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 850;
+  justify-content: center;
+  margin-top: 16px;
+  min-height: 40px;
+  padding: 10px 14px;
+  text-decoration: none;
+}
+
 .usageModel {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
