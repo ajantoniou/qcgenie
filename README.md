@@ -79,6 +79,7 @@ Persistence state:
 - Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
 - Workspace API keys are stored hashed, returned once, scoped, and honored on job creation for owner email, workspace, plan, included minutes, and subscription price metadata.
 - The dashboard API-key form calls `POST /v1/api-keys` with a provisioning bearer; in private MCP beta this is an operator/admin bearer. Paid checkout/account flows can call `POST /v1/checkout/provision-api-key`, which applies plan limits server-side and returns the bearer only on first provisioning.
+- Lemon Squeezy can call `POST /v1/webhooks/lemonsqueezy`; UploadCheck verifies `X-Signature` with `UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET`, then provisions paid subscription/order events into idempotent workspace API keys for MCP/API clients.
 - Owner spend alerts are recorded and sent through Resend when extra-minute spend crosses 100% of the subscription value; `UPLOADCHECK_RESEND_API_URL` can point tests at a mock endpoint while production defaults to Resend.
 - Webhook delivery logs are available at `/v1/webhooks/deliveries`; manual retry execution is available at `/v1/webhooks/deliveries/{delivery_id}/retry`.
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.

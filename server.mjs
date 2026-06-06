@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { createServer } from "node:http";
-import { createHash } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { JsonStore } from "./server-store.mjs";
@@ -81,6 +81,7 @@ createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/v1/api-keys") return createApiKey(req, res);
     if (req.method === "GET" && url.pathname === "/v1/api-keys") return listApiKeys(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/checkout/provision-api-key") return provisionCheckoutApiKey(req, res);
+    if (req.method === "POST" && url.pathname === "/v1/webhooks/lemonsqueezy") return receiveLemonSqueezyWebhook(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks") return createWebhook(req, res);
     if (req.method === "GET" && url.pathname === "/v1/webhooks/deliveries") return listWebhookDeliveries(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks/deliveries/drain") return drainWebhookDeliveries(req, res);
@@ -351,6 +352,71 @@ async function provisionCheckoutApiKey(req, res) {
     scopes: ["jobs:write", "jobs:read", "reports:read", "uploads:write"]
   });
   return sendJson(res, created.idempotentReplay ? 200 : 201, {
+    apiKey: created.apiKey,
+    key: created.record,
+    idempotentReplay: Boolean(created.idempotentReplay),
+    warning: created.apiKey
+      ? "The apiKey is shown once. Store it privately as UPLOADCHECK_API_KEY for MCP/API clients."
+      : "Existing provisioning record returned without bearer secret; use the originally issued apiKey."
+  });
+}
+
+async function receiveLemonSqueezyWebhook(req, res) {
+  const secret = process.env.UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET || process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
+  if (!secret) return sendJson(res, 503, { error: "lemonsqueezy_webhook_secret_missing" });
+  const rawBody = await readRawBody(req);
+  if (!verifyLemonSqueezySignature(rawBody, req.headers["x-signature"], secret)) {
+    return sendJson(res, 401, { error: "invalid_lemonsqueezy_signature" });
+  }
+  let payload;
+  try {
+    payload = rawBody.length ? JSON.parse(rawBody.toString("utf8")) : {};
+  } catch {
+    return sendJson(res, 400, { error: "invalid_json" });
+  }
+
+  const eventName = payload?.meta?.event_name || payload?.meta?.eventName || null;
+  if (!isProvisioningCheckoutEvent(eventName)) {
+    return sendJson(res, 200, { ok: true, ignored: true, eventName });
+  }
+
+  const provisioning = checkoutProvisioningFromLemonPayload(payload);
+  if (!provisioning.plan_id || !provisioning.owner_email) {
+    return sendJson(res, 202, {
+      ok: false,
+      ignored: true,
+      eventName,
+      reason: "missing_plan_or_owner_email"
+    });
+  }
+
+  const planId = normalizePlanId(provisioning.plan_id);
+  if (!planId) {
+    return sendJson(res, 202, {
+      ok: false,
+      ignored: true,
+      eventName,
+      reason: "unsupported_plan"
+    });
+  }
+  const plan = resolvePlanEconomics({ plan_id: planId });
+  const created = store.createApiKey({
+    name: `${capitalize(planId)} MCP key`,
+    workspace_id: provisioning.workspace_id,
+    owner_email: provisioning.owner_email,
+    provisioning_id: provisioning.provisioning_id,
+    checkout_customer_id: provisioning.checkout_customer_id,
+    checkout_subscription_id: provisioning.checkout_subscription_id,
+    plan_id: planId,
+    included_minutes: plan.includedMinutes,
+    plan_price_cents: plan.planPriceCents,
+    ai_review_budget_seconds: plan.aiReviewBudgetSeconds,
+    scopes: ["jobs:write", "jobs:read", "reports:read", "uploads:write"]
+  });
+
+  return sendJson(res, created.idempotentReplay ? 200 : 201, {
+    ok: true,
+    eventName,
     apiKey: created.apiKey,
     key: created.record,
     idempotentReplay: Boolean(created.idempotentReplay),
@@ -1029,10 +1095,88 @@ function isPublicArtifactPath(pathname) {
 }
 
 async function readJson(req) {
+  const raw = await readRawBody(req);
+  const text = raw.toString("utf8");
+  return text ? JSON.parse(text) : {};
+}
+
+async function readRawBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
-  const raw = Buffer.concat(chunks).toString("utf8");
-  return raw ? JSON.parse(raw) : {};
+  return Buffer.concat(chunks);
+}
+
+function verifyLemonSqueezySignature(rawBody, signatureHeader, secret) {
+  const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
+  if (!signature) return false;
+  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  const signatureBuffer = Buffer.from(String(signature), "utf8");
+  return expectedBuffer.length === signatureBuffer.length && timingSafeEqual(expectedBuffer, signatureBuffer);
+}
+
+function isProvisioningCheckoutEvent(eventName) {
+  return new Set(["subscription_created", "subscription_updated", "order_created"]).has(String(eventName || ""));
+}
+
+function checkoutProvisioningFromLemonPayload(payload = {}) {
+  const data = payload.data || {};
+  const attrs = data.attributes || {};
+  const meta = payload.meta || {};
+  const custom = attrs.custom_data || attrs.customData || meta.custom_data || meta.customData || {};
+  const planId = normalizePlanId(
+    custom.uploadcheck_plan_id
+    || custom.plan_id
+    || custom.planId
+    || attrs.variant_name
+    || attrs.variantName
+    || attrs.product_name
+    || attrs.productName
+    || attrs.first_subscription_item?.variant_name
+    || attrs.firstSubscriptionItem?.variantName
+  );
+  const ownerEmail = stringOrNull(
+    custom.owner_email
+    || custom.ownerEmail
+    || attrs.user_email
+    || attrs.userEmail
+    || attrs.customer_email
+    || attrs.customerEmail
+  );
+  const checkoutCustomerId = stringOrNull(
+    custom.checkout_customer_id
+    || custom.checkoutCustomerId
+    || attrs.customer_id
+    || attrs.customerId
+    || attrs.customer?.id
+    || relationshipId(data.relationships?.customer)
+  );
+  const checkoutSubscriptionId = stringOrNull(
+    custom.checkout_subscription_id
+    || custom.checkoutSubscriptionId
+    || data.id
+    || attrs.subscription_id
+    || attrs.subscriptionId
+    || relationshipId(data.relationships?.subscription)
+  );
+  const workspaceId = stringOrNull(custom.workspace_id || custom.workspaceId)
+    || workspaceIdFromCheckout({ checkoutCustomerId, checkoutSubscriptionId, ownerEmail });
+  const provisioningId = stringOrNull(custom.provisioning_id || custom.provisioningId)
+    || ["lemonsqueezy", planId || "unknown", checkoutSubscriptionId || checkoutCustomerId || workspaceId].join(":");
+  return {
+    plan_id: planId,
+    owner_email: ownerEmail,
+    workspace_id: workspaceId,
+    provisioning_id: provisioningId,
+    checkout_customer_id: checkoutCustomerId,
+    checkout_subscription_id: checkoutSubscriptionId
+  };
+}
+
+function relationshipId(relationship) {
+  const value = relationship?.data;
+  if (Array.isArray(value)) return value[0]?.id || null;
+  return value?.id || null;
 }
 
 function sendJson(res, status, payload) {

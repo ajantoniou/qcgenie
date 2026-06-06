@@ -143,4 +143,21 @@ describe("public OpenAPI spec", () => {
     expect(path.responses["201"].content["application/json"].schema.properties.apiKey.type).toEqual(["string", "null"]);
     expect(path.responses["200"].description).toContain("without bearer secret");
   });
+
+  it("documents signed Lemon Squeezy checkout webhooks", () => {
+    const spec = loadSpec();
+    const path = spec.paths["/v1/webhooks/lemonsqueezy"].post;
+
+    expect(path.security).toEqual([]);
+    expect(path.description).toContain("X-Signature");
+    expect(path.description).toContain("HMAC-SHA256");
+    expect(path.parameters[0]).toMatchObject({
+      name: "X-Signature",
+      in: "header",
+      required: true
+    });
+    expect(path.responses["201"].description).toContain("API key provisioned");
+    expect(path.responses["401"].description).toContain("Invalid Lemon Squeezy signature");
+    expect(path.responses["503"].description).toContain("signing secret");
+  });
 });

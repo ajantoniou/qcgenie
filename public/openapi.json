@@ -854,6 +854,29 @@
         }
       }
     },
+    "/v1/webhooks/lemonsqueezy": {
+      "post": {
+        "summary": "Receive Lemon Squeezy checkout webhooks",
+        "description": "Verifies Lemon Squeezy X-Signature with HMAC-SHA256 over the raw body using UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET, then provisions paid subscription/order events into idempotent workspace API keys for MCP/API clients.",
+        "security": [],
+        "parameters": [
+          { "name": "X-Signature", "in": "header", "required": true, "schema": { "type": "string" }, "description": "Lemon Squeezy HMAC-SHA256 hex digest of the raw request body." }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Webhook verified and first-time API key provisioned." },
+          "200": { "description": "Webhook verified and ignored or idempotently replayed without bearer secret." },
+          "401": { "description": "Invalid Lemon Squeezy signature." },
+          "503": { "description": "Webhook signing secret is not configured." }
+        }
+      }
+    },
     "/v1/qc/jobs/{job_id}/cancel": {
       "post": {
         "summary": "Cancel a QC job",

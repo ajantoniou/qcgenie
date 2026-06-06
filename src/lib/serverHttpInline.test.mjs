@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { createServer } from "node:http";
 import { afterEach, describe, expect, it } from "vitest";
 import { JsonStore } from "../../server-store.mjs";
@@ -898,6 +898,106 @@ describe("server inline media API", () => {
         checkoutSubscriptionId: "sub_456",
         planId: "studio"
       });
+      expect(saved.apiKeys[0]).not.toHaveProperty("apiKey");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("provisions API keys from signed Lemon Squeezy subscription webhooks", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-lemon-webhook-"));
+    const storePath = join(dir, "store.json");
+    const webhookSecret = "lemon_test_secret";
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: "uck_admin_lemon",
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: webhookSecret,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const payload = {
+        meta: {
+          event_name: "subscription_created",
+          custom_data: {
+            uploadcheck_plan_id: "network",
+            workspace_id: "ws_network_paid"
+          }
+        },
+        data: {
+          id: "sub_999",
+          attributes: {
+            user_email: "network@example.com",
+            customer_id: "cus_999",
+            variant_name: "Network"
+          }
+        }
+      };
+      const raw = JSON.stringify(payload);
+      const signature = createHmac("sha256", webhookSecret).update(raw).digest("hex");
+      const firstResponse = await fetch(`http://127.0.0.1:${port}/v1/webhooks/lemonsqueezy`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-signature": signature
+        },
+        body: raw
+      });
+      const first = await firstResponse.json();
+
+      expect(firstResponse.status).toBe(201);
+      expect(first.apiKey).toMatch(/^uck_/);
+      expect(first).toMatchObject({
+        ok: true,
+        eventName: "subscription_created",
+        idempotentReplay: false,
+        key: {
+          workspaceId: "ws_network_paid",
+          ownerEmail: "network@example.com",
+          provisioningId: "lemonsqueezy:network:sub_999",
+          checkoutCustomerId: "cus_999",
+          checkoutSubscriptionId: "sub_999",
+          planId: "network",
+          includedMinutes: 36000,
+          planPriceCents: 79900
+        }
+      });
+
+      const retryResponse = await fetch(`http://127.0.0.1:${port}/v1/webhooks/lemonsqueezy`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-signature": signature
+        },
+        body: raw
+      });
+      const retry = await retryResponse.json();
+      expect(retryResponse.status).toBe(200);
+      expect(retry.apiKey).toBeNull();
+      expect(retry.idempotentReplay).toBe(true);
+
+      const badResponse = await fetch(`http://127.0.0.1:${port}/v1/webhooks/lemonsqueezy`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-signature": "bad"
+        },
+        body: JSON.stringify({ ...payload, data: { id: "sub_bad", attributes: { user_email: "bad@example.com" } } })
+      });
+      expect(badResponse.status).toBe(401);
+
+      const saved = JSON.parse(readFileSync(storePath, "utf8"));
+      expect(saved.apiKeys).toHaveLength(1);
+      expect(saved.apiKeys[0].tokenHash).toBe(createHash("sha256").update(first.apiKey).digest("hex"));
       expect(saved.apiKeys[0]).not.toHaveProperty("apiKey");
     } finally {
       rmSync(dir, { recursive: true, force: true });
