@@ -220,6 +220,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: Product Hunt readiness CLI added through `npm run readiness:check`; it fetches live readiness and prints exact remaining Render/DNS/checkout actions.
 - Done: Product Hunt readiness actions now include explicit checkout and storage probe commands, so operators can prove configured payment/storage paths live before launch.
 - Done: launch doctor added through `npm run launch:doctor`; it runs local launch helpers, explicit checkout/storage probes, public metadata verifiers, and live readiness/DNS checks in one ordered report.
+- Done: Product Hunt launch-kit required commands are now tested against launch-doctor coverage plus the standalone env-file validation handoff, so public go/no-go instructions cannot drift from the executable verifier.
 - Done: launch readiness no longer treats Supabase env alone as persistence proof; until a server-side Supabase store adapter exists, Product Hunt readiness requires the mounted JsonStore path that the runtime actually uses.
 - Done: MCP `qc_run_local_file` added for Codex/Claude/Cursor/NTO/NPO local media workflows; small files are encoded inline for Render evaluation and large files fall back to signed upload.
 - Done: Render Blueprint now declares UploadCheck custom domains, a `/mnt/uploadcheck` persistent disk, durable JSON/media paths, checkout URL prompts, and webhook encryption prompts; `npm run render:verify` guards the launch config.

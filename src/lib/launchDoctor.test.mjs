@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { formatLaunchDoctor, runLaunchDoctor } from "../../launch-doctor.mjs";
+import { formatLaunchDoctor, launchDoctorCommandStrings, runLaunchDoctor } from "../../launch-doctor.mjs";
 
 describe("launch doctor", () => {
   it("summarizes passing and blocking launch steps", () => {
@@ -46,5 +46,21 @@ describe("launch doctor", () => {
     expect(result.stdout).toContain("BLOCK storage-probe");
     expect(result.stdout).toContain("BLOCK readiness");
     expect(result.stdout).toContain("BLOCK launch-check");
+  });
+
+  it("publishes normalized doctor command coverage for Product Hunt launch-kit verification", () => {
+    expect(launchDoctorCommandStrings()).toEqual(expect.arrayContaining([
+      "npm run launch:dns",
+      "npm run launch:checkout",
+      "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
+      "npm run launch:storage",
+      "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
+      "npm run launch-status:verify",
+      "npm run cost-basis:verify",
+      "npm run codex:verify-install",
+      "npm run roadmap:verify",
+      "npm run readiness:check",
+      "npm run launch:check"
+    ]));
   });
 });

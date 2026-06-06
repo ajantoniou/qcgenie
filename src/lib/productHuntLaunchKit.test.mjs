@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { launchDoctorCommandStrings } from "../../launch-doctor.mjs";
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(path), "utf8"));
@@ -27,8 +28,22 @@ describe("Product Hunt launch kit", () => {
     expect(kit.ready_when.required_commands).toContain("npm run launch:checkout");
     expect(kit.ready_when.required_commands).toContain("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
     expect(kit.ready_when.required_commands).toContain("npm run launch:storage");
+    expect(kit.ready_when.required_commands).toContain("UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage");
     expect(kit.ready_when.required_commands).toContain("npm run launch:check");
     expect(kit.pricing_position.margin_rule).toContain("95% gross-margin target");
     expect(manifest.product_hunt_launch_kit_url).toBe(status.public_artifacts.product_hunt_launch_kit);
+  });
+
+  it("keeps launch-kit required commands covered by launch doctor or explicit standalone handoff", () => {
+    const kit = readJson("public/product-hunt-launch-kit.json");
+    const doctorCommands = new Set(launchDoctorCommandStrings());
+    const standaloneCommands = new Set([
+      "npm run launch:doctor",
+      "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"
+    ]);
+
+    for (const command of kit.ready_when.required_commands) {
+      expect(doctorCommands.has(command) || standaloneCommands.has(command), `${command} is not covered by launch doctor or standalone handoff`).toBe(true);
+    }
   });
 });

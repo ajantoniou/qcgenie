@@ -33,6 +33,10 @@ export function runLaunchDoctor({ steps = LAUNCH_DOCTOR_STEPS, runner = runComma
   };
 }
 
+export function launchDoctorCommandStrings(steps = LAUNCH_DOCTOR_STEPS) {
+  return steps.map((step) => formatDoctorCommand(step));
+}
+
 export function formatLaunchDoctor(report) {
   const lines = [];
   lines.push(`UploadCheck launch doctor: ${report.ok ? "READY" : "NOT READY"}`);
@@ -48,6 +52,22 @@ export function formatLaunchDoctor(report) {
     lines.push(`Blockers: ${blockers.join(", ")}`);
   }
   return lines.join("\n");
+}
+
+function formatDoctorCommand(step) {
+  const envPrefix = Object.entries(step.env || {})
+    .map(([key, value]) => `${key}=${value}`)
+    .join(" ");
+  const command = normalizeCommand(step.command || []);
+  return [envPrefix, command].filter(Boolean).join(" ");
+}
+
+function normalizeCommand(command) {
+  if (command[0] === "npm" && command[1] === "run") {
+    const script = command.filter((part) => part !== "--silent").slice(2).join(" ");
+    return `npm run ${script}`;
+  }
+  return command.join(" ");
 }
 
 function runCommand(command, step = {}) {
