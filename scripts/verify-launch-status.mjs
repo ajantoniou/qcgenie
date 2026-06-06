@@ -61,6 +61,7 @@ assert(status.operator_commands.includes("npm run roadmap:verify"), "launch-stat
 assert(status.operator_commands.includes("npm run launch:check"), "launch-status operator commands must include launch:check");
 assert(status.operator_commands.includes("npm run readiness:check"), "launch-status operator commands must include readiness:check");
 assert(status.verified_controls.some((control) => control.id === "codex_mcp" && control.evidence.includes("codex:verify-install")), "launch-status Codex MCP evidence must cite codex:verify-install");
+assert(status.verified_controls.some((control) => control.id === "inline_media" && control.evidence.includes("render_media_ingress") && control.evidence.includes("audio_base64")), "launch-status inline media evidence must cite render_media_ingress and audio_base64");
 assert(status.verified_controls.some((control) => control.id === "cost_basis" && control.evidence.includes("cost-basis:verify")), "launch-status cost-basis evidence must cite cost-basis:verify");
 assert(status.verified_controls.some((control) => control.id === "roadmap" && control.evidence.includes("roadmap:verify")), "launch-status roadmap evidence must cite roadmap:verify");
 assert(status.verified_controls.some((control) => control.id === "sample_reports" && control.evidence.includes("PASS, WATCH, and BLOCK")), "launch-status sample report evidence must cite PASS, WATCH, and BLOCK");

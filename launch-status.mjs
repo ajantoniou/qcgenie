@@ -6,6 +6,7 @@ export function buildLaunchStatus(readiness, {
   const status = {
     api: statusFor(checks.api),
     agent_preflight: statusFor(checks.agentPreflight),
+    render_media_ingress: statusFor(checks.renderMediaIngress),
     api_auth: statusFor(checks.apiAuth),
     demo_clip: statusFor(checks.demoClip),
     checkout: statusFor(checks.checkout),
@@ -89,7 +90,7 @@ function verifiedControls() {
     {
       id: "inline_media",
       status: "done",
-      evidence: "CLI/MCP/API support inline media payloads with sanitized mediaIngress and sha256."
+      evidence: "CLI/MCP/API support inline media payloads with sanitized mediaIngress and sha256; /v1/readiness exposes render_media_ingress proof for video_base64, audio_base64, media_base64, and data_url."
     },
     {
       id: "signed_upload",

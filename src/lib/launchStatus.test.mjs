@@ -17,6 +17,7 @@ describe("public launch status", () => {
     expect(status.status).toMatchObject({
       api: "pass",
       agent_preflight: "pass",
+      render_media_ingress: "pass",
       api_auth: "pass",
       demo_clip: "pass",
       checkout: "blocked",
@@ -49,6 +50,8 @@ describe("public launch status", () => {
       "npm run readiness:check"
     ]));
     expect(status.verified_controls.find((control) => control.id === "codex_mcp")?.evidence).toContain("codex:verify-install");
+    expect(status.verified_controls.find((control) => control.id === "inline_media")?.evidence).toContain("render_media_ingress");
+    expect(status.verified_controls.find((control) => control.id === "inline_media")?.evidence).toContain("audio_base64");
     expect(status.verified_controls.find((control) => control.id === "cost_basis")?.evidence).toContain("cost-basis:verify");
     expect(status.verified_controls.find((control) => control.id === "roadmap")?.evidence).toContain("roadmap:verify");
     expect(status.verified_controls.find((control) => control.id === "sample_reports")?.evidence).toContain("PASS, WATCH, and BLOCK");

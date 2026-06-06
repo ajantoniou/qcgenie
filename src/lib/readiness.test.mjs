@@ -17,6 +17,21 @@ describe("launch readiness report", () => {
     expect(report.readyForProductHunt).toBe(false);
     expect(report.checks.api.ok).toBe(true);
     expect(report.checks.apiAuth.ok).toBe(true);
+    expect(report.checks.renderMediaIngress).toMatchObject({
+      ok: true,
+      modes: {
+        inlineEphemeral: {
+          ok: true,
+          accepts: expect.arrayContaining(["video_base64", "audio_base64", "media_base64", "data_url"]),
+          storageMode: "render_temp_storage",
+          asyncSupported: false
+        },
+        signedUpload: {
+          ok: true,
+          endpoint: "POST /v1/uploads + PUT signedPutUrl + POST /v1/qc/jobs upload_id"
+        }
+      }
+    });
     expect(report.checks.checkout.ok).toBe(false);
     expect(report.checks.checkout.plans.creator).toMatchObject({
       ok: false,

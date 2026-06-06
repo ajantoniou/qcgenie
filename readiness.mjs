@@ -35,6 +35,26 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
       ok: true,
       detail: "Cost preflight endpoint and MCP tool are part of the shipped contract."
     },
+    renderMediaIngress: {
+      ok: true,
+      modes: {
+        inlineEphemeral: {
+          ok: true,
+          accepts: ["media_base64", "video_base64", "audio_base64", "data_url"],
+          contentTypes: ["video/mp4", "video/quicktime", "video/webm", "audio/mpeg", "audio/wav", "audio/webm", "image/jpeg", "image/png", "image/webp"],
+          defaultMaxMb: 128,
+          storageMode: "render_temp_storage",
+          asyncSupported: false
+        },
+        signedUpload: {
+          ok: true,
+          endpoint: "POST /v1/uploads + PUT signedPutUrl + POST /v1/qc/jobs upload_id",
+          maxUploadMbEnv: "UPLOADCHECK_MAX_UPLOAD_MB",
+          storageMode: "durable_filesystem_or_object_storage_when_configured"
+        }
+      },
+      detail: "Small video/audio/image payloads can be sent inline as base64 and evaluated synchronously from temporary Render storage; larger files use signed upload before job creation."
+    },
     checkout: {
       ok: checkoutConfigured,
       plans: checkout
