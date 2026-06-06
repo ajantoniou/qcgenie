@@ -138,6 +138,7 @@ Job responses include `costEstimate`. The current roadmap verdict is that `$99 /
 Cost guardrail controls:
 
 - Default behavior is `cost_guardrail: "downgrade"`: if a caller declares `ai_review_seconds` that would break the >95% gross-margin budget for the selected plan, UploadCheck records the requested amount but downgrades the job to deterministic checks.
+- Model-backed checks such as `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch` are also counted in the guardrail. If the caller omits `checks`, UploadCheck treats the engine default as requested, then removes model-backed checks in `downgrade` mode when the plan budget cannot support them.
 - Use `cost_guardrail: "block"` to reject margin-breaking AI-review requests with `402 cost_guardrail_blocked`.
 - Use `cost_guardrail: "off"` only for internal experiments or paid deep-review add-ons.
 - Pass `plan_id: "creator" | "studio" | "network" | "stress_99_5000"` or custom `plan_price_cents` and `included_minutes` so the cost estimate matches the customer contract.

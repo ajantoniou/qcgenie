@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimateJobCost } from "../../cost-model.mjs";
+import { applyCostGuardrail, estimateJobCost, estimateModelCheckCost } from "../../cost-model.mjs";
 
 describe("cost model", () => {
   it("computes the 95% margin budget for the $99 / 5,000 minute plan", () => {
@@ -16,5 +16,38 @@ describe("cost model", () => {
     const estimate = estimateJobCost({ minutesMetered: 10, aiReviewSeconds: 600 });
 
     expect(estimate.marginSafe).toBe(false);
+  });
+
+  it("estimates model-backed check costs separately from deterministic checks", () => {
+    const estimate = estimateJobCost({ minutesMetered: 1, checks: "canvas_fill,twins,cheap_broll" });
+    const checkCost = estimateModelCheckCost("canvas_fill,twins,cheap_broll", 1);
+
+    expect(estimate.modelBackedChecks).toEqual(["twins", "cheap_broll"]);
+    expect(estimate.deterministicChecks).toEqual(["canvas_fill"]);
+    expect(estimate.modelCheckCents).toBeCloseTo(checkCost.modelCheckCents);
+  });
+
+  it("downgrades default model-backed checks when they break the margin budget", () => {
+    const guardrail = applyCostGuardrail({
+      planId: "stress_99_5000",
+      costGuardrail: "downgrade"
+    });
+
+    expect(guardrail.ok).toBe(true);
+    expect(guardrail.action).toBe("downgraded_to_deterministic");
+    expect(guardrail.removedChecks).toContain("twins");
+    expect(guardrail.checks).not.toContain("twins");
+    expect(guardrail.estimate.marginSafe).toBe(true);
+  });
+
+  it("can block unsafe model-backed checks instead of downgrading", () => {
+    const guardrail = applyCostGuardrail({
+      checks: "canvas_fill,twins",
+      planId: "stress_99_5000",
+      costGuardrail: "block"
+    });
+
+    expect(guardrail.ok).toBe(false);
+    expect(guardrail.reason).toContain("model-backed checks");
   });
 });

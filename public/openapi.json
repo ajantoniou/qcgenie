@@ -40,7 +40,11 @@
               "estimatedCogsUsd": { "type": "number" },
               "grossMarginBudgetUsd": { "type": "number" },
               "grossMarginTargetPct": { "type": "number" },
-              "withinBudget": { "type": "boolean" }
+              "withinBudget": { "type": "boolean" },
+              "modelCheckCents": { "type": "number" },
+              "modelBackedChecks": { "type": "array", "items": { "type": "string" } },
+              "maxAiReviewSecondsAtMargin": { "type": "integer" },
+              "marginSafe": { "type": "boolean" }
             }
           }
         },

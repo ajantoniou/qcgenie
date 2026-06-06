@@ -86,6 +86,9 @@ async function createJob(req, res) {
     }
     body.ai_review_seconds = guardrail.aiReviewSeconds;
     body.requested_ai_review_seconds = guardrail.requestedAiReviewSeconds;
+    body.requested_checks = guardrail.requestedChecks;
+    body.removed_checks = guardrail.removedChecks;
+    body.checks = guardrail.checks;
     body.cost_guardrail = guardrail.costGuardrail;
     body.cost_guardrail_action = guardrail.action;
     body.cost_guardrail_reason = guardrail.reason || null;
@@ -548,6 +551,7 @@ function estimateCostForJob(job, minutesMetered) {
   return estimateJobCost({
     minutesMetered,
     aiReviewSeconds: job.aiReviewSeconds || 0,
+    checks: job.checks,
     planId: job.planId,
     planPriceCents: job.planPriceCents,
     includedMinutes: job.includedMinutes
