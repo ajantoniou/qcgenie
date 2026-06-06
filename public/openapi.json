@@ -34,6 +34,17 @@
           "minutesMetered": { "type": "integer" },
           "statusUrl": { "type": "string" },
           "reportUrl": { "type": "string" },
+          "mediaIngress": {
+            "type": ["object", "null"],
+            "description": "Sanitized media ingress metadata. Inline media is processed ephemerally without exposing temporary server paths.",
+            "properties": {
+              "mode": { "type": "string", "enum": ["inline_ephemeral", "signed_upload", "youtube_url", "remote_url", "local_or_remote_source"] },
+              "contentType": { "type": ["string", "null"] },
+              "bytes": { "type": ["integer", "null"] },
+              "ephemeral": { "type": "boolean" },
+              "storageMode": { "type": "string", "enum": ["render_temp_storage", "durable_filesystem", "object_storage"] }
+            }
+          },
           "costEstimate": {
             "type": "object",
             "properties": {

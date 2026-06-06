@@ -36,6 +36,7 @@ export class JsonStore {
     const uploadId = input.upload_id || input.uploadId || null;
     const upload = uploadId ? this.getUpload(uploadId) : null;
     const sourceType = input.source_type || input.sourceType || (input.youtube_url ? "youtube" : uploadId ? "upload" : "signed_url");
+    const mediaIngress = buildMediaIngress(input, upload);
     const jobId = `job_${randomId()}`;
     const now = new Date().toISOString();
     const job = {
@@ -46,6 +47,7 @@ export class JsonStore {
       minutesMetered: 0,
       source: input.youtube_url || input.source || input.signed_url || upload?.contentPath || input.upload_id || null,
       sourceType,
+      mediaIngress,
       uploadId,
       idempotencyKey: input.idempotency_key || null,
       callbackUrl: input.callback_url || null,
@@ -66,7 +68,7 @@ export class JsonStore {
       updatedAt: now
     };
     this.state.jobs.push(job);
-    this.addJobEvent(jobId, "queued", { sourceType: job.sourceType });
+    this.addJobEvent(jobId, "queued", { sourceType: job.sourceType, mediaIngress });
     this.persist();
     return job;
   }
@@ -577,6 +579,32 @@ function normalizeProviderUsage(verdictPayload) {
   return source
     .filter((entry) => entry && typeof entry === "object")
     .map((entry) => sanitizeProviderUsageEntry(entry));
+}
+
+function buildMediaIngress(input = {}, upload = null) {
+  const inline = input.inline_media || input.inlineMedia;
+  if (inline) {
+    return {
+      mode: "inline_ephemeral",
+      contentType: inline.content_type || inline.contentType || null,
+      bytes: numberOrNull(inline.bytes),
+      ephemeral: true,
+      storageMode: "render_temp_storage"
+    };
+  }
+  if (upload) {
+    return {
+      mode: "signed_upload",
+      contentType: upload.contentType || null,
+      bytes: numberOrNull(upload.bytesReceived ?? upload.sizeBytes),
+      ephemeral: false,
+      storageMode: upload.storageMode || "render_temp_storage"
+    };
+  }
+  if (input.youtube_url) return { mode: "youtube_url", ephemeral: false };
+  if (input.signed_url || input.signedUrl) return { mode: "remote_url", ephemeral: false };
+  if (input.source) return { mode: "local_or_remote_source", ephemeral: false };
+  return null;
 }
 
 function sanitizeProviderUsageEntry(entry) {

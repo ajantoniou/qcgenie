@@ -63,6 +63,40 @@ describe("JsonStore", () => {
     }
   });
 
+  it("persists sanitized inline media ingress without temporary file paths", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const job = store.createJob({
+        source: join(dir, "inline-source.mp4"),
+        source_type: "upload",
+        inline_media: {
+          content_type: "video/mp4",
+          bytes: 12345,
+          ephemeral: true,
+          filePath: join(dir, "should-not-persist.mp4"),
+          cleanupPath: dir
+        }
+      });
+      const reloadedJob = new JsonStore(path).getJob(job.jobId);
+
+      expect(reloadedJob.mediaIngress).toEqual({
+        mode: "inline_ephemeral",
+        contentType: "video/mp4",
+        bytes: 12345,
+        ephemeral: true,
+        storageMode: "render_temp_storage"
+      });
+      expect(JSON.stringify(reloadedJob.mediaIngress)).not.toContain("should-not-persist");
+      expect(JSON.stringify(reloadedJob.mediaIngress)).not.toContain("cleanupPath");
+      expect(store.listJobEvents(job.jobId)[0].payload.mediaIngress.mode).toBe("inline_ephemeral");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("records webhook delivery previews as delivery log entries", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");

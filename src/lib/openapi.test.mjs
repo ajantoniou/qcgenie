@@ -62,4 +62,14 @@ describe("public OpenAPI spec", () => {
     expect(spec.paths["/llms.txt"].get.security).toEqual([]);
     expect(spec.paths["/llms.txt"].get.responses["200"].content["text/plain"].schema).toEqual({ type: "string" });
   });
+
+  it("documents ephemeral inline-media ingress on QC jobs", () => {
+    const spec = loadSpec();
+    expect(spec.components.schemas.QcJob.properties.mediaIngress).toMatchObject({
+      type: ["object", "null"],
+      description: expect.stringContaining("Inline media is processed ephemerally")
+    });
+    expect(spec.components.schemas.QcJob.properties.mediaIngress.properties.mode.enum).toContain("inline_ephemeral");
+    expect(spec.components.schemas.QcJob.properties.mediaIngress.properties.storageMode.enum).toContain("render_temp_storage");
+  });
 });
