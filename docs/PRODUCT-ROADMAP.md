@@ -218,6 +218,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: mounted-disk JSON persistence is recognized as production persistence when `UPLOADCHECK_STORE_PATH` points outside temp storage; Supabase remains the future multi-workspace store.
 - Done: strong webhook encryption key generation and readiness validation added through `npm run --silent secret:generate` and `GET /v1/readiness`.
 - Done: Product Hunt readiness CLI added through `npm run readiness:check`; it fetches live readiness and prints exact remaining Render/DNS/checkout actions.
+- Done: Product Hunt readiness actions now include explicit checkout and storage probe commands, so operators can prove configured payment/storage paths live before launch.
 - Done: launch doctor added through `npm run launch:doctor`; it runs local launch helpers, explicit checkout/storage probes, public metadata verifiers, and live readiness/DNS checks in one ordered report.
 - Done: launch readiness no longer treats Supabase env alone as persistence proof; until a server-side Supabase store adapter exists, Product Hunt readiness requires the mounted JsonStore path that the runtime actually uses.
 - Done: MCP `qc_run_local_file` added for Codex/Claude/Cursor/NTO/NPO local media workflows; small files are encoded inline for Render evaluation and large files fall back to signed upload.

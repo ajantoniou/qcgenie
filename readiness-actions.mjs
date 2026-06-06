@@ -13,7 +13,9 @@ export function buildReadinessActions(report) {
         "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
         "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
         "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
-        "npm run render:plan && npm run render:validate-env && npm run render:apply"
+        "npm run render:plan && npm run render:validate-env && npm run render:apply",
+        "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
+        "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage"
       ],
       docs: "docs/DEPLOYMENT-CUTOVER.md"
     });
@@ -32,7 +34,8 @@ export function buildReadinessActions(report) {
         "UPLOADCHECK_STUDIO_CHECKOUT_URL",
         "UPLOADCHECK_NETWORK_CHECKOUT_URL",
         "or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG plus UPLOADCHECK_<PLAN>_VARIANT_ID"
-      ]
+      ],
+      command: "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout"
     });
   }
 
@@ -79,7 +82,8 @@ export function buildReadinessActions(report) {
       env: [
         "UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck/uploads",
         `or ${missingObjectStorageEnv.length ? missingObjectStorageEnv.join(" + ") : "UPLOADCHECK_STORAGE_BUCKET + UPLOADCHECK_STORAGE_ENDPOINT + UPLOADCHECK_STORAGE_ACCESS_KEY_ID + UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY"}`
-      ]
+      ],
+      command: "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage"
     });
   }
 

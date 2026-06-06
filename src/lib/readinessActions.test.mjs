@@ -39,12 +39,16 @@ describe("readiness action mapping", () => {
     ]);
     expect(actions[0].commands).toContain("npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env");
     expect(actions[0].commands).toContain("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env");
+    expect(actions[0].commands).toContain("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
+    expect(actions[0].commands).toContain("UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage");
     expect(actions[1].env).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
+    expect(actions[1].command).toBe("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
     expect(actions[3].command).toBe("npm run --silent render:bootstrap-env");
     expect(actions.find((action) => action.id === "persistence").env).toEqual(["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"]);
     expect(actions.find((action) => action.id === "persistence").detail).toContain("Supabase env alone is not launch-ready");
     expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_ENDPOINT");
     expect(actions.find((action) => action.id === "storage").env.join(" ")).toContain("UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY");
+    expect(actions.find((action) => action.id === "storage").command).toBe("UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage");
   });
 
   it("formats a concise readiness summary", () => {
@@ -81,7 +85,9 @@ describe("readiness action mapping", () => {
         "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
         "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
         "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
-        "npm run render:plan && npm run render:validate-env && npm run render:apply"
+        "npm run render:plan && npm run render:validate-env && npm run render:apply",
+        "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
+        "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage"
       ],
       docs: "docs/DEPLOYMENT-CUTOVER.md"
     }, {
