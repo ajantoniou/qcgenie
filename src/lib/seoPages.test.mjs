@@ -40,4 +40,13 @@ describe("static SEO/AEO pages", () => {
     expect(html).toContain("remaining_blockers is empty");
     expect(html).toContain("npm run launch:check");
   });
+
+  it("keeps pricing honest about deep-review cost guardrails", () => {
+    const html = readFileSync("public/pricing/index.html", "utf8");
+
+    expect(html).toContain("Included minutes cover deterministic pre-upload QC");
+    expect(html).toContain("model-backed deep review is preflighted");
+    expect(html).toContain("95% gross-margin target");
+    expect(html).not.toContain("We never block a check");
+  });
 });

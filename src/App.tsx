@@ -316,7 +316,8 @@ function LandingView({ onOpenDashboard, onOpenAgents }: { onOpenDashboard: () =>
         </div>
         <p className="pricingNote">
           Overage is billed only when you exceed your included minutes. Re-checks count because UploadCheck analyzes the
-          actual media file each time.
+          actual media file each time. Included minutes cover deterministic pre-upload QC; model-backed deep review is
+          cost-preflighted and may be downgraded or sold separately when it would break the 95% gross-margin target.
         </p>
       </section>
 
