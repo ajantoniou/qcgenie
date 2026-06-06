@@ -88,6 +88,11 @@
         "callable_check": "first_three_seconds"
       },
       {
+        "id": "end_screen_tease",
+        "covers": "Missing next-video tease, CTA, footer card, or episode handoff in the final window when a manifest is supplied.",
+        "callable_check": "end_screen_tease"
+      },
+      {
         "id": "dead_air",
         "covers": "Unintended long silence or audio dropouts.",
         "callable_check": "dead_air"
@@ -134,10 +139,6 @@
         "covers": "Long-form stretches that go too long without a pattern interrupt or retention re-hook."
       },
       {
-        "id": "end_screen_tease",
-        "covers": "Missing next-video tease, CTA, or episode handoff before upload."
-      },
-      {
         "id": "contact_sheet_evidence",
         "covers": "Before/after visual proof for repaired complaint windows and regression-prone visual fixes."
       }
@@ -146,10 +147,10 @@
   "profiles": {
     "nto_long_form": {
       "label": "NTO long-form final master",
-      "default_checks": "canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,dead_air,text_contrast,text_safe_area,spoken_leaks,pronunciation_watchlist,script_faithfulness",
+      "default_checks": "canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,end_screen_tease,dead_air,text_contrast,text_safe_area,spoken_leaks,pronunciation_watchlist,script_faithfulness",
       "optional_model_checks": "twins,cheap_broll,garble,narration_match,omni_watch",
       "recommended_sidecars": {
-        "manifest_path": "Storybook, edit-decision, or visual-timeline JSON for repeat_fatigue, speaker_visual_binding, static_head_dominance, literal_subject_match, first_three_seconds, and source-family dominance.",
+        "manifest_path": "Storybook, edit-decision, or visual-timeline JSON for repeat_fatigue, speaker_visual_binding, static_head_dominance, literal_subject_match, first_three_seconds, end_screen_tease, and source-family dominance.",
         "transcript_path": "Final transcript text or JSON for spoken_leaks, pronunciation_watchlist, and script_faithfulness.",
         "watchlist_path": "Customer/project terms with expected names and banned misrenders.",
         "expected_script_path": "Locked narration script for script_faithfulness."
@@ -158,7 +159,7 @@
         "tool": "qc_run_local_file",
         "arguments": {
           "file_path": "/path/to/final-master.mp4",
-          "checks": "canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,dead_air,text_contrast,text_safe_area,spoken_leaks,pronunciation_watchlist,script_faithfulness",
+          "checks": "canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,end_screen_tease,dead_air,text_contrast,text_safe_area,spoken_leaks,pronunciation_watchlist,script_faithfulness",
           "manifest_path": "/path/to/storybook.json",
           "transcript_path": "/path/to/final-transcript.txt",
           "watchlist_path": "/path/to/watchlist.json",
@@ -171,17 +172,17 @@
     },
     "nto_shorts": {
       "label": "NTO Shorts or Reels export",
-      "default_checks": "canvas_fill,shorts_format,first_three_seconds,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks,sentence_boundary",
+      "default_checks": "canvas_fill,shorts_format,first_three_seconds,end_screen_tease,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks,sentence_boundary",
       "optional_model_checks": "garble,twins",
       "recommended_sidecars": {
-        "manifest_path": "Shorts edit manifest or clip list for repeated visual reuse and 0-3s hook-card verification.",
+        "manifest_path": "Shorts edit manifest or clip list for repeated visual reuse, 0-3s hook-card verification, and final footer-card verification.",
         "transcript_path": "Short transcript or caption text for spoken_leaks and Shorts text-card checks."
       },
       "mcp_call": {
         "tool": "qc_run_local_file",
         "arguments": {
           "file_path": "/path/to/short.mp4",
-          "checks": "canvas_fill,shorts_format,first_three_seconds,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks,sentence_boundary",
+          "checks": "canvas_fill,shorts_format,first_three_seconds,end_screen_tease,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks,sentence_boundary",
           "manifest_path": "/path/to/short-manifest.json",
           "transcript_path": "/path/to/short-transcript.txt",
           "plan_id": "creator",

@@ -153,7 +153,7 @@ NTO-derived private QC tasks to add to the product:
 15. `cheap_filler`: block old/degraded/B&W/silent-film/low-res filler unless explicitly requested.
 16. `first_three_seconds`: flag generic openers, missing hook frame, or title/thumb mismatch. Implemented first as a deterministic manifest-side opening gate.
 17. `rehook_cadence`: flag long-form stretches without pattern interruption.
-18. `end_screen_tease`: flag missing next-video, CTA, or episode handoff.
+18. `end_screen_tease`: flag missing next-video, CTA, or episode handoff. Implemented first as a deterministic manifest-side final-window gate.
 19. `thumbnail_text_readability`: apply text contrast/safe-area rules to thumbnail candidates.
 20. `repair_loop`: after report generation, agent/MCP should show all QC flags and ask the user whether to fix now. Fixable items should be routed to the LLM or local project files; render-source defects should be described with timestamped patch instructions.
 21. `literal_subject_match`: when narration names a person, place, source, date, or event, require an actual matching visual or an explicit neutral/source-card fallback. This is stricter than mood matching. Implemented first as a deterministic manifest-side gate.
@@ -192,6 +192,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO-derived `static_head_dominance` deterministic manifest-side gate added to `scripts/qc-engine/check_static_head_dominance.py`, included in `run_gate.py`, and added to the NTO long-form recipe default.
 - Done: NTO-derived `literal_subject_match` deterministic manifest-side gate added to `scripts/qc-engine/check_literal_subject_match.py`, included in `run_gate.py`, and added to the NTO long-form recipe default.
 - Done: NTO-derived `first_three_seconds` deterministic manifest-side opening-hook gate added to `scripts/qc-engine/check_first_three_seconds.py`, included in `run_gate.py`, and added to the NTO long-form and Shorts recipe defaults.
+- Done: NTO-derived `end_screen_tease` deterministic manifest-side final-window gate added to `scripts/qc-engine/check_end_screen_tease.py`, included in `run_gate.py`, and added to the NTO long-form and Shorts recipe defaults.
 - Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
 - Done: plan-aware cost guardrail added for declared AI-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked.
 - Done: first per-check model-call accounting added for `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch`; in downgrade mode, margin-breaking model-backed checks are removed before the engine runs.
