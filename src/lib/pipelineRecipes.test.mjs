@@ -31,6 +31,8 @@ describe("UploadCheck pipeline recipes", () => {
     expect(recipes.repair_loop_contract.fixable_scopes).toContain("captions");
     expect(recipes.repair_loop_contract.source_or_render_scopes).toContain("duplicate characters");
     expect(recipes.repair_loop_contract.completion_rule).toContain("no BLOCK flags remain");
+    expect(recipes.nto_replacement_qc.purpose).toContain("production-pipeline QC");
+    expect(recipes.nto_replacement_qc.private_moat_rule).toContain("keep exact thresholds");
     expect(Object.keys(recipes.profiles)).toEqual([
       "nto_long_form",
       "nto_shorts",
@@ -89,5 +91,35 @@ describe("UploadCheck pipeline recipes", () => {
     expect(manifest.response_fields.mediaIngress.safe_to_show).toContain("sha256");
     expect(manifest.response_fields.mediaIngress.never_exposes).toContain("temporary server file paths");
     expect(manifest.repair_loop_contract).toEqual(readJson("public/pipeline-recipes.json").repair_loop_contract);
+  });
+
+  it("exposes NTO replacement QC tasks without publishing private implementation details", () => {
+    const recipes = readJson("public/pipeline-recipes.json");
+    const replacement = recipes.nto_replacement_qc;
+    const implemented = Object.fromEntries(replacement.implemented_gates.map((gate) => [gate.id, gate]));
+    const planned = new Set(replacement.planned_product_gates.map((gate) => gate.id));
+
+    expect(implemented.text_contrast).toMatchObject({
+      callable_check: "text_contrast"
+    });
+    expect(implemented.text_contrast.covers).toContain("Poorly contrasting overlay text");
+    expect(implemented.twins.covers).toContain("more character variation");
+    expect(implemented.narration_match.covers).toContain("Visual/narration mismatch");
+
+    for (const id of [
+      "static_head_dominance",
+      "first_three_seconds",
+      "rehook_cadence",
+      "end_screen_tease",
+      "literal_subject_match",
+      "speaker_visual_binding",
+      "sentence_boundary",
+      "contact_sheet_evidence"
+    ]) {
+      expect(planned.has(id)).toBe(true);
+    }
+
+    expect(JSON.stringify(replacement)).not.toContain("/Applications/");
+    expect(JSON.stringify(replacement)).not.toContain("personas/");
   });
 });

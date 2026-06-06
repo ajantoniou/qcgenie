@@ -32,6 +32,112 @@
     "rerun_after_fix": true,
     "completion_rule": "Do not call the asset upload-ready until UploadCheck is rerun after edits and no BLOCK flags remain."
   },
+  "nto_replacement_qc": {
+    "purpose": "Expose the NTO/NPO production-pipeline QC categories UploadCheck can replace without publishing private thresholds or implementation details.",
+    "source_documents": [
+      "NTO production pipeline v3",
+      "NTO QC engineer persona",
+      "NTO video QC watcher persona",
+      "NTO visual QC learning locks"
+    ],
+    "private_moat_rule": "Publish defect categories, user-facing outcomes, and repair-loop behavior; keep exact thresholds, prompts, fixtures, and validator internals private.",
+    "implemented_gates": [
+      {
+        "id": "text_contrast",
+        "covers": "Poorly contrasting overlay text over image, footage, or background.",
+        "callable_check": "text_contrast"
+      },
+      {
+        "id": "text_safe_area",
+        "covers": "Text hidden by platform UI, cropped near the edge, or unsafe for Shorts action chrome.",
+        "callable_check": "text_safe_area"
+      },
+      {
+        "id": "canvas_fill",
+        "covers": "Long-form pillarbox, letterbox, portrait-in-landscape, and black-gutter layout defects.",
+        "callable_check": "canvas_fill"
+      },
+      {
+        "id": "shorts_format",
+        "covers": "9:16 export shape, full-bleed framing, duration, opening/footer text-card presence, and no-dialogue Shorts constraints.",
+        "callable_check": "shorts_format"
+      },
+      {
+        "id": "repeat_fatigue",
+        "covers": "Exact visual reuse, source-family dominance, and cheap repeated visual patterns from storybook/edit manifests.",
+        "callable_check": "repeat_fatigue"
+      },
+      {
+        "id": "dead_air",
+        "covers": "Unintended long silence or audio dropouts.",
+        "callable_check": "dead_air"
+      },
+      {
+        "id": "spoken_leaks",
+        "covers": "Spoken stage directions, vendor names, URLs, prompt text, markdown, and production notes.",
+        "callable_check": "spoken_leaks"
+      },
+      {
+        "id": "script_faithfulness",
+        "covers": "Narration drift from locked script when transcript and expected script are supplied.",
+        "callable_check": "script_faithfulness"
+      },
+      {
+        "id": "pronunciation_watchlist",
+        "covers": "Customer/project-specific names, banned misrenders, and terms that must be spoken correctly.",
+        "callable_check": "pronunciation_watchlist"
+      },
+      {
+        "id": "twins",
+        "covers": "Duplicate AI characters, clone crowds, same-face extras, and scenes that need more character variation.",
+        "callable_check": "twins"
+      },
+      {
+        "id": "cheap_broll",
+        "covers": "Degraded, black-and-white, silent-era, low-resolution, or generic filler footage unless intentionally archival.",
+        "callable_check": "cheap_broll"
+      },
+      {
+        "id": "narration_match",
+        "covers": "Visual/narration mismatch where footage does not illustrate the spoken beat.",
+        "callable_check": "narration_match"
+      }
+    ],
+    "planned_product_gates": [
+      {
+        "id": "static_head_dominance",
+        "covers": "Held talking-head or portrait shots that dominate a long-form window without motion, graphic, or b-roll relief."
+      },
+      {
+        "id": "first_three_seconds",
+        "covers": "Generic openings, missing hook frame, and title/thumbnail/opening-frame mismatch."
+      },
+      {
+        "id": "rehook_cadence",
+        "covers": "Long-form stretches that go too long without a pattern interrupt or retention re-hook."
+      },
+      {
+        "id": "end_screen_tease",
+        "covers": "Missing next-video tease, CTA, or episode handoff before upload."
+      },
+      {
+        "id": "literal_subject_match",
+        "covers": "Narration names a person, place, date, source, or event, but the visual shows only generic mood footage."
+      },
+      {
+        "id": "speaker_visual_binding",
+        "covers": "A named speaker's voice plays under another character's face or an ambiguous speaking shot."
+      },
+      {
+        "id": "sentence_boundary",
+        "covers": "Voice-clip shorts or excerpts ending mid-word, mid-sentence, or before the punchline resolves."
+      },
+      {
+        "id": "contact_sheet_evidence",
+        "covers": "Before/after visual proof for repaired complaint windows and regression-prone visual fixes."
+      }
+    ]
+  },
   "profiles": {
     "nto_long_form": {
       "label": "NTO long-form final master",
