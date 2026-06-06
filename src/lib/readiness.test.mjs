@@ -18,6 +18,12 @@ describe("launch readiness report", () => {
     expect(report.checks.api.ok).toBe(true);
     expect(report.checks.apiAuth.ok).toBe(true);
     expect(report.checks.checkout.ok).toBe(false);
+    expect(report.checks.checkout.plans.creator).toMatchObject({
+      configured: false,
+      source: "missing",
+      host: null,
+      redactedUrl: null
+    });
     expect(report.checks.customDomain.ok).toBe(false);
     expect(report.checks.persistence.mode).toBe("json_store");
     expect(report.checks.storage.mode).toBe("render_temp_storage");
@@ -41,7 +47,13 @@ describe("launch readiness report", () => {
     });
 
     expect(report.readyForProductHunt).toBe(true);
-    expect(report.checks.checkout.plans.creator.configured).toBe(true);
+    expect(report.checks.checkout.plans.creator).toMatchObject({
+      configured: true,
+      source: "direct_url",
+      sourceKey: "UPLOADCHECK_CREATOR_CHECKOUT_URL",
+      host: "checkout.example",
+      redactedUrl: "https://checkout.example<checkout_path>"
+    });
     expect(report.checks.customDomain.ok).toBe(true);
     expect(report.checks.secretEncryption.ok).toBe(true);
     expect(report.checks.persistence.mode).toBe("durable_json_store");
@@ -67,6 +79,32 @@ describe("launch readiness report", () => {
     expect(report.checks.apiAuth.ok).toBe(false);
     expect(report.checks.productHunt.required).toContain("apiAuth");
     expect(report.readyForProductHunt).toBe(false);
+  });
+
+  it("redacts Lemon Squeezy checkout variant ids in readiness output", () => {
+    const report = buildReadinessReport({
+      host: "api.uploadcheck.app",
+      env: {
+        UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG: "uploadcheck",
+        UPLOADCHECK_CREATOR_VARIANT_ID: "111",
+        UPLOADCHECK_STUDIO_VARIANT_ID: "222",
+        UPLOADCHECK_NETWORK_VARIANT_ID: "333",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "/tmp/does-not-exist-uploadcheck-demo.mp4"
+      },
+      now: "2026-06-06T00:00:00.000Z"
+    });
+
+    expect(report.checks.checkout.ok).toBe(true);
+    expect(report.checks.checkout.plans.creator).toMatchObject({
+      configured: true,
+      source: "lemonsqueezy_variant",
+      sourceKey: "UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG+UPLOADCHECK_CREATOR_VARIANT_ID",
+      host: "uploadcheck.lemonsqueezy.com",
+      redactedUrl: "https://uploadcheck.lemonsqueezy.com/checkout/buy/<variant_id>"
+    });
+    expect(JSON.stringify(report)).not.toContain("111");
+    expect(JSON.stringify(report)).not.toContain("222");
+    expect(JSON.stringify(report)).not.toContain("333");
   });
 
   it("does not accept weak webhook encryption keys as launch-ready", () => {

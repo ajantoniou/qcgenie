@@ -35,7 +35,7 @@ export function formatCheckoutSummary(summary = buildCheckoutSummary()) {
   return lines.join("\n");
 }
 
-function hostForUrl(url) {
+export function hostForUrl(url) {
   try {
     return new URL(String(url)).host;
   } catch {
@@ -43,7 +43,7 @@ function hostForUrl(url) {
   }
 }
 
-function redactCheckoutUrl(url) {
+export function redactCheckoutUrl(url) {
   if (!url) return null;
   try {
     const parsed = new URL(String(url));
