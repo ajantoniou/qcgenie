@@ -1,11 +1,15 @@
 import { lookup } from "node:dns/promises";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const DEFAULT_API_BASE_URL = "https://qcgenie-api.onrender.com";
-const HOSTS = [
-  { kind: "web", host: "uploadcheck.app", expectedRenderHost: "qcgenie-web.onrender.com", url: "https://uploadcheck.app/" },
-  { kind: "web", host: "www.uploadcheck.app", expectedRenderHost: "qcgenie-web.onrender.com", url: "https://www.uploadcheck.app/" },
-  { kind: "api", host: "api.uploadcheck.app", expectedRenderHost: "qcgenie-api.onrender.com", url: "https://api.uploadcheck.app/healthz" }
-];
+const LAUNCH_TARGETS = JSON.parse(readFileSync(resolve("public/launch-targets.json"), "utf8"));
+const HOSTS = LAUNCH_TARGETS.http_targets.map((target) => ({
+  kind: target.kind,
+  host: target.host,
+  expectedRenderHost: target.expected_render_host,
+  url: target.url
+}));
 
 export async function buildLaunchCheck({ apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || DEFAULT_API_BASE_URL, fetchImpl = fetch, resolver = lookup } = {}) {
   const readiness = await fetchJson(fetchImpl, `${apiBaseUrl.replace(/\/+$/, "")}/v1/readiness`);

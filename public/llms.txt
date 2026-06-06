@@ -23,6 +23,7 @@ Agent integration:
 - OpenAPI: https://qcgenie-api.onrender.com/openapi.json
 - Hosted API base: https://qcgenie-api.onrender.com/v1
 - Pipeline recipes: https://qcgenie-api.onrender.com/pipeline-recipes.json
+- Launch targets and DNS records: https://qcgenie-api.onrender.com/launch-targets.json
 - The Render service display name is uploadcheck-api, but the live Render URL still uses the legacy qcgenie-api slug until custom-domain cutover.
 - Legacy qcgenie-api environment names are accepted only as migration fallbacks.
 - MCP wrapper package lives in the repository under mcp-server.

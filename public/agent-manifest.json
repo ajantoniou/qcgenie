@@ -7,6 +7,7 @@
   "api_base_url": "https://qcgenie-api.onrender.com/v1",
   "openapi_url": "https://qcgenie-api.onrender.com/openapi.json",
   "pipeline_recipes_url": "https://qcgenie-api.onrender.com/pipeline-recipes.json",
+  "launch_targets_url": "https://qcgenie-api.onrender.com/launch-targets.json",
   "api_url_note": "Live Render URL uses the legacy slug while the Render display name is uploadcheck-api and custom-domain cutover is pending.",
   "pricing": [
     {

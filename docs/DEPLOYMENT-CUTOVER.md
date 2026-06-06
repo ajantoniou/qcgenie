@@ -16,6 +16,8 @@ The `uploadcheck-api.onrender.com` and `uploadcheck-web.onrender.com` hostnames 
 
 ## DNS Records Needed
 
+Machine-readable DNS and HTTP launch targets are published at `https://qcgenie-api.onrender.com/launch-targets.json` and mirrored in `public/launch-targets.json`.
+
 If the domain uses Cloudflare DNS:
 
 | Type | Name | Target | Notes |

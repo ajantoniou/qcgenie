@@ -1,0 +1,67 @@
+{
+  "name": "UploadCheck Launch Targets",
+  "description": "DNS, Render, and HTTP targets required before UploadCheck.app is Product Hunt launch-ready.",
+  "render": {
+    "web_service": {
+      "display_name": "uploadcheck-web",
+      "service_id": "srv-d8hk200jo6nc73er93u0",
+      "live_render_url": "https://qcgenie-web.onrender.com",
+      "immutable_render_host": "qcgenie-web.onrender.com"
+    },
+    "api_service": {
+      "display_name": "uploadcheck-api",
+      "service_id": "srv-d8hk74svikkc73cu6atg",
+      "live_render_url": "https://qcgenie-api.onrender.com",
+      "immutable_render_host": "qcgenie-api.onrender.com"
+    }
+  },
+  "dns_records": [
+    {
+      "type": "CNAME",
+      "name": "@",
+      "host": "uploadcheck.app",
+      "target": "qcgenie-web.onrender.com",
+      "notes": "Use Cloudflare CNAME flattening, ALIAS, ANAME, or Render A record fallback if apex CNAME is unsupported."
+    },
+    {
+      "type": "CNAME",
+      "name": "www",
+      "host": "www.uploadcheck.app",
+      "target": "qcgenie-web.onrender.com",
+      "notes": "Render redirects www to the apex site."
+    },
+    {
+      "type": "CNAME",
+      "name": "api",
+      "host": "api.uploadcheck.app",
+      "target": "qcgenie-api.onrender.com",
+      "notes": "API health must pass at https://api.uploadcheck.app/healthz."
+    }
+  ],
+  "http_targets": [
+    {
+      "kind": "web",
+      "host": "uploadcheck.app",
+      "expected_render_host": "qcgenie-web.onrender.com",
+      "url": "https://uploadcheck.app/"
+    },
+    {
+      "kind": "web",
+      "host": "www.uploadcheck.app",
+      "expected_render_host": "qcgenie-web.onrender.com",
+      "url": "https://www.uploadcheck.app/"
+    },
+    {
+      "kind": "api",
+      "host": "api.uploadcheck.app",
+      "expected_render_host": "qcgenie-api.onrender.com",
+      "url": "https://api.uploadcheck.app/healthz"
+    }
+  ],
+  "verification_commands": [
+    "npm run launch:check",
+    "curl -i https://uploadcheck.app/",
+    "curl -i https://www.uploadcheck.app/",
+    "curl -i https://api.uploadcheck.app/healthz"
+  ]
+}
