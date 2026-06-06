@@ -161,7 +161,7 @@ NTO-derived private QC tasks to add to the product:
 23. `clip_reuse_ledger`: accept storybook/edit-decision manifests so UploadCheck can catch repeated visuals before export as well as after render. Implemented through `repeat_fatigue` manifest payloads across engine, API, CLI, and MCP.
 24. `spoken_production_leaks`: use transcript patterns for vendor names, URLs, markdown, prompt text, stage directions, and wrong-name substitutions. Implemented through `spoken_leaks`; ASR-generated transcript ingestion remains optional/future.
 25. `chunk_sidecar_failures`: ingest local render sidecars such as `*.garble-report.json` and failed chunk reports as first-class blockers.
-26. `sentence_boundary`: for voice-clip shorts or extracted clips, block mid-word and mid-sentence endings.
+26. `sentence_boundary`: for voice-clip shorts or extracted clips, block mid-word and mid-sentence endings. Implemented first as a deterministic transcript-side gate when callers pass transcript sidecars.
 27. `opening_footer_text_presence`: for text-card Shorts, verify the 0-3s hook card and 50-60s CTA/footer card exist.
 28. `dialogue_in_music_short`: for music-only Shorts, flag any detected spoken dialogue as a format violation.
 29. `contact_sheet_evidence`: require before/after contact-sheet artifacts for repeated founder complaint windows and repair verification.
@@ -187,6 +187,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO-derived `repeat_fatigue` deterministic gate added to `scripts/qc-engine/check_repeat_fatigue.py` and included in `run_gate.py`.
 - Done: NTO-derived `spoken_leaks` deterministic transcript-side gate added to `scripts/qc-engine/check_spoken_leaks.py` and included in `run_gate.py`.
 - Done: NTO-derived `script_faithfulness` deterministic transcript-side WER gate added to `scripts/qc-engine/check_script_faithfulness.py`, plus REST/CLI/MCP expected-script sidecar support.
+- Done: NTO-derived `sentence_boundary` deterministic transcript-side gate added to `scripts/qc-engine/check_sentence_boundary.py`, included in `run_gate.py`, and added to the Shorts recipe default.
 - Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
 - Done: plan-aware cost guardrail added for declared AI-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked.
 - Done: first per-check model-call accounting added for `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch`; in downgrade mode, margin-breaking model-backed checks are removed before the engine runs.

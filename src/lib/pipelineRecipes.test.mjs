@@ -60,6 +60,7 @@ describe("UploadCheck pipeline recipes", () => {
     });
 
     expect(shorts.arguments.checks).toContain("shorts_format");
+    expect(shorts.arguments.checks).toContain("sentence_boundary");
     expect(shorts.arguments.checks).toContain("text_safe_area");
     expect(audio.arguments.file_path).toBe("/path/to/episode.wav");
     expect(audio.arguments.checks).toContain("pronunciation_watchlist");
@@ -105,6 +106,10 @@ describe("UploadCheck pipeline recipes", () => {
     expect(implemented.text_contrast.covers).toContain("Poorly contrasting overlay text");
     expect(implemented.twins.covers).toContain("more character variation");
     expect(implemented.narration_match.covers).toContain("Visual/narration mismatch");
+    expect(implemented.sentence_boundary).toMatchObject({
+      callable_check: "sentence_boundary"
+    });
+    expect(implemented.sentence_boundary.covers).toContain("mid-sentence");
 
     for (const id of [
       "static_head_dominance",
@@ -113,7 +118,6 @@ describe("UploadCheck pipeline recipes", () => {
       "end_screen_tease",
       "literal_subject_match",
       "speaker_visual_binding",
-      "sentence_boundary",
       "contact_sheet_evidence"
     ]) {
       expect(planned.has(id)).toBe(true);

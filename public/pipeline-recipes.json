@@ -83,6 +83,11 @@
         "callable_check": "script_faithfulness"
       },
       {
+        "id": "sentence_boundary",
+        "covers": "Voice-clip shorts or excerpts ending mid-word, mid-sentence, or before the punchline resolves when transcript sidecars are supplied.",
+        "callable_check": "sentence_boundary"
+      },
+      {
         "id": "pronunciation_watchlist",
         "covers": "Customer/project-specific names, banned misrenders, and terms that must be spoken correctly.",
         "callable_check": "pronunciation_watchlist"
@@ -129,10 +134,6 @@
         "covers": "A named speaker's voice plays under another character's face or an ambiguous speaking shot."
       },
       {
-        "id": "sentence_boundary",
-        "covers": "Voice-clip shorts or excerpts ending mid-word, mid-sentence, or before the punchline resolves."
-      },
-      {
         "id": "contact_sheet_evidence",
         "covers": "Before/after visual proof for repaired complaint windows and regression-prone visual fixes."
       }
@@ -166,7 +167,7 @@
     },
     "nto_shorts": {
       "label": "NTO Shorts or Reels export",
-      "default_checks": "canvas_fill,shorts_format,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks",
+      "default_checks": "canvas_fill,shorts_format,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks,sentence_boundary",
       "optional_model_checks": "garble,twins",
       "recommended_sidecars": {
         "manifest_path": "Shorts edit manifest or clip list for repeated visual reuse.",
@@ -176,7 +177,7 @@
         "tool": "qc_run_local_file",
         "arguments": {
           "file_path": "/path/to/short.mp4",
-          "checks": "canvas_fill,shorts_format,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks",
+          "checks": "canvas_fill,shorts_format,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks,sentence_boundary",
           "manifest_path": "/path/to/short-manifest.json",
           "transcript_path": "/path/to/short-transcript.txt",
           "plan_id": "creator",
