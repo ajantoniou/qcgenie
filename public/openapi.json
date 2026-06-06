@@ -92,6 +92,19 @@
                     "type": "string"
                   },
                   "manifest_filename": { "type": "string" },
+                  "transcript_text": {
+                    "description": "Optional transcript/script text used by spoken_leaks without ASR spend.",
+                    "type": "string"
+                  },
+                  "transcript_json": {
+                    "description": "Optional transcript JSON with text or words fields used by spoken_leaks.",
+                    "type": ["object", "array", "string"]
+                  },
+                  "transcript_base64": {
+                    "description": "Optional base64-encoded transcript text or JSON.",
+                    "type": "string"
+                  },
+                  "transcript_filename": { "type": "string" },
                   "checks": { "type": "string" }
                 }
               }

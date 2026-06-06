@@ -85,6 +85,23 @@ describe("UploadCheck CLI request builder", () => {
     expect(signed.createJob.payload.manifest_filename).toBe("storybook.json");
   });
 
+  it("attaches transcript text to jobs", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-cli-"));
+    const file = join(dir, "master.mp4");
+    const transcript = join(dir, "transcript.txt");
+    writeFileSync(file, Buffer.from("fake-mp4"));
+    writeFileSync(transcript, "This line says [pause] and https://example.com by mistake.");
+
+    const request = buildJobRequest(file, {
+      maxInlineMb: 1,
+      checks: "spoken_leaks",
+      transcriptPath: transcript
+    });
+
+    expect(request.payload.transcript_text).toContain("[pause]");
+    expect(request.payload.transcript_filename).toBe("transcript.txt");
+  });
+
   it("parses command flags", () => {
     const parsed = parseArgs([
       "check",
@@ -97,6 +114,8 @@ describe("UploadCheck CLI request builder", () => {
       "signed",
       "--manifest",
       "storybook.json",
+      "--transcript",
+      "transcript.txt",
       "--json"
     ]);
 
@@ -106,6 +125,7 @@ describe("UploadCheck CLI request builder", () => {
       checks: "garble",
       uploadMode: "signed",
       manifestPath: "storybook.json",
+      transcriptPath: "transcript.txt",
       json: true
     });
   });

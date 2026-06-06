@@ -50,6 +50,7 @@ export function buildJobRequest(target, options = {}) {
 
   if (options.checks) payload.checks = options.checks;
   attachManifest(payload, options);
+  attachTranscript(payload, options);
   if (options.callbackUrl) payload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) payload.idempotency_key = options.idempotencyKey;
 
@@ -70,6 +71,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
   const jobPayload = {};
   if (options.checks) jobPayload.checks = options.checks;
   attachManifest(jobPayload, options);
+  attachTranscript(jobPayload, options);
   if (options.callbackUrl) jobPayload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) jobPayload.idempotency_key = options.idempotencyKey;
 
@@ -116,6 +118,8 @@ export function parseArgs(argv) {
       options.checks = requireValue(arg, args.shift());
     } else if (arg === "--manifest") {
       options.manifestPath = requireValue(arg, args.shift());
+    } else if (arg === "--transcript") {
+      options.transcriptPath = requireValue(arg, args.shift());
     } else if (arg === "--callback-url") {
       options.callbackUrl = requireValue(arg, args.shift());
     } else if (arg === "--idempotency-key") {
@@ -171,6 +175,18 @@ function attachManifest(payload, options) {
   const text = readFileSync(options.manifestPath, "utf8");
   payload.manifest_json = JSON.parse(text);
   payload.manifest_filename = basename(options.manifestPath);
+}
+
+function attachTranscript(payload, options) {
+  if (!options.transcriptPath) return;
+  if (!existsSync(options.transcriptPath)) throw new Error(`Transcript not found: ${options.transcriptPath}`);
+  const text = readFileSync(options.transcriptPath, "utf8");
+  if (options.transcriptPath.toLowerCase().endsWith(".json")) {
+    payload.transcript_json = JSON.parse(text);
+  } else {
+    payload.transcript_text = text;
+  }
+  payload.transcript_filename = basename(options.transcriptPath);
 }
 
 function formatMb(bytes) {

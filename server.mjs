@@ -71,6 +71,7 @@ async function createJob(req, res) {
   const body = await readJson(req);
   const inlineMedia = await materializeInlineMedia(body);
   const inlineManifest = await materializeInlineManifest(body);
+  const inlineTranscript = await materializeInlineTranscript(body);
   try {
     if (inlineMedia) {
       body.source = inlineMedia.filePath;
@@ -83,12 +84,17 @@ async function createJob(req, res) {
     }
     const job = store.createJob(body);
     if (job.idempotentReplay) return sendJson(res, 200, withCostEstimate(job));
-    const completed = store.runDeterministicQc(job.jobId, { checks: body.checks || inlineMedia?.checks, manifestPath: inlineManifest?.filePath });
+    const completed = store.runDeterministicQc(job.jobId, {
+      checks: body.checks || inlineMedia?.checks,
+      manifestPath: inlineManifest?.filePath,
+      transcriptPath: inlineTranscript?.filePath
+    });
     store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
     return sendJson(res, 202, withCostEstimate(completed || job));
   } finally {
     await cleanupInlineMedia(inlineMedia);
     await cleanupInlineManifest(inlineManifest);
+    await cleanupInlineTranscript(inlineTranscript);
   }
 }
 
@@ -116,6 +122,32 @@ async function materializeInlineManifest(body = {}) {
 async function cleanupInlineManifest(manifest) {
   if (!manifest?.cleanupPath) return;
   await rm(manifest.cleanupPath, { recursive: true, force: true });
+}
+
+async function materializeInlineTranscript(body = {}) {
+  const raw = body.transcript_text ?? body.transcriptText ?? body.transcript_json ?? body.transcriptJson ?? null;
+  const b64 = body.transcript_base64 ?? body.transcriptBase64 ?? null;
+  if (raw == null && !b64) return null;
+
+  let payload;
+  let ext = ".txt";
+  if (b64) {
+    payload = Buffer.from(String(b64), "base64").toString("utf8");
+  } else if (typeof raw === "string") {
+    payload = raw;
+  } else {
+    payload = JSON.stringify(raw);
+    ext = ".json";
+  }
+  const dir = await mkdtemp(join(tmpdir(), "uploadcheck-transcript-"));
+  const filePath = join(dir, `transcript${ext}`);
+  await writeFile(filePath, payload);
+  return { filePath, cleanupPath: dir };
+}
+
+async function cleanupInlineTranscript(transcript) {
+  if (!transcript?.cleanupPath) return;
+  await rm(transcript.cleanupPath, { recursive: true, force: true });
 }
 
 function redirectCheckout(url, res) {

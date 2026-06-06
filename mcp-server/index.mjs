@@ -36,6 +36,10 @@ server.tool(
     manifest_json: z.any().optional(),
     manifest_base64: z.string().optional(),
     manifest_filename: z.string().optional(),
+    transcript_text: z.string().optional(),
+    transcript_json: z.any().optional(),
+    transcript_base64: z.string().optional(),
+    transcript_filename: z.string().optional(),
     checks: z.string().optional(),
     callback_url: z.string().optional(),
     idempotency_key: z.string().optional()

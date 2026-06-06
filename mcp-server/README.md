@@ -38,6 +38,8 @@ The agent should call `qc_run_video`, poll `qc_get_job`, fetch `qc_get_report`, 
 
 When a project has a storybook, edit decision list, or visual timeline JSON, pass it as `manifest_json` with `checks: "repeat_fatigue"`. UploadCheck will use it to flag exact visual reuse and source-family dominance even before a final render is reviewed.
 
+When a project has transcript text or a script-sidecar, pass it as `transcript_text` or `transcript_json` with `checks: "spoken_leaks"`. UploadCheck will flag spoken URLs, markdown, prompt text, stage directions, vendor/tool names, and known wrong-name substitutions without running ASR.
+
 ## Tools
 
 - `qc_run_video`
