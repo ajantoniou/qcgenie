@@ -19,8 +19,10 @@ describe("launch readiness report", () => {
     expect(report.checks.apiAuth.ok).toBe(true);
     expect(report.checks.checkout.ok).toBe(false);
     expect(report.checks.checkout.plans.creator).toMatchObject({
+      ok: false,
       configured: false,
       source: "missing",
+      reason: "missing",
       host: null,
       redactedUrl: null
     });
@@ -48,7 +50,9 @@ describe("launch readiness report", () => {
 
     expect(report.readyForProductHunt).toBe(true);
     expect(report.checks.checkout.plans.creator).toMatchObject({
+      ok: true,
       configured: true,
+      secure: true,
       source: "direct_url",
       sourceKey: "UPLOADCHECK_CREATOR_CHECKOUT_URL",
       host: "checkout.example",
@@ -96,7 +100,9 @@ describe("launch readiness report", () => {
 
     expect(report.checks.checkout.ok).toBe(true);
     expect(report.checks.checkout.plans.creator).toMatchObject({
+      ok: true,
       configured: true,
+      secure: true,
       source: "lemonsqueezy_variant",
       sourceKey: "UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG+UPLOADCHECK_CREATOR_VARIANT_ID",
       host: "uploadcheck.lemonsqueezy.com",
@@ -124,6 +130,7 @@ describe("launch readiness report", () => {
 
     expect(report.checks.checkout.ok).toBe(false);
     expect(report.checks.checkout.plans.creator).toMatchObject({
+      ok: false,
       configured: false,
       source: "missing",
       sourceKey: null,
@@ -131,6 +138,7 @@ describe("launch readiness report", () => {
       redactedUrl: null
     });
     expect(report.checks.checkout.plans.studio).toMatchObject({
+      ok: true,
       configured: true,
       sourceKey: "UPLOADCHECK_STUDIO_CHECKOUT_URL"
     });
@@ -148,6 +156,32 @@ describe("launch readiness report", () => {
     });
 
     expect(report.checks.secretEncryption).toMatchObject({ ok: false, reason: "too_short" });
+  });
+
+  it("does not accept non-HTTPS checkout URLs as launch-ready", () => {
+    const report = buildReadinessReport({
+      host: "api.uploadcheck.app",
+      env: {
+        UPLOADCHECK_CREATOR_CHECKOUT_URL: "http://checkout.example/creator",
+        UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
+        UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+        UPLOADCHECK_SECRET_ENCRYPTION_KEY: strongSecret,
+        UPLOADCHECK_API_KEY_SHA256: "hash",
+        UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
+        UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck-storage",
+        UPLOADCHECK_DEMO_CLIP_URL: "https://uploadcheck.app/demo.mp4"
+      },
+      now: "2026-06-06T00:00:00.000Z"
+    });
+
+    expect(report.checks.checkout.ok).toBe(false);
+    expect(report.checks.checkout.plans.creator).toMatchObject({
+      configured: true,
+      ok: false,
+      secure: false,
+      reason: "checkout_url_must_be_https"
+    });
+    expect(report.readyForProductHunt).toBe(false);
   });
 
   it("does not accept incomplete object storage env as launch-ready storage", () => {

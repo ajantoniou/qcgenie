@@ -26,7 +26,7 @@ export function buildReadinessActions(report) {
     actions.push({
       id: "checkout",
       title: "Configure checkout URLs",
-      detail: `Set checkout env for ${missingPlans.join(", ") || "all plans"}.`,
+      detail: `Set HTTPS checkout env for ${missingPlans.join(", ") || "all plans"}, or use Lemon Squeezy store slug plus plan variant IDs.`,
       env: [
         "UPLOADCHECK_CREATOR_CHECKOUT_URL",
         "UPLOADCHECK_STUDIO_CHECKOUT_URL",

@@ -41,7 +41,7 @@ If the DNS provider does not support apex CNAME flattening, use either an `ALIAS
 - Durable signed-upload media: `UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck/uploads`
 - API auth prompt: `UPLOADCHECK_API_KEY_SHA256` (keep the bearer token private for clients)
 - Optional S3/R2 upload retention: set `UPLOADCHECK_STORAGE_BUCKET`, `UPLOADCHECK_STORAGE_ENDPOINT`, `UPLOADCHECK_STORAGE_ACCESS_KEY_ID`, and `UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY`. Optional: `UPLOADCHECK_STORAGE_REGION`, `UPLOADCHECK_STORAGE_PREFIX`, `UPLOADCHECK_STORAGE_PUBLIC_BASE_URL`.
-- Checkout prompts: direct `UPLOADCHECK_CREATOR_CHECKOUT_URL`, `UPLOADCHECK_STUDIO_CHECKOUT_URL`, `UPLOADCHECK_NETWORK_CHECKOUT_URL`, or Lemon Squeezy `UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG` plus `UPLOADCHECK_<PLAN>_VARIANT_ID`
+- Checkout prompts: HTTPS direct `UPLOADCHECK_CREATOR_CHECKOUT_URL`, `UPLOADCHECK_STUDIO_CHECKOUT_URL`, `UPLOADCHECK_NETWORK_CHECKOUT_URL`, or Lemon Squeezy `UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG` plus `UPLOADCHECK_<PLAN>_VARIANT_ID`
 - Webhook encryption prompt: `UPLOADCHECK_SECRET_ENCRYPTION_KEY`
 
 Before Product Hunt launch, sync the Blueprint or manually apply the same values in Render, then run:
@@ -87,7 +87,7 @@ npm run readiness:check
 
 `render:bootstrap-env` is the recommended launch handoff because it pre-fills a hashed API key and webhook encryption key while leaving Render, checkout, and optional object-storage values for the operator. `render:env-template` is still available when you need a placeholders-only file. The generated env template is safe to commit only while placeholders are intact. A filled copy contains Render, checkout, API, webhook, and optional storage secrets and must stay local.
 `render:plan` reports `placeholderInputs` when a generated placeholder such as `<render_api_key>` or `https://...` is still present. Replace those values before running `render:apply`; the helper ignores placeholders instead of sending them to Render.
-`render:validate-env-file -- /tmp/uploadcheck-render-launch.env` checks the filled local file before it is sourced. `render:validate-env` checks the currently loaded shell environment before apply: real Render API key, valid API-key hash or bootstrap key, HTTPS checkout URLs or Lemon Squeezy store/variant inputs, strong webhook encryption key, durable `/mnt/...` paths, and complete optional object-storage settings. `render:apply` refuses to run when validation fails.
+`render:validate-env-file -- /tmp/uploadcheck-render-launch.env` checks the filled local file before it is sourced. `render:validate-env` checks the currently loaded shell environment before apply: real Render API key, valid API-key hash or bootstrap key, HTTPS checkout URLs or Lemon Squeezy store/variant inputs, strong webhook encryption key, durable `/mnt/...` paths, and complete optional object-storage settings. `launch:checkout` and `/v1/readiness` also reject non-HTTPS direct checkout URLs so Product Hunt readiness cannot pass with an insecure payment link. `render:apply` refuses to run when validation fails.
 
 `render:apply` adds the custom domains, sets the fixed durable env values, sets only the secret env values that are present in the local environment, and triggers web/API redeploys. It does not configure DNS; Cloudflare or the domain registrar still needs the CNAME records above.
 

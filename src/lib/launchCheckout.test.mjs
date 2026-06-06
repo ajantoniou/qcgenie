@@ -14,10 +14,10 @@ describe("launch checkout config helper", () => {
     const text = formatCheckoutSummary(summary);
 
     expect(summary.ok).toBe(true);
-    expect(summary.plans.map((plan) => [plan.plan, plan.host, plan.redactedUrl])).toEqual([
-      ["creator", "uploadcheck.lemonsqueezy.com", "https://uploadcheck.lemonsqueezy.com/checkout/buy/<variant_id>"],
-      ["studio", "uploadcheck.lemonsqueezy.com", "https://uploadcheck.lemonsqueezy.com/checkout/buy/<variant_id>"],
-      ["network", "uploadcheck.lemonsqueezy.com", "https://uploadcheck.lemonsqueezy.com/checkout/buy/<variant_id>"]
+    expect(summary.plans.map((plan) => [plan.plan, plan.ok, plan.host, plan.redactedUrl])).toEqual([
+      ["creator", true, "uploadcheck.lemonsqueezy.com", "https://uploadcheck.lemonsqueezy.com/checkout/buy/<variant_id>"],
+      ["studio", true, "uploadcheck.lemonsqueezy.com", "https://uploadcheck.lemonsqueezy.com/checkout/buy/<variant_id>"],
+      ["network", true, "uploadcheck.lemonsqueezy.com", "https://uploadcheck.lemonsqueezy.com/checkout/buy/<variant_id>"]
     ]);
     expect(text).toContain("UploadCheck checkout config: READY");
     expect(text).not.toContain("111");
@@ -53,5 +53,25 @@ describe("launch checkout config helper", () => {
     ]);
     expect(text).toContain("UploadCheck checkout config: NOT READY");
     expect(text).toContain("BLOCK creator");
+  });
+
+  it("does not mark checkout ready when a configured plan uses non-HTTPS checkout", () => {
+    const summary = buildCheckoutSummary({
+      UPLOADCHECK_CREATOR_CHECKOUT_URL: "http://checkout.example/creator",
+      UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
+      UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network"
+    });
+    const text = formatCheckoutSummary(summary);
+
+    expect(summary.ok).toBe(false);
+    expect(summary.plans[0]).toMatchObject({
+      plan: "creator",
+      configured: true,
+      ok: false,
+      secure: false,
+      reason: "checkout_url_must_be_https"
+    });
+    expect(text).toContain("BLOCK creator");
+    expect(text).toContain("reason: checkout_url_must_be_https");
   });
 });

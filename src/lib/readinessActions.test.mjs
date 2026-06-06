@@ -7,7 +7,7 @@ describe("readiness action mapping", () => {
       generatedAt: "2026-06-06T00:00:00.000Z",
       readyForProductHunt: false,
       checks: {
-        checkout: { ok: false, plans: { creator: { configured: false }, studio: { configured: true }, network: { configured: false } } },
+        checkout: { ok: false, plans: { creator: { configured: false }, studio: { configured: true, ok: true }, network: { configured: false } } },
         customDomain: { ok: false, host: "qcgenie-api.onrender.com" },
         secretEncryption: { ok: false, reason: "missing" },
         apiAuth: { ok: true },

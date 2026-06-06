@@ -3,13 +3,13 @@ import { resolve } from "node:path";
 import { CHECKOUT_PLANS, resolveCheckout } from "./checkout-links.mjs";
 import { validateSecretEncryptionKey } from "./secrets.mjs";
 import { getObjectStorageConfig } from "./object-storage.mjs";
-import { hostForUrl, redactCheckoutUrl } from "./launch-checkout.mjs";
+import { hostForUrl, isSecureCheckoutUrl, redactCheckoutUrl } from "./launch-checkout.mjs";
 
 export function buildReadinessReport({ env = process.env, host = "", now = new Date().toISOString() } = {}) {
   const checkout = Object.fromEntries(
     CHECKOUT_PLANS.map((plan) => [plan, checkoutReadinessForPlan(plan, env)])
   );
-  const checkoutConfigured = CHECKOUT_PLANS.every((plan) => checkout[plan].configured);
+  const checkoutConfigured = CHECKOUT_PLANS.every((plan) => checkout[plan].ok);
   const customDomainActive = isUploadCheckHost(host);
   const secretEncryptionKey = env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || env.QCGENIE_SECRET_ENCRYPTION_KEY || "";
   const secretEncryptionValidation = validateSecretEncryptionKey(secretEncryptionKey);
@@ -95,13 +95,24 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
 
 function checkoutReadinessForPlan(plan, env) {
   const resolved = resolveCheckout(plan, env);
+  const secure = isSecureCheckoutUrl(resolved.url);
   return {
+    ok: resolved.configured && secure,
     configured: resolved.configured,
+    secure,
+    reason: checkoutReason(resolved, secure),
     source: resolved.source,
     sourceKey: resolved.sourceKey,
     host: hostForUrl(resolved.url),
     redactedUrl: redactCheckoutUrl(resolved.url)
   };
+}
+
+function checkoutReason(resolved, secure) {
+  if (!resolved.configured) return "missing";
+  if (!hostForUrl(resolved.url)) return "invalid_url";
+  if (!secure) return "checkout_url_must_be_https";
+  return "ready";
 }
 
 function isUploadCheckHost(host) {
