@@ -6,6 +6,7 @@
   "packages": ["@uploadcheck/cli", "@uploadcheck/mcp"],
   "api_base_url": "https://qcgenie-api.onrender.com/v1",
   "openapi_url": "https://qcgenie-api.onrender.com/openapi.json",
+  "pipeline_recipes_url": "https://qcgenie-api.onrender.com/pipeline-recipes.json",
   "api_url_note": "Live Render URL uses the legacy slug while the Render display name is uploadcheck-api and custom-domain cutover is pending.",
   "pricing": [
     {
@@ -87,5 +88,23 @@
     "The agent calls qc_run_local_file for reachable local media or qc_run_video for URLs/upload ids, then polls qc_get_job until completion.",
     "The agent fetches qc_get_report and lists timestamped evidence.",
     "The agent shows all BLOCK and WATCH flags, asks whether to fix now, fixes captions/checklists/source-level issues it can reach, then flags issues requiring a source or render pass."
+  ],
+  "pipeline_profiles": [
+    {
+      "id": "nto_long_form",
+      "purpose": "NTO long-form final masters with manifests, transcript sidecars, pronunciation watchlists, and locked scripts."
+    },
+    {
+      "id": "nto_shorts",
+      "purpose": "NTO Shorts/Reels exports with vertical layout, safe-area, text-readability, repeat, dead-air, and transcript leak checks."
+    },
+    {
+      "id": "npo_podcast_or_audio",
+      "purpose": "NPO podcast/audio episodes with deterministic transcript-side leak, pronunciation, script-drift, and dead-air checks."
+    },
+    {
+      "id": "generic_creator_video",
+      "purpose": "Default creator-video upload checks using deterministic full-timeline gates."
+    }
   ]
 }

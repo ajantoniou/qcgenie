@@ -1,0 +1,109 @@
+{
+  "name": "UploadCheck Pipeline Recipes",
+  "description": "Machine-readable defaults for agentic production pipelines that call UploadCheck before upload.",
+  "api_base_url": "https://qcgenie-api.onrender.com/v1",
+  "mcp_server": "uploadcheck",
+  "cost_preflight": {
+    "tool": "qc_estimate_cost",
+    "default_plan_id": "creator",
+    "default_cost_guardrail": "downgrade",
+    "rule": "Run cost preflight before uploading large media or requesting model-backed checks."
+  },
+  "repair_loop": [
+    "Fetch qc_get_report and qc_get_marker_csv after the job completes.",
+    "Group flags by BLOCK, WATCH, and PASS.",
+    "Show all flags to the user and ask whether to fix now.",
+    "Apply only fixes reachable from source files, captions, metadata, or manifests.",
+    "For render defects, return timestamped source/render instructions and rerun UploadCheck after the media changes."
+  ],
+  "profiles": {
+    "nto_long_form": {
+      "label": "NTO long-form final master",
+      "default_checks": "canvas_fill,loop_freeze,repeat_fatigue,dead_air,text_contrast,text_safe_area,spoken_leaks,pronunciation_watchlist,script_faithfulness",
+      "optional_model_checks": "twins,cheap_broll,garble,narration_match,omni_watch",
+      "recommended_sidecars": {
+        "manifest_path": "Storybook, edit-decision, or visual-timeline JSON for repeat_fatigue and source-family dominance.",
+        "transcript_path": "Final transcript text or JSON for spoken_leaks, pronunciation_watchlist, and script_faithfulness.",
+        "watchlist_path": "Customer/project terms with expected names and banned misrenders.",
+        "expected_script_path": "Locked narration script for script_faithfulness."
+      },
+      "mcp_call": {
+        "tool": "qc_run_local_file",
+        "arguments": {
+          "file_path": "/path/to/final-master.mp4",
+          "checks": "canvas_fill,loop_freeze,repeat_fatigue,dead_air,text_contrast,text_safe_area,spoken_leaks,pronunciation_watchlist,script_faithfulness",
+          "manifest_path": "/path/to/storybook.json",
+          "transcript_path": "/path/to/final-transcript.txt",
+          "watchlist_path": "/path/to/watchlist.json",
+          "expected_script_path": "/path/to/locked-script.txt",
+          "plan_id": "creator",
+          "cost_guardrail": "downgrade",
+          "idempotency_key": "nto-episode-final-master"
+        }
+      }
+    },
+    "nto_shorts": {
+      "label": "NTO Shorts or Reels export",
+      "default_checks": "canvas_fill,shorts_format,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks",
+      "optional_model_checks": "garble,twins",
+      "recommended_sidecars": {
+        "manifest_path": "Shorts edit manifest or clip list for repeated visual reuse.",
+        "transcript_path": "Short transcript or caption text for spoken_leaks and Shorts text-card checks."
+      },
+      "mcp_call": {
+        "tool": "qc_run_local_file",
+        "arguments": {
+          "file_path": "/path/to/short.mp4",
+          "checks": "canvas_fill,shorts_format,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks",
+          "manifest_path": "/path/to/short-manifest.json",
+          "transcript_path": "/path/to/short-transcript.txt",
+          "plan_id": "creator",
+          "cost_guardrail": "downgrade",
+          "idempotency_key": "nto-short-final"
+        }
+      }
+    },
+    "npo_podcast_or_audio": {
+      "label": "NPO podcast/audio episode",
+      "default_checks": "dead_air,spoken_leaks,pronunciation_watchlist,script_faithfulness",
+      "optional_model_checks": "garble,omni_watch",
+      "recommended_sidecars": {
+        "transcript_path": "Final transcript for deterministic leak, pronunciation, and script-drift checks.",
+        "watchlist_path": "Names, sponsor terms, organization names, and banned misrenders.",
+        "expected_script_path": "Locked script or rundown when available."
+      },
+      "mcp_call": {
+        "tool": "qc_run_local_file",
+        "arguments": {
+          "file_path": "/path/to/episode.wav",
+          "checks": "dead_air,spoken_leaks,pronunciation_watchlist,script_faithfulness",
+          "transcript_path": "/path/to/final-transcript.txt",
+          "watchlist_path": "/path/to/watchlist.json",
+          "expected_script_path": "/path/to/locked-script.txt",
+          "plan_id": "creator",
+          "cost_guardrail": "downgrade",
+          "idempotency_key": "npo-audio-final"
+        }
+      }
+    },
+    "generic_creator_video": {
+      "label": "Generic creator video",
+      "default_checks": "canvas_fill,loop_freeze,repeat_fatigue,dead_air,text_contrast,text_safe_area",
+      "optional_model_checks": "twins,cheap_broll,garble,narration_match",
+      "recommended_sidecars": {
+        "manifest_path": "Optional edit manifest for repeat_fatigue.",
+        "transcript_path": "Optional transcript for transcript-side checks."
+      },
+      "mcp_call": {
+        "tool": "qc_run_local_file",
+        "arguments": {
+          "file_path": "/path/to/final-upload.mp4",
+          "checks": "canvas_fill,loop_freeze,repeat_fatigue,dead_air,text_contrast,text_safe_area",
+          "plan_id": "creator",
+          "cost_guardrail": "downgrade",
+          "idempotency_key": "creator-final-upload"
+        }
+      }
+    }
+  }
+}

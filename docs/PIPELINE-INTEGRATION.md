@@ -27,6 +27,8 @@ The server exposes `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_
 
 The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadcheck`. Use `$uploadcheck` when a project needs the standard preflight -> hosted QC -> report -> repair-loop workflow.
 
+Machine-readable pipeline profiles are published at `https://qcgenie-api.onrender.com/pipeline-recipes.json` for agents that need defaults without scraping prose. The current profiles are `nto_long_form`, `nto_shorts`, `npo_podcast_or_audio`, and `generic_creator_video`.
+
 ## CLI Usage
 
 Estimate a run before uploading or sending media:
@@ -134,6 +136,8 @@ For NTO long-form episodes, shorts, or NPO media exports:
 4. Poll `qc_get_job` until `status=completed`.
 5. Fetch `qc_get_report` and `qc_get_marker_csv`.
 6. Treat `BLOCK` as stop-ship, `WATCH` as source review, and `PASS` as ready only after the project-specific editorial checklist is also complete.
+
+Agent projects can load `public/pipeline-recipes.json` and map the selected profile's `mcp_call.arguments` directly into `qc_run_local_file`. The file is intentionally explicit about sidecar fields so NTO/NPO pipelines can pass manifests, transcripts, watchlists, and locked scripts without each project re-learning the UploadCheck payload shape.
 
 The hosted API writes inline media to temporary server storage, runs the deterministic gate, parses the gate verdict, stores the report, and deletes the temporary media file after the request finishes. Signed-upload media uses local staging for the immediate run; durable filesystem or object storage retention is only used when configured.
 

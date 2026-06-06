@@ -22,11 +22,13 @@ Agent integration:
 - REST API preflight starts at POST /v1/qc/estimate; job lifecycle starts at POST /v1/qc/jobs.
 - OpenAPI: https://qcgenie-api.onrender.com/openapi.json
 - Hosted API base: https://qcgenie-api.onrender.com/v1
+- Pipeline recipes: https://qcgenie-api.onrender.com/pipeline-recipes.json
 - The Render service display name is uploadcheck-api, but the live Render URL still uses the legacy qcgenie-api slug until custom-domain cutover.
 - Legacy qcgenie-api environment names are accepted only as migration fallbacks.
 - MCP wrapper package lives in the repository under mcp-server.
 - MCP tools: qc_estimate_cost, qc_run_video, qc_run_local_file, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_get_margin_telemetry, qc_create_upload_url.
 - MCP local-file workflow: qc_run_local_file reads a reachable local media path, encodes small files inline for Render evaluation, and falls back to signed upload for larger files.
+- NTO/NPO pipeline profiles are machine-readable in pipeline-recipes.json: nto_long_form, nto_shorts, npo_podcast_or_audio, and generic_creator_video.
 - Large local files use POST /v1/uploads, PUT /v1/uploads/{upload_id}/content?token=..., then POST /v1/qc/jobs with upload_id.
 - Signed-upload bytes use Render temp storage by default or mounted durable filesystem storage when UPLOADCHECK_DURABLE_STORAGE_DIR is configured.
 - API keys are workspace-scoped and should be stored as connector secrets.
