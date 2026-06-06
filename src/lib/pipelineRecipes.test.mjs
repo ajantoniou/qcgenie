@@ -119,7 +119,7 @@ describe("UploadCheck pipeline recipes", () => {
     const recipes = readJson("public/pipeline-recipes.json");
     const replacement = recipes.nto_replacement_qc;
     const implemented = Object.fromEntries(replacement.implemented_gates.map((gate) => [gate.id, gate]));
-    const planned = new Set(replacement.planned_product_gates.map((gate) => gate.id));
+    const planned = Object.fromEntries(replacement.planned_product_gates.map((gate) => [gate.id, gate]));
 
     expect(implemented.text_contrast).toMatchObject({
       callable_check: "text_contrast"
@@ -180,7 +180,11 @@ describe("UploadCheck pipeline recipes", () => {
     });
     expect(implemented.chunk_sidecar_failures.covers).toContain("garble sidecars");
 
-    expect(planned.size).toBe(0);
+    expect(planned.visual_authenticity.covers).toContain("casting/style authenticity");
+    expect(planned.ai_plate_artifacts.covers).toContain("melted hands");
+    expect(planned.unwanted_lip_movement.covers).toContain("lip-sync");
+    expect(planned.historical_period_fit.covers).toContain("Wrong era");
+    expect(planned.sensitive_framing.covers).toContain("anti-Jewish coding");
 
     expect(JSON.stringify(replacement)).not.toContain("/Applications/");
     expect(JSON.stringify(replacement)).not.toContain("personas/");

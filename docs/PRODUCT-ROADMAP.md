@@ -131,6 +131,8 @@ Source evidence reviewed:
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-engineer.md`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/council/20-video-qc-watcher.md`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-snippets/visual-qc-learning-locks.md`
+- `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/content/videos/tampered-with-the-gospels-2026-05-27/STAGE-17-5-AI-PROMPT-PACK-v12.md`
+- `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/content/videos/_shared/cast/_LEVANTINE-AUDIT-2026-06-02.md`
 
 Product interpretation: UploadCheck should become the callable QC surface that replaces NTO's current production QC personas and scripts. We should not publicly disclose every private gate or implementation detail; public copy can say "readability, visual match, audio integrity, layout, repetition, and publish-readiness checks" while the private engine keeps the exact gate list and thresholds.
 
@@ -166,6 +168,11 @@ NTO-derived private QC tasks to add to the product:
 28. `opening_footer_text_presence`: for text-card Shorts, verify the 0-3s hook card and 50-60s CTA/footer card exist. Implemented first as a deterministic manifest-side gate before rendered OCR spend.
 29. `dialogue_in_music_short`: for music-only Shorts, flag any detected spoken dialogue as a format violation. Implemented first as a deterministic transcript-side gate so pipelines with captions/transcripts can block speech without ASR spend.
 30. `contact_sheet_evidence`: require before/after contact-sheet artifacts for repeated founder complaint windows and repair verification; fail a repair when fixing one repeated/mismatched visual introduces another repeat or mismatch. Implemented first as a deterministic manifest-side evidence gate.
+31. `visual_authenticity`: flag character renders that violate a customer-defined casting/style lock, such as Jewish first-century figures drifting into pale/light-eyed/European references while Roman figures remain allowed to read Roman/European by design. Planned as a private model-backed or face-attribute gate with customer-specific watchlists.
+32. `ai_plate_artifacts`: flag generated-video artifacts that NTO currently rejects manually: melted hands, extra fingers, plastic skin, fantasy gloss, Sunday-school illustration look, stock-filler look, or static AI stills posing as motion-native video. Planned as sampled-window multimodal review after deterministic defect triage.
+33. `unwanted_lip_movement`: flag visible mouth movement or lip-sync in clips that are meant to be speaker-neutral, hands-only, no-face, or non-speaking b-roll. Planned as a vision/video motion gate for AI plates and character-motion clips.
+34. `historical_period_fit`: flag modern objects, wrong-region footage, wrong-era footage, visible readable text inside AI plates, battle spectacle, wedding/dancing/banquet footage during teaching/conflict/writing VO, and other banlist mismatches that current NTO personas catch by hand. Planned as a manifest-plus-vision gate.
+35. `sensitive_framing`: flag anti-Jewish visual coding, caricature, accusation tableaux, triumphalist empire imagery, frontal Jesus-face violations, or other customer-defined sensitive-framing bans before upload. Planned as private policy-aware review over flagged windows.
 
 Private moat note: competitors can copy the public idea of upload QC, but our sticky layer is the accumulated private failure catalog, thresholds, fixtures, and agent repair loops learned from real NTO production. Publish the outcomes and broad categories, not the full validator internals.
 
@@ -248,6 +255,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: agent access to live launch status added through MCP `qc_get_launch_status` and CLI `uploadcheck launch-status`, so Codex/Claude/Cursor projects can inspect go/no-go state without custom HTTP.
 - Done: machine-readable pipeline recipes now include `launch_preflight` so NTO/NPO and creator agents can check live blockers before launch-sensitive runs.
 - Done: machine-readable pipeline recipes now include an NTO replacement QC task list with implemented UploadCheck gates, planned product gates, and a private-moat rule that exposes categories without publishing thresholds or validator internals.
+- Done: NTO visual-generation failure evidence is now mapped into planned private gates for visual authenticity, AI plate artifacts, unwanted lip movement, historical period fit, and sensitive framing without claiming those gates are implemented.
 - Done: machine-readable repair-loop contract added to `agent-manifest.json` and `pipeline-recipes.json`, requiring all flags to be shown, the user to be asked "Fix now?", reachable fixes only, timestamped source/render instructions for unreachable defects, and rerun before upload-ready claims.
 - Done: safe API auth material generation added through `npm run --silent api-key:generate`; operators can keep the bearer token private and set only `UPLOADCHECK_API_KEY_SHA256` on Render.
 - Done: webhook delivery headers now use UploadCheck naming (`X-UploadCheck-Signature`, `x-uploadcheck-delivery-id`, `x-uploadcheck-event`) while still sending legacy QCGenie aliases during migration.

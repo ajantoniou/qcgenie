@@ -168,7 +168,33 @@
         "callable_check": "narration_match"
       }
     ],
-    "planned_product_gates": []
+    "planned_product_gates": [
+      {
+        "id": "visual_authenticity",
+        "covers": "Customer-defined casting/style authenticity locks, such as preventing character renders from drifting into the wrong ethnicity, eye color, skin tone, or reference identity.",
+        "planned_check": "visual_authenticity"
+      },
+      {
+        "id": "ai_plate_artifacts",
+        "covers": "Generated-video artifacts such as melted hands, extra fingers, plastic skin, fantasy gloss, stock-filler look, or static stills posing as motion-native video.",
+        "planned_check": "ai_plate_artifacts"
+      },
+      {
+        "id": "unwanted_lip_movement",
+        "covers": "Mouth movement or lip-sync in b-roll, hands-only shots, speaker-neutral clips, or clips explicitly marked no-face/no-speaking.",
+        "planned_check": "unwanted_lip_movement"
+      },
+      {
+        "id": "historical_period_fit",
+        "covers": "Wrong era, wrong region, modern objects, visible readable text inside AI plates, battle spectacle, or banned wedding/dancing/banquet footage during incompatible narration beats.",
+        "planned_check": "historical_period_fit"
+      },
+      {
+        "id": "sensitive_framing",
+        "covers": "Customer-defined sensitive visual framing bans such as caricature, accusation tableau, anti-Jewish coding, frontal Jesus-face violations, or triumphalist empire imagery.",
+        "planned_check": "sensitive_framing"
+      }
+    ]
   },
   "profiles": {
     "nto_long_form": {

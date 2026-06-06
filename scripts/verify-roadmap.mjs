@@ -38,7 +38,9 @@ const REQUIRED_NTO_SOURCE_PATHS = [
   "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/PRODUCTION-PIPELINE-v3.md",
   "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-engineer.md",
   "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/council/20-video-qc-watcher.md",
-  "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-snippets/visual-qc-learning-locks.md"
+  "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-snippets/visual-qc-learning-locks.md",
+  "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/content/videos/tampered-with-the-gospels-2026-05-27/STAGE-17-5-AI-PROMPT-PACK-v12.md",
+  "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/content/videos/_shared/cast/_LEVANTINE-AUDIT-2026-06-02.md"
 ];
 
 export function verifyRoadmap({ roadmapPath = ROADMAP_PATH } = {}) {
