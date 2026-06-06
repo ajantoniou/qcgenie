@@ -102,4 +102,18 @@ describe("public launch status", () => {
 
     expect(output).toContain("Launch status metadata matches readiness");
   });
+
+  it("regenerates launch status and Product Hunt kit idempotently", () => {
+    const output = execFileSync("npm", ["run", "--silent", "launch-status:generate"], {
+      cwd: resolve("."),
+      encoding: "utf8"
+    });
+
+    expect(output).toContain("Wrote public/launch-status.json and public/product-hunt-launch-kit.json.");
+    const diff = execFileSync("git", ["diff", "--", "public/launch-status.json", "public/product-hunt-launch-kit.json"], {
+      cwd: resolve("."),
+      encoding: "utf8"
+    });
+    expect(diff).toBe("");
+  });
 });

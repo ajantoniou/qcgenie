@@ -13,6 +13,7 @@
     "launch:checkout": "node scripts/launch-checkout.mjs",
     "launch:storage": "node scripts/launch-storage.mjs",
     "launch:check": "node scripts/launch-check.mjs",
+    "launch-status:generate": "node scripts/generate-launch-status.mjs",
     "launch-status:verify": "node scripts/verify-launch-status.mjs",
     "product-hunt-kit:generate": "node scripts/generate-product-hunt-launch-kit.mjs",
     "readiness:check": "node scripts/product-hunt-readiness.mjs",

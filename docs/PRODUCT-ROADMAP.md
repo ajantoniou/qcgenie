@@ -215,6 +215,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: public Product Hunt launch kit added at `/product-hunt-launch-kit.json` with launch copy, demo flow, proof links, pricing posture, and go/no-go source of truth.
 - Done: Product Hunt launch kit now includes a current-state snapshot tied to `/launch-status.json`, so static launch copy shows remaining blockers instead of only the desired ready state.
 - Done: Product Hunt launch kit now has a builder and `npm run product-hunt-kit:generate`, so launch copy and current-state snapshots regenerate from `/launch-status.json` instead of hand-maintained JSON.
+- Done: static launch status now has `npm run launch-status:generate`, which rebuilds `/launch-status.json` and `/product-hunt-launch-kit.json` together from the shared launch-status and launch-kit builders.
 - Done: signed-upload media can use mounted durable filesystem storage via `UPLOADCHECK_DURABLE_STORAGE_DIR`; upload reports retain `storageMode`.
 - Done: signed-upload media can mirror to S3/R2-compatible object storage when the full `UPLOADCHECK_STORAGE_*` env set is configured; readiness now rejects incomplete object-storage env instead of treating a bucket name as enough.
 - Done: mounted-disk JSON persistence is recognized as production persistence when `UPLOADCHECK_STORE_PATH` points outside temp storage; Supabase remains the future multi-workspace store.
