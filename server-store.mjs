@@ -305,6 +305,7 @@ export class JsonStore {
     if (!upload) return null;
     upload.status = "uploaded";
     upload.contentPath = input.contentPath;
+    upload.storageMode = input.storageMode || upload.storageMode || "render_temp_storage";
     upload.bytesReceived = input.bytesReceived;
     upload.sha256 = input.sha256;
     upload.uploadedAt = new Date().toISOString();

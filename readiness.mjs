@@ -13,7 +13,9 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
   const secretEncryptionConfigured = Boolean(env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || env.QCGENIE_SECRET_ENCRYPTION_KEY);
   const apiAuthConfigured = Boolean(env.UPLOADCHECK_API_KEY || env.QCGENIE_API_KEY || env.UPLOADCHECK_API_KEY_SHA256 || env.QCGENIE_API_KEY_SHA256);
   const supabaseConfigured = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
-  const durableStorageConfigured = Boolean(env.UPLOADCHECK_STORAGE_BUCKET || env.UPLOADCHECK_S3_BUCKET || env.UPLOADCHECK_R2_BUCKET);
+  const durableFilesystemConfigured = Boolean(env.UPLOADCHECK_DURABLE_STORAGE_DIR || env.QCGENIE_DURABLE_STORAGE_DIR);
+  const objectStorageConfigured = Boolean(env.UPLOADCHECK_STORAGE_BUCKET || env.UPLOADCHECK_S3_BUCKET || env.UPLOADCHECK_R2_BUCKET);
+  const durableStorageConfigured = durableFilesystemConfigured || objectStorageConfigured;
   const bundledDemoClipPath = env.UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH || resolve("dist/demo/uploadcheck-product-hunt-demo.mp4");
   const demoClipConfigured = Boolean(env.UPLOADCHECK_DEMO_CLIP_URL || env.UPLOADCHECK_PUBLIC_DEMO_URL || existsSync(bundledDemoClipPath));
 
@@ -50,8 +52,10 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
     },
     storage: {
       ok: durableStorageConfigured,
-      mode: durableStorageConfigured ? "durable_object_storage_configured" : "render_temp_storage",
-      detail: durableStorageConfigured ? "Durable media/artifact storage env is present." : "Inline media uses temp files; large durable retention still needs object storage."
+      mode: durableFilesystemConfigured ? "durable_filesystem" : (objectStorageConfigured ? "object_storage_configured" : "render_temp_storage"),
+      detail: durableFilesystemConfigured
+        ? "Durable filesystem storage is configured for uploaded media."
+        : (objectStorageConfigured ? "Object storage env is present; verify the storage adapter before launch." : "Inline media uses temp files; large durable retention still needs mounted or object storage.")
     },
     demoClip: {
       ok: demoClipConfigured,

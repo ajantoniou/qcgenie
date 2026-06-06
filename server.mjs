@@ -15,6 +15,9 @@ import { buildReadinessReport } from "./readiness.mjs";
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
 const uploadDir = process.env.UPLOADCHECK_UPLOAD_DIR || process.env.QCGENIE_UPLOAD_DIR || "/tmp/uploadcheck/uploads";
+const durableStorageDir = process.env.UPLOADCHECK_DURABLE_STORAGE_DIR || process.env.QCGENIE_DURABLE_STORAGE_DIR || null;
+const uploadStorageDir = durableStorageDir || uploadDir;
+const uploadStorageMode = durableStorageDir ? "durable_filesystem" : "render_temp_storage";
 const store = new JsonStore(process.env.UPLOADCHECK_STORE_PATH || process.env.QCGENIE_STORE_PATH || "/tmp/uploadcheck/store.json", {
   secretEncryptionKey: process.env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || process.env.QCGENIE_SECRET_ENCRYPTION_KEY
 });
@@ -381,9 +384,9 @@ async function putUploadContent(req, url, res) {
   const contentLength = Number(req.headers["content-length"] || 0);
   if (expected && contentLength && contentLength > expected) return sendJson(res, 413, { error: "upload_too_large" });
 
-  mkdirSync(uploadDir, { recursive: true });
+  mkdirSync(uploadStorageDir, { recursive: true });
   const safeName = String(upload.filename || "upload.mp4").replace(/[^a-zA-Z0-9._-]+/g, "_");
-  const contentPath = join(uploadDir, `${upload.uploadId}-${safeName}`);
+  const contentPath = join(uploadStorageDir, `${upload.uploadId}-${safeName}`);
   const hash = createHash("sha256");
   let bytesReceived = 0;
   const meter = new Transform({
@@ -396,6 +399,7 @@ async function putUploadContent(req, url, res) {
   await pipeline(req, meter, createWriteStream(contentPath));
   const stored = store.markUploadStored(uploadId, {
     contentPath,
+    storageMode: uploadStorageMode,
     bytesReceived,
     sha256: hash.digest("hex")
   });

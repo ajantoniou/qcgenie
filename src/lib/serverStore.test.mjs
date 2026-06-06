@@ -41,13 +41,14 @@ describe("JsonStore", () => {
       });
       const stored = store.markUploadStored(upload.uploadId, {
         contentPath: mediaPath,
+        storageMode: "durable_filesystem",
         bytesReceived: 10,
         sha256: "abc123"
       });
       const job = store.createJob({ upload_id: upload.uploadId });
 
       expect(upload.signedPutUrl).toMatch(new RegExp(`^http://127\\.0\\.0\\.1:10002/v1/uploads/${upload.uploadId}/content\\?token=`));
-      expect(stored).toMatchObject({ status: "uploaded", contentPath: mediaPath, bytesReceived: 10 });
+      expect(stored).toMatchObject({ status: "uploaded", contentPath: mediaPath, storageMode: "durable_filesystem", bytesReceived: 10 });
       expect(job).toMatchObject({
         source: mediaPath,
         sourceType: "upload",

@@ -29,3 +29,5 @@ services:
         value: "128"
       - key: UPLOADCHECK_DEMO_CLIP_URL
         sync: false
+      - key: UPLOADCHECK_DURABLE_STORAGE_DIR
+        sync: false
