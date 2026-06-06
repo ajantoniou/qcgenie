@@ -33,11 +33,19 @@ describe("UploadCheck package metadata", () => {
 
   it("keeps MCP package standalone-installable", () => {
     const pkg = readJson("mcp-server/package.json");
+    const lock = readJson("mcp-server/package-lock.json");
     const localFile = readFileSync(resolve("mcp-server/local-file.mjs"), "utf8");
 
     expect(pkg.name).toBe("@uploadcheck/mcp");
     expect(pkg.private).toBeUndefined();
     expect(pkg.bin).toEqual({ "uploadcheck-mcp": "./index.mjs" });
+    expect(lock.packages[""]).toMatchObject({
+      name: pkg.name,
+      version: pkg.version,
+      license: pkg.license,
+      dependencies: pkg.dependencies
+    });
+    expect(lock.packages[""].bin).toEqual({ "uploadcheck-mcp": "index.mjs" });
     expect(pkg.files).toEqual([
       "index.mjs",
       "local-file.mjs",
