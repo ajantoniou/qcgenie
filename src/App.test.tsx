@@ -52,4 +52,21 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getByText("How many checked minutes do most creators need per month?")).toBeInTheDocument();
     expect(screen.getByText("Does /check work in Claude Code and Codex?")).toBeInTheDocument();
   });
+
+  test("links homepage SEO topics to crawlable static pages", () => {
+    render(<App />);
+
+    expect(screen.getByRole("link", { name: /Video quality checker before YouTube upload/ })).toHaveAttribute(
+      "href",
+      "/youtube-video-qc/"
+    );
+    expect(screen.getByRole("link", { name: /Podcast audio QC before publishing/ })).toHaveAttribute(
+      "href",
+      "/podcast-audio-qc/"
+    );
+    expect(screen.getByRole("link", { name: /Agentic media QC API and MCP server/ })).toHaveAttribute(
+      "href",
+      "/agentic-media-qc-api/"
+    );
+  });
 });

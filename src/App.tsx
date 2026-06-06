@@ -96,26 +96,32 @@ const usageProfiles = [
 const searchTopics = [
   {
     title: "Video quality checker before YouTube upload",
+    href: "/youtube-video-qc/",
     detail: "Run a full-timeline pass for freezes, black frames, format issues, captions, and upload-readiness notes."
   },
   {
     title: "Podcast audio QC before publishing",
+    href: "/podcast-audio-qc/",
     detail: "Check clipping, dropouts, dead air, transcript alignment, and episode handoff notes before release."
   },
   {
     title: "Shorts and Reels clip quality check",
+    href: "/shorts-reels-qc/",
     detail: "Review caption safe-area, mobile crop risk, loudness, trim points, and repeated clip export mistakes."
   },
   {
     title: "Audio garble and dropout checker",
+    href: "/audio-garble-checker/",
     detail: "Surface timestamped audio evidence so editors and agents can tell whether the source or render needs a pass."
   },
   {
     title: "Caption safe-area and transcript grounding",
+    href: "/youtube-video-qc/",
     detail: "Compare spoken content, captions, and visible placement before the final file reaches the upload screen."
   },
   {
     title: "Agentic media QC API and MCP server",
+    href: "/agentic-media-qc-api/",
     detail: "Use @uploadcheck/cli, @uploadcheck/mcp, or the uploadcheck MCP server to bring reports into creator agents."
   }
 ] as const;
@@ -310,10 +316,10 @@ function LandingView({ onOpenDashboard, onOpenAgents }: { onOpenDashboard: () =>
         </div>
         <div className="seoTopicGrid">
           {searchTopics.map((topic) => (
-            <article key={topic.title}>
+            <a className="seoTopicCard" href={topic.href} key={topic.title}>
               <strong>{topic.title}</strong>
               <p>{topic.detail}</p>
-            </article>
+            </a>
           ))}
         </div>
       </section>

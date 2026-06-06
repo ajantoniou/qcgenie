@@ -228,7 +228,7 @@ code {
 .faqPanel,
 .priceCards article,
 .usageModel article,
-.seoTopicGrid article,
+.seoTopicCard,
 .faqGrid article,
 .expertCard {
   background: #f8fafc;
@@ -415,7 +415,7 @@ code {
 .priceCards article,
 .packageGrid article,
 .usageModel article,
-.seoTopicGrid article,
+.seoTopicCard,
 .faqGrid article {
   background: #ffffff;
   border: 1px solid #dce3ec;
@@ -451,9 +451,26 @@ code {
 }
 
 .usageModel article,
-.seoTopicGrid article,
+.seoTopicCard,
 .faqGrid article {
   background: #f8fafc;
+}
+
+.seoTopicCard {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.seoTopicCard:hover,
+.seoTopicCard:focus-visible {
+  border-color: #0f766e;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
 }
 
 .usageModel strong {
