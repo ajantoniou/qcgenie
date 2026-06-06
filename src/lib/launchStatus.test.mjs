@@ -42,6 +42,7 @@ describe("public launch status", () => {
       "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
       "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
       "npm run launch-status:generate",
+      "npm run media-ingress:verify",
       "npm run codex:verify-install",
       "npm run cost-basis:verify",
       "npm run roadmap:verify",
@@ -50,7 +51,7 @@ describe("public launch status", () => {
       "npm run readiness:check"
     ]));
     expect(status.verified_controls.find((control) => control.id === "codex_mcp")?.evidence).toContain("codex:verify-install");
-    expect(status.verified_controls.find((control) => control.id === "inline_media")?.evidence).toContain("render_media_ingress");
+    expect(status.verified_controls.find((control) => control.id === "inline_media")?.evidence).toContain("media-ingress:verify");
     expect(status.verified_controls.find((control) => control.id === "inline_media")?.evidence).toContain("audio_base64");
     expect(status.verified_controls.find((control) => control.id === "cost_basis")?.evidence).toContain("cost-basis:verify");
     expect(status.verified_controls.find((control) => control.id === "roadmap")?.evidence).toContain("roadmap:verify");

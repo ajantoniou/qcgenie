@@ -68,6 +68,7 @@ export function buildProductHuntLaunchKit(status) {
         "npm run launch:doctor",
         "npm run codex:verify-install",
         "npm run cost-basis:verify",
+        "npm run media-ingress:verify",
         "npm run roadmap:verify",
         "npm run launch-status:generate",
         "npm run launch-status:verify",

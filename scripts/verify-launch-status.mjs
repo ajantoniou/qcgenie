@@ -55,13 +55,14 @@ assert(status.operator_commands.includes("npm run --silent render:bootstrap-env 
 assert(status.operator_commands.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "launch-status operator commands must include render:validate-env-file");
 assert(status.operator_commands.includes("npm run render:validate-env"), "launch-status operator commands must include render:validate-env");
 assert(status.operator_commands.includes("npm run launch-status:generate"), "launch-status operator commands must include launch-status:generate");
+assert(status.operator_commands.includes("npm run media-ingress:verify"), "launch-status operator commands must include media-ingress:verify");
 assert(status.operator_commands.includes("npm run codex:verify-install"), "launch-status operator commands must include codex:verify-install");
 assert(status.operator_commands.includes("npm run cost-basis:verify"), "launch-status operator commands must include cost-basis:verify");
 assert(status.operator_commands.includes("npm run roadmap:verify"), "launch-status operator commands must include roadmap:verify");
 assert(status.operator_commands.includes("npm run launch:check"), "launch-status operator commands must include launch:check");
 assert(status.operator_commands.includes("npm run readiness:check"), "launch-status operator commands must include readiness:check");
 assert(status.verified_controls.some((control) => control.id === "codex_mcp" && control.evidence.includes("codex:verify-install")), "launch-status Codex MCP evidence must cite codex:verify-install");
-assert(status.verified_controls.some((control) => control.id === "inline_media" && control.evidence.includes("render_media_ingress") && control.evidence.includes("audio_base64")), "launch-status inline media evidence must cite render_media_ingress and audio_base64");
+assert(status.verified_controls.some((control) => control.id === "inline_media" && control.evidence.includes("media-ingress:verify") && control.evidence.includes("audio_base64")), "launch-status inline media evidence must cite media-ingress:verify and audio_base64");
 assert(status.verified_controls.some((control) => control.id === "cost_basis" && control.evidence.includes("cost-basis:verify")), "launch-status cost-basis evidence must cite cost-basis:verify");
 assert(status.verified_controls.some((control) => control.id === "roadmap" && control.evidence.includes("roadmap:verify")), "launch-status roadmap evidence must cite roadmap:verify");
 assert(status.verified_controls.some((control) => control.id === "sample_reports" && control.evidence.includes("PASS, WATCH, and BLOCK")), "launch-status sample report evidence must cite PASS, WATCH, and BLOCK");

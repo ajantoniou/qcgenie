@@ -48,6 +48,7 @@ export function buildLaunchStatus(readiness, {
       "npm run render:audit",
       "npm run render:apply",
       "npm run launch-status:generate",
+      "npm run media-ingress:verify",
       "npm run codex:verify-install",
       "npm run cost-basis:verify",
       "npm run roadmap:verify",
@@ -90,12 +91,12 @@ function verifiedControls() {
     {
       id: "inline_media",
       status: "done",
-      evidence: "CLI/MCP/API support inline media payloads with sanitized mediaIngress and sha256; /v1/readiness exposes render_media_ingress proof for video_base64, audio_base64, media_base64, and data_url."
+      evidence: "npm run media-ingress:verify checks inline video_base64, inline audio_base64, signed upload, sanitized mediaIngress, source redaction, and no temp-path leaks."
     },
     {
       id: "signed_upload",
       status: "done",
-      evidence: "Large local files can use signed upload before job creation."
+      evidence: "npm run media-ingress:verify reserves an upload URL, PUTs media bytes, and creates a job with upload_id before QC."
     },
     {
       id: "cost_guardrail",

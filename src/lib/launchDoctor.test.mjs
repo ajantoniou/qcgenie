@@ -55,6 +55,7 @@ describe("launch doctor", () => {
       "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
       "npm run launch:storage",
       "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
+      "npm run media-ingress:verify",
       "npm run launch-status:verify",
       "npm run cost-basis:verify",
       "npm run codex:verify-install",
