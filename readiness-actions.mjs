@@ -11,6 +11,7 @@ export function buildReadinessActions(report) {
       detail: `Generate and fill the local env template for ${renderConfigBlockers.join(", ")} before render:apply.`,
       commands: [
         "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
+        "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
         "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
         "npm run render:plan && npm run render:validate-env && npm run render:apply"
       ],

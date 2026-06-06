@@ -38,6 +38,7 @@ describe("readiness action mapping", () => {
       "storage"
     ]);
     expect(actions[0].commands).toContain("npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env");
+    expect(actions[0].commands).toContain("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env");
     expect(actions[1].env).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
     expect(actions[3].command).toBe("npm run --silent render:bootstrap-env");
     expect(actions.find((action) => action.id === "persistence").env).toEqual(["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"]);
@@ -78,6 +79,7 @@ describe("readiness action mapping", () => {
       detail: "Generate and fill the local env template for apiAuth before render:apply.",
       commands: [
         "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
+        "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
         "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
         "npm run render:plan && npm run render:validate-env && npm run render:apply"
       ],
