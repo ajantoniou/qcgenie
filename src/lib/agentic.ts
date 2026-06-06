@@ -47,6 +47,7 @@ export interface QcJobRequest {
 export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "GET /v1/launch-status", purpose: "Fetch live Product Hunt launch go/no-go state, blockers, and operator commands." },
   { methodPath: "GET /v1/launch-handoff", purpose: "Fetch live Product Hunt launch blockers, required actions, proof commands, and no-launch rule." },
+  { methodPath: "GET /v1/launch-doctor", purpose: "Fetch live Product Hunt blocker fix plan and normalized launch-doctor command coverage." },
   { methodPath: "GET /pipeline-handoff.json", purpose: "Fetch the production pipeline handoff runbook for NTO/NPO and creator workflows." },
   { methodPath: "POST /v1/qc/estimate", purpose: "Preflight cost, margin guardrail behavior, and effective checks before uploading media." },
   { methodPath: "POST /v1/qc/jobs", purpose: "Create a QC job from a YouTube URL, upload id, or signed asset URL." },

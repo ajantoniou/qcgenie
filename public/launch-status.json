@@ -209,6 +209,7 @@
     "launch_status": "https://qcgenie-api.onrender.com/launch-status.json",
     "live_launch_status": "https://qcgenie-api.onrender.com/v1/launch-status",
     "live_launch_handoff": "https://qcgenie-api.onrender.com/v1/launch-handoff",
+    "live_launch_doctor": "https://qcgenie-api.onrender.com/v1/launch-doctor",
     "product_hunt_page": "https://uploadcheck.app/product-hunt/",
     "demo_clip": "https://uploadcheck.app/demo/uploadcheck-product-hunt-demo.mp4"
   },

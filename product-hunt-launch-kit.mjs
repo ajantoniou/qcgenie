@@ -54,7 +54,8 @@ export function buildProductHuntLaunchKit(status) {
       agent_manifest: artifacts.agent_manifest,
       openapi: artifacts.openapi,
       launch_status: artifacts.launch_status,
-      live_launch_status: artifacts.live_launch_status
+      live_launch_status: artifacts.live_launch_status,
+      live_launch_doctor: artifacts.live_launch_doctor
     },
     pricing_position: {
       creator: "$99/mo for 1,200 checked minutes",

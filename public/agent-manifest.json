@@ -12,6 +12,7 @@
   "launch_status_url": "https://qcgenie-api.onrender.com/launch-status.json",
   "live_launch_status_url": "https://qcgenie-api.onrender.com/v1/launch-status",
   "live_launch_handoff_url": "https://qcgenie-api.onrender.com/v1/launch-handoff",
+  "live_launch_doctor_url": "https://qcgenie-api.onrender.com/v1/launch-doctor",
   "launch_handoff_command": "npm run launch:handoff -- --text",
   "cost_basis_url": "https://qcgenie-api.onrender.com/cost-basis.json",
   "product_hunt_launch_kit_url": "https://qcgenie-api.onrender.com/product-hunt-launch-kit.json",
@@ -127,6 +128,7 @@
     "GET /v1/readiness",
     "GET /v1/launch-status",
     "GET /v1/launch-handoff",
+    "GET /v1/launch-doctor",
     "GET /pipeline-handoff.json",
     "GET /pipeline-recipes.json",
     "GET /cost-basis.json",
@@ -150,7 +152,7 @@
     "GET /v1/usage/margins"
   ],
   "agent_workflow": [
-    "Before launch-sensitive workflows, the agent may call qc_get_launch_status or GET /v1/launch-status to verify the live go/no-go state, then qc_get_launch_handoff or GET /v1/launch-handoff for blocker-specific required actions, proof commands, and launchDoctorCommands. Use qc_get_launch_doctor or uploadcheck launch-doctor --json when the agent needs the blocker fix plan and normalized launch-doctor command coverage.",
+    "Before launch-sensitive workflows, the agent may call qc_get_launch_status or GET /v1/launch-status to verify the live go/no-go state, then qc_get_launch_handoff or GET /v1/launch-handoff for blocker-specific required actions, proof commands, and launchDoctorCommands. Use qc_get_launch_doctor, GET /v1/launch-doctor, or uploadcheck launch-doctor --json when the agent needs the blocker fix plan and normalized launch-doctor command coverage.",
     "Before launch-sensitive workflows, the agent may call GET /v1/readiness to verify checkout, custom domain, persistence, storage, demo clip, and Product Hunt readiness.",
     "Production handoff can be fetched with qc_get_pipeline_handoff, uploadcheck pipeline-handoff --json, or GET /pipeline-handoff.json when an NTO/NPO or creator pipeline needs the exact launch preflight, recipe, cost, media-ingress, report, marker, repair-loop, and rerun sequence.",
     "Pipeline recipes can be fetched with qc_get_pipeline_recipes, uploadcheck recipes --json, or GET /pipeline-recipes.json; they include launch_preflight, cost_preflight, sidecar-aware qc_run_local_file arguments, and repair-loop instructions.",

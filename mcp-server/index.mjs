@@ -30,7 +30,7 @@ server.tool(
   "qc_get_launch_doctor",
   "Fetch live UploadCheck launch doctor blocker fix plan for Product Hunt readiness.",
   {},
-  async () => jsonTool(await publicApiFetch("/v1/launch-handoff"))
+  async () => jsonTool(await publicApiFetch("/v1/launch-doctor"))
 );
 
 server.tool(

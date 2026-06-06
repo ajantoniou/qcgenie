@@ -61,6 +61,9 @@ describe("public OpenAPI spec", () => {
     }
     expect(spec.paths["/v1/launch-status"].get.security).toEqual([]);
     expect(spec.paths["/v1/launch-status"].get.responses["200"].content["application/json"].schema).toEqual({ type: "object" });
+    expect(spec.paths["/v1/launch-handoff"].get.security).toEqual([]);
+    expect(spec.paths["/v1/launch-doctor"].get.security).toEqual([]);
+    expect(spec.paths["/v1/launch-doctor"].get.responses["200"].content["application/json"].schema).toEqual({ type: "object" });
     expect(spec.paths["/llms.txt"].get.security).toEqual([]);
     expect(spec.paths["/llms.txt"].get.responses["200"].content["text/plain"].schema).toEqual({ type: "string" });
   });

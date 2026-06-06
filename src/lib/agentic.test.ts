@@ -7,6 +7,7 @@ describe("agentic integration contract", () => {
     expect(AGENT_API_ENDPOINTS.map((endpoint) => endpoint.methodPath)).toEqual([
       "GET /v1/launch-status",
       "GET /v1/launch-handoff",
+      "GET /v1/launch-doctor",
       "GET /pipeline-handoff.json",
       "POST /v1/qc/estimate",
       "POST /v1/qc/jobs",

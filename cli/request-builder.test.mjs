@@ -361,7 +361,7 @@ describe("UploadCheck CLI request builder", () => {
     expect(parsed.target).toBeNull();
     expect(request).toEqual({
       apiBaseUrl: "https://api.example.test",
-      path: "/v1/launch-handoff",
+      path: "/v1/launch-doctor",
       method: "GET",
       kind: "launch_doctor",
       public: true

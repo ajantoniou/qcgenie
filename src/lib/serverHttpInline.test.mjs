@@ -86,6 +86,37 @@ describe("server inline media API", () => {
     }
   }, 20000);
 
+  it("serves live launch doctor derived from readiness without API auth", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-launch-doctor-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY_SHA256: "a".repeat(64),
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/launch-doctor`);
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.name).toBe("UploadCheck.app Launch Doctor");
+      expect(payload.handoffUrl).toBe("https://qcgenie-api.onrender.com/v1/launch-handoff");
+      expect(payload.blockerFixPlan.status).toBe("blocked");
+      expect(payload.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
   it("returns sanitized mediaIngress without exposing temporary source paths", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-inline-"));
     const port = 19000 + Math.floor(Math.random() * 1000);

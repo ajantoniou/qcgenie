@@ -55,6 +55,7 @@ createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/v1/readiness") return getReadiness(req, res);
     if (req.method === "GET" && url.pathname === "/v1/launch-status") return getLaunchStatus(req, res);
     if (req.method === "GET" && url.pathname === "/v1/launch-handoff") return getLaunchHandoff(req, res);
+    if (req.method === "GET" && url.pathname === "/v1/launch-doctor") return getLaunchDoctor(req, res);
     if (req.method === "GET" && url.pathname === "/openapi.json") return serveStatic("/openapi.json", res);
     if (req.method === "GET" && /^\/checkout\/[^/]+$/.test(url.pathname)) return redirectCheckout(url, res);
     if (req.method === "POST" && url.pathname === "/v1/qc/estimate") return estimateQc(req, res);
@@ -123,6 +124,17 @@ function getLaunchStatus(req, res) {
 function getLaunchHandoff(req, res) {
   const readiness = buildReadinessReport({ host: req.headers.host || "" });
   return sendJson(res, 200, buildLaunchHandoff(readiness, { generatedAt: readiness.generatedAt }));
+}
+
+function getLaunchDoctor(req, res) {
+  const readiness = buildReadinessReport({ host: req.headers.host || "" });
+  const handoff = buildLaunchHandoff(readiness, { generatedAt: readiness.generatedAt });
+  return sendJson(res, 200, {
+    ...handoff,
+    name: "UploadCheck.app Launch Doctor",
+    description: "Live Product Hunt blocker fix plan and normalized launch-doctor command coverage for UploadCheck.app agents and operators.",
+    handoffUrl: "https://qcgenie-api.onrender.com/v1/launch-handoff"
+  });
 }
 
 async function createJob(req, res) {

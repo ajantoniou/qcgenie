@@ -60,7 +60,8 @@
     "agent_manifest": "https://qcgenie-api.onrender.com/agent-manifest.json",
     "openapi": "https://qcgenie-api.onrender.com/openapi.json",
     "launch_status": "https://qcgenie-api.onrender.com/launch-status.json",
-    "live_launch_status": "https://qcgenie-api.onrender.com/v1/launch-status"
+    "live_launch_status": "https://qcgenie-api.onrender.com/v1/launch-status",
+    "live_launch_doctor": "https://qcgenie-api.onrender.com/v1/launch-doctor"
   },
   "pricing_position": {
     "creator": "$99/mo for 1,200 checked minutes",

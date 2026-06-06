@@ -202,7 +202,7 @@ export function buildLaunchDoctorRequest(options = {}) {
   const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
   return {
     apiBaseUrl,
-    path: "/v1/launch-handoff",
+    path: "/v1/launch-doctor",
     method: "GET",
     kind: "launch_doctor",
     public: true

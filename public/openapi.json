@@ -228,6 +228,20 @@
         }
       }
     },
+    "/v1/launch-doctor": {
+      "get": {
+        "summary": "Live Product Hunt launch doctor",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Live blocker fix plan and normalized launch-doctor command coverage derived from readiness checks.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
     "/agent-manifest.json": {
       "get": {
         "summary": "UploadCheck agent manifest",
