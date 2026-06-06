@@ -59,4 +59,38 @@ describe("MCP local file runner", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("attaches NTO/NPO sidecars without relying on the CLI package directory", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-mcp-"));
+    const file = join(dir, "master.mp4");
+    const manifest = join(dir, "manifest.json");
+    const transcript = join(dir, "transcript.txt");
+    const watchlist = join(dir, "watchlist.json");
+    const expectedScript = join(dir, "locked-script.txt");
+
+    try {
+      writeFileSync(file, Buffer.from("fake-mp4"));
+      writeFileSync(manifest, JSON.stringify({ beats: [{ visual_file: "a.mp4" }] }));
+      writeFileSync(transcript, "Marcion was born in Sinope.");
+      writeFileSync(watchlist, JSON.stringify({ terms: [{ expected: "Marcion", banned: ["Martian"] }] }));
+      writeFileSync(expectedScript, "Marcion was born in Sinope and challenged Rome.");
+      const request = buildLocalFileRequest({
+        file_path: file,
+        checks: "repeat_fatigue,spoken_leaks,pronunciation_watchlist,script_faithfulness",
+        manifest_path: manifest,
+        transcript_path: transcript,
+        watchlist_path: watchlist,
+        expected_script_path: expectedScript,
+        max_inline_mb: 1
+      });
+
+      expect(request.kind).toBe("job");
+      expect(request.payload.manifest_json).toEqual({ beats: [{ visual_file: "a.mp4" }] });
+      expect(request.payload.transcript_text).toContain("Marcion");
+      expect(request.payload.watchlist_json.terms[0].banned).toContain("Martian");
+      expect(request.payload.expected_script_text).toContain("challenged Rome");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

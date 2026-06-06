@@ -1,5 +1,5 @@
 import { createReadStream } from "node:fs";
-import { buildJobRequest } from "../cli/request-builder.mjs";
+import { buildJobRequest } from "./request-builder.mjs";
 
 export function buildLocalFileRequest(input = {}) {
   const filePath = input.file_path || input.path;

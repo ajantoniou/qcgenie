@@ -2,12 +2,19 @@
   "name": "@uploadcheck/mcp",
   "version": "0.1.0",
   "type": "module",
-  "private": true,
   "description": "MCP wrapper for the UploadCheck hosted API.",
   "bin": {
     "uploadcheck-mcp": "./index.mjs"
   },
+  "files": [
+    "index.mjs",
+    "local-file.mjs",
+    "request-builder.mjs",
+    "run-uploadcheck-mcp.sh",
+    "README.md"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.24.0"
-  }
+  },
+  "license": "UNLICENSED"
 }

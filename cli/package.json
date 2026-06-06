@@ -3,8 +3,16 @@
   "version": "0.1.0",
   "description": "Quality check videos, podcasts, and clips before you upload.",
   "type": "module",
+  "exports": {
+    ".": "./index.mjs",
+    "./request-builder": "./request-builder.mjs"
+  },
   "bin": {
     "uploadcheck": "./index.mjs"
   },
+  "files": [
+    "index.mjs",
+    "request-builder.mjs"
+  ],
   "license": "UNLICENSED"
 }
