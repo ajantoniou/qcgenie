@@ -5,18 +5,26 @@ import { formatLaunchDoctor, runLaunchDoctor } from "../../launch-doctor.mjs";
 
 describe("launch doctor", () => {
   it("summarizes passing and blocking launch steps", () => {
+    const seen = [];
     const report = runLaunchDoctor({
       steps: [
         { id: "one", label: "First check", command: ["first"] },
-        { id: "two", label: "Second check", command: ["second"] }
+        { id: "two", label: "Second check", command: ["second"], env: { UPLOADCHECK_CHECKOUT_PROBE: "1" } }
       ],
-      runner: (command) => command[0] === "first"
-        ? { status: 0, stdout: "first ok\n", stderr: "" }
-        : { status: 1, stdout: "", stderr: "second failed\n" }
+      runner: (command, step) => {
+        seen.push([command[0], step.env || null]);
+        return command[0] === "first"
+          ? { status: 0, stdout: "first ok\n", stderr: "" }
+          : { status: 1, stdout: "", stderr: "second failed\n" };
+      }
     });
     const text = formatLaunchDoctor(report);
 
     expect(report.ok).toBe(false);
+    expect(seen).toEqual([
+      ["first", null],
+      ["second", { UPLOADCHECK_CHECKOUT_PROBE: "1" }]
+    ]);
     expect(text).toContain("UploadCheck launch doctor: NOT READY");
     expect(text).toContain("PASS one - First check");
     expect(text).toContain("BLOCK two - Second check");
@@ -33,7 +41,9 @@ describe("launch doctor", () => {
     expect(result.status).toBe(1);
     expect(result.stdout).toContain("UploadCheck launch doctor: NOT READY");
     expect(result.stdout).toContain("BLOCK checkout");
+    expect(result.stdout).toContain("BLOCK checkout-probe");
     expect(result.stdout).toContain("BLOCK storage");
+    expect(result.stdout).toContain("BLOCK storage-probe");
     expect(result.stdout).toContain("BLOCK readiness");
     expect(result.stdout).toContain("BLOCK launch-check");
   });

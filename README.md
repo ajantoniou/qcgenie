@@ -103,7 +103,7 @@ Persistence state:
 - `/product-hunt-launch-kit.json` publishes Product Hunt launch copy, demo flow, sample-report links, cost-basis proof, and the launch go/no-go source of truth.
 - `/sample-reports/index.json` publishes PASS, WATCH, and BLOCK report examples with source-hash proof, timestamped flags, editor handoff artifacts, and repair-loop guidance.
 - `npm run roadmap:verify` keeps `docs/PRODUCT-ROADMAP.md` honest about the exact 50-point plan, expert-panel inputs, NTO-derived product tasks, and execution markers.
-- `npm run launch:doctor` runs the local launch helpers, public metadata verifiers, and live readiness/DNS checks in one ordered report.
+- `npm run launch:doctor` runs the local launch helpers, explicit checkout/storage probes, public metadata verifiers, and live readiness/DNS checks in one ordered report.
 - `npm run launch:dns` prints copy-paste DNS records and verification commands from `public/launch-targets.json`.
 - `npm run launch:checkout` prints the configured checkout source, host, and redacted URL for Creator, Studio, and Network without exposing checkout path secrets or Lemon Squeezy variant IDs.
 - `npm run launch:storage` prints mounted JSON-store, durable upload path, and object-storage completeness without exposing access keys or secret keys.
