@@ -80,6 +80,7 @@ createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/v1/usage/margins") return getUsageMargins(req, res);
     if (req.method === "POST" && url.pathname === "/v1/api-keys") return createApiKey(req, res);
     if (req.method === "GET" && url.pathname === "/v1/api-keys") return listApiKeys(req, url, res);
+    if (req.method === "POST" && url.pathname === "/v1/checkout/provision-api-key") return provisionCheckoutApiKey(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks") return createWebhook(req, res);
     if (req.method === "GET" && url.pathname === "/v1/webhooks/deliveries") return listWebhookDeliveries(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks/deliveries/drain") return drainWebhookDeliveries(req, res);
@@ -318,6 +319,44 @@ function listApiKeys(req, url, res) {
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   return sendJson(res, 200, {
     keys: store.listApiKeys({ workspaceId: url.searchParams.get("workspace_id") || url.searchParams.get("workspaceId") })
+  });
+}
+
+async function provisionCheckoutApiKey(req, res) {
+  const auth = requireScope(req, "api_keys:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const body = await readJson(req);
+  const planId = normalizePlanId(body.plan_id || body.planId);
+  if (!planId) return sendJson(res, 400, { error: "invalid_plan_id", allowedPlans: ["creator", "studio", "network"] });
+  const ownerEmail = String(body.owner_email || body.ownerEmail || body.email || "").trim();
+  if (!ownerEmail || !ownerEmail.includes("@")) return sendJson(res, 400, { error: "owner_email_required" });
+  const checkoutCustomerId = stringOrNull(body.checkout_customer_id || body.checkoutCustomerId || body.customer_id || body.customerId);
+  const checkoutSubscriptionId = stringOrNull(body.checkout_subscription_id || body.checkoutSubscriptionId || body.subscription_id || body.subscriptionId);
+  const workspaceId = stringOrNull(body.workspace_id || body.workspaceId)
+    || workspaceIdFromCheckout({ checkoutCustomerId, checkoutSubscriptionId, ownerEmail });
+  const plan = resolvePlanEconomics({ plan_id: planId });
+  const provisioningId = stringOrNull(body.provisioning_id || body.provisioningId)
+    || ["checkout", planId, checkoutSubscriptionId || checkoutCustomerId || workspaceId].join(":");
+  const created = store.createApiKey({
+    name: body.name || `${capitalize(planId)} MCP key`,
+    workspace_id: workspaceId,
+    owner_email: ownerEmail,
+    provisioning_id: provisioningId,
+    checkout_customer_id: checkoutCustomerId,
+    checkout_subscription_id: checkoutSubscriptionId,
+    plan_id: planId,
+    included_minutes: plan.includedMinutes,
+    plan_price_cents: plan.planPriceCents,
+    ai_review_budget_seconds: plan.aiReviewBudgetSeconds,
+    scopes: ["jobs:write", "jobs:read", "reports:read", "uploads:write"]
+  });
+  return sendJson(res, created.idempotentReplay ? 200 : 201, {
+    apiKey: created.apiKey,
+    key: created.record,
+    idempotentReplay: Boolean(created.idempotentReplay),
+    warning: created.apiKey
+      ? "The apiKey is shown once. Store it privately as UPLOADCHECK_API_KEY for MCP/API clients."
+      : "Existing provisioning record returned without bearer secret; use the originally issued apiKey."
   });
 }
 
@@ -1207,6 +1246,21 @@ function estimateRequestedMinutes(body = {}) {
   const durationSeconds = Number(body.duration_seconds ?? body.durationSeconds);
   if (Number.isFinite(durationSeconds) && durationSeconds > 0) return Math.ceil(durationSeconds / 60);
   return 0;
+}
+
+function stringOrNull(value) {
+  const text = String(value || "").trim();
+  return text ? text : null;
+}
+
+function workspaceIdFromCheckout({ checkoutCustomerId, checkoutSubscriptionId, ownerEmail }) {
+  const source = checkoutSubscriptionId || checkoutCustomerId || ownerEmail || "workspace";
+  return `ws_${String(source).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 64) || "checkout"}`;
+}
+
+function capitalize(value) {
+  const text = String(value || "");
+  return text ? text[0].toUpperCase() + text.slice(1) : text;
 }
 
 function shouldQueueJob(body = {}) {

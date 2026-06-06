@@ -115,6 +115,9 @@
           "name": { "type": "string" },
           "workspaceId": { "type": "string" },
           "ownerEmail": { "type": ["string", "null"] },
+          "provisioningId": { "type": ["string", "null"] },
+          "checkoutCustomerId": { "type": ["string", "null"] },
+          "checkoutSubscriptionId": { "type": ["string", "null"] },
           "tokenPrefix": { "type": "string" },
           "scopes": { "type": "array", "items": { "type": "string" } },
           "planId": { "type": ["string", "null"] },
@@ -802,6 +805,52 @@
               }
             }
           }
+        }
+      }
+    },
+    "/v1/checkout/provision-api-key": {
+      "post": {
+        "summary": "Provision a checkout customer API key",
+        "description": "Authenticated provisioning endpoint for checkout/webhook/account flows. It applies UploadCheck plan economics server-side and returns the raw apiKey only on the first successful provisioning call. Idempotent retries return the redacted key record without the bearer secret.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["plan_id", "owner_email"],
+                "properties": {
+                  "plan_id": { "type": "string", "enum": ["creator", "studio", "network"] },
+                  "owner_email": { "type": "string" },
+                  "workspace_id": { "type": "string" },
+                  "checkout_customer_id": { "type": "string" },
+                  "checkout_subscription_id": { "type": "string" },
+                  "provisioning_id": { "type": "string", "description": "Optional idempotency key. Defaults to checkout:<plan>:<subscription/customer/workspace>." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Provisioned API key; raw apiKey is shown once.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": { "type": ["string", "null"] },
+                    "key": { "$ref": "#/components/schemas/ApiKeyRecord" },
+                    "idempotentReplay": { "type": "boolean" },
+                    "warning": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "200": { "description": "Existing provisioning record returned without bearer secret." },
+          "400": { "description": "Invalid plan or missing owner email" },
+          "401": { "description": "Missing or invalid provisioning API key" },
+          "403": { "description": "API key lacks api_keys:write scope" }
         }
       }
     },

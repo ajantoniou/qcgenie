@@ -67,6 +67,7 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "GET /v1/qc/jobs?limit=&status=&source_url=", purpose: "List recent jobs and avoid duplicate agent runs." },
   { methodPath: "GET /v1/usage/margins?billing_period=&limit=", purpose: "Summarize usage COGS, allocated revenue, cost per minute, and gross margin." },
   { methodPath: "POST /v1/api-keys", purpose: "Create a hashed workspace API key for paid Claude Code, Codex, Cursor, and MCP clients." },
+  { methodPath: "POST /v1/checkout/provision-api-key", purpose: "Provision a paid checkout customer into an idempotent workspace API key for MCP/API clients." },
   { methodPath: "GET /v1/api-keys?workspace_id=", purpose: "List redacted API-key records without returning bearer secrets." }
 ];
 

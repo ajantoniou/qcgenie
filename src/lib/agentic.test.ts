@@ -27,6 +27,7 @@ describe("agentic integration contract", () => {
       "GET /v1/qc/jobs?limit=&status=&source_url=",
       "GET /v1/usage/margins?billing_period=&limit=",
       "POST /v1/api-keys",
+      "POST /v1/checkout/provision-api-key",
       "GET /v1/api-keys?workspace_id="
     ]);
   });

@@ -25,12 +25,20 @@ export class JsonStore {
 
   createApiKey(input = {}) {
     const now = new Date().toISOString();
+    const provisioningId = input.provisioning_id || input.provisioningId || null;
+    if (provisioningId) {
+      const existing = this.state.apiKeys.find((candidate) => candidate.provisioningId === provisioningId) || null;
+      if (existing) return { apiKey: null, record: publicApiKey(existing), idempotentReplay: true };
+    }
     const token = input.token || `uck_${randomBytes(24).toString("base64url")}`;
     const key = {
       keyId: `key_${randomId()}`,
       name: input.name || "UploadCheck API key",
       workspaceId: input.workspace_id || input.workspaceId || "default",
       ownerEmail: input.owner_email || input.ownerEmail || null,
+      provisioningId,
+      checkoutCustomerId: input.checkout_customer_id || input.checkoutCustomerId || null,
+      checkoutSubscriptionId: input.checkout_subscription_id || input.checkoutSubscriptionId || null,
       tokenPrefix: token.slice(0, 12),
       tokenHash: hashApiToken(token),
       scopes: normalizeScopes(input.scopes),
@@ -746,6 +754,9 @@ function publicApiKey(key) {
     name: key.name,
     workspaceId: key.workspaceId,
     ownerEmail: key.ownerEmail,
+    provisioningId: key.provisioningId,
+    checkoutCustomerId: key.checkoutCustomerId,
+    checkoutSubscriptionId: key.checkoutSubscriptionId,
     tokenPrefix: key.tokenPrefix,
     scopes: key.scopes,
     planId: key.planId,

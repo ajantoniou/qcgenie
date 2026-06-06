@@ -128,4 +128,19 @@ describe("public OpenAPI spec", () => {
     expect(spec.paths["/v1/qc/jobs/drain"].post.requestBody.content["application/json"].schema.properties.limit.maximum).toBe(25);
     expect(spec.paths["/v1/qc/jobs/drain"].post.responses["200"].description).toContain("Queued jobs processed");
   });
+
+  it("documents checkout provisioning into workspace API keys", () => {
+    const spec = loadSpec();
+    const path = spec.paths["/v1/checkout/provision-api-key"].post;
+
+    expect(spec.components.schemas.ApiKeyRecord.properties.provisioningId.type).toEqual(["string", "null"]);
+    expect(spec.components.schemas.ApiKeyRecord.properties.checkoutCustomerId.type).toEqual(["string", "null"]);
+    expect(spec.components.schemas.ApiKeyRecord.properties.checkoutSubscriptionId.type).toEqual(["string", "null"]);
+    expect(path.summary).toContain("Provision");
+    expect(path.description).toContain("returns the raw apiKey only on the first");
+    expect(path.requestBody.content["application/json"].schema.required).toEqual(["plan_id", "owner_email"]);
+    expect(path.requestBody.content["application/json"].schema.properties.plan_id.enum).toEqual(["creator", "studio", "network"]);
+    expect(path.responses["201"].content["application/json"].schema.properties.apiKey.type).toEqual(["string", "null"]);
+    expect(path.responses["200"].description).toContain("without bearer secret");
+  });
 });

@@ -78,7 +78,7 @@ Persistence state:
 - New webhook signing secrets are returned once on creation and encrypted at rest when a strong `UPLOADCHECK_SECRET_ENCRYPTION_KEY` is configured; legacy plaintext records remain readable for migration. Generate a key with `npm run --silent secret:generate`, then set this env var on Render before treating hosted webhook secrets as encrypted.
 - Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
 - Workspace API keys are stored hashed, returned once, scoped, and honored on job creation for owner email, workspace, plan, included minutes, and subscription price metadata.
-- The dashboard API-key form calls `POST /v1/api-keys` with a provisioning bearer; in private MCP beta this is an operator/admin bearer, and after checkout it should be replaced by the paid account/session provisioning flow.
+- The dashboard API-key form calls `POST /v1/api-keys` with a provisioning bearer; in private MCP beta this is an operator/admin bearer. Paid checkout/account flows can call `POST /v1/checkout/provision-api-key`, which applies plan limits server-side and returns the bearer only on first provisioning.
 - Owner spend alerts are recorded and sent through Resend when extra-minute spend crosses 100% of the subscription value; `UPLOADCHECK_RESEND_API_URL` can point tests at a mock endpoint while production defaults to Resend.
 - Webhook delivery logs are available at `/v1/webhooks/deliveries`; manual retry execution is available at `/v1/webhooks/deliveries/{delivery_id}/retry`.
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.

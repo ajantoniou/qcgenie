@@ -822,6 +822,88 @@ describe("server inline media API", () => {
     }
   }, 20000);
 
+  it("provisions paid checkout customers into idempotent MCP API keys", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-checkout-provision-"));
+    const storePath = join(dir, "store.json");
+    const adminKey = "uck_admin_checkout_provision";
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const payload = {
+        plan_id: "studio",
+        owner_email: "studio@example.com",
+        checkout_customer_id: "cus_123",
+        checkout_subscription_id: "sub_456"
+      };
+      const firstResponse = await fetch(`http://127.0.0.1:${port}/v1/checkout/provision-api-key`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const first = await firstResponse.json();
+
+      expect(firstResponse.status).toBe(201);
+      expect(first.apiKey).toMatch(/^uck_/);
+      expect(first).toMatchObject({
+        idempotentReplay: false,
+        key: {
+          workspaceId: "ws_sub_456",
+          ownerEmail: "studio@example.com",
+          provisioningId: "checkout:studio:sub_456",
+          checkoutCustomerId: "cus_123",
+          checkoutSubscriptionId: "sub_456",
+          planId: "studio",
+          includedMinutes: 10000,
+          planPriceCents: 29900,
+          scopes: ["jobs:write", "jobs:read", "reports:read", "uploads:write"]
+        }
+      });
+
+      const retryResponse = await fetch(`http://127.0.0.1:${port}/v1/checkout/provision-api-key`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const retry = await retryResponse.json();
+
+      expect(retryResponse.status).toBe(200);
+      expect(retry.apiKey).toBeNull();
+      expect(retry.idempotentReplay).toBe(true);
+      expect(retry.key.keyId).toBe(first.key.keyId);
+
+      const saved = JSON.parse(readFileSync(storePath, "utf8"));
+      expect(saved.apiKeys).toHaveLength(1);
+      expect(saved.apiKeys[0]).toMatchObject({
+        provisioningId: "checkout:studio:sub_456",
+        checkoutCustomerId: "cus_123",
+        checkoutSubscriptionId: "sub_456",
+        planId: "studio"
+      });
+      expect(saved.apiKeys[0]).not.toHaveProperty("apiKey");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
   it("emails the API-key owner when extra-minute spend exceeds subscription value", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-spend-alert-"));
     const storePath = join(dir, "store.json");

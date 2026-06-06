@@ -36,7 +36,7 @@ Internal product-testing oracles such as `scripts/qc-engine/gemini_watch.py` are
 - `npm run readiness:check` showing checkout is configured
 - Registry proof that `@uploadcheck/cli` and `@uploadcheck/mcp` are published
 - A paid workspace API key can create a QC job and fetch the report
-- The dashboard or checkout provisioning path can create a workspace API key only with authenticated provisioning authority, and never exposes the stored hash or future copies of the bearer
+- The dashboard or checkout provisioning path can create a workspace API key only with authenticated provisioning authority, applies plan economics server-side, and never exposes the stored hash or future copies of the bearer
 - A job that crosses the subscription-value spend threshold records a spend alert and sends the owner email through Resend
 
 ## Listing Positioning
