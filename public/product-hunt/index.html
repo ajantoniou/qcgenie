@@ -35,16 +35,17 @@
           <ul>
             <li>Live Render API with authenticated checks.</li>
             <li>Codex MCP server named uploadcheck.</li>
-            <li>Cost estimate returned on every job.</li>
+            <li>Preflight cost estimate before upload or model-backed checks.</li>
             <li>Creator plan kept margin-safe by limiting deep AI review.</li>
           </ul>
         </aside>
       </section>
       <section class="section">
         <h2>Demo script</h2>
-        <article class="reportRow"><time>1</time><div><h2>Run /check</h2><p>Drop a final video, podcast, Short, or still frame into an agent workflow and ask UploadCheck to run the relevant gates.</p></div></article>
-        <article class="reportRow"><time>2</time><div><h2>Show the block</h2><p>Use the duplicate-crowd scene: UploadCheck blocks the asset and tells the editor to re-render with more character variation.</p></div></article>
-        <article class="reportRow"><time>3</time><div><h2>Ask to fix now</h2><p>The agent shows every flag, separates direct fixes from render-source issues, asks whether to fix now, then reruns UploadCheck.</p></div></article>
+        <article class="reportRow"><time>1</time><div><h2>Preflight cost</h2><p>The agent calls qc_estimate_cost and shows which checks will run, which will be downgraded, and whether the job is margin-safe.</p></div></article>
+        <article class="reportRow"><time>2</time><div><h2>Run /check</h2><p>Drop a final video, podcast, Short, or still frame into an agent workflow and ask UploadCheck to run the relevant gates.</p></div></article>
+        <article class="reportRow"><time>3</time><div><h2>Show the block</h2><p>Use the duplicate-crowd scene: UploadCheck blocks the asset and tells the editor to re-render with more character variation.</p></div></article>
+        <article class="reportRow"><time>4</time><div><h2>Ask to fix now</h2><p>The agent shows every flag, separates direct fixes from render-source issues, asks whether to fix now, then reruns UploadCheck.</p></div></article>
       </section>
       <section class="section">
         <h2>Launch copy</h2>

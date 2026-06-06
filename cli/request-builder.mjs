@@ -13,7 +13,11 @@ const CONTENT_TYPES = new Map([
   [".m4a", "audio/mp4"],
   [".wav", "audio/wav"],
   [".aac", "audio/aac"],
-  [".ogg", "audio/ogg"]
+  [".ogg", "audio/ogg"],
+  [".jpg", "image/jpeg"],
+  [".jpeg", "image/jpeg"],
+  [".png", "image/png"],
+  [".webp", "image/webp"]
 ]);
 
 export function buildJobRequest(target, options = {}) {
@@ -41,7 +45,7 @@ export function buildJobRequest(target, options = {}) {
       throw new Error(`File is ${formatMb(fileStat.size)} MB; inline CLI payload limit is ${maxInlineMb} MB. Use a signed URL or raise --max-inline-mb.`);
     }
     const contentType = inferContentType(target);
-    const mediaKind = contentType.startsWith("audio/") ? "audio" : "video";
+    const mediaKind = inferMediaKind(contentType);
     payload.media_base64 = readFileSync(target).toString("base64");
     payload.media_content_type = contentType;
     payload.media_kind = mediaKind;
@@ -209,6 +213,12 @@ function isYouTubeUrl(value) {
 export function inferContentType(filePath) {
   const ext = extname(filePath).toLowerCase();
   return CONTENT_TYPES.get(ext) || "application/octet-stream";
+}
+
+function inferMediaKind(contentType) {
+  if (contentType.startsWith("audio/")) return "audio";
+  if (contentType.startsWith("image/")) return "image";
+  return "video";
 }
 
 function attachManifest(payload, options) {

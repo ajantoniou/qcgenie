@@ -4,6 +4,7 @@ import { AGENT_API_ENDPOINTS, JOB_STATUSES, MCP_TOOLS, buildQcJobRequest, getMcp
 describe("agentic integration contract", () => {
   it("exposes a programmatic job lifecycle for external agents", () => {
     expect(AGENT_API_ENDPOINTS.map((endpoint) => endpoint.methodPath)).toEqual([
+      "POST /v1/qc/estimate",
       "POST /v1/qc/jobs",
       "GET /v1/qc/jobs/{job_id}",
       "GET /v1/qc/jobs/{job_id}/report",
@@ -21,6 +22,7 @@ describe("agentic integration contract", () => {
 
   it("defines MCP tools for Claude and Codex QC workflows", () => {
     expect(getMcpToolNames()).toEqual([
+      "qc_estimate_cost",
       "qc_run_video",
       "qc_get_job",
       "qc_get_report",
@@ -31,8 +33,9 @@ describe("agentic integration contract", () => {
       "qc_list_recent_jobs",
       "qc_create_upload_url"
     ]);
-    expect(MCP_TOOLS[0].inputs).toContain("youtube_url");
-    expect(MCP_TOOLS[0].outputs).toContain("verdict");
+    const runVideo = MCP_TOOLS.find((tool) => tool.name === "qc_run_video");
+    expect(runVideo?.inputs).toContain("youtube_url");
+    expect(runVideo?.outputs).toContain("verdict");
   });
 
   it("defines a real async job lifecycle", () => {

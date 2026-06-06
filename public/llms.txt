@@ -18,16 +18,17 @@ Agent integration:
 - MCP server name: uploadcheck.
 - CLI/package options: @uploadcheck/cli and @uploadcheck/mcp.
 - Slash command concept: /check.
-- REST API job lifecycle starts at POST /v1/qc/jobs.
+- REST API preflight starts at POST /v1/qc/estimate; job lifecycle starts at POST /v1/qc/jobs.
 - OpenAPI: https://qcgenie-api.onrender.com/openapi.json
 - Hosted API base: https://qcgenie-api.onrender.com/v1
 - The Render service display name is uploadcheck-api, but the live Render URL still uses the legacy qcgenie-api slug until custom-domain cutover.
 - Legacy qcgenie-api environment names are accepted only as migration fallbacks.
 - MCP wrapper package lives in the repository under mcp-server.
-- MCP tools: qc_run_video, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_create_upload_url.
+- MCP tools: qc_estimate_cost, qc_run_video, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_create_upload_url.
 - Large local files use POST /v1/uploads, PUT /v1/uploads/{upload_id}/content?token=..., then POST /v1/qc/jobs with upload_id.
 - API keys are workspace-scoped and should be stored as connector secrets.
 - Agents should send idempotency_key on retries; repeated keys return the existing QC job instead of creating another run.
+- Agents should call qc_estimate_cost before sending large media or requesting model-backed checks; the estimate returns effective checks, removed checks, cost, and margin safety.
 - Webhook endpoints can receive job.completed and job.failed events with X-QCGenie-Signature metadata.
 - Completed jobs enqueue signed webhook delivery records; delivery logs are available at GET /v1/webhooks/deliveries, manual retries at POST /v1/webhooks/deliveries/{delivery_id}/retry, and due pending delivery drains at POST /v1/webhooks/deliveries/drain.
 - Current v0 API persists jobs, uploads, webhook endpoints, webhook delivery previews, and usage entries to a server-side JSON store; production Supabase persistence is still planned.

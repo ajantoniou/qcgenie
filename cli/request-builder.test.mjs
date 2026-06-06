@@ -40,6 +40,22 @@ describe("UploadCheck CLI request builder", () => {
     expect(request.payload.media_base64).toBe(Buffer.from("RIFFfake").toString("base64"));
   });
 
+  it("builds an inline local image request for visual QC gates", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-cli-"));
+    const file = join(dir, "crowd.jpg");
+    writeFileSync(file, Buffer.from("fake-jpeg"));
+
+    const request = buildJobRequest(file, {
+      maxInlineMb: 1,
+      checks: "twins"
+    });
+
+    expect(request.payload.filename).toBe("crowd.jpg");
+    expect(request.payload.media_content_type).toBe("image/jpeg");
+    expect(request.payload.media_kind).toBe("image");
+    expect(request.payload.checks).toBe("twins");
+  });
+
   it("builds a signed-upload plan for oversized local files", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-cli-"));
     const file = join(dir, "master.mp4");

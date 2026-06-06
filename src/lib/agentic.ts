@@ -45,6 +45,7 @@ export interface QcJobRequest {
 }
 
 export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
+  { methodPath: "POST /v1/qc/estimate", purpose: "Preflight cost, margin guardrail behavior, and effective checks before uploading media." },
   { methodPath: "POST /v1/qc/jobs", purpose: "Create a QC job from a YouTube URL, upload id, or signed asset URL." },
   { methodPath: "GET /v1/qc/jobs/{job_id}", purpose: "Poll job status, verdict, gate progress, and minute usage." },
   { methodPath: "GET /v1/qc/jobs/{job_id}/report", purpose: "Fetch shareable JSON/PDF-ready defects, timestamps, and evidence." },
@@ -60,6 +61,12 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
 ];
 
 export const MCP_TOOLS: McpTool[] = [
+  {
+    name: "qc_estimate_cost",
+    purpose: "Preflight cost, margin safety, and effective/removed gates before an agent uploads or runs media.",
+    inputs: ["minutes", "duration_seconds", "checks", "plan_id", "ai_review_seconds", "cost_guardrail"],
+    outputs: ["margin_safe", "effective_checks", "removed_checks", "cost_estimate", "action"]
+  },
   {
     name: "qc_run_video",
     purpose: "Start a full-timeline UploadCheck run from Claude, Codex, or another agent workspace.",

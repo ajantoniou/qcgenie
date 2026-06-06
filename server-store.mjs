@@ -33,7 +33,9 @@ export class JsonStore {
       }
     }
 
-    const upload = input.upload_id || input.uploadId ? this.getUpload(input.upload_id || input.uploadId) : null;
+    const uploadId = input.upload_id || input.uploadId || null;
+    const upload = uploadId ? this.getUpload(uploadId) : null;
+    const sourceType = input.source_type || input.sourceType || (input.youtube_url ? "youtube" : uploadId ? "upload" : "signed_url");
     const jobId = `job_${randomId()}`;
     const now = new Date().toISOString();
     const job = {
@@ -43,8 +45,8 @@ export class JsonStore {
       verdict: null,
       minutesMetered: 0,
       source: input.youtube_url || input.source || input.signed_url || upload?.contentPath || input.upload_id || null,
-      sourceType: input.youtube_url ? "youtube" : input.upload_id ? "upload" : "signed_url",
-      uploadId: input.upload_id || input.uploadId || null,
+      sourceType,
+      uploadId,
       idempotencyKey: input.idempotency_key || null,
       callbackUrl: input.callback_url || null,
       planId: input.plan_id || input.planId || null,
