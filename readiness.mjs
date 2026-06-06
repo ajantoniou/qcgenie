@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { buildCheckoutUrl } from "./checkout-links.mjs";
+import { validateSecretEncryptionKey } from "./secrets.mjs";
 
 const PLANS = ["creator", "studio", "network"];
 
@@ -10,7 +11,9 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
   );
   const checkoutConfigured = PLANS.every((plan) => checkout[plan].configured);
   const customDomainActive = isUploadCheckHost(host);
-  const secretEncryptionConfigured = Boolean(env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || env.QCGENIE_SECRET_ENCRYPTION_KEY);
+  const secretEncryptionKey = env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || env.QCGENIE_SECRET_ENCRYPTION_KEY || "";
+  const secretEncryptionValidation = validateSecretEncryptionKey(secretEncryptionKey);
+  const secretEncryptionConfigured = secretEncryptionValidation.ok;
   const apiAuthConfigured = Boolean(env.UPLOADCHECK_API_KEY || env.QCGENIE_API_KEY || env.UPLOADCHECK_API_KEY_SHA256 || env.QCGENIE_API_KEY_SHA256);
   const supabaseConfigured = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
   const storePath = env.UPLOADCHECK_STORE_PATH || env.QCGENIE_STORE_PATH || "/tmp/uploadcheck/store.json";
@@ -42,7 +45,8 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
     },
     secretEncryption: {
       ok: secretEncryptionConfigured,
-      detail: secretEncryptionConfigured ? "Webhook signing secrets can be encrypted at rest." : "Set UPLOADCHECK_SECRET_ENCRYPTION_KEY before production webhooks."
+      reason: secretEncryptionValidation.reason,
+      detail: secretEncryptionConfigured ? "Webhook signing secrets can be encrypted at rest with a strong key." : "Set a strong UPLOADCHECK_SECRET_ENCRYPTION_KEY before production webhooks. Generate one with npm run --silent secret:generate."
     },
     apiAuth: {
       ok: apiAuthConfigured,

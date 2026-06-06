@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { buildReadinessReport } from "../../readiness.mjs";
 
+const strongSecret = "a".repeat(64);
+
 describe("launch readiness report", () => {
   it("marks Product Hunt readiness false when launch-critical env is missing", () => {
     const report = buildReadinessReport({
@@ -29,7 +31,7 @@ describe("launch readiness report", () => {
         UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
         UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
         UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
-        UPLOADCHECK_SECRET_ENCRYPTION_KEY: "secret",
+        UPLOADCHECK_SECRET_ENCRYPTION_KEY: strongSecret,
         UPLOADCHECK_API_KEY_SHA256: "hash",
         UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck-data/store.json",
         UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck-storage",
@@ -45,6 +47,19 @@ describe("launch readiness report", () => {
     expect(report.checks.persistence.mode).toBe("durable_json_store");
     expect(report.checks.storage.mode).toBe("durable_filesystem");
     expect(report.checks.demoClip.ok).toBe(true);
+  });
+
+  it("does not accept weak webhook encryption keys as launch-ready", () => {
+    const report = buildReadinessReport({
+      host: "api.uploadcheck.app",
+      env: {
+        UPLOADCHECK_SECRET_ENCRYPTION_KEY: "secret",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "/tmp/does-not-exist-uploadcheck-demo.mp4"
+      },
+      now: "2026-06-06T00:00:00.000Z"
+    });
+
+    expect(report.checks.secretEncryption).toMatchObject({ ok: false, reason: "too_short" });
   });
 
   it("reports object storage env separately from mounted filesystem storage", () => {

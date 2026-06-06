@@ -57,7 +57,7 @@ Persistence state:
 - Current hosted API stores jobs, uploads, webhook endpoints, webhook delivery previews, and usage ledger entries through `server-store.mjs`.
 - API auth supports plaintext `UPLOADCHECK_API_KEY` for bootstrapping and SHA-256 hash verification through `UPLOADCHECK_API_KEY_SHA256`. Legacy `QCGENIE_*` names are still accepted during migration.
 - Webhook delivery previews use HMAC-SHA256 signatures in the `X-QCGenie-Signature` format until the webhook header rename is shipped.
-- New webhook signing secrets are returned once on creation and encrypted at rest when `UPLOADCHECK_SECRET_ENCRYPTION_KEY` is configured; legacy plaintext records remain readable for migration. Set this env var on Render before treating hosted webhook secrets as encrypted.
+- New webhook signing secrets are returned once on creation and encrypted at rest when a strong `UPLOADCHECK_SECRET_ENCRYPTION_KEY` is configured; legacy plaintext records remain readable for migration. Generate a key with `npm run --silent secret:generate`, then set this env var on Render before treating hosted webhook secrets as encrypted.
 - Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
 - Webhook delivery logs are available at `/v1/webhooks/deliveries`; manual retry execution is available at `/v1/webhooks/deliveries/{delivery_id}/retry`.
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
@@ -71,7 +71,7 @@ Persistence state:
 - Reference full-video gate scripts live under `scripts/qc-engine/`.
 - `supabase/schema.sql` includes workspace membership and RLS policies for the production persistence model.
 - Production persistence can use a mounted-disk JSON store by setting `UPLOADCHECK_STORE_PATH` outside temp storage, for example `/mnt/uploadcheck-data/store.json`; Supabase remains the future multi-workspace persistence target.
-- Production still needs hosted `UPLOADCHECK_SECRET_ENCRYPTION_KEY` configuration and legacy webhook secret migration.
+- Production still needs hosted `UPLOADCHECK_SECRET_ENCRYPTION_KEY` configuration with a generated strong key and legacy webhook secret migration.
 - Durable upload retention can use a mounted storage path via `UPLOADCHECK_DURABLE_STORAGE_DIR`; object-storage buckets remain the next storage adapter.
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
 
