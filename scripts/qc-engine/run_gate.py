@@ -26,7 +26,7 @@ def run(check,video,lang,outdir,fast):
     t0=time.time(); p=subprocess.run(cmd,capture_output=True,text=True)
     try: data=json.load(open(j))
     except Exception: data={"check":check,"pass":None,"error":(p.stderr or p.stdout)[-300:]}
-    data["_seconds"]=round(time.time()-t0,1); return data
+    data["_seconds"]=round(time.time()-t0,1); data["_returncode"]=p.returncode; return data
 
 def main():
     ap=argparse.ArgumentParser()
@@ -40,6 +40,12 @@ def main():
     for c in checks:
         print(f"[ gate ] running {c} ...",flush=True)
         results[c]=run(c,a.video,a.lang,outdir,a.fast)
+        if results[c].get("pass") is None and results[c].get("_returncode", 0) not in (0, None):
+            results[c]["pass"] = False
+            results[c]["findings"] = [{
+                "reason": results[c].get("error") or f"{c} checker exited {results[c].get('_returncode')}",
+                "action": "Fix the checker/runtime dependency and rerun the gate before shipping."
+            }]
         v=results[c].get("pass"); tag="PASS" if v is True else ("SKIP" if v is None else "BLOCK")
         print(f"[ gate ] {c}: {tag} ({results[c].get('_seconds')}s)",flush=True)
     blocked=[c for c,r in results.items() if r.get("pass") is False]

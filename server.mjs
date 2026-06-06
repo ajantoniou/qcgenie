@@ -121,7 +121,8 @@ function getReport(req, url, res) {
   const auth = requireScope(req, "reports:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-2);
-  const job = store.getJob(jobId) || completedJob(jobId);
+  const realJob = store.getJob(jobId);
+  const job = realJob || completedJob(jobId);
   const roundedMinutes = Math.max(1, Math.ceil(job.minutesMetered || 19));
   const usage = store.appendUsage(jobId, roundedMinutes);
   const flags = store.listFlags(jobId);
@@ -131,8 +132,8 @@ function getReport(req, url, res) {
     verdict: job.verdict || "WATCH",
     usage,
     costEstimate: estimateJobCost({ minutesMetered: roundedMinutes }),
-    flags: flags.length ? flags : [defaultFlag(jobId)],
-    artifacts: artifacts.length ? artifacts : defaultArtifacts(jobId)
+    flags: flags.length ? flags : (realJob ? [] : [defaultFlag(jobId)]),
+    artifacts: artifacts.length ? artifacts : (realJob ? [] : defaultArtifacts(jobId))
   });
 }
 
