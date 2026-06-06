@@ -57,6 +57,7 @@ describe("UploadCheck pipeline recipes", () => {
     expect(longForm.arguments.checks).toContain("end_screen_tease");
     expect(longForm.arguments.checks).toContain("rehook_cadence");
     expect(longForm.arguments.checks).toContain("contact_sheet_evidence");
+    expect(longForm.arguments.checks).toContain("text_crop_jitter");
     expect(longForm.arguments.checks).toContain("script_faithfulness");
     expect(longForm.arguments).toMatchObject({
       manifest_path: "/path/to/storybook.json",
@@ -72,6 +73,7 @@ describe("UploadCheck pipeline recipes", () => {
     expect(shorts.arguments.checks).toContain("end_screen_tease");
     expect(shorts.arguments.checks).toContain("sentence_boundary");
     expect(shorts.arguments.checks).toContain("dialogue_in_music_short");
+    expect(shorts.arguments.checks).toContain("text_crop_jitter");
     expect(shorts.arguments.checks).toContain("text_safe_area");
     expect(audio.arguments.file_path).toBe("/path/to/episode.wav");
     expect(audio.arguments.checks).toContain("pronunciation_watchlist");
@@ -115,6 +117,10 @@ describe("UploadCheck pipeline recipes", () => {
       callable_check: "text_contrast"
     });
     expect(implemented.text_contrast.covers).toContain("Poorly contrasting overlay text");
+    expect(implemented.text_crop_jitter).toMatchObject({
+      callable_check: "text_crop_jitter"
+    });
+    expect(implemented.text_crop_jitter.covers).toContain("jittering");
     expect(implemented.twins.covers).toContain("more character variation");
     expect(implemented.narration_match.covers).toContain("Visual/narration mismatch");
     expect(implemented.sentence_boundary).toMatchObject({

@@ -138,7 +138,7 @@ NTO-derived private QC tasks to add to the product:
 
 1. `text_contrast`: detect low-contrast overlay text against moving footage/backgrounds. Implemented first as deterministic OCR + luminance contrast.
 2. `text_safe_area`: reject words crossing Shorts action chrome, lower UI overlays, or long-form title-safe margins. Implemented in the default gate and reused by `shorts_format`.
-3. `text_crop_jitter`: reject cropped, overlapping, jittering, or edge-to-edge text cards.
+3. `text_crop_jitter`: reject cropped, overlapping, jittering, or edge-to-edge text cards. Implemented first as a deterministic manifest-side gate for renderer/export metadata.
 4. `shorts_format`: verify exact 1080x1920, full-bleed 9:16, no gutters, no unintended dialogue, correct duration. Implemented as an opt-in specialized gate.
 5. `canvas_fill`: verify long-form 16:9 fills the canvas and blocks pillarbox/letterbox misuse. Implemented in the default gate.
 6. `script_faithfulness`: compare transcript against locked script/expected narration with WER thresholds. Implemented first as a deterministic transcript-side WER gate when callers pass a transcript and expected-script sidecar.
@@ -183,6 +183,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO pipeline reviewed for QC productization tasks.
 - Done: first NTO-derived text contrast gate added to `scripts/qc-engine/check_text_contrast.py` and included in `run_gate.py`.
 - Done: NTO-derived `canvas_fill`, `text_safe_area`, and `shorts_format` deterministic gates added to `scripts/qc-engine/`.
+- Done: NTO-derived `text_crop_jitter` deterministic manifest-side text-card gate added to `scripts/qc-engine/check_text_crop_jitter.py`, included in `run_gate.py`, and added to NTO long-form and Shorts recipe defaults.
 - Done: NTO-derived `dead_air` deterministic gate added to `scripts/qc-engine/check_dead_air.py` and included in `run_gate.py`.
 - Done: NTO-derived `repeat_fatigue` deterministic gate added to `scripts/qc-engine/check_repeat_fatigue.py` and included in `run_gate.py`.
 - Done: NTO-derived `spoken_leaks` deterministic transcript-side gate added to `scripts/qc-engine/check_spoken_leaks.py` and included in `run_gate.py`.
