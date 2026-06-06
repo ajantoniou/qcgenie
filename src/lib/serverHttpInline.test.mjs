@@ -822,6 +822,142 @@ describe("server inline media API", () => {
     }
   }, 20000);
 
+  it("emails the API-key owner when extra-minute spend exceeds subscription value", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-spend-alert-"));
+    const storePath = join(dir, "store.json");
+    const adminKey = "uck_admin_spend_alert";
+    const sentEmails = [];
+    const resendServer = createServer(async (req, res) => {
+      let body = "";
+      for await (const chunk of req) body += chunk;
+      sentEmails.push({
+        method: req.method,
+        url: req.url,
+        authorization: req.headers.authorization,
+        body: JSON.parse(body || "{}")
+      });
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ id: "email_test_123" }));
+    });
+    await new Promise((resolve) => resendServer.listen(0, "127.0.0.1", resolve));
+
+    const seedStore = new JsonStore(storePath);
+    const seededJob = seedStore.createJob({
+      source: "/tmp/previous.mp4",
+      plan_id: "creator",
+      workspace_id: "ws_spend",
+      owner_email: "owner@example.com",
+      included_minutes: 1,
+      plan_price_cents: 100
+    });
+    seedStore.appendUsage(seededJob.jobId, 1300, currentTestBillingPeriod(), {
+      planId: "creator",
+      workspaceId: "ws_spend",
+      ownerEmail: "owner@example.com",
+      includedMinutes: 1,
+      observedTotalCogsCents: 0
+    });
+
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const resendPort = resendServer.address().port;
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        RESEND_API_KEY: "re_test_key",
+        UPLOADCHECK_RESEND_API_URL: `http://127.0.0.1:${resendPort}/emails`,
+        UPLOADCHECK_ALERT_FROM_EMAIL: "UploadCheck <alerts@example.com>",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const createResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Spend alert customer key",
+          workspace_id: "ws_spend",
+          owner_email: "owner@example.com",
+          plan_id: "creator",
+          included_minutes: 1,
+          plan_price_cents: 100,
+          scopes: ["jobs:write", "jobs:read", "reports:read"]
+        })
+      });
+      const created = await createResponse.json();
+      expect(createResponse.status).toBe(201);
+
+      const jobResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${created.apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/final.mp4",
+          source_type: "signed_url",
+          checks: "canvas_fill",
+          process_async: true
+        })
+      });
+      const job = await jobResponse.json();
+      expect(jobResponse.status).toBe(202);
+      expect(job.ownerEmail).toBe("owner@example.com");
+      expect(job.workspaceId).toBe("ws_spend");
+
+      const verdictResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs/${job.jobId}/gate-verdict`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${created.apiKey}`
+        },
+        body: JSON.stringify({
+          verdict: "PASS",
+          provider_usage: [{ provider: "deterministic", input_tokens: 1, output_tokens: 0 }]
+        })
+      });
+      expect(verdictResponse.status).toBe(200);
+
+      expect(sentEmails).toHaveLength(1);
+      expect(sentEmails[0]).toMatchObject({
+        method: "POST",
+        url: "/emails",
+        authorization: "Bearer re_test_key"
+      });
+      expect(sentEmails[0].body).toMatchObject({
+        from: "UploadCheck <alerts@example.com>",
+        to: ["owner@example.com"],
+        subject: "UploadCheck overage spend alert: creator"
+      });
+      expect(sentEmails[0].body.text).toContain("Workspace ws_spend exceeded the overage spend threshold");
+      expect(sentEmails[0].body.text).toContain("Plan price: 1.00 USD");
+
+      const saved = JSON.parse(readFileSync(storePath, "utf8"));
+      expect(saved.spendAlerts).toHaveLength(1);
+      expect(saved.spendAlerts[0]).toMatchObject({
+        workspaceId: "ws_spend",
+        ownerEmail: "owner@example.com",
+        planId: "creator",
+        status: "sent",
+        provider: "resend",
+        providerMessageId: "email_test_123"
+      });
+    } finally {
+      await new Promise((resolve) => resendServer.close(resolve));
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
   it("rejects declared jobs that exceed included AI-review seconds", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-ai-limit-"));
     const storePath = join(dir, "store.json");

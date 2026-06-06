@@ -17,7 +17,7 @@ UploadCheck.app supports self-serve users and programmatic agent workflows.
 
 - Web users paste a YouTube URL or upload a cut.
 - Agent users run `/check` against a media file, upload id, signed URL, or YouTube URL.
-- Claude, Codex, and other agents call the same REST API through an MCP server or connector.
+- Claude, Codex, Cursor, and other agent workspaces call the same REST API through the UploadCheck MCP server or direct API calls. Do not prioritize a ChatGPT app/connector until the paid MCP/API path is live.
 - MCP tools call the hosted API; `qc_run_local_file` only reads/encodes local media before sending it to Render.
 - Customer-facing tools do not expose internal model/provider rails.
 - MCP server name: `uploadcheck`.
@@ -77,6 +77,9 @@ Persistence state:
 - Webhook delivery previews use HMAC-SHA256 signatures in the `X-UploadCheck-Signature` format. Legacy `X-QCGenie-Signature` aliases are still sent during migration.
 - New webhook signing secrets are returned once on creation and encrypted at rest when a strong `UPLOADCHECK_SECRET_ENCRYPTION_KEY` is configured; legacy plaintext records remain readable for migration. Generate a key with `npm run --silent secret:generate`, then set this env var on Render before treating hosted webhook secrets as encrypted.
 - Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
+- Workspace API keys are stored hashed, returned once, scoped, and honored on job creation for owner email, workspace, plan, included minutes, and subscription price metadata.
+- The dashboard API-key form calls `POST /v1/api-keys` with a provisioning bearer; in private MCP beta this is an operator/admin bearer, and after checkout it should be replaced by the paid account/session provisioning flow.
+- Owner spend alerts are recorded and sent through Resend when extra-minute spend crosses 100% of the subscription value; `UPLOADCHECK_RESEND_API_URL` can point tests at a mock endpoint while production defaults to Resend.
 - Webhook delivery logs are available at `/v1/webhooks/deliveries`; manual retry execution is available at `/v1/webhooks/deliveries/{delivery_id}/retry`.
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
 - Render cron can run `node scripts/drain-webhooks.mjs` with `UPLOADCHECK_API_KEY`, `UPLOADCHECK_API_BASE_URL`, and `UPLOADCHECK_DRAIN_LIMIT` to process due deliveries on a schedule.

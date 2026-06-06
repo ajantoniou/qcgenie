@@ -76,6 +76,21 @@ describe("UploadCheck conversion UI", () => {
     });
   });
 
+  test("dashboard requires a provisioning bearer before creating API keys", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({})
+    } as Response);
+
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create API key" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Provisioning bearer token required");
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByText("Status: Ready")).toBeInTheDocument();
+  });
+
   test("positions the metered pricing model around the $99 creator plan", () => {
     render(<App />);
 
