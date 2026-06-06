@@ -72,19 +72,19 @@ export const MCP_TOOLS: McpTool[] = [
     name: "qc_run_video",
     purpose: "Start a full-timeline UploadCheck run from Claude, Codex, or another agent workspace.",
     inputs: ["youtube_url", "upload_id", "signed_url", "video_base64", "audio_base64", "data_url", "callback_url"],
-    outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered", "cost_estimate"]
+    outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered", "media_ingress", "cost_estimate"]
   },
   {
     name: "qc_run_local_file",
     purpose: "Read a local media file from an agent workspace and send it through Render inline or signed upload.",
     inputs: ["file_path", "checks", "manifest_path", "transcript_path", "expected_script_path", "plan_id", "cost_guardrail"],
-    outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered", "cost_estimate"]
+    outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered", "media_ingress", "cost_estimate"]
   },
   {
     name: "qc_get_job",
     purpose: "Poll status, stage, progress, current verdict, and minutes for an active job.",
     inputs: ["job_id"],
-    outputs: ["status", "stage", "progress_pct", "verdict", "minutes_metered"]
+    outputs: ["status", "stage", "progress_pct", "verdict", "minutes_metered", "media_ingress"]
   },
   {
     name: "qc_get_report",

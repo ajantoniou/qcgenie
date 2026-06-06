@@ -206,13 +206,14 @@ export function formatJobSummary(payload) {
   const status = payload.status || "unknown";
   const verdict = payload.verdict || "pending";
   const minutes = payload.minutesMetered ?? 0;
+  const ingressSuffix = formatMediaIngress(payload.mediaIngress);
   const cost = payload.costEstimate?.estimatedCogsUsd ?? (
     payload.costEstimate?.estimatedCogsCents == null ? null : payload.costEstimate.estimatedCogsCents / 100
   );
   const observed = payload.costEstimate?.observedTotalCogsCents;
   const observedSuffix = observed == null ? "" : ` | observed COGS $${(Number(observed) / 100).toFixed(4)}`;
   const suffix = cost == null ? observedSuffix : ` | est. COGS $${Number(cost).toFixed(4)}${observedSuffix}`;
-  return `UploadCheck job ${payload.jobId || payload.id || "(unknown)"}: ${status} / ${verdict} | ${minutes} min${suffix}`;
+  return `UploadCheck job ${payload.jobId || payload.id || "(unknown)"}: ${status} / ${verdict} | ${minutes} min${ingressSuffix}${suffix}`;
 }
 
 export function formatUsageSummary(payload) {
@@ -302,6 +303,20 @@ function attachCostOptions(payload, options) {
   if (options.includedMinutes) payload.included_minutes = Number(options.includedMinutes);
   if (options.aiReviewSeconds) payload.ai_review_seconds = Number(options.aiReviewSeconds);
   if (options.costGuardrail) payload.cost_guardrail = options.costGuardrail;
+}
+
+function formatMediaIngress(mediaIngress) {
+  if (!mediaIngress?.mode) return "";
+  const detail = [mediaIngress.mode, mediaIngress.contentType, formatBytes(mediaIngress.bytes)].filter(Boolean).join(" ");
+  return detail ? ` | media ${detail}` : "";
+}
+
+function formatBytes(bytes) {
+  const value = Number(bytes);
+  if (!Number.isFinite(value) || value <= 0) return "";
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(value < 10 * 1024 ? 1 : 0)} KB`;
+  return `${(value / 1024 / 1024).toFixed(value < 10 * 1024 * 1024 ? 2 : 1)} MB`;
 }
 
 function formatMb(bytes) {

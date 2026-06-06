@@ -57,5 +57,12 @@ describe("UploadCheck pipeline recipes", () => {
       "npo_podcast_or_audio",
       "generic_creator_video"
     ]);
+    expect(manifest.response_fields.qc_job).toContain("mediaIngress");
+    expect(manifest.response_fields.qc_job).toContain("costEstimate");
+    expect(manifest.response_fields.mediaIngress).toMatchObject({
+      inline_mode: "inline_ephemeral",
+      signed_upload_mode: "signed_upload"
+    });
+    expect(manifest.response_fields.mediaIngress.never_exposes).toContain("temporary server file paths");
   });
 });

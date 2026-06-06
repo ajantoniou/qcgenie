@@ -39,9 +39,13 @@ describe("agentic integration contract", () => {
     const runVideo = MCP_TOOLS.find((tool) => tool.name === "qc_run_video");
     expect(runVideo?.inputs).toContain("youtube_url");
     expect(runVideo?.outputs).toContain("verdict");
+    expect(runVideo?.outputs).toContain("media_ingress");
     const runLocalFile = MCP_TOOLS.find((tool) => tool.name === "qc_run_local_file");
     expect(runLocalFile?.inputs).toContain("file_path");
+    expect(runLocalFile?.outputs).toContain("media_ingress");
     expect(runLocalFile?.purpose).toContain("local media file");
+    const getJob = MCP_TOOLS.find((tool) => tool.name === "qc_get_job");
+    expect(getJob?.outputs).toContain("media_ingress");
   });
 
   it("defines a real async job lifecycle", () => {
