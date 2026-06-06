@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
 VIDEO QC GATE — runs all checks and emits one ship/block verdict.
-Checks: canvas_fill + loop_freeze + repeat_fatigue + speaker_visual_binding + static_head_dominance + literal_subject_match + first_three_seconds + end_screen_tease + spoken_leaks + pronunciation_watchlist + script_faithfulness + sentence_boundary + dead_air + cheap_broll + text_contrast + text_safe_area + garble (deterministic-ish), twins + narration_match + omni_watch
+Checks: canvas_fill + loop_freeze + repeat_fatigue + speaker_visual_binding + static_head_dominance + literal_subject_match + first_three_seconds + end_screen_tease + rehook_cadence + spoken_leaks + pronunciation_watchlist + script_faithfulness + sentence_boundary + dead_air + cheap_broll + text_contrast + text_safe_area + garble (deterministic-ish), twins + narration_match + omni_watch
 (vision). Deterministic checks are authoritative; vision checks supplement. Skipped checks (missing
 key) are reported but do not fail the gate.
 Usage:
-  run_gate.py VIDEO [--checks canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,end_screen_tease,spoken_leaks,pronunciation_watchlist,script_faithfulness,sentence_boundary,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch]
+  run_gate.py VIDEO [--checks canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,end_screen_tease,rehook_cadence,spoken_leaks,pronunciation_watchlist,script_faithfulness,sentence_boundary,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch]
               [--lang eng] [--out DIR] [--manifest storybook.json] [--transcript transcript.txt] [--watchlist watchlist.json] [--expected-script script.txt] [--fast]
 Exit 0 only if every RUN check PASSES.
 """
 import sys, os, json, subprocess, argparse, time
 
 HERE=os.path.dirname(os.path.abspath(__file__))
-ALL=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch","shorts_format"]
-DEFAULT=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch"]
+ALL=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch","shorts_format"]
+DEFAULT=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch"]
 SCRIPT={c:f"check_{c}.py" for c in ALL}; SCRIPT["omni_watch"]="omni_watch.py"
 
 def run(check,video,lang,outdir,fast,manifest=None,transcript=None,watchlist=None,expected_script=None):
@@ -25,6 +25,7 @@ def run(check,video,lang,outdir,fast,manifest=None,transcript=None,watchlist=Non
     if check=="literal_subject_match" and manifest: cmd+=["--manifest",manifest]
     if check=="first_three_seconds" and manifest: cmd+=["--manifest",manifest]
     if check=="end_screen_tease" and manifest: cmd+=["--manifest",manifest]
+    if check=="rehook_cadence" and manifest: cmd+=["--manifest",manifest]
     if check=="spoken_leaks" and transcript: cmd+=["--transcript",transcript]
     if check=="pronunciation_watchlist":
         if transcript: cmd+=["--transcript",transcript]
