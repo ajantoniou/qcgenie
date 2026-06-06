@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -67,6 +67,7 @@ describe("MCP local file runner", () => {
     const transcript = join(dir, "transcript.txt");
     const watchlist = join(dir, "watchlist.json");
     const expectedScript = join(dir, "locked-script.txt");
+    const sidecars = join(dir, "_dialogue-chunks");
 
     try {
       writeFileSync(file, Buffer.from("fake-mp4"));
@@ -74,13 +75,16 @@ describe("MCP local file runner", () => {
       writeFileSync(transcript, "Marcion was born in Sinope.");
       writeFileSync(watchlist, JSON.stringify({ terms: [{ expected: "Marcion", banned: ["Martian"] }] }));
       writeFileSync(expectedScript, "Marcion was born in Sinope and challenged Rome.");
+      mkdirSync(sidecars, { recursive: true });
+      writeFileSync(join(sidecars, "voice-08.garble-report.json"), JSON.stringify({ pass: false, status: "failed" }));
       const request = buildLocalFileRequest({
         file_path: file,
-        checks: "repeat_fatigue,spoken_leaks,pronunciation_watchlist,script_faithfulness",
+        checks: "repeat_fatigue,spoken_leaks,pronunciation_watchlist,script_faithfulness,chunk_sidecar_failures",
         manifest_path: manifest,
         transcript_path: transcript,
         watchlist_path: watchlist,
         expected_script_path: expectedScript,
+        sidecar_dir: sidecars,
         max_inline_mb: 1
       });
 
@@ -89,6 +93,10 @@ describe("MCP local file runner", () => {
       expect(request.payload.transcript_text).toContain("Marcion");
       expect(request.payload.watchlist_json.terms[0].banned).toContain("Martian");
       expect(request.payload.expected_script_text).toContain("challenged Rome");
+      expect(request.payload.chunk_sidecars_json[0]).toMatchObject({
+        relative_path: "voice-08.garble-report.json",
+        json: { pass: false, status: "failed" }
+      });
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

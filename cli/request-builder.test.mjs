@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { buildEstimateRequest, buildJobRequest, buildLaunchStatusRequest, buildUsageRequest, formatJobSummary, formatLaunchStatusSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
@@ -111,6 +111,34 @@ describe("UploadCheck CLI request builder", () => {
     expect(signed.createJob.payload.manifest_filename).toBe("storybook.json");
   });
 
+  it("attaches chunk sidecar reports to inline and signed jobs", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-cli-"));
+    const file = join(dir, "voiceover.mp3");
+    const sidecars = join(dir, "_dialogue-chunks");
+    writeFileSync(file, Buffer.from("fake-mp3"));
+    mkdirSync(sidecars, { recursive: true });
+    writeFileSync(join(sidecars, "voice-03.garble-report.json"), JSON.stringify({ pass: false, status: "failed" }));
+
+    const inline = buildJobRequest(file, {
+      maxInlineMb: 1,
+      checks: "chunk_sidecar_failures",
+      sidecarDir: sidecars
+    });
+    expect(inline.payload.chunk_sidecar_dirname).toBe("_dialogue-chunks");
+    expect(inline.payload.chunk_sidecars_json[0]).toMatchObject({
+      relative_path: "voice-03.garble-report.json",
+      filename: "voice-03.garble-report.json",
+      json: { pass: false, status: "failed" }
+    });
+
+    const signed = buildJobRequest(file, {
+      maxInlineMb: 0.000001,
+      checks: "chunk_sidecar_failures",
+      sidecarDir: sidecars
+    });
+    expect(signed.createJob.payload.chunk_sidecars_json[0].json.status).toBe("failed");
+  });
+
   it("attaches transcript text to jobs", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-cli-"));
     const file = join(dir, "master.mp4");
@@ -196,6 +224,8 @@ describe("UploadCheck CLI request builder", () => {
       "watchlist.json",
       "--expected-script",
       "locked-script.txt",
+      "--sidecar-dir",
+      "_dialogue-chunks",
       "--plan",
       "studio",
       "--ai-review-seconds",
@@ -214,6 +244,7 @@ describe("UploadCheck CLI request builder", () => {
       transcriptPath: "transcript.txt",
       watchlistPath: "watchlist.json",
       expectedScriptPath: "locked-script.txt",
+      sidecarDir: "_dialogue-chunks",
       planId: "studio",
       aiReviewSeconds: "45",
       costGuardrail: "block",

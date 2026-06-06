@@ -58,12 +58,14 @@ describe("UploadCheck pipeline recipes", () => {
     expect(longForm.arguments.checks).toContain("rehook_cadence");
     expect(longForm.arguments.checks).toContain("contact_sheet_evidence");
     expect(longForm.arguments.checks).toContain("text_crop_jitter");
+    expect(longForm.arguments.checks).toContain("chunk_sidecar_failures");
     expect(longForm.arguments.checks).toContain("script_faithfulness");
     expect(longForm.arguments).toMatchObject({
       manifest_path: "/path/to/storybook.json",
       transcript_path: "/path/to/final-transcript.txt",
       watchlist_path: "/path/to/watchlist.json",
       expected_script_path: "/path/to/locked-script.txt",
+      sidecar_dir: "/path/to/_dialogue-chunks",
       cost_guardrail: "downgrade"
     });
 
@@ -78,6 +80,7 @@ describe("UploadCheck pipeline recipes", () => {
     expect(audio.arguments.file_path).toBe("/path/to/episode.wav");
     expect(audio.arguments.checks).toContain("pronunciation_watchlist");
     expect(audio.arguments.checks).toContain("script_faithfulness");
+    expect(audio.arguments.checks).toContain("chunk_sidecar_failures");
 
     for (const call of [longForm, shorts, audio]) {
       for (const key of Object.keys(call.arguments)) {
@@ -163,6 +166,10 @@ describe("UploadCheck pipeline recipes", () => {
       callable_check: "dialogue_in_music_short"
     });
     expect(implemented.dialogue_in_music_short.covers).toContain("unintended spoken dialogue");
+    expect(implemented.chunk_sidecar_failures).toMatchObject({
+      callable_check: "chunk_sidecar_failures"
+    });
+    expect(implemented.chunk_sidecar_failures.covers).toContain("garble sidecars");
 
     expect(planned.size).toBe(0);
 

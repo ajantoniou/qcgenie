@@ -11,6 +11,7 @@ export function buildLocalFileRequest(input = {}) {
     transcriptPath: input.transcript_path,
     watchlistPath: input.watchlist_path,
     expectedScriptPath: input.expected_script_path,
+    sidecarDir: input.sidecar_dir,
     callbackUrl: input.callback_url,
     idempotencyKey: input.idempotency_key,
     planId: input.plan_id,

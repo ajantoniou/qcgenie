@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
 VIDEO QC GATE — runs all checks and emits one ship/block verdict.
-Checks: canvas_fill + loop_freeze + repeat_fatigue + speaker_visual_binding + static_head_dominance + literal_subject_match + first_three_seconds + end_screen_tease + rehook_cadence + contact_sheet_evidence + opening_footer_text_presence + text_crop_jitter + spoken_leaks + pronunciation_watchlist + script_faithfulness + sentence_boundary + dialogue_in_music_short + dead_air + cheap_broll + text_contrast + text_safe_area + garble (deterministic-ish), twins + narration_match + omni_watch
+Checks: canvas_fill + loop_freeze + repeat_fatigue + speaker_visual_binding + static_head_dominance + literal_subject_match + first_three_seconds + end_screen_tease + rehook_cadence + contact_sheet_evidence + opening_footer_text_presence + text_crop_jitter + chunk_sidecar_failures + spoken_leaks + pronunciation_watchlist + script_faithfulness + sentence_boundary + dialogue_in_music_short + dead_air + cheap_broll + text_contrast + text_safe_area + garble (deterministic-ish), twins + narration_match + omni_watch
 (vision). Deterministic checks are authoritative; vision checks supplement. Skipped checks (missing
 key) are reported but do not fail the gate.
 Usage:
-  run_gate.py VIDEO [--checks canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,end_screen_tease,rehook_cadence,contact_sheet_evidence,opening_footer_text_presence,text_crop_jitter,spoken_leaks,pronunciation_watchlist,script_faithfulness,sentence_boundary,dialogue_in_music_short,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch]
-              [--lang eng] [--out DIR] [--manifest storybook.json] [--transcript transcript.txt] [--watchlist watchlist.json] [--expected-script script.txt] [--fast]
+  run_gate.py VIDEO [--checks canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,end_screen_tease,rehook_cadence,contact_sheet_evidence,opening_footer_text_presence,text_crop_jitter,chunk_sidecar_failures,spoken_leaks,pronunciation_watchlist,script_faithfulness,sentence_boundary,dialogue_in_music_short,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch]
+              [--lang eng] [--out DIR] [--manifest storybook.json] [--transcript transcript.txt] [--watchlist watchlist.json] [--expected-script script.txt] [--sidecar-dir _dialogue-chunks] [--fast]
 Exit 0 only if every RUN check PASSES.
 """
 import sys, os, json, subprocess, argparse, time
 
 HERE=os.path.dirname(os.path.abspath(__file__))
-ALL=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","opening_footer_text_presence","text_crop_jitter","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dialogue_in_music_short","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch","shorts_format"]
+ALL=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","opening_footer_text_presence","text_crop_jitter","chunk_sidecar_failures","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dialogue_in_music_short","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch","shorts_format"]
 DEFAULT=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch"]
 SCRIPT={c:f"check_{c}.py" for c in ALL}; SCRIPT["omni_watch"]="omni_watch.py"
 
-def run(check,video,lang,outdir,fast,manifest=None,transcript=None,watchlist=None,expected_script=None):
+def run(check,video,lang,outdir,fast,manifest=None,transcript=None,watchlist=None,expected_script=None,sidecar_dir=None):
     j=os.path.join(outdir,f"{check}.json")
     cmd=["python3",os.path.join(HERE,SCRIPT[check]),video,"--json",j]
     if check=="repeat_fatigue" and manifest: cmd+=["--manifest",manifest]
@@ -29,6 +29,7 @@ def run(check,video,lang,outdir,fast,manifest=None,transcript=None,watchlist=Non
     if check=="contact_sheet_evidence" and manifest: cmd+=["--manifest",manifest]
     if check=="opening_footer_text_presence" and manifest: cmd+=["--manifest",manifest]
     if check=="text_crop_jitter" and manifest: cmd+=["--manifest",manifest]
+    if check=="chunk_sidecar_failures" and sidecar_dir: cmd+=["--sidecar-dir",sidecar_dir]
     if check=="spoken_leaks" and transcript: cmd+=["--transcript",transcript]
     if check=="pronunciation_watchlist":
         if transcript: cmd+=["--transcript",transcript]
@@ -62,7 +63,7 @@ def provider_usage_for(check,result):
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("video"); ap.add_argument("--checks",default=",".join(DEFAULT))
-    ap.add_argument("--lang",default="eng"); ap.add_argument("--out",default=None); ap.add_argument("--manifest",default=None); ap.add_argument("--transcript",default=None); ap.add_argument("--watchlist",default=None); ap.add_argument("--expected-script",default=None); ap.add_argument("--fast",action="store_true")
+    ap.add_argument("--lang",default="eng"); ap.add_argument("--out",default=None); ap.add_argument("--manifest",default=None); ap.add_argument("--transcript",default=None); ap.add_argument("--watchlist",default=None); ap.add_argument("--expected-script",default=None); ap.add_argument("--sidecar-dir",default=None); ap.add_argument("--fast",action="store_true")
     a=ap.parse_args()
     if not os.path.exists(a.video): sys.exit(f"no such file: {a.video}")
     outdir=a.out or (os.path.splitext(a.video)[0]+"_qcgate"); os.makedirs(outdir,exist_ok=True)
@@ -70,7 +71,7 @@ def main():
     results={}
     for c in checks:
         print(f"[ gate ] running {c} ...",flush=True)
-        results[c]=run(c,a.video,a.lang,outdir,a.fast,a.manifest,a.transcript,a.watchlist,a.expected_script)
+        results[c]=run(c,a.video,a.lang,outdir,a.fast,a.manifest,a.transcript,a.watchlist,a.expected_script,a.sidecar_dir)
         if results[c].get("pass") is None and results[c].get("_returncode", 0) not in (0, None):
             results[c]["pass"] = False
             results[c]["findings"] = [{

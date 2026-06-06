@@ -93,6 +93,7 @@ server.tool(
     transcript_path: z.string().optional(),
     watchlist_path: z.string().optional(),
     expected_script_path: z.string().optional(),
+    sidecar_dir: z.string().optional(),
     max_inline_mb: z.number().optional(),
     upload_mode: z.enum(["auto", "inline", "signed"]).optional(),
     plan_id: z.string().optional(),

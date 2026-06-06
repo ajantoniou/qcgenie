@@ -438,6 +438,15 @@
                     "type": "string"
                   },
                   "expected_script_filename": { "type": "string" },
+                  "chunk_sidecars_json": {
+                    "description": "Optional array or object map of chunk QC sidecar JSON files used by chunk_sidecar_failures, for example packaged *.garble-report.json entries.",
+                    "type": ["array", "object", "string"]
+                  },
+                  "chunk_sidecars_base64": {
+                    "description": "Optional base64-encoded JSON array or object map of chunk QC sidecar files.",
+                    "type": "string"
+                  },
+                  "chunk_sidecar_dirname": { "type": "string" },
                   "plan_id": {
                     "description": "Optional plan preset for cost estimates and margin guardrails: creator, studio, network, or stress_99_5000.",
                     "type": "string"

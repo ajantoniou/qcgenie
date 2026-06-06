@@ -105,6 +105,71 @@ describe("server inline media API", () => {
     }
   }, 20000);
 
+  it("materializes inline chunk sidecars and blocks failed rerender reports", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-sidecars-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const apiKey = "uck_test_chunk_sidecars";
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_INLINE_MEDIA_MAX_MB: "1",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          media_base64: Buffer.from("fake-jpeg").toString("base64"),
+          media_content_type: "image/jpeg",
+          media_kind: "image",
+          filename: "voiceover.jpg",
+          checks: "chunk_sidecar_failures",
+          chunk_sidecars_json: [{
+            relative_path: "voice-12.garble-report.json",
+            json: {
+              pass: false,
+              status: "failed",
+              findings: [{ reason: "Chunk 12 failed after max rerenders." }]
+            }
+          }]
+        })
+      });
+      const payload = await response.json();
+
+      expect(response.status).toBe(202);
+      expect(payload.verdict).toBe("BLOCK");
+      expect(payload.gateVerdict).toBe("BLOCK");
+      const reportResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs/${payload.jobId}/report`, {
+        headers: { authorization: `Bearer ${apiKey}` }
+      });
+      const report = await reportResponse.json();
+
+      expect(reportResponse.status).toBe(200);
+      expect(report.flags[0]).toMatchObject({
+        gate: "chunk_sidecar_failures",
+        severity: "block"
+      });
+      expect(report.flags[0].summary).toContain("Chunk 12 failed after max rerenders");
+      expect(JSON.stringify(payload)).not.toContain("uploadcheck-chunk-sidecars-");
+      expect(JSON.stringify(report)).not.toContain("uploadcheck-chunk-sidecars-");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
   it("queues async jobs and drains them through the worker endpoint", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-async-drain-"));
     const port = 19000 + Math.floor(Math.random() * 1000);

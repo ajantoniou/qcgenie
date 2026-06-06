@@ -1,6 +1,6 @@
 import { createReadStream, createWriteStream, existsSync, mkdirSync, statSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { extname, join, resolve } from "node:path";
+import { basename, dirname, extname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
@@ -127,6 +127,7 @@ async function createJob(req, res) {
   const inlineTranscript = await materializeInlineTranscript(body);
   const inlineWatchlist = await materializeInlineWatchlist(body);
   const inlineExpectedScript = await materializeInlineExpectedScript(body);
+  const inlineChunkSidecars = await materializeInlineChunkSidecars(body);
   try {
     const declaredMinutes = estimateRequestedMinutes(body);
     const abuseLimit = checkJobAbuseLimits(body, { declaredMinutes });
@@ -179,7 +180,7 @@ async function createJob(req, res) {
       };
     }
     if (shouldQueueJob(body)) {
-      if (inlineMedia || inlineManifest || inlineTranscript || inlineWatchlist || inlineExpectedScript) {
+      if (inlineMedia || inlineManifest || inlineTranscript || inlineWatchlist || inlineExpectedScript || inlineChunkSidecars) {
         return sendJson(res, 400, {
           error: "async_ephemeral_inputs_unsupported",
           message: "Queued jobs cannot use inline media or inline sidecars because those temporary files are deleted after the request. Use signed upload, upload_id, YouTube, or remote sidecar URLs for async processing."
@@ -201,7 +202,8 @@ async function createJob(req, res) {
       manifestPath: inlineManifest?.filePath,
       transcriptPath: inlineTranscript?.filePath,
       watchlistPath: inlineWatchlist?.filePath,
-      expectedScriptPath: inlineExpectedScript?.filePath
+      expectedScriptPath: inlineExpectedScript?.filePath,
+      sidecarDir: inlineChunkSidecars?.dirPath
     });
     store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
     return sendJson(res, 202, withCostEstimate(completed || job));
@@ -211,6 +213,7 @@ async function createJob(req, res) {
     await cleanupInlineTranscript(inlineTranscript);
     await cleanupInlineWatchlist(inlineWatchlist);
     await cleanupInlineExpectedScript(inlineExpectedScript);
+    await cleanupInlineChunkSidecars(inlineChunkSidecars);
   }
 }
 
@@ -336,6 +339,42 @@ async function materializeInlineExpectedScript(body = {}) {
 async function cleanupInlineExpectedScript(expectedScript) {
   if (!expectedScript?.cleanupPath) return;
   await rm(expectedScript.cleanupPath, { recursive: true, force: true });
+}
+
+async function materializeInlineChunkSidecars(body = {}) {
+  const raw = body.chunk_sidecars_json ?? body.chunkSidecarsJson ?? body.chunk_sidecar_json ?? body.chunkSidecarJson ?? null;
+  const b64 = body.chunk_sidecars_base64 ?? body.chunkSidecarsBase64 ?? body.chunk_sidecar_base64 ?? body.chunkSidecarBase64 ?? null;
+  if (raw == null && !b64) return null;
+
+  let entries = raw;
+  if (b64) entries = JSON.parse(Buffer.from(String(b64), "base64").toString("utf8"));
+  if (typeof entries === "string") entries = JSON.parse(entries);
+  if (!Array.isArray(entries)) {
+    entries = Object.entries(entries || {}).map(([relativePath, json]) => ({ relative_path: relativePath, json }));
+  }
+  const dir = await mkdtemp(join(tmpdir(), "uploadcheck-chunk-sidecars-"));
+  for (const entry of entries) {
+    const relativePath = safeRelativePath(entry.relative_path || entry.relativePath || entry.filename || entry.name || "chunk-sidecar.json");
+    const payload = entry.json ?? entry.payload ?? entry.data ?? entry;
+    const filePath = join(dir, relativePath);
+    mkdirSync(dirname(filePath), { recursive: true });
+    await writeFile(filePath, typeof payload === "string" ? payload : JSON.stringify(payload));
+  }
+  return { dirPath: dir, cleanupPath: dir };
+}
+
+async function cleanupInlineChunkSidecars(sidecars) {
+  if (!sidecars?.cleanupPath) return;
+  await rm(sidecars.cleanupPath, { recursive: true, force: true });
+}
+
+function safeRelativePath(value) {
+  const parts = String(value || "chunk-sidecar.json")
+    .replace(/\\/g, "/")
+    .split("/")
+    .filter((part) => part && part !== "." && part !== "..")
+    .map((part) => part.replace(/[^a-zA-Z0-9._-]+/g, "_"));
+  return parts.length ? join(...parts) : basename("chunk-sidecar.json");
 }
 
 function redirectCheckout(url, res) {

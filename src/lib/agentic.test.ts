@@ -52,6 +52,7 @@ describe("agentic integration contract", () => {
     expect(runLocalFile?.inputs).toContain("transcript_path");
     expect(runLocalFile?.inputs).toContain("watchlist_path");
     expect(runLocalFile?.inputs).toContain("expected_script_path");
+    expect(runLocalFile?.inputs).toContain("sidecar_dir");
     expect(runLocalFile?.outputs).toContain("media_ingress");
     expect(runLocalFile?.purpose).toContain("local media file");
     const getJob = MCP_TOOLS.find((tool) => tool.name === "qc_get_job");

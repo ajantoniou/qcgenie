@@ -1,5 +1,5 @@
-import { extname, basename } from "node:path";
-import { statSync, readFileSync, existsSync } from "node:fs";
+import { extname, basename, join, relative } from "node:path";
+import { statSync, readFileSync, existsSync, readdirSync } from "node:fs";
 
 const DEFAULT_API_BASE_URL = "https://qcgenie-api.onrender.com";
 const DEFAULT_MAX_INLINE_MB = 128;
@@ -57,6 +57,7 @@ export function buildJobRequest(target, options = {}) {
   attachTranscript(payload, options);
   attachWatchlist(payload, options);
   attachExpectedScript(payload, options);
+  attachChunkSidecars(payload, options);
   if (options.callbackUrl) payload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) payload.idempotency_key = options.idempotencyKey;
   attachCostOptions(payload, options);
@@ -81,6 +82,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
   attachTranscript(jobPayload, options);
   attachWatchlist(jobPayload, options);
   attachExpectedScript(jobPayload, options);
+  attachChunkSidecars(jobPayload, options);
   if (options.callbackUrl) jobPayload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) jobPayload.idempotency_key = options.idempotencyKey;
   attachCostOptions(jobPayload, options);
@@ -134,6 +136,8 @@ export function parseArgs(argv) {
       options.watchlistPath = requireValue(arg, args.shift());
     } else if (arg === "--expected-script") {
       options.expectedScriptPath = requireValue(arg, args.shift());
+    } else if (arg === "--sidecar-dir") {
+      options.sidecarDir = requireValue(arg, args.shift());
     } else if (arg === "--callback-url") {
       options.callbackUrl = requireValue(arg, args.shift());
     } else if (arg === "--idempotency-key") {
@@ -312,6 +316,29 @@ function attachExpectedScript(payload, options) {
     payload.expected_script_text = text;
   }
   payload.expected_script_filename = basename(options.expectedScriptPath);
+}
+
+function attachChunkSidecars(payload, options) {
+  if (!options.sidecarDir) return;
+  if (!existsSync(options.sidecarDir)) throw new Error(`Sidecar dir not found: ${options.sidecarDir}`);
+  if (!statSync(options.sidecarDir).isDirectory()) throw new Error(`Sidecar dir is not a directory: ${options.sidecarDir}`);
+  const files = collectJsonFiles(options.sidecarDir).slice(0, 200);
+  payload.chunk_sidecars_json = files.map((filePath) => ({
+    relative_path: relative(options.sidecarDir, filePath),
+    filename: basename(filePath),
+    json: JSON.parse(readFileSync(filePath, "utf8"))
+  }));
+  payload.chunk_sidecar_dirname = basename(options.sidecarDir);
+}
+
+function collectJsonFiles(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const filePath = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...collectJsonFiles(filePath));
+    else if (entry.isFile() && entry.name.toLowerCase().endsWith(".json")) out.push(filePath);
+  }
+  return out.sort();
 }
 
 function attachCostOptions(payload, options) {

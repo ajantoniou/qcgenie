@@ -46,6 +46,7 @@ For Codex, Claude Code, Cursor, or NTO/NPO production pipelines, `qc_run_local_f
   "transcript_path": "/path/to/transcript.txt",
   "watchlist_path": "/path/to/watchlist.json",
   "expected_script_path": "/path/to/locked-script.txt",
+  "sidecar_dir": "/path/to/_dialogue-chunks",
   "plan_id": "creator",
   "cost_guardrail": "downgrade"
 }
@@ -60,6 +61,8 @@ When a project has transcript text or a script-sidecar, pass it as `transcript_t
 For customer-specific terms, pass `watchlist_json` with `checks: "pronunciation_watchlist"` plus transcript text. Watchlist entries can include `terms: [{ expected, banned: [] }]` and top-level `banned: []`.
 
 When a project has a locked narration script and final transcript, pass `expected_script_text` or `expected_script_json` plus transcript text with `checks: "script_faithfulness"`. UploadCheck compares word error rate model-free, so agents can catch narration drift without paying for full multimodal review.
+
+When a project has local chunk QC reports, pass `sidecar_dir` with `checks: "chunk_sidecar_failures"`. The local MCP process packages JSON sidecars such as `*.garble-report.json`, Render evaluates them from memory/temp storage, and failed chunk reports become BLOCK flags before upload.
 
 Use `plan_id`, `ai_review_seconds`, and `cost_guardrail` when an agent is asking for paid AI review beyond deterministic checks. The default guardrail is `downgrade`: margin-breaking AI review is removed and the job runs deterministic checks. Use `block` to reject unsafe requests, or `off` only for internal experiments/deep-review add-ons.
 

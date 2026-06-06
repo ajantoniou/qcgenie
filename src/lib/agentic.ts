@@ -85,7 +85,7 @@ export const MCP_TOOLS: McpTool[] = [
   {
     name: "qc_run_local_file",
     purpose: "Read a local media file from an agent workspace and send it through Render inline or signed upload.",
-    inputs: ["file_path", "checks", "manifest_path", "transcript_path", "watchlist_path", "expected_script_path", "plan_id", "cost_guardrail"],
+    inputs: ["file_path", "checks", "manifest_path", "transcript_path", "watchlist_path", "expected_script_path", "sidecar_dir", "plan_id", "cost_guardrail"],
     outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered", "media_ingress", "cost_estimate"]
   },
   {
