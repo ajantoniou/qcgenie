@@ -36,6 +36,8 @@ The API writes the payload to a temp file, runs the gate, and deletes the temp f
 
 The agent should call `qc_run_video`, poll `qc_get_job`, fetch `qc_get_report`, then list timestamped evidence and fix captions, checklists, and source-level issues it can reach.
 
+When a project has a storybook, edit decision list, or visual timeline JSON, pass it as `manifest_json` with `checks: "repeat_fatigue"`. UploadCheck will use it to flag exact visual reuse and source-family dominance even before a final render is reviewed.
+
 ## Tools
 
 - `qc_run_video`

@@ -61,6 +61,30 @@ describe("UploadCheck CLI request builder", () => {
     });
   });
 
+  it("attaches an edit manifest to inline and signed jobs", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-cli-"));
+    const file = join(dir, "master.mp4");
+    const manifest = join(dir, "storybook.json");
+    writeFileSync(file, Buffer.from("fake-mp4"));
+    writeFileSync(manifest, JSON.stringify({ beats: [{ visual_file: "clips/a.mp4" }] }));
+
+    const inline = buildJobRequest(file, {
+      maxInlineMb: 1,
+      checks: "repeat_fatigue",
+      manifestPath: manifest
+    });
+    expect(inline.payload.manifest_json).toEqual({ beats: [{ visual_file: "clips/a.mp4" }] });
+    expect(inline.payload.manifest_filename).toBe("storybook.json");
+
+    const signed = buildJobRequest(file, {
+      maxInlineMb: 0.000001,
+      checks: "repeat_fatigue",
+      manifestPath: manifest
+    });
+    expect(signed.createJob.payload.manifest_json).toEqual({ beats: [{ visual_file: "clips/a.mp4" }] });
+    expect(signed.createJob.payload.manifest_filename).toBe("storybook.json");
+  });
+
   it("parses command flags", () => {
     const parsed = parseArgs([
       "check",
@@ -71,6 +95,8 @@ describe("UploadCheck CLI request builder", () => {
       "garble",
       "--upload-mode",
       "signed",
+      "--manifest",
+      "storybook.json",
       "--json"
     ]);
 
@@ -79,6 +105,7 @@ describe("UploadCheck CLI request builder", () => {
       apiBaseUrl: "http://127.0.0.1:10001",
       checks: "garble",
       uploadMode: "signed",
+      manifestPath: "storybook.json",
       json: true
     });
   });

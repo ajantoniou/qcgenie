@@ -41,6 +41,16 @@ UPLOADCHECK_API_KEY="<workspace_api_key>" \
 node "/Applications/DrAntoniou Projects/QCGenie/cli/index.mjs" check "/path/to/episode.wav" --checks garble --json
 ```
 
+Run a rendered video with a storybook/edit manifest so UploadCheck can catch exact visual reuse and source-family dominance:
+
+```bash
+UPLOADCHECK_API_KEY="<workspace_api_key>" \
+node "/Applications/DrAntoniou Projects/QCGenie/cli/index.mjs" check "/path/to/master.mp4" \
+  --checks repeat_fatigue \
+  --manifest "/path/to/storybook.json" \
+  --json
+```
+
 Run a YouTube URL or signed asset URL:
 
 ```bash
@@ -72,7 +82,7 @@ Signed-upload flow:
 For NTO long-form episodes, shorts, or NPO media exports:
 
 1. Render the final candidate to a local file.
-2. Call `uploadcheck check <file>`. Small files inline; larger files use signed upload. MCP callers can use `media_base64` for small files or `qc_create_upload_url` + `qc_run_video` with `upload_id` for large files.
+2. Call `uploadcheck check <file>`. Small files inline; larger files use signed upload. MCP callers can use `media_base64` for small files or `qc_create_upload_url` + `qc_run_video` with `upload_id` for large files. When a storybook/edit manifest exists, pass `manifest_json` or CLI `--manifest` so `repeat_fatigue` can catch reuse before and after render.
 3. Poll `qc_get_job` until `status=completed`.
 4. Fetch `qc_get_report` and `qc_get_marker_csv`.
 5. Treat `BLOCK` as stop-ship, `WATCH` as source review, and `PASS` as ready only after the project-specific editorial checklist is also complete.

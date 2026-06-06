@@ -1,6 +1,7 @@
 import { createReadStream, createWriteStream, existsSync, mkdirSync, statSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
 import { Transform } from "node:stream";
@@ -69,6 +70,7 @@ async function createJob(req, res) {
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
   const inlineMedia = await materializeInlineMedia(body);
+  const inlineManifest = await materializeInlineManifest(body);
   try {
     if (inlineMedia) {
       body.source = inlineMedia.filePath;
@@ -81,12 +83,39 @@ async function createJob(req, res) {
     }
     const job = store.createJob(body);
     if (job.idempotentReplay) return sendJson(res, 200, withCostEstimate(job));
-    const completed = store.runDeterministicQc(job.jobId, { checks: body.checks || inlineMedia?.checks });
+    const completed = store.runDeterministicQc(job.jobId, { checks: body.checks || inlineMedia?.checks, manifestPath: inlineManifest?.filePath });
     store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
     return sendJson(res, 202, withCostEstimate(completed || job));
   } finally {
     await cleanupInlineMedia(inlineMedia);
+    await cleanupInlineManifest(inlineManifest);
   }
+}
+
+async function materializeInlineManifest(body = {}) {
+  const raw = body.manifest_json ?? body.manifestJson ?? body.storybook_json ?? body.storybookJson ?? null;
+  const b64 = body.manifest_base64 ?? body.manifestBase64 ?? null;
+  if (raw == null && !b64) return null;
+
+  let payload;
+  if (b64) {
+    payload = Buffer.from(String(b64), "base64").toString("utf8");
+    JSON.parse(payload);
+  } else if (typeof raw === "string") {
+    JSON.parse(raw);
+    payload = raw;
+  } else {
+    payload = JSON.stringify(raw);
+  }
+  const dir = await mkdtemp(join(tmpdir(), "uploadcheck-manifest-"));
+  const filePath = join(dir, "manifest.json");
+  await writeFile(filePath, payload);
+  return { filePath, cleanupPath: dir };
+}
+
+async function cleanupInlineManifest(manifest) {
+  if (!manifest?.cleanupPath) return;
+  await rm(manifest.cleanupPath, { recursive: true, force: true });
 }
 
 function redirectCheckout(url, res) {

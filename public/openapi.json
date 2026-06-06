@@ -83,6 +83,15 @@
                   "audio_content_type": { "type": "string" },
                   "data_url": { "type": "string" },
                   "filename": { "type": "string" },
+                  "manifest_json": {
+                    "description": "Optional storybook/edit manifest JSON used by repeat_fatigue for visual reuse and source-family analysis.",
+                    "type": ["object", "array", "string"]
+                  },
+                  "manifest_base64": {
+                    "description": "Optional base64-encoded storybook/edit manifest JSON.",
+                    "type": "string"
+                  },
+                  "manifest_filename": { "type": "string" },
                   "checks": { "type": "string" }
                 }
               }

@@ -6,7 +6,7 @@ Checks: canvas_fill + loop_freeze + repeat_fatigue + dead_air + cheap_broll + te
 key) are reported but do not fail the gate.
 Usage:
   run_gate.py VIDEO [--checks canvas_fill,loop_freeze,repeat_fatigue,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch]
-              [--lang eng] [--out DIR] [--fast]
+              [--lang eng] [--out DIR] [--manifest storybook.json] [--fast]
 Exit 0 only if every RUN check PASSES.
 """
 import sys, os, json, subprocess, argparse, time
@@ -16,9 +16,10 @@ ALL=["canvas_fill","loop_freeze","repeat_fatigue","dead_air","cheap_broll","text
 DEFAULT=["canvas_fill","loop_freeze","repeat_fatigue","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch"]
 SCRIPT={c:f"check_{c}.py" for c in ALL}; SCRIPT["omni_watch"]="omni_watch.py"
 
-def run(check,video,lang,outdir,fast):
+def run(check,video,lang,outdir,fast,manifest=None):
     j=os.path.join(outdir,f"{check}.json")
     cmd=["python3",os.path.join(HERE,SCRIPT[check]),video,"--json",j]
+    if check=="repeat_fatigue" and manifest: cmd+=["--manifest",manifest]
     if check in ("garble","narration_match","omni_watch"): cmd+=["--lang",lang]
     if fast and check in ("twins","cheap_broll","text_contrast","text_safe_area","canvas_fill"): cmd+=["--fps","0.2"]
     if fast and check=="narration_match": cmd+=["--fps","0.25"]
@@ -31,7 +32,7 @@ def run(check,video,lang,outdir,fast):
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("video"); ap.add_argument("--checks",default=",".join(DEFAULT))
-    ap.add_argument("--lang",default="eng"); ap.add_argument("--out",default=None); ap.add_argument("--fast",action="store_true")
+    ap.add_argument("--lang",default="eng"); ap.add_argument("--out",default=None); ap.add_argument("--manifest",default=None); ap.add_argument("--fast",action="store_true")
     a=ap.parse_args()
     if not os.path.exists(a.video): sys.exit(f"no such file: {a.video}")
     outdir=a.out or (os.path.splitext(a.video)[0]+"_qcgate"); os.makedirs(outdir,exist_ok=True)
@@ -39,7 +40,7 @@ def main():
     results={}
     for c in checks:
         print(f"[ gate ] running {c} ...",flush=True)
-        results[c]=run(c,a.video,a.lang,outdir,a.fast)
+        results[c]=run(c,a.video,a.lang,outdir,a.fast,a.manifest)
         if results[c].get("pass") is None and results[c].get("_returncode", 0) not in (0, None):
             results[c]["pass"] = False
             results[c]["findings"] = [{

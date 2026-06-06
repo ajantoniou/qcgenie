@@ -49,6 +49,7 @@ export function buildJobRequest(target, options = {}) {
   }
 
   if (options.checks) payload.checks = options.checks;
+  attachManifest(payload, options);
   if (options.callbackUrl) payload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) payload.idempotency_key = options.idempotencyKey;
 
@@ -68,6 +69,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
   const contentType = inferContentType(target);
   const jobPayload = {};
   if (options.checks) jobPayload.checks = options.checks;
+  attachManifest(jobPayload, options);
   if (options.callbackUrl) jobPayload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) jobPayload.idempotency_key = options.idempotencyKey;
 
@@ -112,6 +114,8 @@ export function parseArgs(argv) {
       options.apiKey = requireValue(arg, args.shift());
     } else if (arg === "--checks") {
       options.checks = requireValue(arg, args.shift());
+    } else if (arg === "--manifest") {
+      options.manifestPath = requireValue(arg, args.shift());
     } else if (arg === "--callback-url") {
       options.callbackUrl = requireValue(arg, args.shift());
     } else if (arg === "--idempotency-key") {
@@ -159,6 +163,14 @@ function isYouTubeUrl(value) {
 export function inferContentType(filePath) {
   const ext = extname(filePath).toLowerCase();
   return CONTENT_TYPES.get(ext) || "application/octet-stream";
+}
+
+function attachManifest(payload, options) {
+  if (!options.manifestPath) return;
+  if (!existsSync(options.manifestPath)) throw new Error(`Manifest not found: ${options.manifestPath}`);
+  const text = readFileSync(options.manifestPath, "utf8");
+  payload.manifest_json = JSON.parse(text);
+  payload.manifest_filename = basename(options.manifestPath);
 }
 
 function formatMb(bytes) {
