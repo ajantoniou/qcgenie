@@ -52,4 +52,14 @@ describe("public OpenAPI spec", () => {
       $ref: "#/components/schemas/WebhookDrainResult"
     });
   });
+
+  it("documents public machine-readable metadata endpoints", () => {
+    const spec = loadSpec();
+    for (const path of ["/agent-manifest.json", "/pipeline-recipes.json", "/launch-targets.json", "/cost-basis.json"]) {
+      expect(spec.paths[path].get.security).toEqual([]);
+      expect(spec.paths[path].get.responses["200"].content["application/json"].schema).toEqual({ type: "object" });
+    }
+    expect(spec.paths["/llms.txt"].get.security).toEqual([]);
+    expect(spec.paths["/llms.txt"].get.responses["200"].content["text/plain"].schema).toEqual({ type: "string" });
+  });
 });

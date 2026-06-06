@@ -155,6 +155,76 @@
         }
       }
     },
+    "/agent-manifest.json": {
+      "get": {
+        "summary": "UploadCheck agent manifest",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Machine-readable agent manifest for MCP, CLI, API, pricing, and launch metadata.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
+    "/pipeline-recipes.json": {
+      "get": {
+        "summary": "UploadCheck pipeline recipes",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Machine-readable NTO/NPO and creator pipeline profiles.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
+    "/launch-targets.json": {
+      "get": {
+        "summary": "UploadCheck launch targets",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Machine-readable Render service IDs, DNS records, HTTP targets, and verification commands.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
+    "/cost-basis.json": {
+      "get": {
+        "summary": "UploadCheck cost basis",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Machine-readable cost-per-minute, plan, and gross-margin assumptions.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
+    "/llms.txt": {
+      "get": {
+        "summary": "UploadCheck llms.txt",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Text guidance for answer engines and coding agents.",
+            "content": {
+              "text/plain": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
     "/v1/qc/estimate": {
       "post": {
         "summary": "Preflight cost and margin estimate",
