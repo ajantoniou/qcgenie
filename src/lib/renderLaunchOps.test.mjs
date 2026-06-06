@@ -16,6 +16,8 @@ describe("Render launch operations plan", () => {
       expect.objectContaining({ key: "UPLOADCHECK_DURABLE_STORAGE_DIR", value: "/mnt/uploadcheck/uploads", secret: false })
     ]));
     expect(plan.missingSecretInputs).toContain("UPLOADCHECK_SECRET_ENCRYPTION_KEY");
+    expect(plan.missingSecretInputs).toContain("UPLOADCHECK_API_KEY or UPLOADCHECK_API_KEY_SHA256");
+    expect(plan.missingSecretInputs).not.toContain("UPLOADCHECK_STORAGE_ACCESS_KEY_ID");
   });
 
   it("redacts supplied secret values in summaries", () => {
@@ -41,6 +43,18 @@ describe("Render launch operations plan", () => {
     expect(summary.envVars).toContainEqual({ key: "UPLOADCHECK_STORAGE_ENDPOINT", value: "https://r2.example" });
     expect(summary.envVars).toContainEqual({ key: "UPLOADCHECK_STORAGE_ACCESS_KEY_ID", value: "<provided-secret>" });
     expect(summary.envVars).toContainEqual({ key: "UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY", value: "<provided-secret>" });
+  });
+
+  it("treats API plaintext and hashed keys as either-or launch auth inputs", () => {
+    const plan = buildRenderLaunchPlan({
+      UPLOADCHECK_API_KEY_SHA256: "hash",
+      UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
+      UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio",
+      UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network",
+      UPLOADCHECK_SECRET_ENCRYPTION_KEY: "secret-encryption-key"
+    });
+
+    expect(plan.missingSecretInputs).toEqual([]);
   });
 
   it("prints a redacted plan without requiring a Render API key", () => {

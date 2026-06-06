@@ -26,6 +26,14 @@ const SECRET_ENV_KEYS = [
   "UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY"
 ];
 
+const REQUIRED_SECRET_GROUPS = [
+  { label: "UPLOADCHECK_API_KEY or UPLOADCHECK_API_KEY_SHA256", keys: ["UPLOADCHECK_API_KEY", "UPLOADCHECK_API_KEY_SHA256"] },
+  { label: "UPLOADCHECK_CREATOR_CHECKOUT_URL", keys: ["UPLOADCHECK_CREATOR_CHECKOUT_URL"] },
+  { label: "UPLOADCHECK_STUDIO_CHECKOUT_URL", keys: ["UPLOADCHECK_STUDIO_CHECKOUT_URL"] },
+  { label: "UPLOADCHECK_NETWORK_CHECKOUT_URL", keys: ["UPLOADCHECK_NETWORK_CHECKOUT_URL"] },
+  { label: "UPLOADCHECK_SECRET_ENCRYPTION_KEY", keys: ["UPLOADCHECK_SECRET_ENCRYPTION_KEY"] }
+];
+
 const OPTIONAL_API_ENV_KEYS = [
   "UPLOADCHECK_STORAGE_BUCKET",
   "UPLOADCHECK_STORAGE_ENDPOINT",
@@ -55,7 +63,9 @@ export function buildRenderLaunchPlan(env = process.env) {
     apiServiceId: API_SERVICE_ID,
     domains: DOMAIN_PLAN,
     envVars,
-    missingSecretInputs: SECRET_ENV_KEYS.filter((key) => !env[key])
+    missingSecretInputs: REQUIRED_SECRET_GROUPS
+      .filter((group) => !group.keys.some((key) => env[key]))
+      .map((group) => group.label)
   };
 }
 

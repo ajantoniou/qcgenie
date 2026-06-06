@@ -60,7 +60,7 @@ export UPLOADCHECK_SECRET_ENCRYPTION_KEY="$(npm run --silent secret:generate)"
 export UPLOADCHECK_CREATOR_CHECKOUT_URL="https://..."
 export UPLOADCHECK_STUDIO_CHECKOUT_URL="https://..."
 export UPLOADCHECK_NETWORK_CHECKOUT_URL="https://..."
-# Optional S3/R2 upload retention:
+# Optional S3/R2 upload retention, only if you do not want mounted-disk-only retention:
 export UPLOADCHECK_STORAGE_BUCKET="uploadcheck-artifacts"
 export UPLOADCHECK_STORAGE_ENDPOINT="https://..."
 export UPLOADCHECK_STORAGE_ACCESS_KEY_ID="..."
