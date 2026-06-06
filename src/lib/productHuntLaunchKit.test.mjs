@@ -21,6 +21,7 @@ describe("Product Hunt launch kit", () => {
     expect(kit.public_links.cost_basis).toBe(status.public_artifacts.cost_basis);
     expect(kit.public_links.launch_status).toBe(status.public_artifacts.launch_status);
     expect(kit.ready_when.source_of_truth).toBe(status.public_artifacts.live_launch_status);
+    expect(kit.ready_when.required_commands).toContain("npm run launch:doctor");
     expect(kit.ready_when.required_commands).toContain("npm run launch:dns");
     expect(kit.ready_when.required_commands).toContain("npm run launch:checkout");
     expect(kit.ready_when.required_commands).toContain("npm run launch:storage");

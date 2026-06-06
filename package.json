@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "start": "node server.mjs",
+    "launch:doctor": "node scripts/launch-doctor.mjs",
     "launch:dns": "node scripts/launch-dns.mjs",
     "launch:checkout": "node scripts/launch-checkout.mjs",
     "launch:storage": "node scripts/launch-storage.mjs",

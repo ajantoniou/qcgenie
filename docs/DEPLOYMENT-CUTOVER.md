@@ -47,6 +47,7 @@ If the DNS provider does not support apex CNAME flattening, use either an `ALIAS
 Before Product Hunt launch, sync the Blueprint or manually apply the same values in Render, then run:
 
 ```bash
+npm run launch:doctor
 npm run launch:dns
 npm run launch:checkout
 npm run launch:storage
@@ -72,6 +73,7 @@ npm run render:plan
 npm run render:validate-env
 npm run render:audit
 npm run render:apply
+npm run launch:doctor
 npm run launch:dns
 npm run launch:checkout
 npm run launch:storage
@@ -90,6 +92,7 @@ npm run readiness:check
 After DNS propagation:
 
 ```bash
+npm run launch:doctor
 npm run launch:dns
 npm run launch:checkout
 npm run launch:storage

@@ -63,6 +63,7 @@
     "product_hunt_ready": true,
     "remaining_blockers": [],
     "required_commands": [
+      "npm run launch:doctor",
       "npm run codex:verify-install",
       "npm run cost-basis:verify",
       "npm run roadmap:verify",

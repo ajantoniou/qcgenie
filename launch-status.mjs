@@ -33,6 +33,7 @@ export function buildLaunchStatus(readiness, {
     verified_controls: verifiedControls(),
     remaining_blockers: remainingBlockers(status),
     operator_commands: [
+      "npm run launch:doctor",
       "npm run launch:dns",
       "npm run launch:checkout",
       "npm run launch:storage",

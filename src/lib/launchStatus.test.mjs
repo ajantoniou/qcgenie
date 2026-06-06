@@ -33,6 +33,7 @@ describe("public launch status", () => {
       "storage"
     ]);
     expect(status.operator_commands).toEqual(expect.arrayContaining([
+      "npm run launch:doctor",
       "npm run launch:dns",
       "npm run launch:checkout",
       "npm run launch:storage",

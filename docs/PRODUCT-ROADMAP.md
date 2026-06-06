@@ -205,6 +205,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: mounted-disk JSON persistence is recognized as production persistence when `UPLOADCHECK_STORE_PATH` points outside temp storage; Supabase remains the future multi-workspace store.
 - Done: strong webhook encryption key generation and readiness validation added through `npm run --silent secret:generate` and `GET /v1/readiness`.
 - Done: Product Hunt readiness CLI added through `npm run readiness:check`; it fetches live readiness and prints exact remaining Render/DNS/checkout actions.
+- Done: launch doctor added through `npm run launch:doctor`; it runs local launch helpers, public metadata verifiers, and live readiness/DNS checks in one ordered report.
 - Done: MCP `qc_run_local_file` added for Codex/Claude/Cursor/NTO/NPO local media workflows; small files are encoded inline for Render evaluation and large files fall back to signed upload.
 - Done: Render Blueprint now declares UploadCheck custom domains, a `/mnt/uploadcheck` persistent disk, durable JSON/media paths, checkout URL prompts, and webhook encryption prompts; `npm run render:verify` guards the launch config.
 - Done: Render API launch helper added through `npm run render:plan`, `npm run render:audit`, and `npm run render:apply`; it can add domains, set durable env values, set provided secrets, and trigger deploys when `RENDER_API_KEY` is available.
