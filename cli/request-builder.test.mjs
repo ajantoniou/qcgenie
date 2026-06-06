@@ -1,8 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildCostBasisRequest, buildEstimateRequest, buildJobRequest, buildLaunchDoctorRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildPipelineHandoffRequest, buildPipelineRecipesRequest, buildUsageRequest, formatCostBasisSummary, formatJobSummary, formatLaunchDoctorSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatPipelineHandoffSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+import { createServer } from "node:http";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { buildCostBasisRequest, buildEstimateRequest, buildJobRequest, buildLaunchDoctorRequest, buildLaunchEvidenceRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildNpoPipelineHandoffRequest, buildPipelineHandoffRequest, buildPipelineRecipesRequest, buildRemoteLaunchEvidence, buildUsageRequest, formatCostBasisSummary, formatJobSummary, formatLaunchDoctorSummary, formatLaunchEvidenceSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatNpoPipelineHandoffSummary, formatPipelineHandoffSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+
+const servers = [];
+const execFileAsync = promisify(execFile);
+
+afterEach(async () => {
+  for (const server of servers.splice(0)) {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
 
 describe("UploadCheck CLI request builder", () => {
   it("builds a YouTube job request", () => {
@@ -408,6 +420,26 @@ describe("UploadCheck CLI request builder", () => {
     });
   });
 
+  it("builds and parses a public NPO pipeline handoff request", () => {
+    const parsed = parseArgs([
+      "npo-pipeline-handoff",
+      "--api-base",
+      "https://api.example.test",
+      "--json"
+    ]);
+    const request = buildNpoPipelineHandoffRequest(parsed.options);
+
+    expect(parsed.command).toBe("npo-pipeline-handoff");
+    expect(parsed.target).toBeNull();
+    expect(request).toEqual({
+      apiBaseUrl: "https://api.example.test",
+      path: "/npo-pipeline-handoff.json",
+      method: "GET",
+      kind: "npo_pipeline_handoff",
+      public: true
+    });
+  });
+
   it("builds and parses a public cost-basis request", () => {
     const parsed = parseArgs([
       "cost-basis",
@@ -534,6 +566,97 @@ describe("UploadCheck CLI request builder", () => {
     })).toBe("UploadCheck pipeline recipes: 2 profiles (nto_long_form, npo_podcast_or_audio) | 2 implemented NTO/NPO replacement gates");
   });
 
+  it("builds and formats remote launch evidence from live launch doctor metadata", () => {
+    const request = buildLaunchEvidenceRequest({ apiBaseUrl: "https://api.example.test/" });
+    const evidence = buildRemoteLaunchEvidence({
+      productHuntReady: false,
+      remainingBlockers: [{ id: "checkout" }, { id: "storage" }],
+      launchDoctorCommands: [
+        "UPLOADCHECK_API_KEY=uck_secret npm run media-ingress:verify",
+        "https://uploadcheck.lemonsqueezy.com/checkout/buy/123456"
+      ],
+      blockerFixPlan: {
+        phases: [{
+          id: "configure-checkout",
+          title: "Configure checkout",
+          blockers: ["checkout"],
+          proof_commands: ["https://checkout.example/creator-secret"]
+        }],
+        completionRule: "Only launch when ready."
+      }
+    }, {
+      generatedAt: "2026-06-06T00:00:00.000Z",
+      source: "https://api.example.test/v1/launch-doctor"
+    });
+
+    expect(request).toMatchObject({
+      apiBaseUrl: "https://api.example.test",
+      path: "/v1/launch-doctor",
+      method: "GET",
+      kind: "launch_evidence",
+      public: true
+    });
+    expect(evidence).toMatchObject({
+      name: "UploadCheck.app Remote Launch Evidence",
+      status: "blocked",
+      blockers: ["checkout", "storage"]
+    });
+    expect(JSON.stringify(evidence)).not.toContain("uck_secret");
+    expect(JSON.stringify(evidence)).not.toContain("123456");
+    expect(JSON.stringify(evidence)).not.toContain("creator-secret");
+    expect(formatLaunchEvidenceSummary(evidence)).toBe("UploadCheck launch evidence: NOT READY | blockers checkout, storage | fix phases 1 | commands 2");
+  });
+
+  it("parses the packaged launch-evidence command", () => {
+    const parsed = parseArgs(["launch-evidence", "--json", "--api-base", "https://api.example.test"]);
+
+    expect(parsed.command).toBe("launch-evidence");
+    expect(parsed.options).toMatchObject({
+      json: true,
+      apiBaseUrl: "https://api.example.test"
+    });
+  });
+
+  it("prints packaged launch evidence JSON without leaking live secret-like values", async () => {
+    const server = createServer((req, res) => {
+      if (req.url !== "/v1/launch-doctor") {
+        res.writeHead(404, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "not_found", url: req.url }));
+        return;
+      }
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({
+        productHuntReady: false,
+        remainingBlockers: [{ id: "checkout" }],
+        launchDoctorCommands: [
+          "UPLOADCHECK_API_KEY=uck_secret npm run media-ingress:verify",
+          "https://uploadcheck.lemonsqueezy.com/checkout/buy/123456"
+        ],
+        blockerFixPlan: {
+          phases: [{
+            id: "configure-checkout",
+            title: "Configure checkout",
+            blockers: ["checkout"],
+            proof_commands: ["https://checkout.example/creator-secret"]
+          }]
+        }
+      }));
+    });
+    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    servers.push(server);
+
+    const result = await execFileAsync("node", ["cli/index.mjs", "launch-evidence", "--json", "--api-base", `http://127.0.0.1:${server.address().port}`], {
+      encoding: "utf8"
+    });
+    const payload = JSON.parse(result.stdout);
+
+    expect(payload.name).toBe("UploadCheck.app Remote Launch Evidence");
+    expect(payload.blockers).toEqual(["checkout"]);
+    expect(JSON.stringify(payload)).not.toContain("uck_secret");
+    expect(JSON.stringify(payload)).not.toContain("123456");
+    expect(JSON.stringify(payload)).not.toContain("creator-secret");
+  });
+
   it("formats a compact pipeline handoff summary", () => {
     expect(formatPipelineHandoffSummary({
       profiles: ["nto_long_form", "npo_podcast_or_audio"],
@@ -543,6 +666,17 @@ describe("UploadCheck CLI request builder", () => {
         signed_upload: {}
       }
     })).toBe("UploadCheck pipeline handoff: 3 steps | profiles nto_long_form, npo_podcast_or_audio | media ingress inline_ephemeral, signed_upload");
+  });
+
+  it("formats a compact NPO pipeline handoff summary", () => {
+    expect(formatNpoPipelineHandoffSummary({
+      cost_preflight: { checks: "dead_air,spoken_leaks" },
+      mcp_sequence: [{ step: 1 }, { step: 2 }],
+      required_sidecars: {
+        transcript_path: "Transcript",
+        watchlist_path: "Watchlist"
+      }
+    })).toBe("UploadCheck NPO pipeline handoff: 2 MCP steps | checks dead_air,spoken_leaks | sidecars transcript_path, watchlist_path");
   });
 
   it("formats a compact public cost-basis summary", () => {

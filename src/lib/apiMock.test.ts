@@ -52,16 +52,16 @@ describe("api mock service contract", () => {
   it("enforces scoped bearer tokens when API keys are configured", () => {
     const scopes = parseApiScopes("jobs:write,reports:read");
 
-    expect(assertApiKey("Bearer qcg_test_key", "jobs:write", "qcg_test_key", scopes).ok).toBe(true);
-    expect(assertApiKey("Bearer qcg_test_key", "uploads:write", "qcg_test_key", scopes)).toMatchObject({
+    expect(assertApiKey("Bearer uploadcheck_test_key", "jobs:write", "uploadcheck_test_key", scopes).ok).toBe(true);
+    expect(assertApiKey("Bearer uploadcheck_test_key", "uploads:write", "uploadcheck_test_key", scopes)).toMatchObject({
       ok: false,
       status: 403
     });
-    expect(assertApiKey(undefined, "jobs:write", "qcg_test_key", scopes)).toMatchObject({
+    expect(assertApiKey(undefined, "jobs:write", "uploadcheck_test_key", scopes)).toMatchObject({
       ok: false,
       status: 401
     });
-    expect(assertApiKey("Bearer qcg_test_key", "jobs:write", undefined, scopes, hashApiKey("qcg_test_key")).ok).toBe(true);
+    expect(assertApiKey("Bearer uploadcheck_test_key", "jobs:write", undefined, scopes, hashApiKey("uploadcheck_test_key")).ok).toBe(true);
   });
 
   it("registers webhooks and builds signed delivery metadata", () => {

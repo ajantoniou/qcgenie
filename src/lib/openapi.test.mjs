@@ -55,7 +55,7 @@ describe("public OpenAPI spec", () => {
 
   it("documents public machine-readable metadata endpoints", () => {
     const spec = loadSpec();
-    for (const path of ["/agent-manifest.json", "/pipeline-handoff.json", "/pipeline-recipes.json", "/launch-targets.json", "/launch-status.json", "/product-hunt-launch-kit.json", "/cost-basis.json", "/sample-reports/index.json"]) {
+    for (const path of ["/agent-manifest.json", "/pipeline-handoff.json", "/pipeline-recipes.json", "/npo-pipeline-handoff.json", "/launch-targets.json", "/launch-status.json", "/product-hunt-launch-kit.json", "/cost-basis.json", "/sample-reports/index.json"]) {
       expect(spec.paths[path].get.security).toEqual([]);
       expect(spec.paths[path].get.responses["200"].content["application/json"].schema).toEqual({ type: "object" });
     }
@@ -64,6 +64,8 @@ describe("public OpenAPI spec", () => {
     expect(spec.paths["/v1/launch-handoff"].get.security).toEqual([]);
     expect(spec.paths["/v1/launch-doctor"].get.security).toEqual([]);
     expect(spec.paths["/v1/launch-doctor"].get.responses["200"].content["application/json"].schema).toEqual({ type: "object" });
+    expect(spec.paths["/v1/launch-evidence"].get.security).toEqual([]);
+    expect(spec.paths["/v1/launch-evidence"].get.responses["200"].content["application/json"].schema).toEqual({ type: "object" });
     expect(spec.paths["/llms.txt"].get.security).toEqual([]);
     expect(spec.paths["/llms.txt"].get.responses["200"].content["text/plain"].schema).toEqual({ type: "string" });
   });
@@ -77,7 +79,20 @@ describe("public OpenAPI spec", () => {
     expect(spec.components.schemas.QcJob.properties.mediaIngress.properties.mode.enum).toContain("inline_ephemeral");
     expect(spec.components.schemas.QcJob.properties.mediaIngress.properties.sha256.description).toContain("checked media bytes");
     expect(spec.components.schemas.QcJob.properties.mediaIngress.properties.storageMode.enum).toContain("render_temp_storage");
+    expect(spec.components.schemas.QcJob.properties.sidecarIngress.description).toContain("Remote sidecar URLs");
+    expect(spec.components.schemas.QcJob.properties.sidecarIngress.properties.supplied.items.enum).toContain("chunkSidecars");
     expect(spec.components.schemas.QcJob.properties.sourceRedacted.description).toContain("local server path");
+  });
+
+  it("documents remote sidecar URLs for queued worker jobs", () => {
+    const spec = loadSpec();
+    const props = spec.paths["/v1/qc/jobs"].post.requestBody.content["application/json"].schema.properties;
+
+    expect(props.manifest_url.description).toContain("process_async");
+    expect(props.transcript_url.description).toContain("process_async");
+    expect(props.watchlist_url.description).toContain("process_async");
+    expect(props.expected_script_url.description).toContain("process_async");
+    expect(props.chunk_sidecars_url.description).toContain("process_async");
   });
 
   it("documents job observability fields on QC jobs", () => {

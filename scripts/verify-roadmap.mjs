@@ -50,6 +50,9 @@ const REQUIRED_NTO_SOURCE_PATHS = [
   "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-engineer.md",
   "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/council/20-video-qc-watcher.md",
   "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-snippets/visual-qc-learning-locks.md",
+  "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/scripts/qc-gates-cinema.py",
+  "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/scripts/qc-shorts-format.py",
+  "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/scripts/vo-audio-qc.py",
   "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/content/videos/tampered-with-the-gospels-2026-05-27/STAGE-17-5-AI-PROMPT-PACK-v12.md",
   "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/content/videos/_shared/cast/_LEVANTINE-AUDIT-2026-06-02.md"
 ];
@@ -90,7 +93,7 @@ export function verifyRoadmap({ roadmapPath = ROADMAP_PATH } = {}) {
       errors.push({ key: "nto_addendum", reason: "missing_source_evidence", detail: `Missing NTO source evidence path: ${sourcePath}` });
     }
   }
-  if (!ntoSection.includes("text_contrast") || !ntoSection.includes("repair_loop")) {
+  if (!ntoSection.includes("text_contrast") || !ntoSection.includes("repair_loop") || !ntoSection.includes("hand_anatomy")) {
     errors.push({ key: "nto_addendum", reason: "missing_private_qc_tasks", detail: "NTO addendum must preserve private QC task examples including text_contrast and repair_loop." });
   }
 

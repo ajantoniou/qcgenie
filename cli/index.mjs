@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createReadStream } from "node:fs";
-import { buildCostBasisRequest, buildEstimateRequest, buildJobRequest, buildLaunchDoctorRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildPipelineHandoffRequest, buildPipelineRecipesRequest, buildUsageRequest, formatCostBasisSummary, formatJobSummary, formatLaunchDoctorSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatPipelineHandoffSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+import { buildCostBasisRequest, buildEstimateRequest, buildJobRequest, buildLaunchDoctorRequest, buildLaunchEvidenceRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildNpoPipelineHandoffRequest, buildPipelineHandoffRequest, buildPipelineRecipesRequest, buildRemoteLaunchEvidence, buildUsageRequest, formatCostBasisSummary, formatJobSummary, formatLaunchDoctorSummary, formatLaunchEvidenceSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatNpoPipelineHandoffSummary, formatPipelineHandoffSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 try {
   const { command, target, options } = parseArgs(process.argv.slice(2));
@@ -8,11 +8,12 @@ try {
 
   const request = command === "estimate"
     ? buildEstimateRequest(options)
-    : (command === "usage" ? buildUsageRequest(options) : (command === "launch-status" ? buildLaunchStatusRequest(options) : (command === "launch-handoff" ? buildLaunchHandoffRequest(options) : (command === "launch-doctor" ? buildLaunchDoctorRequest(options) : (command === "pipeline-handoff" ? buildPipelineHandoffRequest(options) : (command === "recipes" ? buildPipelineRecipesRequest(options) : (command === "cost-basis" ? buildCostBasisRequest(options) : buildJobRequest(target, options))))))));
+    : (command === "usage" ? buildUsageRequest(options) : (command === "launch-status" ? buildLaunchStatusRequest(options) : (command === "launch-handoff" ? buildLaunchHandoffRequest(options) : (command === "launch-doctor" ? buildLaunchDoctorRequest(options) : (command === "launch-evidence" ? buildLaunchEvidenceRequest(options) : (command === "pipeline-handoff" ? buildPipelineHandoffRequest(options) : (command === "npo-pipeline-handoff" ? buildNpoPipelineHandoffRequest(options) : (command === "recipes" ? buildPipelineRecipesRequest(options) : (command === "cost-basis" ? buildCostBasisRequest(options) : buildJobRequest(target, options))))))))));
   if (!request.public && !apiKey) throw new Error("Set UPLOADCHECK_API_KEY or pass --api-key.");
-  const payload = request.kind === "signed_upload"
+  const rawPayload = request.kind === "signed_upload"
     ? await runSignedUploadJob(request, apiKey)
     : (request.method === "GET" ? await getJson(request.apiBaseUrl, request.path, apiKey) : await postJson(request.apiBaseUrl, request.path, request.payload, apiKey));
+  const payload = request.kind === "launch_evidence" ? buildRemoteLaunchEvidence(rawPayload, { source: `${request.apiBaseUrl}${request.path}` }) : rawPayload;
 
   console.log(options.json ? JSON.stringify(payload, null, 2) : formatSummary(request.kind, payload));
 } catch (error) {
@@ -25,7 +26,9 @@ function formatSummary(kind, payload) {
   if (kind === "launch_status") return formatLaunchStatusSummary(payload);
   if (kind === "launch_handoff") return formatLaunchHandoffSummary(payload);
   if (kind === "launch_doctor") return formatLaunchDoctorSummary(payload);
+  if (kind === "launch_evidence") return formatLaunchEvidenceSummary(payload);
   if (kind === "pipeline_handoff") return formatPipelineHandoffSummary(payload);
+  if (kind === "npo_pipeline_handoff") return formatNpoPipelineHandoffSummary(payload);
   if (kind === "pipeline_recipes") return formatPipelineRecipesSummary(payload);
   if (kind === "cost_basis") return formatCostBasisSummary(payload);
   return formatJobSummary(payload);

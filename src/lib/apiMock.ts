@@ -130,7 +130,7 @@ export function createUpload(input: UploadInput): UploadCreated {
 
   return {
     uploadId,
-    signedPutUrl: `https://uploads.qcgenie.com/${uploadId}/${encodedName}?content_type=${encodeURIComponent(input.contentType)}&size=${input.sizeBytes}`,
+    signedPutUrl: `https://uploads.uploadcheck.app/${uploadId}/${encodedName}?content_type=${encodeURIComponent(input.contentType)}&size=${input.sizeBytes}`,
     expiresAt
   };
 }

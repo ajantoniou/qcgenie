@@ -6,23 +6,29 @@ crowd, or a lead is rendered as twins/triplets. Harness deterministic; per-frame
 schema-locked vision call (Anthropic API), not a freeform persona read.
 Exit 0 = clean, 1 = twins. JSON to stdout (+ --json).
 Usage: check_twins.py VIDEO_OR_IMAGE [--fps 0.25] [--max-frames 200] [--json out.json]
-Needs ANTHROPIC_API_KEY (skips clean if absent).
+Uses a cheap local appearance-cluster pass first, then ANTHROPIC_API_KEY for ambiguous frames.
 """
 import sys, os, json, subprocess, tempfile, argparse, glob, base64, re, urllib.request
+try:
+    from PIL import Image, ImageStat
+except Exception:
+    Image = None
+    ImageStat = None
 
 MODEL="claude-sonnet-4-5"
 PROMPT=(
- "You are a strict image QC gate for an AI-generated historical documentary. Look ONLY for UNINTENDED "
- "DUPLICATE PEOPLE: the SAME person's face appearing two or more times in this single frame, OR one "
- "face clearly copy-pasted across a crowd, OR a scene where many extras share the same face/hair/body "
- "so the crowd needs more character variation. For crowd scenes, also flag if many background people "
- "look like variants of the same generated character: same long dark hair, same beard, same age, same "
- "robe silhouette, same facial structure, or multiple Jesus-like duplicates around the lead. This is a "
- "BLOCK even if the faces are not pixel-identical, because the scene needs more distinct characters. "
- "Distinct different extras are FINE. Background blur is "
- "FINE. Be conservative for small casts, but in large crowds flag clear same-face or same-silhouette repetition that an editor should change the "
- 'render. Reply ONLY JSON: {"has_twins": true|false, "needs_more_character_variation": true|false, '
- '"duplicate_count": <int>, "reason": "<one short sentence>", "action": "<one short editor instruction>"}'
+ "You are a strict image QC gate for an AI-generated historical documentary. Your job is to BLOCK "
+ "clone-crowd failures, not to explain them away. Look ONLY for UNINTENDED DUPLICATE PEOPLE: the SAME "
+ "person's face appearing two or more times in this single frame, one face copy-pasted across a crowd, "
+ "or many extras sharing the same generated archetype. In large crowds, flag repeated long dark hair + "
+ "same beard + same age + same robe silhouette + same facial structure, especially multiple Jesus-like "
+ "duplicates around the lead. Do NOT rationalize repetition as ethnicity, era, wardrobe, disciples, "
+ "background distance, or downscaling. If the crowd would make a viewer say 'these are the same AI man "
+ "again and again' or 'this scene needs more characters,' BLOCK it. If needs_more_character_variation "
+ "is true, has_twins MUST also be true. Distinct different extras are fine; generic robes alone are not "
+ "a failure. Reply ONLY JSON: {\"has_twins\": true|false, "
+ "\"needs_more_character_variation\": true|false, \"duplicate_count\": <int>, "
+ "\"reason\": \"<one short sentence>\", \"action\": \"<one short editor instruction>\"}"
 )
 IMAGE_EXTS={".jpg",".jpeg",".png",".webp",".bmp",".tif",".tiff"}
 
@@ -56,29 +62,45 @@ def write_image_frame(media,out,vf):
     subprocess.run(cmd,capture_output=True)
     return os.path.exists(out)
 
+def frame_variants(media,tmp,prefix,w,h,t):
+    frames=[]
+    full=os.path.join(tmp,f"{prefix}_full.jpg")
+    if write_image_frame(media,full,"scale='min(1536,iw)':-1"):
+        frames.append((full,t))
+    # Wide AI crowds fail when all extras are compressed into one small frame.
+    # Add overlapping crops and half-frame tiles so repeated faces stay inspectable.
+    if w >= 900 and h >= 450:
+        crop_w=max(1, min(w, int(w*0.55)))
+        starts=[0, max(0, int((w-crop_w)/2)), max(0, w-crop_w)]
+        seen=set()
+        for n,x in enumerate(starts, start=1):
+            if x in seen: continue
+            seen.add(x)
+            out=os.path.join(tmp,f"{prefix}_crop_{n}.jpg")
+            vf=f"crop={crop_w}:{h}:{x}:0,scale='min(1400,iw)':-1"
+            if write_image_frame(media,out,vf):
+                frames.append((out,t))
+        tile_w=max(1, int(w*0.5))
+        tile_h=max(1, int(h*0.58))
+        tiles=[(0,0),(max(0,w-tile_w),0),(0,max(0,h-tile_h)),(max(0,w-tile_w),max(0,h-tile_h))]
+        for n,(x,y) in enumerate(tiles, start=1):
+            out=os.path.join(tmp,f"{prefix}_tile_{n}.jpg")
+            vf=f"crop={tile_w}:{tile_h}:{x}:{y},scale='min(1400,iw)':-1"
+            if write_image_frame(media,out,vf):
+                frames.append((out,t))
+    return frames
+
 def extract_frames(media,tmp,fps):
     if is_image(media):
         w,h=dims(media)
-        frames=[]
-        full=os.path.join(tmp,"t_00001_full.jpg")
-        if write_image_frame(media,full,"scale='min(1536,iw)':-1"):
-            frames.append(full)
-        # Wide AI crowds fail when all extras are compressed into one 768px frame.
-        # Add overlapping crops so the vision gate can inspect repeated faces at usable size.
-        if w >= 1000 and h >= 500:
-            crop_w=max(1, min(w, int(w*0.55)))
-            starts=[0, max(0, int((w-crop_w)/2)), max(0, w-crop_w)]
-            seen=set()
-            for n,x in enumerate(starts, start=2):
-                if x in seen: continue
-                seen.add(x)
-                out=os.path.join(tmp,f"t_{n:05d}_crop.jpg")
-                vf=f"crop={crop_w}:{h}:{x}:0,scale='min(1280,iw)':-1"
-                if write_image_frame(media,out,vf):
-                    frames.append(out)
-        return frames
-    subprocess.run(["ffmpeg","-y","-i",media,"-vf",f"fps={fps},scale=768:-1",os.path.join(tmp,"t_%05d.jpg")],capture_output=True)
-    return sorted(glob.glob(os.path.join(tmp,"t_*.jpg")))
+        return frame_variants(media,tmp,"t_00001",w,h,0)
+    base=os.path.join(tmp,"base_%05d.jpg")
+    subprocess.run(["ffmpeg","-y","-i",media,"-vf",f"fps={fps},scale='min(1536,iw)':-1",base],capture_output=True)
+    frames=[]
+    for idx,fp in enumerate(sorted(glob.glob(os.path.join(tmp,"base_*.jpg"))), start=1):
+        w,h=dims(fp)
+        frames.extend(frame_variants(fp,tmp,f"t_{idx:05d}",w,h,round((idx-1)/fps,1)))
+    return frames
 
 def vision(key,jpg):
     b64=base64.b64encode(open(jpg,"rb").read()).decode()
@@ -95,14 +117,144 @@ def vision(key,jpg):
         return parsed
     except Exception as ex: return {"_error":str(ex)[:120]}
 
+def luminance(rgb):
+    r,g,b=rgb[:3]
+    return 0.2126*r + 0.7152*g + 0.0722*b
+
+def saturation(rgb):
+    r,g,b=[x/255 for x in rgb[:3]]
+    mx=max(r,g,b); mn=min(r,g,b)
+    return 0 if mx == 0 else (mx-mn)/mx
+
+def dhash(crop):
+    small=crop.convert("L").resize((9,8))
+    data = small.get_flattened_data() if hasattr(small, "get_flattened_data") else small.getdata()
+    px=list(data)
+    bits=0
+    for y in range(8):
+        for x in range(8):
+            bits=(bits << 1) | (1 if px[y*9+x] > px[y*9+x+1] else 0)
+    return bits
+
+def hamming(a,b):
+    return (a^b).bit_count()
+
+def avg_rgb(crop):
+    stat=ImageStat.Stat(crop.convert("RGB"))
+    return tuple(stat.mean[:3])
+
+def rgb_distance(a,b):
+    return sum((a[i]-b[i])**2 for i in range(3))**0.5
+
+def dark_components(image):
+    w,h=image.size
+    pix=image.convert("RGB").load()
+    mask=set()
+    for y in range(0, int(h*0.88)):
+        for x in range(w):
+            rgb=pix[x,y]
+            lum=luminance(rgb)
+            # Hair/beard-like components in the NTO failure class are dark, saturated enough to avoid
+            # flat robe/background shadows, and small enough to become head chips after expansion.
+            if lum < 78 and saturation(rgb) > 0.18:
+                mask.add((x,y))
+    seen=set(); comps=[]
+    for p in list(mask):
+        if p in seen: continue
+        stack=[p]; seen.add(p); xs=[]; ys=[]
+        while stack:
+            x,y=stack.pop(); xs.append(x); ys.append(y)
+            for nx,ny in ((x+1,y),(x-1,y),(x,y+1),(x,y-1)):
+                if (nx,ny) in mask and (nx,ny) not in seen:
+                    seen.add((nx,ny)); stack.append((nx,ny))
+        area=len(xs)
+        if area < 18: continue
+        x0,x1=min(xs),max(xs); y0,y1=min(ys),max(ys)
+        bw=x1-x0+1; bh=y1-y0+1
+        if 4 <= bw <= 72 and 5 <= bh <= 90:
+            comps.append({"box":(x0,y0,x1,y1),"area":area,"center":((x0+x1)/2,(y0+y1)/2)})
+    return comps
+
+def component_chip(image, comp):
+    w,h=image.size
+    x0,y0,x1,y1=comp["box"]
+    bw=x1-x0+1; bh=y1-y0+1
+    cx=(x0+x1)/2; cy=(y0+y1)/2
+    chip_w=max(34, int(max(bw*3.2, bh*2.1)))
+    chip_h=max(42, int(max(bh*3.4, bw*3.0)))
+    left=max(0, int(cx-chip_w/2))
+    top=max(0, int(cy-chip_h*0.38))
+    right=min(w, left+chip_w)
+    bottom=min(h, top+chip_h)
+    if right-left < 24 or bottom-top < 28:
+        return None
+    return image.crop((left,top,right,bottom)).resize((64,80))
+
+def appearance_chips(jpg):
+    if Image is None or ImageStat is None:
+        return []
+    try:
+        img=Image.open(jpg).convert("RGB")
+    except Exception:
+        return []
+    max_w=720
+    if img.size[0] > max_w:
+        nh=max(1, int(img.size[1] * (max_w / img.size[0])))
+        img=img.resize((max_w, nh))
+    chips=[]
+    for comp in dark_components(img):
+        chip=component_chip(img, comp)
+        if chip is None: continue
+        chips.append({
+            "hash": dhash(chip),
+            "rgb": avg_rgb(chip),
+            "center": comp["center"],
+            "area": comp["area"]
+        })
+    return chips
+
+def deterministic_clone_crowd_finding(jpg, t):
+    chips=appearance_chips(jpg)
+    if len(chips) < 8:
+        return None
+    clusters=[]
+    used=set()
+    for i,a in enumerate(chips):
+        if i in used: continue
+        cluster=[i]
+        for j,b in enumerate(chips[i+1:], start=i+1):
+            if j in used: continue
+            if hamming(a["hash"], b["hash"]) <= 11 and rgb_distance(a["rgb"], b["rgb"]) <= 34:
+                cluster.append(j)
+        if len(cluster) >= 5:
+            for idx in cluster: used.add(idx)
+            clusters.append(cluster)
+    if not clusters:
+        return None
+    largest=max(clusters, key=len)
+    duplicate_count=len(largest)
+    if duplicate_count < 5:
+        return None
+    return {
+        "t": t,
+        "duplicate_count": duplicate_count,
+        "needs_more_character_variation": True,
+        "reason": f"Local appearance clustering found {duplicate_count} highly similar head-and-shoulder chips in one crowd frame.",
+        "action": "Regenerate or edit the scene with more distinct characters.",
+        "method": "local_appearance_cluster"
+    }
+
 def normalize_twins_finding(v, t):
     return {
         "t": t,
         "duplicate_count": v.get("duplicate_count"),
         "needs_more_character_variation": True,
         "reason": v.get("reason",""),
-        "action": v.get("action") or "Regenerate or edit the scene with more character variation."
+        "action": v.get("action") or "Regenerate or edit the scene with more distinct characters."
     }
+
+def is_twins_failure(v):
+    return bool(v.get("has_twins") or v.get("needs_more_character_variation"))
 
 def main():
     ap=argparse.ArgumentParser()
@@ -117,27 +269,45 @@ def main():
         out=json.dumps(result,indent=2)
         if a.json: open(a.json,"w").write(out)
         print(out); sys.exit(1)
+    findings=[]; deterministic_checked=0
+    for fp,t in frames:
+        local=deterministic_clone_crowd_finding(fp,t)
+        deterministic_checked+=1
+        if local:
+            findings.append(local)
+            break
     key=load_key()
+    if findings:
+        for f in glob.glob(os.path.join(tmp,"*.jpg")): os.unlink(f)
+        os.rmdir(tmp)
+        result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video",
+                "frames_checked":0,"deterministic_frames_checked":deterministic_checked,"vision_errors":0,
+                "findings":findings,"pass":False}
+        out=json.dumps(result,indent=2)
+        if a.json: open(a.json,"w").write(out)
+        print(out); sys.exit(1)
     if not key:
-        result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video","frames_checked":0,"vision_errors":0,
+        result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video","frames_checked":0,
+                "deterministic_frames_checked":deterministic_checked,"vision_errors":0,
                 "skipped":True,"reason":"ANTHROPIC_API_KEY missing","pass":None}
         out=json.dumps(result,indent=2)
         if a.json: open(a.json,"w").write(out)
         print(out); sys.exit(0)
-    findings=[]; checked=0; errors=0; provider_usage=[]
-    for i,fp in enumerate(frames):
+    checked=0; errors=0; provider_usage=[]
+    for fp,t in frames:
         v=vision(key,fp)
         if "_error" in v: errors+=1; continue
         usage=v.pop("_provider_usage",None)
         if usage: provider_usage.append(usage)
         checked+=1
-        if v.get("has_twins"):
-            findings.append(normalize_twins_finding(v, 0 if is_image(a.media) else round(i/a.fps,1)))
+        if is_twins_failure(v):
+            findings.append(normalize_twins_finding(v, t))
     for f in glob.glob(os.path.join(tmp,"*.jpg")): os.unlink(f)
     os.rmdir(tmp)
     if checked == 0 and errors:
         findings.append({"t":0,"reason":"Twins vision model failed on every sampled frame.","action":"Fix the vision-model/runtime error and rerun UploadCheck before shipping."})
-    result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video","frames_checked":checked,"vision_errors":errors,
+    result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video",
+            "frames_checked":checked,"deterministic_frames_checked":deterministic_checked,"vision_errors":errors,
             "provider_usage":provider_usage,
             "findings":findings,"pass":False if (checked == 0 and errors) else len(findings)==0}
     out=json.dumps(result,indent=2)

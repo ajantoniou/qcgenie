@@ -63,6 +63,7 @@ describe("UploadCheck pipeline recipes", () => {
     expect(longForm.arguments.checks).toContain("rehook_cadence");
     expect(longForm.arguments.checks).toContain("contact_sheet_evidence");
     expect(longForm.arguments.checks).toContain("text_crop_jitter");
+    expect(longForm.arguments.checks).toContain("hallucinated_plate_text");
     expect(longForm.arguments.checks).toContain("chunk_sidecar_failures");
     expect(longForm.arguments.checks).toContain("script_faithfulness");
     expect(longForm.arguments).toMatchObject({
@@ -138,7 +139,19 @@ describe("UploadCheck pipeline recipes", () => {
       callable_check: "thumbnail_text_readability"
     });
     expect(implemented.thumbnail_text_readability.covers).toContain("low-contrast");
-    expect(implemented.twins.covers).toContain("more character variation");
+    expect(implemented.hallucinated_plate_text).toMatchObject({
+      callable_check: "hallucinated_plate_text"
+    });
+    expect(implemented.hallucinated_plate_text.covers).toContain("garbled signs");
+    expect(implemented.clean_segment_source_scrub).toMatchObject({
+      callable_check: "clean_segment_source_scrub"
+    });
+    expect(implemented.clean_segment_source_scrub.covers).toContain("silent-film intertitles");
+    expect(implemented.asset_triage_reuse_manifest).toMatchObject({
+      callable_check: "asset_triage_reuse_manifest"
+    });
+    expect(implemented.asset_triage_reuse_manifest.covers).toContain("reusable assets");
+    expect(implemented.twins.covers).toContain("more distinct characters");
     expect(implemented.narration_match.covers).toContain("Visual/narration mismatch");
     expect(implemented.sentence_boundary).toMatchObject({
       callable_check: "sentence_boundary"
@@ -190,6 +203,8 @@ describe("UploadCheck pipeline recipes", () => {
     expect(planned.unwanted_lip_movement.covers).toContain("lip-sync");
     expect(planned.historical_period_fit.covers).toContain("Wrong era");
     expect(planned.sensitive_framing.covers).toContain("anti-Jewish coding");
+    expect(planned.hand_anatomy.covers).toContain("extra fingers");
+    expect(planned.posted_platform_visual_check.covers).toContain("watch URLs");
 
     expect(JSON.stringify(replacement)).not.toContain("/Applications/");
     expect(JSON.stringify(replacement)).not.toContain("personas/");

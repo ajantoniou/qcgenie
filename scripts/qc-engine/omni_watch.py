@@ -71,7 +71,7 @@ def main():
     a=ap.parse_args()
     ds=load_key("DASHSCOPE_API_KEY","QWEN_API_KEY"); orr=load_key("OPENROUTER_API_KEY"); anth=load_key("ANTHROPIC_API_KEY","NT_ANTHROPIC_API_KEY")
     if ds: prov=("dashscope",DASHSCOPE_URL,ds,None)
-    elif orr: prov=("openrouter",OPENROUTER_URL,orr,{"HTTP-Referer":"https://qcgenie.app"})
+    elif orr: prov=("openrouter",OPENROUTER_URL,orr,{"HTTP-Referer":"https://uploadcheck.app"})
     elif anth: prov=("anthropic-fallback",None,anth,None)
     else:
         print(json.dumps({"check":"omni_watch","pass":None,"skipped":True,"reason":"no DASHSCOPE/OPENROUTER/ANTHROPIC key"},indent=2)); sys.exit(0)

@@ -99,6 +99,9 @@ Persistence state:
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
 - `/v1/launch-status` derives a live machine-readable launch go/no-go summary from readiness, including current blockers and operator commands.
 - `/launch-status.json` publishes machine-readable completed controls, current blockers, operator commands, and Product Hunt go/no-go rules; `npm run launch-status:generate` rebuilds it with the Product Hunt kit, and `npm run launch-status:verify` keeps it aligned with readiness and public agent metadata.
+- `npm run live-public-artifacts:verify` checks hosted `/launch-status.json`, `/product-hunt-launch-kit.json`, `/sample-reports/index.json`, the individual PASS/WATCH/BLOCK sample report JSON files, and `/llms.txt` before Product Hunt readiness can pass.
+- `npm run live-web-artifacts:verify` checks hosted Product Hunt, pricing, sample-report, agentic API, sitemap, `llms.txt`, and demo MP4 content before Product Hunt readiness can pass.
+- `/npo-pipeline-handoff.json` publishes the focused NPO podcast/audio MCP sequence, sidecar contract, Render media-ingress rules, marker CSV handoff, and "Fix now?" rerun loop; `npm run live-npo-pipeline-handoff:verify` blocks stale hosted copies.
 - `/cost-basis.json` publishes the plan-level revenue/minute, max COGS/minute, and full-review margin safety answer; `npm run cost-basis:verify` keeps it aligned with the cost model.
 - `/product-hunt-launch-kit.json` publishes Product Hunt launch copy, demo flow, sample-report links, cost-basis proof, and the launch go/no-go source of truth.
 - `npm run product-hunt-kit:generate` rebuilds `/product-hunt-launch-kit.json` from `/launch-status.json`.

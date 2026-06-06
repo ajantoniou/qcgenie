@@ -13,6 +13,7 @@ import { buildCheckoutUrl, normalizePlanId } from "./checkout-links.mjs";
 import { buildReadinessReport } from "./readiness.mjs";
 import { buildLaunchStatus } from "./launch-status.mjs";
 import { buildLaunchHandoff } from "./launch-handoff.mjs";
+import { buildRemoteLaunchEvidence } from "./launch-evidence.mjs";
 import { getObjectStorageConfig, objectKeyForUpload, uploadFileToObjectStorage } from "./object-storage.mjs";
 
 const port = Number(process.env.PORT || 10000);
@@ -56,6 +57,7 @@ createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/v1/launch-status") return getLaunchStatus(req, res);
     if (req.method === "GET" && url.pathname === "/v1/launch-handoff") return getLaunchHandoff(req, res);
     if (req.method === "GET" && url.pathname === "/v1/launch-doctor") return getLaunchDoctor(req, res);
+    if (req.method === "GET" && url.pathname === "/v1/launch-evidence") return getLaunchEvidence(req, res);
     if (req.method === "GET" && url.pathname === "/openapi.json") return serveStatic("/openapi.json", res);
     if (req.method === "GET" && /^\/checkout\/[^/]+$/.test(url.pathname)) return redirectCheckout(url, res);
     if (req.method === "POST" && url.pathname === "/v1/qc/estimate") return estimateQc(req, res);
@@ -137,16 +139,35 @@ function getLaunchDoctor(req, res) {
   });
 }
 
+function getLaunchEvidence(req, res) {
+  const readiness = buildReadinessReport({ host: req.headers.host || "" });
+  const handoff = buildLaunchHandoff(readiness, { generatedAt: readiness.generatedAt });
+  const doctor = {
+    ...handoff,
+    name: "UploadCheck.app Launch Doctor",
+    description: "Live Product Hunt blocker fix plan and normalized launch-doctor command coverage for UploadCheck.app agents and operators.",
+    handoffUrl: "https://qcgenie-api.onrender.com/v1/launch-handoff"
+  };
+  return sendJson(res, 200, buildRemoteLaunchEvidence(doctor, {
+    generatedAt: readiness.generatedAt,
+    source: "https://qcgenie-api.onrender.com/v1/launch-doctor"
+  }));
+}
+
 async function createJob(req, res) {
   const auth = requireScope(req, "jobs:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
+  const remoteSidecars = collectRemoteSidecarUrls(body);
+  if (remoteSidecars.error) return sendJson(res, 400, remoteSidecars.error);
+  if (remoteSidecars.urls) body.sidecar_urls = remoteSidecars.urls;
   const inlineMedia = await materializeInlineMedia(body);
   const inlineManifest = await materializeInlineManifest(body);
   const inlineTranscript = await materializeInlineTranscript(body);
   const inlineWatchlist = await materializeInlineWatchlist(body);
   const inlineExpectedScript = await materializeInlineExpectedScript(body);
   const inlineChunkSidecars = await materializeInlineChunkSidecars(body);
+  let remoteSidecarFiles = null;
   try {
     const declaredMinutes = estimateRequestedMinutes(body);
     const abuseLimit = checkJobAbuseLimits(body, { declaredMinutes });
@@ -202,7 +223,7 @@ async function createJob(req, res) {
       if (inlineMedia || inlineManifest || inlineTranscript || inlineWatchlist || inlineExpectedScript || inlineChunkSidecars) {
         return sendJson(res, 400, {
           error: "async_ephemeral_inputs_unsupported",
-          message: "Queued jobs cannot use inline media or inline sidecars because those temporary files are deleted after the request. Use signed upload, upload_id, YouTube, or remote sidecar URLs for async processing."
+          message: "Queued jobs cannot use inline media or inline sidecars because those temporary files are deleted after the request. Use signed upload, upload_id, YouTube, or HTTPS sidecar URLs for async processing."
         });
       }
     }
@@ -216,13 +237,14 @@ async function createJob(req, res) {
       store.persist();
       return sendJson(res, 202, withCostEstimate(job));
     }
+    remoteSidecarFiles = await materializeRemoteSidecars(remoteSidecars.urls);
     const completed = store.runDeterministicQc(job.jobId, {
       checks: body.checks || inlineMedia?.checks,
-      manifestPath: inlineManifest?.filePath,
-      transcriptPath: inlineTranscript?.filePath,
-      watchlistPath: inlineWatchlist?.filePath,
-      expectedScriptPath: inlineExpectedScript?.filePath,
-      sidecarDir: inlineChunkSidecars?.dirPath
+      manifestPath: inlineManifest?.filePath || remoteSidecarFiles?.manifestPath,
+      transcriptPath: inlineTranscript?.filePath || remoteSidecarFiles?.transcriptPath,
+      watchlistPath: inlineWatchlist?.filePath || remoteSidecarFiles?.watchlistPath,
+      expectedScriptPath: inlineExpectedScript?.filePath || remoteSidecarFiles?.expectedScriptPath,
+      sidecarDir: inlineChunkSidecars?.dirPath || remoteSidecarFiles?.sidecarDir
     });
     store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
     return sendJson(res, 202, withCostEstimate(completed || job));
@@ -233,6 +255,7 @@ async function createJob(req, res) {
     await cleanupInlineWatchlist(inlineWatchlist);
     await cleanupInlineExpectedScript(inlineExpectedScript);
     await cleanupInlineChunkSidecars(inlineChunkSidecars);
+    await cleanupRemoteSidecars(remoteSidecarFiles);
   }
 }
 
@@ -245,9 +268,22 @@ async function drainQueuedJobs(req, res) {
   const results = [];
 
   for (const job of queued) {
-    const completed = store.runDeterministicQc(job.jobId, { checks: job.checks });
-    if (completed) store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
-    results.push(withCostEstimate(completed || job));
+    let remoteSidecarFiles = null;
+    try {
+      remoteSidecarFiles = await materializeRemoteSidecars(job.sidecarUrls);
+      const completed = store.runDeterministicQc(job.jobId, {
+        checks: job.checks,
+        manifestPath: remoteSidecarFiles?.manifestPath,
+        transcriptPath: remoteSidecarFiles?.transcriptPath,
+        watchlistPath: remoteSidecarFiles?.watchlistPath,
+        expectedScriptPath: remoteSidecarFiles?.expectedScriptPath,
+        sidecarDir: remoteSidecarFiles?.sidecarDir
+      });
+      if (completed) store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
+      results.push(withCostEstimate(completed || job));
+    } finally {
+      await cleanupRemoteSidecars(remoteSidecarFiles);
+    }
   }
 
   return sendJson(res, 200, {
@@ -383,6 +419,123 @@ async function materializeInlineChunkSidecars(body = {}) {
 }
 
 async function cleanupInlineChunkSidecars(sidecars) {
+  if (!sidecars?.cleanupPath) return;
+  await rm(sidecars.cleanupPath, { recursive: true, force: true });
+}
+
+function collectRemoteSidecarUrls(body = {}) {
+  const candidates = {
+    manifestUrl: body.manifest_url ?? body.manifestUrl ?? body.storybook_url ?? body.storybookUrl,
+    transcriptUrl: body.transcript_url ?? body.transcriptUrl,
+    watchlistUrl: body.watchlist_url ?? body.watchlistUrl ?? body.pronunciation_watchlist_url ?? body.pronunciationWatchlistUrl,
+    expectedScriptUrl: body.expected_script_url ?? body.expectedScriptUrl ?? body.script_url ?? body.scriptUrl,
+    chunkSidecarsUrl: body.chunk_sidecars_url ?? body.chunkSidecarsUrl ?? body.chunk_sidecar_url ?? body.chunkSidecarUrl
+  };
+  const urls = {};
+  for (const [key, value] of Object.entries(candidates)) {
+    if (!value) continue;
+    const url = validateRemoteSidecarUrl(value);
+    if (!url.ok) {
+      return {
+        error: {
+          error: "invalid_sidecar_url",
+          field: key,
+          message: url.message
+        }
+      };
+    }
+    urls[key] = url.href;
+  }
+  return { urls: Object.keys(urls).length ? urls : null };
+}
+
+function validateRemoteSidecarUrl(value) {
+  try {
+    const parsed = new URL(String(value));
+    const loopbackHttp = parsed.protocol === "http:" && ["127.0.0.1", "localhost", "::1"].includes(parsed.hostname);
+    if (parsed.protocol !== "https:" && !loopbackHttp) return { ok: false, message: "Remote sidecar URLs must use https, except local loopback URLs used by tests." };
+    if (!parsed.hostname) return { ok: false, message: "Remote sidecar URL must include a hostname." };
+    return { ok: true, href: parsed.href };
+  } catch {
+    return { ok: false, message: "Remote sidecar URL is not a valid URL." };
+  }
+}
+
+async function materializeRemoteSidecars(urls = null) {
+  if (!urls || !Object.keys(urls).length) return null;
+  const dir = await mkdtemp(join(tmpdir(), "uploadcheck-remote-sidecars-"));
+  const files = { cleanupPath: dir };
+  try {
+    if (urls.manifestUrl) {
+      files.manifestPath = await fetchRemoteSidecarFile(urls.manifestUrl, join(dir, "manifest.json"), { expectJson: true });
+    }
+    if (urls.transcriptUrl) {
+      files.transcriptPath = await fetchRemoteSidecarFile(urls.transcriptUrl, join(dir, inferTextSidecarFilename(urls.transcriptUrl, "transcript")));
+    }
+    if (urls.watchlistUrl) {
+      files.watchlistPath = await fetchRemoteSidecarFile(urls.watchlistUrl, join(dir, "watchlist.json"), { expectJson: true });
+    }
+    if (urls.expectedScriptUrl) {
+      files.expectedScriptPath = await fetchRemoteSidecarFile(urls.expectedScriptUrl, join(dir, inferTextSidecarFilename(urls.expectedScriptUrl, "expected-script")));
+    }
+    if (urls.chunkSidecarsUrl) {
+      files.sidecarDir = await fetchRemoteChunkSidecars(urls.chunkSidecarsUrl, join(dir, "chunk-sidecars"));
+    }
+    return files;
+  } catch (error) {
+    await cleanupRemoteSidecars(files);
+    throw error;
+  }
+}
+
+async function fetchRemoteSidecarFile(url, filePath, options = {}) {
+  const payload = await fetchRemoteSidecarText(url);
+  if (options.expectJson) JSON.parse(payload);
+  await writeFile(filePath, payload);
+  return filePath;
+}
+
+async function fetchRemoteChunkSidecars(url, dir) {
+  const payload = await fetchRemoteSidecarText(url);
+  let entries = JSON.parse(payload);
+  if (!Array.isArray(entries)) {
+    entries = Object.entries(entries || {}).map(([relativePath, json]) => ({ relative_path: relativePath, json }));
+  }
+  mkdirSync(dir, { recursive: true });
+  for (const entry of entries.slice(0, 200)) {
+    const relativePath = safeRelativePath(entry.relative_path || entry.relativePath || entry.filename || entry.name || "chunk-sidecar.json");
+    const data = entry.json ?? entry.payload ?? entry.data ?? entry;
+    const filePath = join(dir, relativePath);
+    mkdirSync(dirname(filePath), { recursive: true });
+    await writeFile(filePath, typeof data === "string" ? data : JSON.stringify(data));
+  }
+  return dir;
+}
+
+async function fetchRemoteSidecarText(url) {
+  const response = await fetch(url, {
+    redirect: "follow",
+    signal: AbortSignal.timeout(10000)
+  });
+  if (!response.ok) throw new Error(`Remote sidecar fetch failed ${response.status}: ${url}`);
+  const contentLength = Number(response.headers.get("content-length") || 0);
+  const maxBytes = 2 * 1024 * 1024;
+  if (contentLength > maxBytes) throw new Error(`Remote sidecar exceeds 2 MB limit: ${url}`);
+  const text = await response.text();
+  if (Buffer.byteLength(text, "utf8") > maxBytes) throw new Error(`Remote sidecar exceeds 2 MB limit: ${url}`);
+  return text;
+}
+
+function inferTextSidecarFilename(url, base) {
+  try {
+    const ext = extname(new URL(url).pathname).toLowerCase();
+    return ext === ".json" ? `${base}.json` : `${base}.txt`;
+  } catch {
+    return `${base}.txt`;
+  }
+}
+
+async function cleanupRemoteSidecars(sidecars) {
   if (!sidecars?.cleanupPath) return;
   await rm(sidecars.cleanupPath, { recursive: true, force: true });
 }
@@ -822,6 +975,7 @@ function withCostEstimate(job) {
 function publicJob(job) {
   if (!job) return job;
   const safe = { ...job };
+  delete safe.sidecarUrls;
   if (shouldRedactSource(safe)) {
     delete safe.source;
     safe.sourceRedacted = true;

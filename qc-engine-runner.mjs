@@ -35,7 +35,7 @@ export function resolveSourceToLocal(source, sourceType) {
   }
   // youtube / http(s): try yt-dlp (the user's own private/unlisted video, per ToS attestation)
   if (/^https?:\/\//.test(source)) {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-"));
     const out = join(dir, "source.%(ext)s");
     const r = spawnSync(YTDLP, ["-f", "mp4/best", "-o", out, source], { encoding: "utf8", timeout: 1000 * 60 * 15 });
     if (r.status === 0) {
@@ -59,7 +59,7 @@ export function runQcEngine(videoPath, opts = {}) {
   const deps = ensurePythonGateDeps();
   if (!deps.ok) return { ranEngine: false, error: deps.error };
 
-  const outdir = join(tmpdir(), "qcgenie-gate-" + basename(videoPath).replace(/\W+/g, "_"));
+  const outdir = join(tmpdir(), "uploadcheck-gate-" + basename(videoPath).replace(/\W+/g, "_"));
   const args = [ENGINE, videoPath, "--out", outdir];
   if (opts.checks) args.push("--checks", opts.checks);
   if (opts.lang) args.push("--lang", opts.lang);

@@ -6,7 +6,7 @@ import { JsonStore, decryptSecret, signPayload } from "../../server-store.mjs";
 
 describe("JsonStore", () => {
   it("persists jobs, uploads, webhooks, and usage ledger across store instances", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -33,7 +33,7 @@ describe("JsonStore", () => {
   });
 
   it("meters each job only once per billing period and summarizes plan allowance", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -65,7 +65,7 @@ describe("JsonStore", () => {
   });
 
   it("lists queued jobs in FIFO order for worker drains", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -83,7 +83,7 @@ describe("JsonStore", () => {
   });
 
   it("marks uploaded content and creates upload jobs from the stored local file", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
     const mediaPath = join(dir, "master.mp4");
 
@@ -114,7 +114,7 @@ describe("JsonStore", () => {
   });
 
   it("persists sanitized inline media ingress without temporary file paths", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -150,7 +150,7 @@ describe("JsonStore", () => {
   });
 
   it("records webhook delivery previews as delivery log entries", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -173,7 +173,7 @@ describe("JsonStore", () => {
   });
 
   it("encrypts webhook signing secrets when an encryption key is configured", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -195,7 +195,7 @@ describe("JsonStore", () => {
   });
 
   it("queues idempotent webhook deliveries and tracks retry attempts", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -221,7 +221,7 @@ describe("JsonStore", () => {
   });
 
   it("selects only due pending webhook deliveries for worker drains", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -242,7 +242,7 @@ describe("JsonStore", () => {
   });
 
   it("runs deterministic v0 QC and records an honest fallback when the engine cannot resolve the source", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -292,7 +292,7 @@ describe("JsonStore", () => {
   });
 
   it("records an honest fallback when a local media file is invalid", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
     const mediaPath = join(dir, "invalid.mp4");
 
@@ -318,7 +318,7 @@ describe("JsonStore", () => {
   });
 
   it("ingests external gate verdicts into job verdicts, flags, and marker exports", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -361,7 +361,7 @@ describe("JsonStore", () => {
   });
 
   it("ingests text contrast gate findings with readable summaries", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -398,7 +398,7 @@ describe("JsonStore", () => {
   });
 
   it("ingests twins findings with character variation repair guidance", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -423,7 +423,7 @@ describe("JsonStore", () => {
               duplicate_count: 12,
               needs_more_character_variation: true,
               reason: "Multiple background men share the same face, hair, and robe silhouette.",
-              action: "Regenerate or edit the crowd with more character variation."
+              action: "Regenerate or edit the crowd with more distinct characters."
             }]
           }
         }
@@ -434,7 +434,7 @@ describe("JsonStore", () => {
         gate: "twins",
         severity: "block",
         timestamp: "00:00:00",
-        summary: "12 near-duplicate characters: Multiple background men share the same face, hair, and robe silhouette. Regenerate or edit the crowd with more character variation."
+        summary: "12 near-duplicate characters: Multiple background men share the same face, hair, and robe silhouette. Regenerate or edit the crowd with more distinct characters."
       });
       expect(store.getJob(job.jobId).providerUsage).toEqual([{
         check: "twins",
@@ -443,14 +443,14 @@ describe("JsonStore", () => {
         input_tokens: 1200,
         output_tokens: 80
       }]);
-      expect(store.buildMarkerCsv(job.jobId)).toContain("more character variation");
+      expect(store.buildMarkerCsv(job.jobId)).toContain("more distinct characters");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
   });
 
   it("adds character variation repair guidance when a twins action is too narrow", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -476,15 +476,15 @@ describe("JsonStore", () => {
 
       const flag = store.listFlags(job.jobId)[0];
       expect(flag.summary).toContain("Remove the duplicate quadrants.");
-      expect(flag.summary).toContain("more character variation");
-      expect(store.buildMarkerCsv(job.jobId)).toContain("more character variation");
+      expect(flag.summary).toContain("more distinct characters");
+      expect(store.buildMarkerCsv(job.jobId)).toContain("more distinct characters");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
   });
 
   it("ingests text safe-area gate findings with readable summaries", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -521,7 +521,7 @@ describe("JsonStore", () => {
   });
 
   it("ingests thumbnail readability findings with readable summaries", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {
@@ -555,7 +555,7 @@ describe("JsonStore", () => {
   });
 
   it("returns the existing job for repeated idempotency keys", () => {
-    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
 
     try {

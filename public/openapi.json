@@ -75,6 +75,19 @@
               "storageMode": { "type": "string", "enum": ["render_temp_storage", "durable_filesystem", "object_storage"] }
             }
           },
+          "sidecarIngress": {
+            "type": ["object", "null"],
+            "description": "Sanitized sidecar ingress metadata. Remote sidecar URLs are fetched into temporary storage for the run and are never exposed in public job responses.",
+            "properties": {
+              "mode": { "type": "string", "enum": ["remote_https_sidecars"] },
+              "ephemeral": { "type": "boolean" },
+              "supplied": {
+                "type": "array",
+                "items": { "type": "string", "enum": ["manifest", "transcript", "watchlist", "expectedScript", "chunkSidecars"] }
+              },
+              "neverExposes": { "type": "array", "items": { "type": "string" } }
+            }
+          },
           "sourceRedacted": {
             "type": "boolean",
             "description": "True when an upload-backed local server path was removed from the public job response."
@@ -242,6 +255,20 @@
         }
       }
     },
+    "/v1/launch-evidence": {
+      "get": {
+        "summary": "Redacted live Product Hunt launch evidence",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Redacted launch evidence bundle derived from the live launch doctor, suitable for agents and public Product Hunt readiness audits.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
     "/agent-manifest.json": {
       "get": {
         "summary": "UploadCheck agent manifest",
@@ -277,6 +304,20 @@
         "responses": {
           "200": {
             "description": "Machine-readable NTO/NPO and creator pipeline profiles.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
+    "/npo-pipeline-handoff.json": {
+      "get": {
+        "summary": "UploadCheck NPO pipeline handoff",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Focused callable runbook for NPO podcast/audio production pipelines.",
             "content": {
               "application/json": { "schema": { "type": "object" } }
             }
@@ -445,6 +486,10 @@
                     "type": "string"
                   },
                   "manifest_filename": { "type": "string" },
+                  "manifest_url": {
+                    "description": "HTTPS URL for a remote storybook/edit manifest. Use for process_async jobs because inline sidecars are ephemeral.",
+                    "type": "string"
+                  },
                   "transcript_text": {
                     "description": "Optional transcript/script text used by spoken_leaks without ASR spend.",
                     "type": "string"
@@ -458,6 +503,10 @@
                     "type": "string"
                   },
                   "transcript_filename": { "type": "string" },
+                  "transcript_url": {
+                    "description": "HTTPS URL for a remote transcript text or JSON sidecar. Use for process_async jobs because inline sidecars are ephemeral.",
+                    "type": "string"
+                  },
                   "watchlist_json": {
                     "description": "Optional pronunciation/term watchlist JSON for pronunciation_watchlist.",
                     "type": ["object", "array", "string"]
@@ -467,6 +516,10 @@
                     "type": "string"
                   },
                   "watchlist_filename": { "type": "string" },
+                  "watchlist_url": {
+                    "description": "HTTPS URL for a remote pronunciation/term watchlist JSON sidecar. Use for process_async jobs because inline sidecars are ephemeral.",
+                    "type": "string"
+                  },
                   "expected_script_text": {
                     "description": "Optional locked script text used by script_faithfulness with transcript_text/transcript_json.",
                     "type": "string"
@@ -480,6 +533,10 @@
                     "type": "string"
                   },
                   "expected_script_filename": { "type": "string" },
+                  "expected_script_url": {
+                    "description": "HTTPS URL for a remote locked-script text or JSON sidecar. Use for process_async jobs because inline sidecars are ephemeral.",
+                    "type": "string"
+                  },
                   "chunk_sidecars_json": {
                     "description": "Optional array or object map of chunk QC sidecar JSON files used by chunk_sidecar_failures, for example packaged *.garble-report.json entries.",
                     "type": ["array", "object", "string"]
@@ -489,6 +546,10 @@
                     "type": "string"
                   },
                   "chunk_sidecar_dirname": { "type": "string" },
+                  "chunk_sidecars_url": {
+                    "description": "HTTPS URL for a remote JSON array or object map of chunk QC sidecars. Use for process_async jobs because inline sidecars are ephemeral.",
+                    "type": "string"
+                  },
                   "plan_id": {
                     "description": "Optional plan preset for cost estimates and margin guardrails: creator, studio, network, or stress_99_5000.",
                     "type": "string"

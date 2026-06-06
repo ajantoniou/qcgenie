@@ -35,6 +35,7 @@ export function buildLaunchStatus(readiness, {
     remaining_blockers: remainingBlockers(status),
     operator_commands: [
       "npm run launch:doctor",
+      "npm run launch:evidence -- --json",
       "npm run launch:dns",
       "npm run launch:checkout",
       "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
@@ -54,7 +55,16 @@ export function buildLaunchStatus(readiness, {
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run codex:verify-install",
       "npm run cost-basis:verify",
+      "npm run live-cost-basis:verify",
+      "npm run live-agent-manifest:verify",
+      "npm run live-pipeline-recipes:verify",
+      "npm run live-pipeline-handoff:verify",
+      "npm run live-npo-pipeline-handoff:verify",
+      "npm run live-openapi:verify",
+      "npm run live-public-artifacts:verify",
+      "npm run live-web-artifacts:verify",
       "npm run roadmap:verify",
+      "npm run live-launch-evidence:verify",
       "npm run launch:check",
       "npm run readiness:check"
     ],
@@ -63,6 +73,7 @@ export function buildLaunchStatus(readiness, {
       agent_manifest: "https://qcgenie-api.onrender.com/agent-manifest.json",
       pipeline_handoff: "https://qcgenie-api.onrender.com/pipeline-handoff.json",
       pipeline_recipes: "https://qcgenie-api.onrender.com/pipeline-recipes.json",
+      npo_pipeline_handoff: "https://qcgenie-api.onrender.com/npo-pipeline-handoff.json",
       launch_targets: "https://qcgenie-api.onrender.com/launch-targets.json",
       cost_basis: "https://qcgenie-api.onrender.com/cost-basis.json",
       sample_reports: "https://qcgenie-api.onrender.com/sample-reports/index.json",
@@ -71,6 +82,7 @@ export function buildLaunchStatus(readiness, {
       live_launch_status: "https://qcgenie-api.onrender.com/v1/launch-status",
       live_launch_handoff: "https://qcgenie-api.onrender.com/v1/launch-handoff",
       live_launch_doctor: "https://qcgenie-api.onrender.com/v1/launch-doctor",
+      live_launch_evidence: "https://qcgenie-api.onrender.com/v1/launch-evidence",
       product_hunt_page: "https://uploadcheck.app/product-hunt/",
       demo_clip: "https://uploadcheck.app/demo/uploadcheck-product-hunt-demo.mp4"
     },
@@ -128,6 +140,21 @@ function verifiedControls() {
       id: "product_hunt_launch_kit",
       status: "done",
       evidence: "Public product-hunt-launch-kit.json packages launch copy, demo flow, sample-report links, cost-basis proof, and go/no-go rule for operators and agents."
+    },
+    {
+      id: "hosted_public_artifacts",
+      status: "done",
+      evidence: "npm run live-public-artifacts:verify checks hosted launch-status.json, product-hunt-launch-kit.json, sample-reports/index.json, individual PASS/WATCH/BLOCK report JSON, and llms.txt before Product Hunt readiness."
+    },
+    {
+      id: "npo_pipeline_handoff",
+      status: "done",
+      evidence: "GET /npo-pipeline-handoff.json and npm run live-npo-pipeline-handoff:verify expose a focused NPO audio pipeline sequence for MCP, CLI, Render media ingress, sidecars, repair loop, and rerun-before-publish-ready."
+    },
+    {
+      id: "hosted_web_artifacts",
+      status: "done",
+      evidence: "npm run live-web-artifacts:verify checks hosted Product Hunt, pricing, sample-report, agentic API pages, sitemap, llms.txt, and demo MP4 content before Product Hunt readiness."
     },
     {
       id: "observed_costs",

@@ -49,11 +49,19 @@ describe("launch doctor", () => {
     expect(result.stdout).toContain("BLOCK storage");
     expect(result.stdout).toContain("BLOCK storage-probe");
     expect(result.stdout).toContain("PASS hosted-launch-doctor");
+    expect(result.stdout).toContain("BLOCK hosted-cost-basis");
+    expect(result.stdout).toContain("BLOCK hosted-agent-manifest");
+    expect(result.stdout).toContain("BLOCK hosted-pipeline-recipes");
+    expect(result.stdout).toContain("BLOCK hosted-pipeline-handoff");
+    expect(result.stdout).toContain("BLOCK hosted-npo-pipeline-handoff");
+    expect(result.stdout).toContain("BLOCK hosted-openapi");
+    expect(result.stdout).toContain("BLOCK hosted-public-artifacts");
+    expect(result.stdout).toContain("BLOCK hosted-web-artifacts");
     expect(result.stdout).toContain("BLOCK hosted-media-ingress");
     expect(result.stdout).toContain("BLOCK launch-handoff");
     expect(result.stdout).toContain("BLOCK readiness");
     expect(result.stdout).toContain("BLOCK launch-check");
-  });
+  }, 20000);
 
   it("prints machine-readable JSON for agent launch blockers", () => {
     const result = spawnSync("npm", ["run", "--silent", "launch:doctor", "--", "--json"], {
@@ -66,7 +74,7 @@ describe("launch doctor", () => {
     expect(result.status).toBe(1);
     expect(payload.ok).toBe(false);
     expect(payload.status).toBe("blocked");
-    expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "storage", "hosted-media-ingress", "readiness"]));
+    expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "storage", "hosted-cost-basis", "hosted-agent-manifest", "hosted-pipeline-recipes", "hosted-pipeline-handoff", "hosted-npo-pipeline-handoff", "hosted-openapi", "hosted-public-artifacts", "hosted-web-artifacts", "hosted-media-ingress", "readiness"]));
     expect(payload.blockers).not.toContain("hosted-launch-doctor");
     expect(payload.results.find((step) => step.id === "hosted-launch-doctor")).toMatchObject({
       ok: true
@@ -77,7 +85,7 @@ describe("launch doctor", () => {
       ok: false
     });
     expect(payload.results.find((step) => step.id === "hosted-media-ingress").stdout).toContain("Missing env: UPLOADCHECK_API_KEY");
-  });
+  }, 20000);
 
   it("publishes normalized doctor command coverage for Product Hunt launch-kit verification", () => {
     expect(launchDoctorCommandStrings()).toEqual(expect.arrayContaining([
@@ -88,6 +96,14 @@ describe("launch doctor", () => {
       "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
       "npm run media-ingress:verify",
       "npm run live-launch-doctor:verify",
+      "npm run live-cost-basis:verify",
+      "npm run live-agent-manifest:verify",
+      "npm run live-pipeline-recipes:verify",
+      "npm run live-pipeline-handoff:verify",
+      "npm run live-npo-pipeline-handoff:verify",
+      "npm run live-openapi:verify",
+      "npm run live-public-artifacts:verify",
+      "npm run live-web-artifacts:verify",
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run launch-status:verify",
       "npm run cost-basis:verify",

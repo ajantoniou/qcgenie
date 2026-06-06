@@ -42,11 +42,20 @@ describe("public launch status", () => {
       "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
       "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
       "npm run live-launch-doctor:verify",
+      "npm run live-launch-evidence:verify",
       "npm run launch-status:generate",
       "npm run media-ingress:verify",
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run codex:verify-install",
       "npm run cost-basis:verify",
+      "npm run live-cost-basis:verify",
+      "npm run live-agent-manifest:verify",
+      "npm run live-pipeline-recipes:verify",
+      "npm run live-pipeline-handoff:verify",
+      "npm run live-npo-pipeline-handoff:verify",
+      "npm run live-openapi:verify",
+      "npm run live-public-artifacts:verify",
+      "npm run live-web-artifacts:verify",
       "npm run roadmap:verify",
       "npm run render:validate-env",
       "npm run launch:check",
@@ -59,6 +68,9 @@ describe("public launch status", () => {
     expect(status.verified_controls.find((control) => control.id === "roadmap")?.evidence).toContain("roadmap:verify");
     expect(status.verified_controls.find((control) => control.id === "sample_reports")?.evidence).toContain("PASS, WATCH, and BLOCK");
     expect(status.verified_controls.find((control) => control.id === "product_hunt_launch_kit")?.evidence).toContain("product-hunt-launch-kit.json");
+    expect(status.verified_controls.find((control) => control.id === "npo_pipeline_handoff")?.evidence).toContain("live-npo-pipeline-handoff:verify");
+    expect(status.verified_controls.find((control) => control.id === "hosted_public_artifacts")?.evidence).toContain("live-public-artifacts:verify");
+    expect(status.verified_controls.find((control) => control.id === "hosted_web_artifacts")?.evidence).toContain("live-web-artifacts:verify");
     expect(status.verified_controls.find((control) => control.id === "billing_enforcement")?.evidence).toContain("AI-review seconds");
     expect(status.verified_controls.find((control) => control.id === "abuse_limits")?.evidence).toContain("active_job_limit_exceeded");
     expect(status.verified_controls.find((control) => control.id === "job_observability")?.evidence).toContain("processingDurationMs");
@@ -76,11 +88,13 @@ describe("public launch status", () => {
     expect(manifest.live_launch_status_url).toBe("https://qcgenie-api.onrender.com/v1/launch-status");
     expect(manifest.live_launch_handoff_url).toBe("https://qcgenie-api.onrender.com/v1/launch-handoff");
     expect(manifest.live_launch_doctor_url).toBe("https://qcgenie-api.onrender.com/v1/launch-doctor");
+    expect(manifest.live_launch_evidence_url).toBe("https://qcgenie-api.onrender.com/v1/launch-evidence");
     expect(manifest.launch_handoff_command).toBe("npm run launch:handoff -- --text");
     expect(openapi.paths["/launch-status.json"].get.security).toEqual([]);
     expect(openapi.paths["/v1/launch-status"].get.security).toEqual([]);
     expect(openapi.paths["/v1/launch-handoff"].get.security).toEqual([]);
     expect(openapi.paths["/v1/launch-doctor"].get.security).toEqual([]);
+    expect(openapi.paths["/v1/launch-evidence"].get.security).toEqual([]);
   });
 
   it("builds live launch status from readiness checks", () => {
@@ -106,6 +120,8 @@ describe("public launch status", () => {
     expect(status.public_artifacts.live_launch_status).toBe("https://qcgenie-api.onrender.com/v1/launch-status");
     expect(status.public_artifacts.live_launch_handoff).toBe("https://qcgenie-api.onrender.com/v1/launch-handoff");
     expect(status.public_artifacts.live_launch_doctor).toBe("https://qcgenie-api.onrender.com/v1/launch-doctor");
+    expect(status.public_artifacts.live_launch_evidence).toBe("https://qcgenie-api.onrender.com/v1/launch-evidence");
+    expect(status.public_artifacts.npo_pipeline_handoff).toBe("https://qcgenie-api.onrender.com/npo-pipeline-handoff.json");
     expect(status.public_artifacts.sample_reports).toBe("https://qcgenie-api.onrender.com/sample-reports/index.json");
     expect(status.public_artifacts.product_hunt_launch_kit).toBe("https://qcgenie-api.onrender.com/product-hunt-launch-kit.json");
   });

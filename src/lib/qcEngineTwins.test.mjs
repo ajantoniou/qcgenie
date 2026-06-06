@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
 describe("check_twins.py", () => {
-  it("normalizes duplicate-person findings to require more character variation", () => {
+  it("normalizes duplicate-person findings to require more distinct characters", () => {
     const script = `
 import importlib.util
 spec = importlib.util.spec_from_file_location("check_twins", "scripts/qc-engine/check_twins.py")
@@ -32,6 +32,106 @@ print(mod.json.dumps(mod.normalize_twins_finding({
     });
   });
 
+  it("adds a distinct-characters repair action when the model omits one", () => {
+    const script = `
+import importlib.util
+spec = importlib.util.spec_from_file_location("check_twins", "scripts/qc-engine/check_twins.py")
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+print(mod.json.dumps(mod.normalize_twins_finding({
+  "has_twins": True,
+  "duplicate_count": 8,
+  "reason": "The crowd repeats the same face and robe silhouette."
+}, 0)))
+`;
+    const result = spawnSync("python3", ["-c", script], { cwd: resolve("."), encoding: "utf8" });
+    const payload = JSON.parse(result.stdout);
+
+    expect(result.status).toBe(0);
+    expect(payload).toMatchObject({
+      duplicate_count: 8,
+      needs_more_character_variation: true,
+      action: "Regenerate or edit the scene with more distinct characters."
+    });
+  });
+
+  it("treats needs_more_character_variation as a blocking twins failure", () => {
+    const script = `
+import importlib.util
+spec = importlib.util.spec_from_file_location("check_twins", "scripts/qc-engine/check_twins.py")
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+print(mod.json.dumps({
+  "needs_only": mod.is_twins_failure({"has_twins": False, "needs_more_character_variation": True}),
+  "clean": mod.is_twins_failure({"has_twins": False, "needs_more_character_variation": False})
+}))
+`;
+    const result = spawnSync("python3", ["-c", script], { cwd: resolve("."), encoding: "utf8" });
+    const payload = JSON.parse(result.stdout);
+
+    expect(result.status).toBe(0);
+    expect(payload).toEqual({
+      needs_only: true,
+      clean: false
+    });
+  });
+
+  it("uses a no-rationalization clone-crowd prompt", () => {
+    const script = `
+import importlib.util
+spec = importlib.util.spec_from_file_location("check_twins", "scripts/qc-engine/check_twins.py")
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+print(mod.PROMPT)
+`;
+    const result = spawnSync("python3", ["-c", script], { cwd: resolve("."), encoding: "utf8" });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("Do NOT rationalize repetition");
+    expect(result.stdout).toContain("If needs_more_character_variation is true, has_twins MUST also be true");
+    expect(result.stdout).toContain("same AI man");
+  });
+
+  it("extracts overlapping crop and tile variants for wide crowd images", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-variants-"));
+    const mediaPath = join(dir, "wide-crowd.jpg");
+
+    try {
+      const ffmpeg = spawnSync("ffmpeg", [
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=c=tan:s=1280x720",
+        "-frames:v",
+        "1",
+        mediaPath
+      ], { cwd: resolve("."), encoding: "utf8" });
+      expect(ffmpeg.status).toBe(0);
+
+      const script = `
+import importlib.util, tempfile, json, shutil
+spec = importlib.util.spec_from_file_location("check_twins", "scripts/qc-engine/check_twins.py")
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+tmp=tempfile.mkdtemp(prefix="twins_variants_")
+frames=mod.extract_frames(${JSON.stringify(mediaPath)}, tmp, 0.25)
+print(json.dumps({"count": len(frames), "names": [p.split("/")[-1] for p,t in frames], "times": [t for p,t in frames]}))
+shutil.rmtree(tmp)
+`;
+      const result = spawnSync("python3", ["-c", script], { cwd: resolve("."), encoding: "utf8" });
+      const payload = JSON.parse(result.stdout);
+
+      expect(result.status).toBe(0);
+      expect(payload.count).toBeGreaterThanOrEqual(8);
+      expect(payload.names.some((name) => name.includes("_crop_"))).toBe(true);
+      expect(payload.names.some((name) => name.includes("_tile_"))).toBe(true);
+      expect(new Set(payload.times)).toEqual(new Set([0]));
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("blocks when an image path cannot be decoded into a real frame", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-"));
     const mediaPath = join(dir, "crowd.jpg");
@@ -55,6 +155,61 @@ print(mod.json.dumps(mod.normalize_twins_finding({
       });
       expect(payload.findings[0].reason).toContain("Could not decode any image/video frames");
       expect(payload.findings[0].action).toContain("rerun UploadCheck");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("blocks clone-crowd scenes with local appearance clustering before vision", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-local-"));
+    const mediaPath = join(dir, "clone-crowd.jpg");
+    const jsonPath = join(dir, "twins.json");
+
+    try {
+      const makeImage = `
+from PIL import Image, ImageDraw
+img=Image.new("RGB",(1280,720),(202,176,128))
+draw=ImageDraw.Draw(img)
+positions=[(120,140),(245,155),(370,132),(520,165),(660,135),(805,160),(945,138),(1085,152),(175,355),(330,380),(505,360),(710,385),(890,365),(1040,378)]
+for x,y in positions:
+    draw.ellipse((x-34,y-42,x+34,y+38), fill=(32,25,20))
+    draw.ellipse((x-24,y-18,x+24,y+42), fill=(157,103,72))
+    draw.ellipse((x-16,y+16,x+16,y+56), fill=(42,31,26))
+    draw.polygon([(x-72,y+58),(x+72,y+58),(x+102,y+205),(x-102,y+205)], fill=(137,106,73))
+    draw.line((x-10,y+1,x+10,y+1), fill=(57,39,32), width=3)
+    draw.line((x-7,y+28,x+7,y+28), fill=(67,42,34), width=3)
+draw.ellipse((590,300,690,485), fill=(230,220,195))
+draw.polygon([(640,455),(535,665),(760,665)], fill=(232,224,200))
+img.save(${JSON.stringify(mediaPath)})
+`;
+      const imageResult = spawnSync("python3", ["-c", makeImage], { cwd: resolve("."), encoding: "utf8" });
+      expect(imageResult.status).toBe(0);
+
+      const result = spawnSync("python3", [
+        resolve("scripts/qc-engine/check_twins.py"),
+        mediaPath,
+        "--json",
+        jsonPath
+      ], {
+        cwd: resolve("."),
+        encoding: "utf8",
+        env: { ...process.env, ANTHROPIC_API_KEY: "" }
+      });
+      const payload = JSON.parse(readFileSync(jsonPath, "utf8"));
+
+      expect(result.status).toBe(1);
+      expect(payload).toMatchObject({
+        check: "twins",
+        pass: false,
+        frames_checked: 0
+      });
+      expect(payload.deterministic_frames_checked).toBeGreaterThan(0);
+      expect(payload.findings[0]).toMatchObject({
+        needs_more_character_variation: true,
+        method: "local_appearance_cluster",
+        action: "Regenerate or edit the scene with more distinct characters."
+      });
+      expect(payload.findings[0].duplicate_count).toBeGreaterThanOrEqual(5);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

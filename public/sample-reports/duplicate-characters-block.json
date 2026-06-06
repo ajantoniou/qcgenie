@@ -42,7 +42,7 @@
       "gate": "twins",
       "severity": "block",
       "timestamp": "00:00:00",
-      "summary": "39 near-duplicate characters: repeated faces, hair, and robe silhouettes across the crowd. Regenerate or edit the scene with more character variation.",
+      "summary": "39 near-duplicate characters: repeated faces, hair, and robe silhouettes across the crowd. Regenerate or edit the scene with more distinct characters.",
       "evidenceSource": "vision_sample_window",
       "transcriptEvidence": "needs_more_character_variation=true",
       "fixability": "source_or_render_required"

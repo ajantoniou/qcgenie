@@ -17,7 +17,84 @@
     "sampled_ai_review_cents_per_minute": 0.2154,
     "full_gemini_flash_lite_video_audio_input_cents_per_minute": 0.2154,
     "full_gemini_flash_video_audio_input_cents_per_minute": 0.6654,
-    "model_check_call_cost_cents": 0.75
+    "model_check_call_cost_cents": 0.75,
+    "openai_gpt_4o_mini_transcribe_cents_per_minute": 0.3,
+    "openai_gpt_4o_transcribe_cents_per_minute": 0.6,
+    "openai_gpt_realtime_whisper_cents_per_minute": 1.7,
+    "openai_gpt_realtime_translate_cents_per_minute": 3.4,
+    "elevenlabs_scribe_cents_per_minute": 0.3667
+  },
+  "source_audit": {
+    "last_verified_date": "2026-06-06",
+    "primary_sources": [
+      {
+        "provider": "Google Gemini",
+        "url": "https://ai.google.dev/gemini-api/docs/pricing",
+        "used_for": "Gemini 2.5 Flash-Lite and Flash input cost baseline."
+      },
+      {
+        "provider": "Google Gemini",
+        "url": "https://ai.google.dev/gemini-api/docs/tokens",
+        "used_for": "Video and audio token-per-second assumptions."
+      },
+      {
+        "provider": "OpenAI",
+        "url": "https://platform.openai.com/docs/pricing",
+        "used_for": "gpt-4o-mini-transcribe, gpt-4o-transcribe, gpt-realtime-whisper, and gpt-realtime-translate minute pricing."
+      },
+      {
+        "provider": "Anthropic",
+        "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+        "used_for": "Claude Sonnet and Haiku token pricing for observed frame-check COGS."
+      },
+      {
+        "provider": "Qwen Cloud",
+        "url": "https://www.qwencloud.com/models/qwen3.5-omni-flash",
+        "used_for": "qwen3.5-omni-flash text/image/video and audio token pricing."
+      },
+      {
+        "provider": "ElevenLabs",
+        "url": "https://elevenlabs.io/pricing/api?price.section=speech_to_text",
+        "used_for": "Scribe speech-to-text per-hour pricing."
+      }
+    ]
+  },
+  "transcription_cost_reduction": {
+    "rule": "Do not transcribe every included minute by default. Use transcript sidecars first, deterministic audio gates second, and paid/capped transcription only for suspicious or customer-requested windows.",
+    "options": [
+      {
+        "provider": "OpenAI",
+        "model": "gpt-4o-mini-transcribe",
+        "cost_cents_per_minute": 0.3,
+        "stress_99_5000_cogs_cents": 1500,
+        "stress_99_5000_margin_safe": false,
+        "use": "Lowest current OpenAI transcription fallback for paid or sampled audio windows."
+      },
+      {
+        "provider": "OpenAI",
+        "model": "gpt-4o-transcribe",
+        "cost_cents_per_minute": 0.6,
+        "stress_99_5000_cogs_cents": 3000,
+        "stress_99_5000_margin_safe": false,
+        "use": "Higher-quality paid transcription fallback when customer value justifies it."
+      },
+      {
+        "provider": "ElevenLabs",
+        "model": "scribe_v1",
+        "cost_cents_per_minute": 0.3667,
+        "stress_99_5000_cogs_cents": 1833.5,
+        "stress_99_5000_margin_safe": false,
+        "use": "Current engine STT provider for garble/narration checks; keep sampled or paid."
+      },
+      {
+        "provider": "OpenAI",
+        "model": "gpt-realtime-whisper",
+        "cost_cents_per_minute": 1.7,
+        "stress_99_5000_cogs_cents": 8500,
+        "stress_99_5000_margin_safe": false,
+        "use": "Not suitable for default included-minute transcription."
+      }
+    ]
   },
   "observed_calibration": {
     "model_check_call_cost_floor_cents": 0.75,

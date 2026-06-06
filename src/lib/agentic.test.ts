@@ -8,7 +8,9 @@ describe("agentic integration contract", () => {
       "GET /v1/launch-status",
       "GET /v1/launch-handoff",
       "GET /v1/launch-doctor",
+      "GET /v1/launch-evidence",
       "GET /pipeline-handoff.json",
+      "GET /npo-pipeline-handoff.json",
       "POST /v1/qc/estimate",
       "POST /v1/qc/jobs",
       "POST /v1/qc/jobs/drain",
@@ -32,7 +34,9 @@ describe("agentic integration contract", () => {
       "qc_get_launch_status",
       "qc_get_launch_handoff",
       "qc_get_launch_doctor",
+      "qc_get_launch_evidence",
       "qc_get_pipeline_handoff",
+      "qc_get_npo_pipeline_handoff",
       "qc_get_pipeline_recipes",
       "qc_get_cost_basis",
       "qc_estimate_cost",
@@ -58,10 +62,17 @@ describe("agentic integration contract", () => {
     expect(launchDoctor?.outputs).toContain("blockerFixPlan");
     expect(launchDoctor?.outputs).toContain("blockerProofCommands");
     expect(launchDoctor?.outputs).toContain("launchDoctorCommands");
+    const launchEvidence = MCP_TOOLS.find((tool) => tool.name === "qc_get_launch_evidence");
+    expect(launchEvidence?.outputs).toContain("commandCoverage");
+    expect(launchEvidence?.outputs).toContain("redaction");
     const pipelineHandoff = MCP_TOOLS.find((tool) => tool.name === "qc_get_pipeline_handoff");
     expect(pipelineHandoff?.outputs).toContain("call_sequence");
     expect(pipelineHandoff?.outputs).toContain("media_ingress");
     expect(pipelineHandoff?.outputs).toContain("repair_loop_contract");
+    const npoPipelineHandoff = MCP_TOOLS.find((tool) => tool.name === "qc_get_npo_pipeline_handoff");
+    expect(npoPipelineHandoff?.outputs).toContain("mcp_sequence");
+    expect(npoPipelineHandoff?.outputs).toContain("required_sidecars");
+    expect(npoPipelineHandoff?.purpose).toContain("NPO podcast/audio");
     const pipelineRecipes = MCP_TOOLS.find((tool) => tool.name === "qc_get_pipeline_recipes");
     expect(pipelineRecipes?.outputs).toContain("profiles");
     expect(pipelineRecipes?.outputs).toContain("repair_loop_contract");
@@ -70,8 +81,11 @@ describe("agentic integration contract", () => {
     expect(costBasis?.outputs).toContain("plans");
     const runVideo = MCP_TOOLS.find((tool) => tool.name === "qc_run_video");
     expect(runVideo?.inputs).toContain("youtube_url");
+    expect(runVideo?.inputs).toContain("manifest_url");
+    expect(runVideo?.inputs).toContain("chunk_sidecars_url");
     expect(runVideo?.outputs).toContain("verdict");
     expect(runVideo?.outputs).toContain("media_ingress");
+    expect(runVideo?.outputs).toContain("sidecar_ingress");
     const runLocalFile = MCP_TOOLS.find((tool) => tool.name === "qc_run_local_file");
     expect(runLocalFile?.inputs).toContain("file_path");
     expect(runLocalFile?.inputs).toContain("manifest_path");

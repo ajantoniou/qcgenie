@@ -11,7 +11,7 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getByRole("heading", { name: "Give your agent eyes and ears before upload." })).toBeInTheDocument();
     expect(screen.getAllByText("/check final-upload.mp4")).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Run /check workflow" })).toBeInTheDocument();
-    expect(screen.queryByText("QC Genie")).not.toBeInTheDocument();
+    expect(screen.getByText("Media checks before upload")).toBeInTheDocument();
   });
 
   test("agent page explains the /check workflow before listing API details", () => {

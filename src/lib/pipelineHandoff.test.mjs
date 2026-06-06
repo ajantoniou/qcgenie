@@ -40,6 +40,8 @@ describe("UploadCheck production pipeline handoff", () => {
     expect(sequenceText).toContain("no BLOCK flags remain");
     expect(handoff.media_ingress.inline_ephemeral.rule).toContain("Render temp storage");
     expect(handoff.media_ingress.signed_upload.api_sequence).toContain("POST /v1/uploads");
+    expect(handoff.media_ingress.remote_sidecar_urls.fields).toContain("chunk_sidecars_url");
+    expect(handoff.media_ingress.remote_sidecar_urls.rule).toContain("process_async=true");
     expect(handoff.margin_rules.target_gross_margin_pct).toBe(95);
     expect(handoff.margin_rules.stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute).toBe(0.0157);
     expect(handoff.margin_rules.stress_99_5000_verdict).toContain("too generous");

@@ -55,7 +55,7 @@ describe("public sample reports", () => {
       timestamp: "00:00:00",
       fixability: "source_or_render_required"
     });
-    expect(block.flags[0].summary).toContain("more character variation");
+    expect(block.flags[0].summary).toContain("more distinct characters");
   });
 
   it("links sample reports from public page, manifest, and llms metadata", () => {

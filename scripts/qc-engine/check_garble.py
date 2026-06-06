@@ -35,7 +35,7 @@ def rms_db(audio):
     m=re.search(r"mean_volume:\s*(-?[\d.]+)",out); return float(m.group(1)) if m else -99.0
 
 def scribe(audio, key, lang):
-    b="----qcg"; fb=open(audio,"rb").read()
+    b="----uploadcheck"; fb=open(audio,"rb").read()
     body=b"".join([
         (f'--{b}\r\nContent-Disposition: form-data; name="model_id"\r\n\r\nscribe_v1\r\n').encode(),
         (f'--{b}\r\nContent-Disposition: form-data; name="language_code"\r\n\r\n{lang}\r\n').encode(),

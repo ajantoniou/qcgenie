@@ -34,10 +34,24 @@ server.tool(
 );
 
 server.tool(
+  "qc_get_launch_evidence",
+  "Fetch redacted UploadCheck launch evidence derived from the live launch doctor for agent-safe Product Hunt verification.",
+  {},
+  async () => jsonTool(await publicApiFetch("/v1/launch-evidence"))
+);
+
+server.tool(
   "qc_get_pipeline_handoff",
   "Fetch the UploadCheck production pipeline handoff runbook for NTO/NPO and creator workflows.",
   {},
   async () => jsonTool(await publicApiFetch("/pipeline-handoff.json"))
+);
+
+server.tool(
+  "qc_get_npo_pipeline_handoff",
+  "Fetch the focused UploadCheck NPO podcast/audio pipeline handoff for cost preflight, sidecars, media ingress, marker CSV, and repair-loop workflows.",
+  {},
+  async () => jsonTool(await publicApiFetch("/npo-pipeline-handoff.json"))
 );
 
 server.tool(
@@ -95,17 +109,22 @@ server.tool(
     manifest_json: z.any().optional(),
     manifest_base64: z.string().optional(),
     manifest_filename: z.string().optional(),
+    manifest_url: z.string().optional(),
     transcript_text: z.string().optional(),
     transcript_json: z.any().optional(),
     transcript_base64: z.string().optional(),
     transcript_filename: z.string().optional(),
+    transcript_url: z.string().optional(),
     watchlist_json: z.any().optional(),
     watchlist_base64: z.string().optional(),
     watchlist_filename: z.string().optional(),
+    watchlist_url: z.string().optional(),
     expected_script_text: z.string().optional(),
     expected_script_json: z.any().optional(),
     expected_script_base64: z.string().optional(),
     expected_script_filename: z.string().optional(),
+    expected_script_url: z.string().optional(),
+    chunk_sidecars_url: z.string().optional(),
     checks: z.string().optional(),
     plan_id: z.string().optional(),
     plan_price_cents: z.number().optional(),

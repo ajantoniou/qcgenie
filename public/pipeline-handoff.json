@@ -118,6 +118,11 @@
       "api_sequence": ["POST /v1/uploads", "PUT /v1/uploads/{upload_id}/content?token=...", "POST /v1/qc/jobs with upload_id"],
       "mcp_sequence": ["qc_create_upload_url", "qc_run_video with upload_id"],
       "rule": "Use Render temp storage by default or durable/object storage when configured."
+    },
+    "remote_sidecar_urls": {
+      "recommended_for": "queued Render worker jobs that need manifests, transcripts, watchlists, locked scripts, or chunk QC sidecars",
+      "fields": ["manifest_url", "transcript_url", "watchlist_url", "expected_script_url", "chunk_sidecars_url"],
+      "rule": "Use HTTPS sidecar URLs with process_async=true; UploadCheck fetches them only during drain, stores them temporarily for the gate run, and redacts the URLs from public job responses."
     }
   },
   "margin_rules": {

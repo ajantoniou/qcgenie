@@ -36,7 +36,9 @@ The API writes the payload to a temp file, runs the gate, and deletes the temp f
 
 The agent should call `qc_run_local_file` for a reachable local export, or `qc_run_video` when it already has a YouTube URL, signed URL, upload id, or base64 payload. Then poll `qc_get_job`, fetch `qc_get_report`, and list timestamped evidence plus source-level issues it can reach.
 
-For Codex, Claude Code, Cursor, or NTO/NPO production pipelines, call `qc_get_pipeline_handoff` first when you need the complete production runbook. It gives the launch preflight, recipe, cost-basis, estimate, media-ingress, report, marker CSV, repair-loop, and rerun sequence. Then call `qc_get_pipeline_recipes` when you need the current default checks and sidecar arguments, and use `qc_run_local_file` for the selected profile:
+For Codex, Claude Code, Cursor, or NTO/NPO production pipelines, call `qc_get_pipeline_handoff` first when you need the complete production runbook. It gives the launch preflight, recipe, cost-basis, estimate, media-ingress, report, marker CSV, repair-loop, and rerun sequence. Then call `qc_get_pipeline_recipes` when you need the current default checks and sidecar arguments, and use `qc_run_local_file` for the selected profile.
+
+For NPO podcast/audio projects, call `qc_get_npo_pipeline_handoff` or run `uploadcheck npo-pipeline-handoff --json` when you need the focused audio handoff without the broader NTO recipe bundle. It includes the cost preflight, default checks, transcript/watchlist/locked-script sidecars, inline/signed media-ingress rules, marker CSV handoff, "Fix now?" prompt, and rerun-before-publish-ready rule:
 
 ```json
 {
@@ -70,13 +72,15 @@ When a project has a locked narration script and final transcript, pass `expecte
 
 When a project has local chunk QC reports, pass `sidecar_dir` with `checks: "chunk_sidecar_failures"`. The local MCP process packages JSON sidecars such as `*.garble-report.json`, Render evaluates them from memory/temp storage, and failed chunk reports become BLOCK flags before upload.
 
+For queued Render worker jobs, do not use inline sidecar payloads because they are deleted after the create request. Use HTTPS sidecar URLs instead: `manifest_url`, `transcript_url`, `watchlist_url`, `expected_script_url`, and `chunk_sidecars_url`. UploadCheck fetches them only when the worker drains the job, stores them in temporary server storage for that run, and redacts the URLs from public job/report responses.
+
 For thumbnail candidates, call `qc_run_local_file` on the image with `checks: "thumbnail_text_readability"`. The same inline Render path evaluates OCR contrast and edge/safe-area readability without model spend.
 
 Use `qc_get_cost_basis` before pricing, plan, or model-backed review decisions. Use `plan_id`, `ai_review_seconds`, and `cost_guardrail` when an agent is asking for paid AI review beyond deterministic checks. The default guardrail is `downgrade`: margin-breaking AI review is removed and the job runs deterministic checks. Use `block` to reject unsafe requests, or `off` only for internal experiments/deep-review add-ons.
 
 Checked minutes mean deterministic pre-upload QC minutes. The old `$99 / 5,000` stress plan leaves only `0.0157` COGS cents/min after deterministic scanning, so unlimited full-video AI review is not included; model-backed deep review must be preflighted, downgraded, blocked, or sold separately to preserve the >95% gross-margin target.
 
-Call `qc_get_launch_status` before launch-sensitive production workflows when an agent needs the live Product Hunt go/no-go state, remaining blockers, and operator commands. Call `qc_get_launch_handoff` when the agent needs blocker-specific required actions, proof commands, launchDoctorCommands, and the no-launch rule. Call `qc_get_launch_doctor` when the agent needs the `/v1/launch-doctor` blocker fix plan plus normalized launch-doctor command coverage, including the hosted Render media-ingress proof command. These launch endpoints are public; the other QC tools still require an API key.
+Call `qc_get_launch_status` before launch-sensitive production workflows when an agent needs the live Product Hunt go/no-go state, remaining blockers, and operator commands. Call `qc_get_launch_handoff` when the agent needs blocker-specific required actions, proof commands, launchDoctorCommands, and the no-launch rule. Call `qc_get_launch_doctor` when the agent needs the `/v1/launch-doctor` blocker fix plan plus normalized launch-doctor command coverage, including the hosted Render media-ingress proof command. Call `qc_get_launch_evidence` when the agent needs a redacted evidence bundle from `/v1/launch-evidence` without local npm scripts. These launch endpoints are public; the other QC tools still require an API key.
 
 Call `qc_estimate_cost` before uploading large media or asking for model-backed checks. It returns the effective checks, removed checks, margin safety, and cost estimate without creating a job.
 
@@ -86,7 +90,9 @@ Call `qc_estimate_cost` before uploading large media or asking for model-backed 
 - `qc_get_launch_status`
 - `qc_get_launch_handoff`
 - `qc_get_launch_doctor`
+- `qc_get_launch_evidence`
 - `qc_get_pipeline_handoff`
+- `qc_get_npo_pipeline_handoff`
 - `qc_get_pipeline_recipes`
 - `qc_get_cost_basis`
 - `qc_run_video`

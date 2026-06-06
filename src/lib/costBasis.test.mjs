@@ -17,6 +17,12 @@ describe("public cost basis", () => {
 
     expect(basis.target_gross_margin_pct).toBe(95);
     expect(basis.cost_assumptions.model_check_call_cost_cents).toBe(0.75);
+    expect(basis.cost_assumptions.openai_gpt_4o_mini_transcribe_cents_per_minute).toBe(0.3);
+    expect(basis.source_audit.primary_sources.map((source) => source.provider)).toContain("OpenAI");
+    expect(basis.transcription_cost_reduction.options.find((option) => option.model === "gpt-4o-mini-transcribe")).toMatchObject({
+      cost_cents_per_minute: 0.3,
+      stress_99_5000_margin_safe: false
+    });
     expect(basis.observed_calibration.source).toContain("0.654");
     expect(basis.telemetry.mcp_tools).toContain("qc_get_cost_basis");
     expect(basis.telemetry.cli_commands).toContain("uploadcheck cost-basis --json");

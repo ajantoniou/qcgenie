@@ -19,7 +19,7 @@ Research inputs verified on 2026-06-06:
 - Gemini 2.5 Flash-Lite standard pricing is `$0.10 / 1M` text/image/video input tokens, `$0.30 / 1M` audio input tokens, and `$0.40 / 1M` output tokens. Source: `https://ai.google.dev/gemini-api/docs/pricing`.
 - Gemini 2.5 Flash standard pricing is `$0.30 / 1M` text/image/video input tokens, `$1.00 / 1M` audio input tokens, and `$2.50 / 1M` output tokens. Source: `https://ai.google.dev/gemini-api/docs/pricing`.
 - Gemini 3 family paid rows are currently higher than the 2.5 Flash-Lite margin baseline for this use case; do not switch default QC review to Gemini 3 without fresh telemetry.
-- OpenAI GPT-Realtime-Whisper is listed at `$0.017 / minute`; OpenAI GPT-Realtime-Translate is listed at `$0.034 / minute`.
+- OpenAI lists `gpt-4o-mini-transcribe` at `$0.003 / minute`, `gpt-4o-transcribe` at `$0.006 / minute`, GPT-Realtime-Whisper at `$0.017 / minute`, and GPT-Realtime-Translate at `$0.034 / minute`. Source: `https://platform.openai.com/docs/pricing`.
 - Anthropic Claude Sonnet 4.5 / 4.6 is `$3 / 1M` input tokens and `$15 / 1M` output tokens; prompt cache reads are `$0.30 / 1M`. Source: `https://platform.claude.com/docs/en/about-claude/pricing`.
 - ElevenLabs Scribe is `$0.22 / hour` for speech-to-text. Source: `https://elevenlabs.io/pricing/api?price.section=speech_to_text`.
 - Qwen Cloud lists `qwen3.5-omni-flash` at `$0.4 / 1M` text/image/video input tokens, `$2.2 / 1M` text output tokens, `$3 / 1M` audio input tokens, and `$11.9 / 1M` text+audio output tokens. Source: `https://www.qwencloud.com/models/qwen3.5-omni-flash`.
@@ -32,11 +32,15 @@ Derived unit economics:
 | Deterministic ffmpeg/Python only, task compute at 1x realtime | about `$0.00083` before platform overhead | about `$4.17` | about `95.8%` before bandwidth/storage |
 | Gemini 2.5 Flash-Lite full video+audio input only | about `$0.00215` before output | about `$10.77` | about `89.1%` |
 | Gemini 2.5 Flash full video+audio input only | about `$0.00665` before output | about `$33.27` | about `66.4%` |
+| OpenAI gpt-4o-mini-transcribe every minute | `$0.003` | `$15.00` | about `84.8%` |
+| OpenAI gpt-4o-transcribe every minute | `$0.006` | `$30.00` | about `69.7%` |
 | OpenAI GPT-Realtime-Whisper every minute | `$0.017` | `$85.00` | about `14.1%` |
 
 Pricing verdict: `$99 / 5,000 minutes` is too generous if every minute receives full Omni/video or hosted transcription. It can work only if most minutes are deterministic-only and AI review is limited to flagged/sampled windows. Launch pricing should either cut included minutes to `1,000-2,000`, meter Omni separately, or define `5,000 deterministic scan minutes` plus a smaller AI-review allowance.
 
 Cost-per-minute target: at `$99 / 5,000`, the COGS ceiling is `$0.00099` per minute. Deterministic-only Render compute at 1x realtime is about `$0.000833` per minute before bandwidth/storage/retries, leaving only about `$0.000157` per minute of overhead. Full Gemini 2.5 Flash-Lite video+audio input alone is about `$0.002154` per media minute before output, which breaks the target. The margin-safe launch shape is therefore deterministic scan minutes plus a capped AI-review allowance, not unlimited full-video AI minutes.
+
+Speech-cost update: current OpenAI `gpt-4o-mini-transcribe` is a lower-cost fallback than realtime Whisper and slightly below ElevenLabs Scribe, but it still costs about `0.3` cents/minute. Running it across all `5,000` included stress-plan minutes would cost about `$15` before deterministic compute, so it remains a paid/sampled-window path, not a default included-minute path.
 
 Observed-cost telemetry now prices real provider usage separately from preflight estimates. Example: the June 6 clone-crowd smoke test used `1,637` Anthropic input tokens and `108` output tokens, which prices at about `$0.0065` for that single vision call before Render compute. That is useful for flagged-window review, but it is not compatible with running many Sonnet frame calls on every included minute at `$99 / 5,000`.
 
@@ -131,6 +135,9 @@ Source evidence reviewed:
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-engineer.md`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/council/20-video-qc-watcher.md`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-snippets/visual-qc-learning-locks.md`
+- `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/scripts/qc-gates-cinema.py`
+- `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/scripts/qc-shorts-format.py`
+- `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/scripts/vo-audio-qc.py`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/content/videos/tampered-with-the-gospels-2026-05-27/STAGE-17-5-AI-PROMPT-PACK-v12.md`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/content/videos/_shared/cast/_LEVANTINE-AUDIT-2026-06-02.md`
 
@@ -173,6 +180,11 @@ NTO-derived private QC tasks to add to the product:
 33. `unwanted_lip_movement`: flag visible mouth movement or lip-sync in clips that are meant to be speaker-neutral, hands-only, no-face, or non-speaking b-roll. Planned as a vision/video motion gate for AI plates and character-motion clips.
 34. `historical_period_fit`: flag modern objects, wrong-region footage, wrong-era footage, visible readable text inside AI plates, battle spectacle, wedding/dancing/banquet footage during teaching/conflict/writing VO, and other banlist mismatches that current NTO personas catch by hand. Planned as a manifest-plus-vision gate.
 35. `sensitive_framing`: flag anti-Jewish visual coding, caricature, accusation tableaux, triumphalist empire imagery, frontal Jesus-face violations, or other customer-defined sensitive-framing bans before upload. Planned as private policy-aware review over flagged windows.
+36. `hand_anatomy`: flag AI hand defects before clip approval, including extra fingers, fused fingers, melted hands, broken wrists, or human-limb frames that need focused review. Planned as sampled-frame vision review, seeded from NTO `G_HANDS`.
+37. `hallucinated_plate_text`: flag unintended readable text, title-card remnants, watermarks, OCR glyphs, or garbled signs inside AI/generated or library plates when the scene is not an approved Remotion/source card. Implemented first as deterministic OCR with a manifest allowlist for approved text/source cards.
+38. `clean_segment_source_scrub`: replace NTO's local public-domain scrubber by rejecting source clips with silent-film intertitles, wrong-region inserts, pyramids/Babylon/Egypt footage under incompatible VO, or adjacent wedding/dancing/banquet footage before a storybook can reference them. Implemented first as a deterministic manifest metadata gate plus OCR-only source-clip scan when no manifest is supplied.
+39. `posted_platform_visual_check`: after private YouTube/short upload, verify the watch URL/player state still matches the rendered artifact: full-bleed layout, readable text after platform chrome, music/VO state, captions uploaded, and no transcode-introduced issue before privacy flips public.
+40. `asset_triage_reuse_manifest`: after ship, identify reusable assets, clean-segments, character composites, music beds, Remotion templates, and generative beats for retention while marking one-off candidates/intermediates for cleanup. Implemented first as a deterministic post-run manifest gate when asset triage is explicitly required. Product value is lower rerender cost and faster future QC.
 
 Private moat note: competitors can copy the public idea of upload QC, but our sticky layer is the accumulated private failure catalog, thresholds, fixtures, and agent repair loops learned from real NTO production. Publish the outcomes and broad categories, not the full validator internals.
 
@@ -207,6 +219,9 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO-derived `opening_footer_text_presence` deterministic manifest-side Shorts gate added to `scripts/qc-engine/check_opening_footer_text_presence.py`, included in `run_gate.py`, and added to the NTO Shorts recipe default.
 - Done: NTO-derived `chunk_sidecar_failures` deterministic sidecar-directory gate added to `scripts/qc-engine/check_chunk_sidecar_failures.py`, included in `run_gate.py`, and exposed through API inline sidecars, CLI `--sidecar-dir`, MCP `sidecar_dir`, and NTO/NPO recipe defaults.
 - Done: NTO-derived `thumbnail_text_readability` deterministic OCR image gate added to `scripts/qc-engine/check_thumbnail_text_readability.py`, included in `run_gate.py`, and exposed through the `creator_thumbnail` pipeline recipe.
+- Done: NTO-derived `hallucinated_plate_text` deterministic OCR gate added to `scripts/qc-engine/check_hallucinated_plate_text.py`, included in `run_gate.py`, and added to the NTO long-form recipe default with manifest allowlisting for approved text/source cards.
+- Done: NTO-derived `clean_segment_source_scrub` deterministic source-preflight gate added to `scripts/qc-engine/check_clean_segment_source_scrub.py`, included in `run_gate.py`, and exposed in pipeline recipes for source clips/storybook rows before b-roll references.
+- Done: NTO-derived `asset_triage_reuse_manifest` deterministic post-run manifest gate added to `scripts/qc-engine/check_asset_triage_reuse_manifest.py`, included in `run_gate.py`, and exposed in pipeline recipes for post-ship reusable-asset retention and cleanup discipline.
 - Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
 - Done: plan-aware cost guardrail added for declared AI-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked.
 - Done: first per-check model-call accounting added for `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch`; in downgrade mode, margin-breaking model-backed checks are removed before the engine runs.
@@ -233,9 +248,13 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: Product Hunt readiness actions now include explicit checkout and storage probe commands, so operators can prove configured payment/storage paths live before launch.
 - Done: launch doctor added through `npm run launch:doctor`; it runs local launch helpers, explicit checkout/storage probes, public metadata verifiers, and live readiness/DNS checks in one ordered report.
 - Done: machine-readable launch doctor JSON added through `npm run launch:doctor -- --json`, so agents can read blocked steps, normalized command strings, and proof outputs without scraping text logs.
+- Done: redacted launch evidence bundle added through `npm run launch:evidence -- --json`; it preserves statuses, blockers, commands, and output hashes while stripping raw stdout/stderr, bearer tokens, checkout paths, Lemon Squeezy variant IDs, and temp paths for safe operator handoff.
 - Done: hosted media ingress launch doctor step added; `npm run launch:doctor` now covers `UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify` and blocks cleanly until the private bearer token is supplied.
 - Done: hosted launch doctor endpoint verifier added through `npm run live-launch-doctor:verify`; Product Hunt launch now blocks if Render serves stale HTML or a launch-doctor JSON payload missing the hosted media-ingress command.
 - Done: packaged CLI launch doctor added through `uploadcheck launch-doctor --json`, so agents outside this repo can fetch the live blocker fix plan without local npm scripts.
+- Done: packaged CLI launch evidence added through `uploadcheck launch-evidence --json`, so agents outside this repo can fetch a redacted Product Hunt evidence bundle derived from the live launch doctor without local repo scripts.
+- Done: hosted redacted launch evidence added through `GET /v1/launch-evidence` and MCP `qc_get_launch_evidence`, so agents can inspect launch evidence without shelling into this repo.
+- Done: hosted redacted launch evidence verifier added through `npm run live-launch-evidence:verify`; launch doctor now blocks if Render does not serve the public redacted launch-evidence endpoint after deploy.
 - Done: launch blocker fix plan added to `npm run launch:handoff`, giving operators and agents structured phases for Render env, checkout, persistence, upload storage, domains, secret encryption, proof commands, and final launch proof.
 - Done: Product Hunt launch-kit required commands are now tested against launch-doctor coverage plus the standalone env-file validation handoff, so public go/no-go instructions cannot drift from the executable verifier.
 - Done: launch readiness no longer treats Supabase env alone as persistence proof; until a server-side Supabase store adapter exists, Product Hunt readiness requires the mounted JsonStore path that the runtime actually uses.
@@ -261,6 +280,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: agent access to live launch status added through MCP `qc_get_launch_status` and CLI `uploadcheck launch-status`, so Codex/Claude/Cursor projects can inspect go/no-go state without custom HTTP.
 - Done: agent access to live launch handoff added through MCP `qc_get_launch_handoff` and `GET /v1/launch-handoff`, so projects can fetch blocker-specific required actions, proof commands, and the no-launch rule without custom HTTP.
 - Done: agent access to the launch blocker fix plan added through MCP `qc_get_launch_doctor`, so MCP clients can fetch Product Hunt readiness blockers and fix phases directly.
+- Done: agent access to redacted launch evidence added through MCP `qc_get_launch_evidence`, so MCP clients can fetch Product Hunt evidence bundles directly.
 - Done: agent access to machine-readable pipeline defaults added through MCP `qc_get_pipeline_recipes` and CLI `uploadcheck recipes --json`, so NTO/NPO production pipelines can discover profiles without scraping public JSON URLs.
 - Done: agent access to the production runbook added through MCP `qc_get_pipeline_handoff` and CLI `uploadcheck pipeline-handoff --json`, so NTO/NPO and creator agents can start from one callable sequence instead of manually combining public artifacts.
 - Done: pipeline handoff artifact added at `/pipeline-handoff.json`, giving NTO/NPO and creator agents a machine-readable launch preflight, recipe, cost-basis, estimate, media-ingress, report, marker CSV, repair-loop, and rerun sequence.
@@ -274,6 +294,14 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: margin telemetry added through `GET /v1/usage/margins` and MCP `qc_get_margin_telemetry`; usage entries now retain cost snapshots with COGS, allocated revenue, cost/minute, and estimated gross margin.
 - Done: CLI margin telemetry added through `uploadcheck usage --billing-period YYYY-MM`, so non-MCP agent workflows can inspect cost/minute and gross margin directly.
 - Done: public cost-basis verifier added through `npm run cost-basis:verify`, checking `/cost-basis.json` plan economics and the `$99 / 5,000` stress-plan verdict against `cost-model.mjs`.
+- Done: hosted cost-basis verifier added through `npm run live-cost-basis:verify`; launch doctor now blocks if Render serves stale cost/minute economics or omits the OpenAI transcription cost-reduction audit.
+- Done: hosted agent-manifest verifier added through `npm run live-agent-manifest:verify`; launch doctor now blocks if Render serves stale MCP/tool discovery, NPO profile, repair-loop, or pricing guardrail metadata.
+- Done: hosted pipeline-recipes verifier added through `npm run live-pipeline-recipes:verify`; launch doctor now blocks if Render serves stale NTO/NPO recipes, low-contrast text QC, clone-crowd QC, or repair-loop contracts.
+- Done: hosted pipeline-handoff verifier added through `npm run live-pipeline-handoff:verify`; launch doctor now blocks if Render serves stale NTO/NPO call sequence, media-ingress, marker CSV, repair-loop, or margin-guardrail instructions.
+- Done: focused NPO pipeline handoff added at `/npo-pipeline-handoff.json` with `npm run live-npo-pipeline-handoff:verify`; NPO audio pipelines now have a single callable contract for cost preflight, sidecars, Render media ingress, marker CSV, repair loop, and rerun-before-publish-ready.
+- Done: hosted OpenAPI verifier added through `npm run live-openapi:verify`; launch doctor now blocks if Render serves stale API docs for launch evidence, queued drains, inline media, remote sidecars, cost guardrails, usage margins, or signed uploads.
+- Done: hosted public-artifacts verifier added through `npm run live-public-artifacts:verify`; launch doctor now blocks if Render serves stale `/launch-status.json`, `/product-hunt-launch-kit.json`, `/sample-reports/index.json`, individual PASS/WATCH/BLOCK sample report JSON, or `/llms.txt` that omit launch-evidence, cost, sample-report, clone-crowd BLOCK, repair-loop, or public go/no-go proof.
+- Done: hosted web-artifacts verifier added through `npm run live-web-artifacts:verify`; launch doctor now blocks if Product Hunt, pricing, sample-report, agentic API, sitemap, `llms.txt`, or demo MP4 web artifacts are missing or stale on `uploadcheck.app`.
 - Done: `/cost-basis.json` now publishes remaining COGS budget after deterministic scanning for every plan; the `$99 / 5,000` stress plan exposes only `0.0157` COGS cents/minute of post-deterministic overhead before the 95% margin target breaks.
 - Done: Pricing pages and `agent-manifest.json` now state that checked minutes are deterministic scan minutes and that the old `$99 / 5,000` stress plan is not unlimited full-video AI review.
 - Done: `llms.txt` now repeats the deterministic-minutes pricing guardrail so answer engines and crawler-first agents do not infer unlimited AI review from the public plan names.
@@ -281,11 +309,14 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: observed provider usage is now captured from real QC engine calls. Anthropic frame checks preserve token usage, DashScope/OpenRouter Omni calls preserve OpenAI-compatible usage when present, Scribe checks preserve request/audio seconds, and `VERDICT.json`, job reports, and margin telemetry expose rollups for cost reconciliation.
 - Done: observed provider usage is now priced into post-run COGS. Reports and `/v1/usage/margins` distinguish estimated preflight COGS from observed provider COGS, observed total COGS, observed cost/minute, and observed gross margin.
 - Done: model-backed preflight pricing now uses an observed-cost floor of `0.75` cents per model call, based on the clone-crowd `twins` smoke test, so guardrails do not underprice Sonnet frame review.
+- Done: `twins` now has a Pillow-only local appearance-cluster fallback before the vision call, so repeated-character crowd scenes can block with `needs_more_character_variation` and zero provider usage when the local evidence is strong.
+- Done: public cost basis now includes a primary-source pricing audit and OpenAI transcription alternatives. `gpt-4o-mini-transcribe` is tracked at `0.3` cents/minute for observed COGS, but still marked unsafe for default every-minute transcription on the `$99 / 5,000` stress plan.
 - Done: billing enforcement for included minutes added. Usage metering is idempotent per job and billing period, and declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they exceed included plan minutes.
 - Done: plan-level AI-review budgets added to the cost model and public cost basis. Creator includes `3,600` AI-review seconds, Studio `7,200`, Network `21,600`, and the `$99 / 5,000` stress plan includes `0`; declared jobs that exceed the cumulative allowance return `usage_limit_exceeded` before QC.
 - Done: abuse limits added for file size, declared duration, and active job concurrency. Job/upload requests now fail fast with `duration_limit_exceeded`, `upload_size_limit_exceeded`, or `active_job_limit_exceeded` before QC compute or storage spend.
 - Done: job observability added for duration, stage timing, provider-usage count, engine mode, and fallback failure reasons. Job responses and reports now preserve `startedAt`, `completedAt`, `processingDurationMs`, `observability.stages`, and `failureReason`.
 - Done: queued worker execution added. `POST /v1/qc/jobs` can accept `process_async=true`, leaving the job queued, and `POST /v1/qc/jobs/drain` processes queued jobs for Render cron/workflow execution.
+- Done: queued worker sidecar URLs added. Async jobs can now persist HTTPS `manifest_url`, `transcript_url`, `watchlist_url`, `expected_script_url`, and `chunk_sidecars_url`; `POST /v1/qc/jobs/drain` fetches them into temporary storage for the gate run while public job/report responses expose only sanitized `sidecarIngress`.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
 - Next: use observed provider COGS from live Render runs to set final AI-review allowances per plan.

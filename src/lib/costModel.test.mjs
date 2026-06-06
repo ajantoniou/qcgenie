@@ -138,4 +138,25 @@ describe("cost model", () => {
       outputTokens: 108
     });
   });
+
+  it("prices OpenAI transcription usage for cost-reduction telemetry", () => {
+    const result = estimateObservedProviderCost([
+      { provider: "openai", model: "gpt-4o-mini-transcribe", audio_seconds: 60 },
+      { provider: "openai", model: "gpt-4o-transcribe", audio_seconds: 60 },
+      { provider: "openai", model: "gpt-realtime-whisper", audio_seconds: 60 }
+    ]);
+
+    expect(result.observedProviderCogsCents).toBeCloseTo(2.6, 4);
+    expect(result.details.map((detail) => detail.pricingSource)).toEqual([
+      "openai_official_transcription_pricing",
+      "openai_official_transcription_pricing",
+      "openai_official_transcription_pricing"
+    ]);
+    expect(result.details[0]).toMatchObject({
+      provider: "openai",
+      model: "gpt-4o-mini-transcribe",
+      audioSeconds: 60,
+      cogsCents: 0.3
+    });
+  });
 });

@@ -1,0 +1,99 @@
+{
+  "name": "UploadCheck NPO Pipeline Handoff",
+  "description": "Focused callable runbook for NPO podcast/audio production pipelines that need UploadCheck before publishing.",
+  "profile_id": "npo_podcast_or_audio",
+  "mcp_server": "uploadcheck",
+  "api_base_url": "https://qcgenie-api.onrender.com/v1",
+  "source_recipe": "https://qcgenie-api.onrender.com/pipeline-recipes.json#profiles.npo_podcast_or_audio",
+  "launch_preflight": {
+    "mcp_tool": "qc_get_launch_status",
+    "handoff_tool": "qc_get_launch_handoff",
+    "cli": "uploadcheck launch-status --json",
+    "rule": "For launch-sensitive production, stop if product_hunt_ready is not true or remaining_blockers is not empty; fetch the handoff and report proof commands."
+  },
+  "cost_preflight": {
+    "mcp_tool": "qc_estimate_cost",
+    "plan_id": "creator",
+    "cost_guardrail": "downgrade",
+    "minutes_source": "Use known episode duration when available; otherwise estimate from the audio file before upload.",
+    "checks": "dead_air,spoken_leaks,pronunciation_watchlist,script_faithfulness,chunk_sidecar_failures",
+    "rule": "Run cost preflight before sending large audio or adding model-backed checks such as garble or omni_watch."
+  },
+  "media_ingress": {
+    "preferred_local_mcp_tool": "qc_run_local_file",
+    "preferred_local_cli": "uploadcheck check /path/to/episode.wav --checks dead_air,spoken_leaks,pronunciation_watchlist,script_faithfulness,chunk_sidecar_failures --transcript /path/to/final-transcript.txt --watchlist /path/to/watchlist.json --expected-script /path/to/locked-script.txt --sidecar-dir /path/to/_dialogue-chunks --plan creator --cost-guardrail downgrade --json",
+    "small_or_medium_audio": "Use qc_run_local_file; the MCP/CLI encodes reachable local audio inline when it fits the inline limit.",
+    "large_audio": "Use signed upload: POST /v1/uploads, PUT /v1/uploads/{upload_id}/content, then POST /v1/qc/jobs with upload_id.",
+    "queued_render_worker": "Use process_async=true only with durable media and HTTPS sidecar URLs: transcript_url, watchlist_url, expected_script_url, and chunk_sidecars_url.",
+    "privacy": "Job/report responses expose sanitized mediaIngress and sidecarIngress metadata only; temporary server paths and raw sidecar URLs are not returned."
+  },
+  "required_sidecars": {
+    "transcript_path": "Final transcript for spoken_leaks, pronunciation_watchlist, and script_faithfulness.",
+    "watchlist_path": "Names, sponsor terms, organization names, and banned misrenders.",
+    "expected_script_path": "Locked script or rundown when available.",
+    "sidecar_dir": "Optional dialogue/audio chunk QC sidecar directory for failed rerender or garble reports."
+  },
+  "mcp_sequence": [
+    {
+      "step": 1,
+      "tool": "qc_get_pipeline_handoff",
+      "purpose": "Load the full production runbook when the caller needs launch, cost, media, report, marker, and repair-loop instructions."
+    },
+    {
+      "step": 2,
+      "tool": "qc_get_pipeline_recipes",
+      "purpose": "Read profile npo_podcast_or_audio and confirm the default checks and sidecar arguments."
+    },
+    {
+      "step": 3,
+      "tool": "qc_estimate_cost",
+      "arguments": {
+        "minutes": 60,
+        "checks": "dead_air,spoken_leaks,pronunciation_watchlist,script_faithfulness,chunk_sidecar_failures",
+        "plan_id": "creator",
+        "cost_guardrail": "downgrade"
+      }
+    },
+    {
+      "step": 4,
+      "tool": "qc_run_local_file",
+      "arguments": {
+        "file_path": "/path/to/episode.wav",
+        "checks": "dead_air,spoken_leaks,pronunciation_watchlist,script_faithfulness,chunk_sidecar_failures",
+        "transcript_path": "/path/to/final-transcript.txt",
+        "watchlist_path": "/path/to/watchlist.json",
+        "expected_script_path": "/path/to/locked-script.txt",
+        "sidecar_dir": "/path/to/_dialogue-chunks",
+        "plan_id": "creator",
+        "cost_guardrail": "downgrade",
+        "idempotency_key": "npo-audio-final"
+      }
+    },
+    {
+      "step": 5,
+      "tool": "qc_get_job",
+      "purpose": "Poll until completed, failed, or blocked."
+    },
+    {
+      "step": 6,
+      "tool": "qc_get_report",
+      "purpose": "Fetch verdict, flags, cost estimate, mediaIngress, sidecarIngress, observability, and repair guidance."
+    },
+    {
+      "step": 7,
+      "tool": "qc_get_marker_csv",
+      "purpose": "Fetch timestamped editor/audio handoff markers when flags exist."
+    }
+  ],
+  "repair_loop_contract": {
+    "must_show_all_flags": true,
+    "severity_order": ["BLOCK", "WATCH", "PASS"],
+    "user_prompt": "Show all QC flags and ask: Fix now?",
+    "agent_fixable": ["transcript corrections", "watchlist updates", "metadata", "rundown/checklist updates", "reachable captions"],
+    "source_or_render_required": ["garbled audio", "dead-air edit gaps", "failed dialogue chunk sidecars", "wrong final mix export"],
+    "rerun_after_fix": true,
+    "completion_rule": "Do not call the episode publish-ready until UploadCheck is rerun after edits and no BLOCK flags remain."
+  },
+  "margin_rule": "The default deterministic NPO profile is margin-safe under the current cost model; model-backed garble or omni_watch must remain preflighted, downgraded, blocked, or sold separately when needed.",
+  "public_moat_rule": "Expose the NPO handoff sequence, defect categories, and repair behavior; do not publish private thresholds, fixtures, prompts, or validator internals."
+}

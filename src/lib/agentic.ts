@@ -48,7 +48,9 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "GET /v1/launch-status", purpose: "Fetch live Product Hunt launch go/no-go state, blockers, and operator commands." },
   { methodPath: "GET /v1/launch-handoff", purpose: "Fetch live Product Hunt launch blockers, required actions, proof commands, and no-launch rule." },
   { methodPath: "GET /v1/launch-doctor", purpose: "Fetch live Product Hunt blocker fix plan and normalized launch-doctor command coverage." },
+  { methodPath: "GET /v1/launch-evidence", purpose: "Fetch redacted live launch evidence for agent-safe Product Hunt verification." },
   { methodPath: "GET /pipeline-handoff.json", purpose: "Fetch the production pipeline handoff runbook for NTO/NPO and creator workflows." },
+  { methodPath: "GET /npo-pipeline-handoff.json", purpose: "Fetch the focused NPO podcast/audio production handoff for cost, sidecars, media ingress, marker CSV, and repair-loop workflows." },
   { methodPath: "POST /v1/qc/estimate", purpose: "Preflight cost, margin guardrail behavior, and effective checks before uploading media." },
   { methodPath: "POST /v1/qc/jobs", purpose: "Create a QC job from a YouTube URL, upload id, or signed asset URL." },
   { methodPath: "POST /v1/qc/jobs/drain", purpose: "Process queued async QC jobs for Render cron/workflow worker execution." },
@@ -86,10 +88,22 @@ export const MCP_TOOLS: McpTool[] = [
     outputs: ["productHuntReady", "remainingBlockers", "blockerFixPlan", "blockerProofCommands", "launchDoctorCommands", "operatorCommandSequence", "rule"]
   },
   {
+    name: "qc_get_launch_evidence",
+    purpose: "Fetch redacted UploadCheck launch evidence derived from the live launch doctor for agent-safe Product Hunt verification.",
+    inputs: [],
+    outputs: ["productHuntReady", "status", "blockers", "commandCoverage", "fixPhases", "redaction"]
+  },
+  {
     name: "qc_get_pipeline_handoff",
     purpose: "Fetch the production pipeline handoff runbook for NTO/NPO and creator workflows.",
     inputs: [],
     outputs: ["source_artifacts", "profiles", "call_sequence", "media_ingress", "margin_rules", "repair_loop_contract"]
+  },
+  {
+    name: "qc_get_npo_pipeline_handoff",
+    purpose: "Fetch the focused NPO podcast/audio production handoff for cost preflight, sidecars, media ingress, marker CSV, and repair-loop workflows.",
+    inputs: [],
+    outputs: ["profile_id", "cost_preflight", "media_ingress", "required_sidecars", "mcp_sequence", "repair_loop_contract"]
   },
   {
     name: "qc_get_pipeline_recipes",
@@ -112,8 +126,8 @@ export const MCP_TOOLS: McpTool[] = [
   {
     name: "qc_run_video",
     purpose: "Start a full-timeline UploadCheck run from Claude, Codex, or another agent workspace.",
-    inputs: ["youtube_url", "upload_id", "signed_url", "video_base64", "audio_base64", "data_url", "callback_url"],
-    outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered", "media_ingress", "cost_estimate"]
+    inputs: ["youtube_url", "upload_id", "signed_url", "video_base64", "audio_base64", "data_url", "manifest_url", "transcript_url", "watchlist_url", "expected_script_url", "chunk_sidecars_url", "callback_url"],
+    outputs: ["job_id", "verdict", "status_url", "report_url", "minutes_metered", "media_ingress", "sidecar_ingress", "cost_estimate"]
   },
   {
     name: "qc_run_local_file",

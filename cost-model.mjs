@@ -34,6 +34,14 @@ const PROVIDER_PRICING = {
   },
   elevenlabs: {
     scribeUsdPerHour: 0.22
+  },
+  openai: {
+    transcriptionUsdPerMinute: {
+      "gpt-4o-mini-transcribe": 0.003,
+      "gpt-4o-transcribe": 0.006,
+      "gpt-realtime-whisper": 0.017,
+      "gpt-realtime-translate": 0.034
+    }
   }
 };
 const MODEL_BACKED_CHECKS = new Set(["twins", "cheap_broll", "narration_match", "omni_watch", "garble"]);
@@ -236,6 +244,7 @@ function estimateObservedProviderEntryCost(entry) {
   if (provider === "anthropic") return estimateAnthropicEntryCost(entry);
   if (provider === "dashscope" || provider === "openrouter") return estimateQwenOmniEntryCost(entry, provider);
   if (provider === "elevenlabs") return estimateElevenLabsEntryCost(entry);
+  if (provider === "openai") return estimateOpenAiEntryCost(entry);
   return { provider: provider || "unknown", model: entry.model || null, cogsCents: 0, pricingSource: "unknown_provider" };
 }
 
@@ -297,6 +306,21 @@ function estimateElevenLabsEntryCost(entry) {
     audioSeconds,
     cogsCents: round(cogsUsd * 100),
     pricingSource: "elevenlabs_scribe_official_pricing"
+  };
+}
+
+function estimateOpenAiEntryCost(entry) {
+  const model = String(entry.model || "gpt-4o-mini-transcribe");
+  const audioSeconds = number(entry.audio_seconds ?? entry.audioSeconds ?? entry.window_seconds ?? entry.windowSeconds);
+  const rate = PROVIDER_PRICING.openai.transcriptionUsdPerMinute[model] || 0;
+  const cogsUsd = (audioSeconds / 60) * rate;
+  return {
+    provider: "openai",
+    model,
+    operation: entry.operation || null,
+    audioSeconds,
+    cogsCents: round(cogsUsd * 100),
+    pricingSource: rate ? "openai_official_transcription_pricing" : "openai_unknown_model"
   };
 }
 

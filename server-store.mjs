@@ -51,6 +51,8 @@ export class JsonStore {
       uploadId,
       idempotencyKey: input.idempotency_key || null,
       callbackUrl: input.callback_url || null,
+      sidecarUrls: normalizeSidecarUrls(input.sidecar_urls || input.sidecarUrls),
+      sidecarIngress: buildSidecarIngress(input.sidecar_urls || input.sidecarUrls),
       planId: input.plan_id || input.planId || null,
       planPriceCents: numberOrNull(input.plan_price_cents ?? input.planPriceCents),
       includedMinutes: numberOrNull(input.included_minutes ?? input.includedMinutes),
@@ -69,7 +71,7 @@ export class JsonStore {
       updatedAt: now
     };
     this.state.jobs.push(job);
-    this.addJobEvent(jobId, "queued", { sourceType: job.sourceType, mediaIngress });
+    this.addJobEvent(jobId, "queued", { sourceType: job.sourceType, mediaIngress, sidecarIngress: job.sidecarIngress });
     this.persist();
     return job;
   }
@@ -724,6 +726,26 @@ function buildMediaIngress(input = {}, upload = null) {
   return null;
 }
 
+function normalizeSidecarUrls(value = null) {
+  if (!value || typeof value !== "object") return null;
+  const out = {};
+  for (const key of ["manifestUrl", "transcriptUrl", "watchlistUrl", "expectedScriptUrl", "chunkSidecarsUrl"]) {
+    if (typeof value[key] === "string" && value[key]) out[key] = value[key];
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+function buildSidecarIngress(value = null) {
+  const urls = normalizeSidecarUrls(value);
+  if (!urls) return null;
+  return {
+    mode: "remote_https_sidecars",
+    ephemeral: true,
+    supplied: Object.keys(urls).map((key) => key.replace(/Url$/, "")).sort(),
+    neverExposes: ["remote sidecar URLs", "temporary server file paths"]
+  };
+}
+
 function safeSha256(value) {
   const text = String(value || "");
   return /^[a-f0-9]{64}$/i.test(text) ? text.toLowerCase() : null;
@@ -744,9 +766,9 @@ function summarizeFinding(gate, finding) {
   if (gate === "twins") {
     const duplicateCount = Number.isFinite(Number(finding.duplicate_count)) ? Number(finding.duplicate_count) : null;
     const countText = duplicateCount ? `${duplicateCount} near-duplicate character${duplicateCount === 1 ? "" : "s"}` : "Near-duplicate characters";
-    const variationAction = "Regenerate or edit the scene with more character variation.";
+    const variationAction = "Regenerate or edit the scene with more distinct characters.";
     const baseAction = finding.action || (finding.needs_more_character_variation ? variationAction : "");
-    const action = finding.needs_more_character_variation && baseAction && !/character variation|distinct character|unique character/i.test(baseAction)
+    const action = finding.needs_more_character_variation && baseAction && !/character variation|distinct character|distinct characters|unique character/i.test(baseAction)
       ? `${baseAction} ${variationAction}`
       : baseAction;
     const reason = finding.reason || finding.summary || finding.label || "Repeated faces or bodies detected in the scene.";

@@ -32,8 +32,18 @@ describe("Product Hunt launch kit", () => {
     expect(kit.current_state_snapshot.note).toContain("Static snapshot only");
     expect(kit.ready_when.source_of_truth).toBe(status.public_artifacts.live_launch_status);
     expect(kit.ready_when.required_commands).toContain("npm run launch:doctor");
+    expect(kit.ready_when.required_commands).toContain("npm run launch:evidence -- --json");
     expect(kit.ready_when.required_commands).toContain("npm run launch:handoff");
     expect(kit.ready_when.required_commands).toContain("npm run live-launch-doctor:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run live-launch-evidence:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run live-cost-basis:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run live-agent-manifest:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run live-pipeline-recipes:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run live-pipeline-handoff:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run live-npo-pipeline-handoff:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run live-openapi:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run live-public-artifacts:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run live-web-artifacts:verify");
     expect(kit.ready_when.required_commands).toContain("npm run media-ingress:verify");
     expect(kit.ready_when.required_commands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     expect(kit.ready_when.required_commands).toContain("npm run launch-status:generate");
@@ -53,7 +63,17 @@ describe("Product Hunt launch kit", () => {
     const doctorCommands = new Set(launchDoctorCommandStrings());
     const standaloneCommands = new Set([
       "npm run launch:doctor",
+      "npm run launch:evidence -- --json",
       "npm run live-launch-doctor:verify",
+      "npm run live-launch-evidence:verify",
+      "npm run live-cost-basis:verify",
+      "npm run live-agent-manifest:verify",
+      "npm run live-pipeline-recipes:verify",
+      "npm run live-pipeline-handoff:verify",
+      "npm run live-npo-pipeline-handoff:verify",
+      "npm run live-openapi:verify",
+      "npm run live-public-artifacts:verify",
+      "npm run live-web-artifacts:verify",
       "npm run launch-status:generate",
       "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"
     ]);

@@ -1,8 +1,9 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
+import { createServer } from "node:http";
 import { afterEach, describe, expect, it } from "vitest";
 import { JsonStore } from "../../server-store.mjs";
 
@@ -112,6 +113,41 @@ describe("server inline media API", () => {
       expect(payload.handoffUrl).toBe("https://qcgenie-api.onrender.com/v1/launch-handoff");
       expect(payload.blockerFixPlan.status).toBe("blocked");
       expect(payload.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("serves redacted live launch evidence derived from readiness without API auth", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-launch-evidence-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY_SHA256: "a".repeat(64),
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/launch-evidence`);
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.name).toBe("UploadCheck.app Remote Launch Evidence");
+      expect(payload.source).toBe("https://qcgenie-api.onrender.com/v1/launch-doctor");
+      expect(payload.productHuntReady).toBe(false);
+      expect(payload.status).toBe("blocked");
+      expect(payload.blockers).toContain("checkout");
+      expect(payload.commandCoverage.join("\n")).toContain("<private_bearer>");
+      expect(JSON.stringify(payload)).not.toContain("uck_");
+      expect(JSON.stringify(payload)).not.toContain(dir);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -342,6 +378,87 @@ describe("server inline media API", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   }, 20000);
+
+  it("drains async jobs with remote sidecar URLs without exposing the URLs", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-async-sidecars-"));
+    const mediaPath = join(dir, "source.png");
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const apiKey = "uck_test_async_sidecars";
+    const sidecarServer = createServer((req, res) => {
+      if (req.url === "/chunk-sidecars.json") {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify([{
+          relative_path: "voice-09.garble-report.json",
+          json: { pass: false, status: "failed", reason: "garble report failed before render" }
+        }]));
+        return;
+      }
+      res.writeHead(404);
+      res.end();
+    });
+    await new Promise((resolve) => sidecarServer.listen(0, "127.0.0.1", resolve));
+    const sidecarPort = sidecarServer.address().port;
+    const sidecarUrl = `http://127.0.0.1:${sidecarPort}/chunk-sidecars.json`;
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      writeFileSync(mediaPath, Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/l2w2VQAAAABJRU5ErkJggg==", "base64"));
+      await waitForHealth(port);
+      const createResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          source: mediaPath,
+          source_type: "upload",
+          process_async: true,
+          checks: "chunk_sidecar_failures",
+          chunk_sidecars_url: sidecarUrl
+        })
+      });
+      const created = await createResponse.json();
+
+      expect(createResponse.status).toBe(202);
+      expect(created.sidecarIngress).toMatchObject({
+        mode: "remote_https_sidecars",
+        supplied: ["chunkSidecars"]
+      });
+      expect(JSON.stringify(created)).not.toContain(sidecarUrl);
+      expect(JSON.stringify(created)).not.toContain("chunk-sidecars.json");
+
+      const drainResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs/drain`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({ limit: 1 })
+      });
+      const drained = await drainResponse.json();
+
+      expect(drainResponse.status).toBe(200);
+      expect(drained.processed).toBe(1);
+      expect(drained.jobs[0].verdict).toBe("BLOCK");
+      expect(drained.jobs[0].gateVerdict).toBe("BLOCK");
+      expect(JSON.stringify(drained)).not.toContain(sidecarUrl);
+    } finally {
+      sidecarServer.close();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 30000);
 
   it("rejects declared jobs that exceed the max duration limit", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-duration-limit-"));

@@ -57,6 +57,15 @@ UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 npm run media-ingress:verify
 UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
 npm run live-launch-doctor:verify
+npm run live-launch-evidence:verify
+npm run live-cost-basis:verify
+npm run live-agent-manifest:verify
+npm run live-pipeline-recipes:verify
+npm run live-pipeline-handoff:verify
+npm run live-npo-pipeline-handoff:verify
+npm run live-openapi:verify
+npm run live-public-artifacts:verify
+npm run live-web-artifacts:verify
 npm run render:verify
 npm run launch:check
 npm run readiness:check
@@ -65,9 +74,19 @@ npm run readiness:check
 `launch:handoff` includes a structured `blockerFixPlan` in JSON mode and a `Fix plan` section in text mode. Use it as the operator sequence for Render env preparation, checkout URLs, mounted persistence, durable upload storage, domain cutover, webhook secret encryption, and final proof commands before Product Hunt launch.
 
 Agents can use `npm run launch:doctor -- --json` to read the same launch checks as structured data, including blocked step ids and normalized command strings, without scraping the text output.
+Agents and operators can use `npm run launch:evidence -- --json` for a redacted handoff bundle that keeps step status, blockers, command strings, summaries, and output hashes while omitting raw stdout/stderr, bearer tokens, checkout paths, variant IDs, and temp paths.
 The launch doctor includes the hosted Render media-ingress probe command and reports `hosted-media-ingress` as a blocker until `UPLOADCHECK_API_KEY=<private_bearer>` is present in the operator environment.
+The launch doctor also includes `npm run live-launch-evidence:verify` and reports `hosted-launch-evidence` as a blocker until the hosted Render API serves `GET /v1/launch-evidence` with a redacted evidence bundle.
+The launch doctor also includes `npm run live-cost-basis:verify` and reports `hosted-cost-basis` as a blocker until hosted `/cost-basis.json` matches the current 95% gross-margin verifier, source-audit, and `$99 / 5,000` stress-plan verdict.
+The launch doctor also includes `npm run live-agent-manifest:verify` and reports `hosted-agent-manifest` as a blocker until hosted `/agent-manifest.json` exposes the current MCP tools, NPO profile, repair loop, and cost guardrail.
+The launch doctor also includes `npm run live-pipeline-recipes:verify` and reports `hosted-pipeline-recipes` as a blocker until hosted `/pipeline-recipes.json` exposes the current NTO/NPO profiles, low-contrast text gate, clone-crowd gate, and repair-loop contract.
+The launch doctor also includes `npm run live-pipeline-handoff:verify` and reports `hosted-pipeline-handoff` as a blocker until hosted `/pipeline-handoff.json` exposes the current launch preflight, cost preflight, media-ingress, marker CSV, repair-loop, and rerun sequence.
+The launch doctor also includes `npm run live-npo-pipeline-handoff:verify` and reports `hosted-npo-pipeline-handoff` as a blocker until hosted `/npo-pipeline-handoff.json` exposes the focused NPO audio MCP sequence, sidecars, cost guardrail, media-ingress privacy rule, marker CSV, and repair-loop contract.
+The launch doctor also includes `npm run live-openapi:verify` and reports `hosted-openapi` as a blocker until hosted `/openapi.json` exposes launch evidence, queued worker drain, media/base64 inputs, remote sidecar URLs, cost guardrails, usage margins, and signed uploads.
+The launch doctor also includes `npm run live-public-artifacts:verify` and reports `hosted-public-artifacts` as a blocker until hosted `/launch-status.json`, `/product-hunt-launch-kit.json`, `/sample-reports/index.json`, the individual PASS/WATCH/BLOCK sample reports, and `/llms.txt` expose the current launch-evidence, cost, sample-report, and public go/no-go contract.
+The launch doctor also includes `npm run live-web-artifacts:verify` and reports `hosted-web-artifacts` as a blocker until hosted Product Hunt, pricing, sample-report, agentic API, sitemap, `llms.txt`, and demo MP4 content expose the current public launch proof.
 
-Agents outside this repo can use the packaged CLI fallback `uploadcheck launch-doctor --json`; it fetches the live launch handoff and blocker fix plan from Render without requiring local repo scripts.
+Agents outside this repo can use the packaged CLI fallback `uploadcheck launch-doctor --json`; it fetches the live launch handoff and blocker fix plan from Render without requiring local repo scripts. They can also call `GET /v1/launch-evidence`, MCP `qc_get_launch_evidence`, or `uploadcheck launch-evidence --json` to get a redacted evidence bundle for handoff.
 
 The Blueprint can request Render domains and disk settings, but DNS still has to point to the `qcgenie-*` Render hostnames before `/v1/readiness` can mark `customDomain` ready.
 
@@ -98,6 +117,13 @@ UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 npm run media-ingress:verify
 UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
 npm run live-launch-doctor:verify
+npm run live-launch-evidence:verify
+npm run live-cost-basis:verify
+npm run live-agent-manifest:verify
+npm run live-pipeline-recipes:verify
+npm run live-pipeline-handoff:verify
+npm run live-npo-pipeline-handoff:verify
+npm run live-openapi:verify
 npm run launch:check
 npm run readiness:check
 ```
@@ -135,6 +161,14 @@ UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 npm run media-ingress:verify
 UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
 npm run live-launch-doctor:verify
+npm run live-launch-evidence:verify
+npm run live-cost-basis:verify
+npm run live-agent-manifest:verify
+npm run live-pipeline-recipes:verify
+npm run live-pipeline-handoff:verify
+npm run live-openapi:verify
+npm run live-public-artifacts:verify
+npm run live-web-artifacts:verify
 curl -i https://uploadcheck.app/
 curl -i https://www.uploadcheck.app/
 curl -i https://api.uploadcheck.app/healthz

@@ -7,9 +7,9 @@ import { estimateJobCost, estimateModelCheckCost } from "../cost-model.mjs";
 const PLAN_IDS = ["creator", "studio", "network", "stress_99_5000"];
 const COST_BASIS_PATH = "public/cost-basis.json";
 
-export function verifyCostBasis({ costBasisPath = COST_BASIS_PATH } = {}) {
+export function verifyCostBasis({ basis: suppliedBasis = null, costBasisPath = COST_BASIS_PATH } = {}) {
   const errors = [];
-  const basis = readJson(costBasisPath, errors);
+  const basis = suppliedBasis || readJson(costBasisPath, errors);
   if (!basis) return { ok: false, errors };
 
   if (basis.target_gross_margin_pct !== 95) {
@@ -25,6 +25,15 @@ export function verifyCostBasis({ costBasisPath = COST_BASIS_PATH } = {}) {
   const modelCheckCallCost = oneTwinCall.modelCheckCents / oneTwinCall.modelCalls;
   if (basis.cost_assumptions?.model_check_call_cost_cents !== modelCheckCallCost) {
     errors.push({ key: "cost_assumptions.model_check_call_cost_cents", reason: "model_call_floor_mismatch", detail: `Expected observed-calibrated floor ${modelCheckCallCost}; found ${basis.cost_assumptions?.model_check_call_cost_cents}.` });
+  }
+  if (basis.cost_assumptions?.openai_gpt_4o_mini_transcribe_cents_per_minute !== 0.3) {
+    errors.push({ key: "cost_assumptions.openai_gpt_4o_mini_transcribe_cents_per_minute", reason: "missing_openai_transcription_baseline", detail: "Expected OpenAI gpt-4o-mini-transcribe at 0.3 cents/minute." });
+  }
+  if (!Array.isArray(basis.source_audit?.primary_sources) || !basis.source_audit.primary_sources.some((source) => source.provider === "OpenAI")) {
+    errors.push({ key: "source_audit.primary_sources", reason: "missing_primary_source", detail: "Cost basis must cite current primary pricing sources, including OpenAI." });
+  }
+  if (!Array.isArray(basis.transcription_cost_reduction?.options) || !basis.transcription_cost_reduction.options.some((option) => option.model === "gpt-4o-mini-transcribe" && option.stress_99_5000_margin_safe === false)) {
+    errors.push({ key: "transcription_cost_reduction.options", reason: "missing_transcription_guardrail", detail: "Cost basis must show cheaper transcription still breaks the $99 / 5,000 stress plan when run on every minute." });
   }
   if (!String(basis.observed_calibration?.source || "").includes("0.654")) {
     errors.push({ key: "observed_calibration.source", reason: "missing_observed_source", detail: "Observed calibration must cite the clone-crowd Sonnet frame-call cost." });

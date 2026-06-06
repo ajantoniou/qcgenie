@@ -30,17 +30,19 @@ Agent integration:
 - Live machine-readable launch status and blockers: https://qcgenie-api.onrender.com/v1/launch-status
 - Live launch handoff, required actions, and proof commands: https://qcgenie-api.onrender.com/v1/launch-handoff
 - Live launch doctor, blocker fix plan, and launch-doctor command coverage: https://qcgenie-api.onrender.com/v1/launch-doctor
+- Redacted live launch evidence for agent-safe audits: https://qcgenie-api.onrender.com/v1/launch-evidence
 - Product Hunt launch kit: https://qcgenie-api.onrender.com/product-hunt-launch-kit.json
 - Cost basis and margin assumptions: https://qcgenie-api.onrender.com/cost-basis.json
 - Public sample reports: https://qcgenie-api.onrender.com/sample-reports/index.json
 - The Render service display name is uploadcheck-api, but the live Render URL still uses the legacy qcgenie-api slug until custom-domain cutover.
-- Legacy qcgenie-api environment names are accepted only as migration fallbacks.
+- Legacy `QCGENIE_*` environment names are accepted only as migration fallbacks.
 - MCP wrapper package lives in the repository under mcp-server.
-- MCP tools: qc_get_launch_status, qc_get_launch_handoff, qc_get_launch_doctor, qc_get_pipeline_handoff, qc_get_pipeline_recipes, qc_get_cost_basis, qc_estimate_cost, qc_run_video, qc_run_local_file, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_get_margin_telemetry, qc_create_upload_url.
+- MCP tools: qc_get_launch_status, qc_get_launch_handoff, qc_get_launch_doctor, qc_get_launch_evidence, qc_get_pipeline_handoff, qc_get_pipeline_recipes, qc_get_cost_basis, qc_estimate_cost, qc_run_video, qc_run_local_file, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_get_margin_telemetry, qc_create_upload_url.
 - MCP local-file workflow: qc_run_local_file reads a reachable local media path, encodes small files inline for Render evaluation, and falls back to signed upload for larger files.
 - QC job responses include sanitized mediaIngress metadata; inline Render runs report mode=inline_ephemeral plus a sha256 source hash and do not expose temporary server paths.
 - NTO/NPO pipeline profiles are machine-readable through MCP qc_get_pipeline_recipes, CLI uploadcheck recipes --json, and pipeline-recipes.json: nto_long_form, nto_shorts, npo_podcast_or_audio, and generic_creator_video.
 - NTO/NPO and creator production pipelines can call MCP qc_get_pipeline_handoff, run uploadcheck pipeline-handoff --json, or load pipeline-handoff.json for the full call sequence: launch status, launch handoff, recipes, cost basis, estimate, media ingress, job polling, report, marker CSV, "Fix now?", and rerun before upload-ready.
+- NPO podcast/audio pipelines can load https://qcgenie-api.onrender.com/npo-pipeline-handoff.json for a focused audio handoff: qc_estimate_cost, qc_run_local_file, transcript/watchlist/locked-script sidecars, marker CSV, "Fix now?", and rerun before publish-ready.
 - Large local files use POST /v1/uploads, PUT /v1/uploads/{upload_id}/content?token=..., then POST /v1/qc/jobs with upload_id.
 - Signed-upload bytes use Render temp storage by default or mounted durable filesystem storage when UPLOADCHECK_DURABLE_STORAGE_DIR is configured.
 - API keys are workspace-scoped and should be stored as connector secrets.
@@ -53,14 +55,15 @@ Agent integration:
 - Current v0 API persists jobs, uploads, webhook endpoints, webhook delivery previews, and usage entries to a server-side JSON store. Set UPLOADCHECK_STORE_PATH outside temp storage for mounted-disk persistence; Supabase persistence is still planned for multi-workspace scale.
 - Report reads append rounded-minute usage entries visible through GET /v1/usage, with gross-margin telemetry summarized at GET /v1/usage/margins.
 - Creating a QC job currently runs deterministic v0 processing immediately and stores lifecycle events, warning flags, and JSON/marker-export artifact records.
-- For queued execution, create jobs with process_async=true and process them through POST /v1/qc/jobs/drain. Inline media and inline sidecars remain synchronous because temporary files are deleted after the create request.
+- For queued execution, create jobs with process_async=true and process them through POST /v1/qc/jobs/drain. Inline media and inline sidecars remain synchronous because temporary files are deleted after the create request; queued jobs should use durable media plus HTTPS sidecar URLs such as manifest_url, transcript_url, watchlist_url, expected_script_url, and chunk_sidecars_url.
 - Marker exports are available as CSV at GET /v1/qc/jobs/{job_id}/artifacts/markers for editor handoff.
 - The machine-readable repair loop contract is in agent-manifest.json and pipeline-recipes.json. Agents must fetch qc_get_report and qc_get_marker_csv, show all flags grouped by BLOCK/WATCH/PASS, ask "Fix now?", apply only reachable fixes, return timestamped source/render instructions for unreachable media defects, and rerun UploadCheck before upload-ready claims.
 - Product Hunt launch state should be verified with GET /v1/readiness before claiming checkout, custom domain, persistence, storage, demo clip, and launch readiness are complete.
 - Agents can call GET /v1/launch-status for a live go/no-go summary derived from the same readiness checks plus operator commands and blockers.
 - Agents can call GET /v1/launch-handoff for the current blocker-specific required actions, proof commands, and launchDoctorCommands, call MCP qc_get_launch_handoff, or run uploadcheck launch-handoff --json.
 - Agents can call GET /v1/launch-doctor or MCP qc_get_launch_doctor when they need the live blocker fix plan and normalized launch-doctor command coverage.
-- Packaged CLI users outside the repo can run uploadcheck launch-doctor --json to fetch the live blocker fix plan and launchDoctorCommands without running local npm scripts.
+- Agents can call GET /v1/launch-evidence or MCP qc_get_launch_evidence when they need a redacted launch-evidence bundle without local npm scripts.
+- Packaged CLI users outside the repo can run uploadcheck launch-doctor --json to fetch the live blocker fix plan and launchDoctorCommands without running local npm scripts, or uploadcheck launch-evidence --json to get a redacted launch-evidence bundle derived from the live launch doctor.
 - Local operators can run npm run launch:handoff -- --text for the redacted launch handoff, current blockers, required actions, and proof commands.
 
 Pricing:
