@@ -1,4 +1,4 @@
-import { createReadStream, createWriteStream, existsSync, mkdirSync } from "node:fs";
+import { createReadStream, createWriteStream, existsSync, mkdirSync, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import { createServer } from "node:http";
@@ -356,7 +356,12 @@ async function serveStatic(pathname, res) {
   const safePath = pathname === "/" ? "/index.html" : pathname;
   const filePath = join(distDir, safePath);
   const resolved = resolve(filePath);
-  const target = resolved.startsWith(distDir) && existsSync(resolved) ? resolved : join(distDir, "index.html");
+  let target = join(distDir, "index.html");
+  if (resolved.startsWith(distDir) && existsSync(resolved)) {
+    const stat = statSync(resolved);
+    target = stat.isDirectory() ? join(resolved, "index.html") : resolved;
+  }
+  if (!existsSync(target)) target = join(distDir, "index.html");
   res.writeHead(200, { "Content-Type": mimeTypes[extname(target)] || "application/octet-stream" });
   createReadStream(target).pipe(res);
 }
