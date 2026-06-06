@@ -40,6 +40,9 @@ server.tool(
     transcript_json: z.any().optional(),
     transcript_base64: z.string().optional(),
     transcript_filename: z.string().optional(),
+    watchlist_json: z.any().optional(),
+    watchlist_base64: z.string().optional(),
+    watchlist_filename: z.string().optional(),
     checks: z.string().optional(),
     callback_url: z.string().optional(),
     idempotency_key: z.string().optional()

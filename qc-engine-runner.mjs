@@ -65,6 +65,7 @@ export function runQcEngine(videoPath, opts = {}) {
   if (opts.lang) args.push("--lang", opts.lang);
   if (opts.manifestPath) args.push("--manifest", opts.manifestPath);
   if (opts.transcriptPath) args.push("--transcript", opts.transcriptPath);
+  if (opts.watchlistPath) args.push("--watchlist", opts.watchlistPath);
   if (opts.fast !== false) args.push("--fast"); // default fast for the SaaS pre-pass
 
   const r = spawnSync(PYTHON, args, { encoding: "utf8", timeout: 1000 * 60 * 30, env: pythonEnv() });

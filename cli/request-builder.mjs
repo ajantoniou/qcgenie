@@ -51,6 +51,7 @@ export function buildJobRequest(target, options = {}) {
   if (options.checks) payload.checks = options.checks;
   attachManifest(payload, options);
   attachTranscript(payload, options);
+  attachWatchlist(payload, options);
   if (options.callbackUrl) payload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) payload.idempotency_key = options.idempotencyKey;
 
@@ -72,6 +73,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
   if (options.checks) jobPayload.checks = options.checks;
   attachManifest(jobPayload, options);
   attachTranscript(jobPayload, options);
+  attachWatchlist(jobPayload, options);
   if (options.callbackUrl) jobPayload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) jobPayload.idempotency_key = options.idempotencyKey;
 
@@ -120,6 +122,8 @@ export function parseArgs(argv) {
       options.manifestPath = requireValue(arg, args.shift());
     } else if (arg === "--transcript") {
       options.transcriptPath = requireValue(arg, args.shift());
+    } else if (arg === "--watchlist") {
+      options.watchlistPath = requireValue(arg, args.shift());
     } else if (arg === "--callback-url") {
       options.callbackUrl = requireValue(arg, args.shift());
     } else if (arg === "--idempotency-key") {
@@ -187,6 +191,14 @@ function attachTranscript(payload, options) {
     payload.transcript_text = text;
   }
   payload.transcript_filename = basename(options.transcriptPath);
+}
+
+function attachWatchlist(payload, options) {
+  if (!options.watchlistPath) return;
+  if (!existsSync(options.watchlistPath)) throw new Error(`Watchlist not found: ${options.watchlistPath}`);
+  const text = readFileSync(options.watchlistPath, "utf8");
+  payload.watchlist_json = JSON.parse(text);
+  payload.watchlist_filename = basename(options.watchlistPath);
 }
 
 function formatMb(bytes) {

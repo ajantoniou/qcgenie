@@ -105,6 +105,15 @@
                     "type": "string"
                   },
                   "transcript_filename": { "type": "string" },
+                  "watchlist_json": {
+                    "description": "Optional pronunciation/term watchlist JSON for pronunciation_watchlist.",
+                    "type": ["object", "array", "string"]
+                  },
+                  "watchlist_base64": {
+                    "description": "Optional base64-encoded pronunciation/term watchlist JSON.",
+                    "type": "string"
+                  },
+                  "watchlist_filename": { "type": "string" },
                   "checks": { "type": "string" }
                 }
               }

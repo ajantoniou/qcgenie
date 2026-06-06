@@ -132,7 +132,7 @@ NTO-derived private QC tasks to add to the product:
 4. `shorts_format`: verify exact 1080x1920, full-bleed 9:16, no gutters, no unintended dialogue, correct duration. Implemented as an opt-in specialized gate.
 5. `canvas_fill`: verify long-form 16:9 fills the canvas and blocks pillarbox/letterbox misuse. Implemented in the default gate.
 6. `audio_script_faithfulness`: compare transcript against locked script/expected narration with WER thresholds.
-7. `pronunciation_watchlist`: flag customer-provided banned words, names, and terms that commonly misrender.
+7. `pronunciation_watchlist`: flag customer-provided banned words, names, and terms that commonly misrender. Implemented first as a deterministic transcript-side watchlist gate.
 8. `spoken_leaks`: detect stage directions, URLs, vendor names, prompt text, or production notes spoken aloud. Implemented first as a deterministic transcript-side gate when callers pass transcript/script text.
 9. `dead_air`: block unintended silence longer than customer threshold. Implemented in the default gate with ffmpeg `silencedetect`.
 10. `visual_narration_match`: verify every 30-second window visually supports the narration, not just the mood.
@@ -182,7 +182,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
 - Next: expose manifest upload/inline payloads through API, CLI, and MCP so NTO storybook timelines can be checked before render spend and final masters can be checked after export.
-- Next: add pronunciation watchlists and optional locked-script faithfulness.
+- Next: add optional locked-script faithfulness.
 - Next: add durable object storage or direct-to-bucket upload for production-scale retention beyond Render temp storage.
 - Next: cut over `uploadcheck.app` DNS/custom domains and decide whether to keep legacy Render slugs or recreate services for `uploadcheck-*` subdomains.
 - Partial: Product Hunt launch page and public report examples exist; final launch still needs custom-domain cutover, live checkout proof, and a polished public demo clip.

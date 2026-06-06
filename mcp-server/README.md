@@ -40,6 +40,8 @@ When a project has a storybook, edit decision list, or visual timeline JSON, pas
 
 When a project has transcript text or a script-sidecar, pass it as `transcript_text` or `transcript_json` with `checks: "spoken_leaks"`. UploadCheck will flag spoken URLs, markdown, prompt text, stage directions, vendor/tool names, and known wrong-name substitutions without running ASR.
 
+For customer-specific terms, pass `watchlist_json` with `checks: "pronunciation_watchlist"` plus transcript text. Watchlist entries can include `terms: [{ expected, banned: [] }]` and top-level `banned: []`.
+
 ## Tools
 
 - `qc_run_video`

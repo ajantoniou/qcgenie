@@ -102,6 +102,27 @@ describe("UploadCheck CLI request builder", () => {
     expect(request.payload.transcript_filename).toBe("transcript.txt");
   });
 
+  it("attaches pronunciation watchlists to jobs", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-cli-"));
+    const file = join(dir, "master.mp4");
+    const transcript = join(dir, "transcript.txt");
+    const watchlist = join(dir, "watchlist.json");
+    writeFileSync(file, Buffer.from("fake-mp4"));
+    writeFileSync(transcript, "Marcion was rendered as Martian.");
+    writeFileSync(watchlist, JSON.stringify({ terms: [{ expected: "Marcion", banned: ["Martian"] }] }));
+
+    const request = buildJobRequest(file, {
+      maxInlineMb: 1,
+      checks: "pronunciation_watchlist",
+      transcriptPath: transcript,
+      watchlistPath: watchlist
+    });
+
+    expect(request.payload.transcript_text).toContain("Martian");
+    expect(request.payload.watchlist_json).toEqual({ terms: [{ expected: "Marcion", banned: ["Martian"] }] });
+    expect(request.payload.watchlist_filename).toBe("watchlist.json");
+  });
+
   it("parses command flags", () => {
     const parsed = parseArgs([
       "check",
@@ -116,6 +137,8 @@ describe("UploadCheck CLI request builder", () => {
       "storybook.json",
       "--transcript",
       "transcript.txt",
+      "--watchlist",
+      "watchlist.json",
       "--json"
     ]);
 
@@ -126,6 +149,7 @@ describe("UploadCheck CLI request builder", () => {
       uploadMode: "signed",
       manifestPath: "storybook.json",
       transcriptPath: "transcript.txt",
+      watchlistPath: "watchlist.json",
       json: true
     });
   });

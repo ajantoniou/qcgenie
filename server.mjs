@@ -72,6 +72,7 @@ async function createJob(req, res) {
   const inlineMedia = await materializeInlineMedia(body);
   const inlineManifest = await materializeInlineManifest(body);
   const inlineTranscript = await materializeInlineTranscript(body);
+  const inlineWatchlist = await materializeInlineWatchlist(body);
   try {
     if (inlineMedia) {
       body.source = inlineMedia.filePath;
@@ -87,7 +88,8 @@ async function createJob(req, res) {
     const completed = store.runDeterministicQc(job.jobId, {
       checks: body.checks || inlineMedia?.checks,
       manifestPath: inlineManifest?.filePath,
-      transcriptPath: inlineTranscript?.filePath
+      transcriptPath: inlineTranscript?.filePath,
+      watchlistPath: inlineWatchlist?.filePath
     });
     store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
     return sendJson(res, 202, withCostEstimate(completed || job));
@@ -95,6 +97,7 @@ async function createJob(req, res) {
     await cleanupInlineMedia(inlineMedia);
     await cleanupInlineManifest(inlineManifest);
     await cleanupInlineTranscript(inlineTranscript);
+    await cleanupInlineWatchlist(inlineWatchlist);
   }
 }
 
@@ -148,6 +151,32 @@ async function materializeInlineTranscript(body = {}) {
 async function cleanupInlineTranscript(transcript) {
   if (!transcript?.cleanupPath) return;
   await rm(transcript.cleanupPath, { recursive: true, force: true });
+}
+
+async function materializeInlineWatchlist(body = {}) {
+  const raw = body.watchlist_json ?? body.watchlistJson ?? body.pronunciation_watchlist ?? body.pronunciationWatchlist ?? null;
+  const b64 = body.watchlist_base64 ?? body.watchlistBase64 ?? null;
+  if (raw == null && !b64) return null;
+
+  let payload;
+  if (b64) {
+    payload = Buffer.from(String(b64), "base64").toString("utf8");
+    JSON.parse(payload);
+  } else if (typeof raw === "string") {
+    JSON.parse(raw);
+    payload = raw;
+  } else {
+    payload = JSON.stringify(raw);
+  }
+  const dir = await mkdtemp(join(tmpdir(), "uploadcheck-watchlist-"));
+  const filePath = join(dir, "watchlist.json");
+  await writeFile(filePath, payload);
+  return { filePath, cleanupPath: dir };
+}
+
+async function cleanupInlineWatchlist(watchlist) {
+  if (!watchlist?.cleanupPath) return;
+  await rm(watchlist.cleanupPath, { recursive: true, force: true });
 }
 
 function redirectCheckout(url, res) {
