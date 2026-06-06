@@ -79,8 +79,9 @@ export function buildReadinessActions(report) {
     actions.push({
       id: "api-auth",
       title: "Configure API auth",
-      detail: "Set bearer API auth before public API use.",
-      env: ["UPLOADCHECK_API_KEY", "or UPLOADCHECK_API_KEY_SHA256"]
+      detail: "Generate an UploadCheck bearer key and set the SHA-256 hash on Render before public API use.",
+      command: "npm run --silent api-key:generate",
+      env: ["UPLOADCHECK_API_KEY_SHA256", "or UPLOADCHECK_API_KEY for bootstrapping only"]
     });
   }
 

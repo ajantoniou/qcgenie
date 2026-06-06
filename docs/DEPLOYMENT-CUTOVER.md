@@ -55,7 +55,9 @@ If a Render API key is available locally, the same launch shape can be audited o
 
 ```bash
 export RENDER_API_KEY="<render_api_key>"
-export UPLOADCHECK_API_KEY="<workspace_api_key>"
+# Generate once, save UPLOADCHECK_API_KEY privately, and set only the hash on Render:
+npm run --silent api-key:generate
+export UPLOADCHECK_API_KEY_SHA256="<generated_sha256>"
 export UPLOADCHECK_SECRET_ENCRYPTION_KEY="$(npm run --silent secret:generate)"
 export UPLOADCHECK_CREATOR_CHECKOUT_URL="https://..."
 export UPLOADCHECK_STUDIO_CHECKOUT_URL="https://..."

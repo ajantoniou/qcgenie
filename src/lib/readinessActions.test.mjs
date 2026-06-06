@@ -58,4 +58,21 @@ describe("readiness action mapping", () => {
     expect(text).toContain("BLOCK persistence (json_store)");
     expect(text).toContain("UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json");
   });
+
+  it("maps missing API auth to the safe hash generator command", () => {
+    const actions = buildReadinessActions({
+      checks: {
+        apiAuth: { ok: false },
+        productHunt: { ok: false }
+      }
+    });
+
+    expect(actions).toEqual([{
+      id: "api-auth",
+      title: "Configure API auth",
+      detail: "Generate an UploadCheck bearer key and set the SHA-256 hash on Render before public API use.",
+      command: "npm run --silent api-key:generate",
+      env: ["UPLOADCHECK_API_KEY_SHA256", "or UPLOADCHECK_API_KEY for bootstrapping only"]
+    }]);
+  });
 });

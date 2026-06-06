@@ -15,6 +15,7 @@
     "render:audit": "node scripts/render-launch-ops.mjs audit",
     "render:apply": "node scripts/render-launch-ops.mjs apply",
     "secret:generate": "node scripts/generate-secret-key.mjs",
+    "api-key:generate": "node scripts/generate-api-key.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
