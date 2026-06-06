@@ -25,6 +25,8 @@ describe("public cost basis", () => {
       max_ai_review_seconds_at_95_margin_after_deterministic_full_allowance: 21866,
       max_cost_per_minute_cents_at_95_margin: 0.099,
       deterministic_full_allowance_cogs_cents: 416.5,
+      remaining_cogs_after_deterministic_full_allowance_cents: 78.5,
+      remaining_cost_per_minute_after_deterministic_full_allowance_cents: 0.0157,
       full_gemini_flash_lite_video_audio_input_cogs_cents: 1077,
       deterministic_margin_safe: true,
       full_flash_lite_input_margin_safe: false
@@ -50,6 +52,8 @@ describe("public cost basis", () => {
       expect(plan.max_cost_per_minute_cents_at_95_margin).toBe(estimate.maxCostPerMinuteCents);
       expect(plan.revenue_per_minute_cents).toBe(estimate.revenuePerMinuteCents);
       expect(plan.deterministic_full_allowance_cogs_cents).toBe(estimate.deterministicComputeCents);
+      expect(plan.remaining_cogs_after_deterministic_full_allowance_cents).toBe(round(estimate.maxCogsCents - estimate.deterministicComputeCents));
+      expect(plan.remaining_cost_per_minute_after_deterministic_full_allowance_cents).toBe(round(estimate.maxCostPerMinuteCents - (estimate.deterministicComputeCents / estimate.includedMinutes)));
       expect(plan.deterministic_full_allowance_gross_margin_pct).toBe(estimate.estimatedGrossMarginPct);
       expect(plan.full_gemini_flash_lite_video_audio_input_cogs_cents).toBe(estimate.fullGeminiFlashLiteVideoAudioInputCents);
       expect(plan.full_gemini_flash_video_audio_input_cogs_cents).toBe(estimate.fullGeminiFlashVideoAudioInputCents);
@@ -92,3 +96,7 @@ describe("public cost basis", () => {
     }
   });
 });
+
+function round(value) {
+  return Math.round((Number(value) + Number.EPSILON) * 10000) / 10000;
+}

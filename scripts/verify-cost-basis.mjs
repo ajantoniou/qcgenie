@@ -51,6 +51,8 @@ export function verifyCostBasis({ costBasisPath = COST_BASIS_PATH } = {}) {
     compare(errors, plan, "max_cogs_cents_at_95_margin", estimate.maxCogsCents);
     compare(errors, plan, "max_cost_per_minute_cents_at_95_margin", estimate.maxCostPerMinuteCents);
     compare(errors, plan, "deterministic_full_allowance_cogs_cents", estimate.deterministicComputeCents);
+    compare(errors, plan, "remaining_cogs_after_deterministic_full_allowance_cents", round(estimate.maxCogsCents - estimate.deterministicComputeCents));
+    compare(errors, plan, "remaining_cost_per_minute_after_deterministic_full_allowance_cents", round(estimate.maxCostPerMinuteCents - (estimate.deterministicComputeCents / estimate.includedMinutes)));
     compare(errors, plan, "deterministic_full_allowance_gross_margin_pct", estimate.estimatedGrossMarginPct);
     compare(errors, plan, "full_gemini_flash_lite_video_audio_input_cogs_cents", estimate.fullGeminiFlashLiteVideoAudioInputCents);
     compare(errors, plan, "full_gemini_flash_video_audio_input_cogs_cents", estimate.fullGeminiFlashVideoAudioInputCents);
@@ -76,6 +78,7 @@ export function verifyCostBasis({ costBasisPath = COST_BASIS_PATH } = {}) {
       maxAiReviewSecondsAtMargin: plan.max_ai_review_seconds_at_95_margin_after_deterministic_full_allowance,
       revenuePerMinuteCents: plan.revenue_per_minute_cents,
       maxCostPerMinuteCentsAt95Margin: plan.max_cost_per_minute_cents_at_95_margin,
+      remainingCostPerMinuteAfterDeterministicCents: plan.remaining_cost_per_minute_after_deterministic_full_allowance_cents,
       deterministicMarginSafe: plan.deterministic_margin_safe,
       fullFlashLiteInputMarginSafe: plan.full_flash_lite_input_margin_safe,
       fullFlashInputMarginSafe: plan.full_flash_input_margin_safe
@@ -83,6 +86,10 @@ export function verifyCostBasis({ costBasisPath = COST_BASIS_PATH } = {}) {
     stressVerdict: basis.verdict?.stress_99_5000 || "",
     errors
   };
+}
+
+function round(value) {
+  return Math.round((Number(value) + Number.EPSILON) * 10000) / 10000;
 }
 
 function readJson(path, errors) {
