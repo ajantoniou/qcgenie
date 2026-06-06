@@ -68,6 +68,7 @@
       "npm run cost-basis:verify",
       "npm run roadmap:verify",
       "npm run launch-status:verify",
+      "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
       "npm run launch:dns",
       "npm run launch:checkout",
       "npm run launch:storage",

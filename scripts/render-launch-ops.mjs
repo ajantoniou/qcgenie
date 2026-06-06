@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildApiKeyMaterial } from "../api-auth.mjs";
@@ -120,6 +121,45 @@ export function validateRenderLaunchEnv(env = process.env) {
   };
 }
 
+export function parseEnvFile(text) {
+  const env = {};
+  const lines = String(text || "").split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const match = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/.exec(trimmed);
+    if (!match) continue;
+    env[match[1]] = parseEnvValue(match[2]);
+  }
+  return env;
+}
+
+export function validateRenderLaunchEnvFile(path, baseEnv = process.env) {
+  if (!path) {
+    return {
+      ok: false,
+      errors: [{ key: "env_file", reason: "missing_path", detail: "Pass a filled env file path, for example /tmp/uploadcheck-render-launch.env." }],
+      warnings: [],
+      plan: summarizePlan(buildRenderLaunchPlan(baseEnv))
+    };
+  }
+  try {
+    const fileEnv = parseEnvFile(readFileSync(resolve(path), "utf8"));
+    return validateRenderLaunchEnv({ ...baseEnv, ...fileEnv });
+  } catch (error) {
+    return {
+      ok: false,
+      errors: [{
+        key: "env_file",
+        reason: "read_failed",
+        detail: error instanceof Error ? error.message : "Could not read env file."
+      }],
+      warnings: [],
+      plan: summarizePlan(buildRenderLaunchPlan(baseEnv))
+    };
+  }
+}
+
 export function buildEnvTemplate() {
   return buildEnvTemplateFromValues({
     apiKeySha256: "<generated_sha256>",
@@ -203,6 +243,11 @@ async function main() {
     console.log(JSON.stringify(validation, null, 2));
     process.exit(validation.ok ? 0 : 1);
   }
+  if (command === "validate-env-file") {
+    const validation = validateRenderLaunchEnvFile(process.argv[3]);
+    console.log(JSON.stringify(validation, null, 2));
+    process.exit(validation.ok ? 0 : 1);
+  }
   const token = process.env.RENDER_API_KEY;
   if (!isFilledEnvValue(token)) {
     console.error("Set a real RENDER_API_KEY before running Render launch operations.");
@@ -222,7 +267,20 @@ async function main() {
     console.log(JSON.stringify(await applyRenderLaunch(token, plan), null, 2));
     return;
   }
-  throw new Error("Usage: render-launch-ops.mjs [env-template|bootstrap-env|plan|audit|apply]");
+  throw new Error("Usage: render-launch-ops.mjs [env-template|bootstrap-env|plan|validate-env|validate-env-file FILE|audit|apply]");
+}
+
+function parseEnvValue(rawValue) {
+  const trimmed = String(rawValue || "").trim();
+  if (!trimmed) return "";
+  if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    const inner = trimmed.slice(1, -1);
+    return trimmed.startsWith("\"")
+      ? inner.replace(/\\n/g, "\n").replace(/\\"/g, "\"").replace(/\\\\/g, "\\")
+      : inner;
+  }
+  const hashIndex = trimmed.search(/\s#/);
+  return (hashIndex >= 0 ? trimmed.slice(0, hashIndex) : trimmed).trim();
 }
 
 function isFilledEnvValue(value) {

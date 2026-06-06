@@ -43,6 +43,7 @@ assert(status.operator_commands.includes("npm run launch:dns"), "launch-status o
 assert(status.operator_commands.includes("npm run launch:checkout"), "launch-status operator commands must include launch:checkout");
 assert(status.operator_commands.includes("npm run launch:storage"), "launch-status operator commands must include launch:storage");
 assert(status.operator_commands.includes("npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env"), "launch-status operator commands must include render:bootstrap-env");
+assert(status.operator_commands.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "launch-status operator commands must include render:validate-env-file");
 assert(status.operator_commands.includes("npm run render:validate-env"), "launch-status operator commands must include render:validate-env");
 assert(status.operator_commands.includes("npm run codex:verify-install"), "launch-status operator commands must include codex:verify-install");
 assert(status.operator_commands.includes("npm run cost-basis:verify"), "launch-status operator commands must include cost-basis:verify");
@@ -69,6 +70,7 @@ assert(llms.includes(status.public_artifacts.sample_reports), "llms.txt must lin
 assert(llms.includes(status.public_artifacts.product_hunt_launch_kit), "llms.txt must link Product Hunt launch kit URL");
 assert(launchKit.ready_when?.source_of_truth === status.public_artifacts.live_launch_status, "Product Hunt launch kit must use live launch status as source of truth");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:doctor"), "Product Hunt launch kit must require launch:doctor");
+assert(launchKit.ready_when?.required_commands?.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "Product Hunt launch kit must require render:validate-env-file");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:dns"), "Product Hunt launch kit must require launch:dns");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:checkout"), "Product Hunt launch kit must require launch:checkout");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:storage"), "Product Hunt launch kit must require launch:storage");

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync, spawnSync } from "node:child_process";
-import { buildBootstrapEnvTemplate, buildEnvTemplate, buildRenderLaunchPlan, summarizePlan, validateRenderLaunchEnv } from "../../scripts/render-launch-ops.mjs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { buildBootstrapEnvTemplate, buildEnvTemplate, buildRenderLaunchPlan, parseEnvFile, summarizePlan, validateRenderLaunchEnv, validateRenderLaunchEnvFile } from "../../scripts/render-launch-ops.mjs";
 
 describe("Render launch operations plan", () => {
   it("builds the launch domain and env plan without requiring secrets", () => {
@@ -135,6 +138,47 @@ describe("Render launch operations plan", () => {
     expect(validation.errors).toEqual([]);
   });
 
+  it("parses filled launch env files with quoted values and comments", () => {
+    const parsed = parseEnvFile(`
+# filled locally
+RENDER_API_KEY="rnd_real_render_api_key"
+UPLOADCHECK_CREATOR_CHECKOUT_URL='https://checkout.example/creator'
+UPLOADCHECK_STORAGE_PREFIX=uploads/ # trailing comment
+`);
+
+    expect(parsed).toEqual({
+      RENDER_API_KEY: "rnd_real_render_api_key",
+      UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator",
+      UPLOADCHECK_STORAGE_PREFIX: "uploads/"
+    });
+  });
+
+  it("validates a filled Render launch env file without sourcing it", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-render-env-"));
+    const file = join(dir, "launch.env");
+
+    try {
+      writeFileSync(file, [
+        'RENDER_API_KEY="rnd_real_render_api_key"',
+        `UPLOADCHECK_API_KEY_SHA256="${"a".repeat(64)}"`,
+        'UPLOADCHECK_CREATOR_CHECKOUT_URL="https://checkout.example/creator"',
+        'UPLOADCHECK_STUDIO_CHECKOUT_URL="https://checkout.example/studio"',
+        'UPLOADCHECK_NETWORK_CHECKOUT_URL="https://checkout.example/network"',
+        `UPLOADCHECK_SECRET_ENCRYPTION_KEY="${"b".repeat(64)}"`,
+        'UPLOADCHECK_STORE_PATH="/mnt/uploadcheck/store.json"',
+        'UPLOADCHECK_DURABLE_STORAGE_DIR="/mnt/uploadcheck/uploads"',
+        ""
+      ].join("\n"));
+
+      const validation = validateRenderLaunchEnvFile(file, {});
+
+      expect(validation.ok).toBe(true);
+      expect(JSON.stringify(validation)).not.toContain("checkout.example/creator");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("rejects placeholders, weak secrets, invalid URLs, and incomplete object storage before apply", () => {
     const validation = validateRenderLaunchEnv({
       RENDER_API_KEY: "<render_api_key>",
@@ -248,6 +292,53 @@ describe("Render launch operations plan", () => {
     expect(payload.ok).toBe(false);
     expect(payload.errors.map((error) => error.key)).toContain("RENDER_API_KEY");
     expect(payload.errors.map((error) => error.key)).toContain("UPLOADCHECK_API_KEY_SHA256");
+  });
+
+  it("prints failed env-file validation without exposing secret values", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-render-env-"));
+    const file = join(dir, "launch.env");
+
+    try {
+      writeFileSync(file, [
+        'RENDER_API_KEY="<render_api_key>"',
+        'UPLOADCHECK_API_KEY_SHA256="not-a-sha"',
+        'UPLOADCHECK_CREATOR_CHECKOUT_URL="https://..."',
+        'UPLOADCHECK_STUDIO_CHECKOUT_URL="https://checkout.example/studio"',
+        'UPLOADCHECK_NETWORK_CHECKOUT_URL="https://checkout.example/network"',
+        'UPLOADCHECK_SECRET_ENCRYPTION_KEY="secret"',
+        ""
+      ].join("\n"));
+      const result = spawnSync("node", ["scripts/render-launch-ops.mjs", "validate-env-file", file], {
+        encoding: "utf8",
+        env: { PATH: process.env.PATH }
+      });
+      const payload = JSON.parse(result.stdout);
+
+      expect(result.status).toBe(1);
+      expect(payload.ok).toBe(false);
+      expect(payload.errors.map((error) => error.reason)).toContain("placeholder_value");
+      expect(payload.errors.map((error) => error.reason)).toContain("invalid_sha256");
+      expect(result.stdout).not.toContain('"secret"');
+      expect(result.stdout).not.toContain("not-a-sha");
+      expect(result.stdout).not.toContain("checkout.example/studio");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("prints structured env-file validation errors when the file is missing", () => {
+    const result = spawnSync("node", ["scripts/render-launch-ops.mjs", "validate-env-file", "/tmp/uploadcheck-missing-launch.env"], {
+      encoding: "utf8",
+      env: { PATH: process.env.PATH }
+    });
+    const payload = JSON.parse(result.stdout);
+
+    expect(result.status).toBe(1);
+    expect(payload.ok).toBe(false);
+    expect(payload.errors).toContainEqual(expect.objectContaining({
+      key: "env_file",
+      reason: "read_failed"
+    }));
   });
 
   it("rejects an unfilled Render API key placeholder for audit operations", () => {

@@ -38,6 +38,7 @@ export function buildLaunchStatus(readiness, {
       "npm run launch:checkout",
       "npm run launch:storage",
       "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
+      "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
       "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
       "npm run render:plan",
       "npm run render:validate-env",

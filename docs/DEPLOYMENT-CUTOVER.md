@@ -64,6 +64,8 @@ If a Render API key is available locally, the same launch shape can be audited o
 npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env
 # Fill /tmp/uploadcheck-render-launch.env with private values.
 # The generated UPLOADCHECK_API_KEY bearer token is printed to stderr; store it privately for clients.
+# Validate the file before sourcing it:
+npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env
 # Then load the completed local file:
 set -a
 source /tmp/uploadcheck-render-launch.env
@@ -83,7 +85,7 @@ npm run readiness:check
 
 `render:bootstrap-env` is the recommended launch handoff because it pre-fills a hashed API key and webhook encryption key while leaving Render, checkout, and optional object-storage values for the operator. `render:env-template` is still available when you need a placeholders-only file. The generated env template is safe to commit only while placeholders are intact. A filled copy contains Render, checkout, API, webhook, and optional storage secrets and must stay local.
 `render:plan` reports `placeholderInputs` when a generated placeholder such as `<render_api_key>` or `https://...` is still present. Replace those values before running `render:apply`; the helper ignores placeholders instead of sending them to Render.
-`render:validate-env` checks the filled local env before apply: real Render API key, valid API-key hash or bootstrap key, HTTPS checkout URLs or Lemon Squeezy store/variant inputs, strong webhook encryption key, durable `/mnt/...` paths, and complete optional object-storage settings. `render:apply` refuses to run when validation fails.
+`render:validate-env-file -- /tmp/uploadcheck-render-launch.env` checks the filled local file before it is sourced. `render:validate-env` checks the currently loaded shell environment before apply: real Render API key, valid API-key hash or bootstrap key, HTTPS checkout URLs or Lemon Squeezy store/variant inputs, strong webhook encryption key, durable `/mnt/...` paths, and complete optional object-storage settings. `render:apply` refuses to run when validation fails.
 
 `render:apply` adds the custom domains, sets the fixed durable env values, sets only the secret env values that are present in the local environment, and triggers web/API redeploys. It does not configure DNS; Cloudflare or the domain registrar still needs the CNAME records above.
 
