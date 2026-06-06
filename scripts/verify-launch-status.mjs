@@ -39,9 +39,11 @@ assert(JSON.stringify(status.operator_commands) === JSON.stringify(expected.oper
 assert(status.go_no_go_rule.includes("readyForProductHunt=true"), "launch-status go/no-go rule must cite readyForProductHunt=true");
 assert(status.operator_commands.includes("npm run render:validate-env"), "launch-status operator commands must include render:validate-env");
 assert(status.operator_commands.includes("npm run codex:verify-install"), "launch-status operator commands must include codex:verify-install");
+assert(status.operator_commands.includes("npm run cost-basis:verify"), "launch-status operator commands must include cost-basis:verify");
 assert(status.operator_commands.includes("npm run launch:check"), "launch-status operator commands must include launch:check");
 assert(status.operator_commands.includes("npm run readiness:check"), "launch-status operator commands must include readiness:check");
 assert(status.verified_controls.some((control) => control.id === "codex_mcp" && control.evidence.includes("codex:verify-install")), "launch-status Codex MCP evidence must cite codex:verify-install");
+assert(status.verified_controls.some((control) => control.id === "cost_basis" && control.evidence.includes("cost-basis:verify")), "launch-status cost-basis evidence must cite cost-basis:verify");
 assert(manifest.launch_status_url === status.public_artifacts.launch_status, "agent manifest launch_status_url must match launch-status public artifact URL");
 assert(manifest.live_launch_status_url === status.public_artifacts.live_launch_status, "agent manifest live_launch_status_url must match launch-status public artifact URL");
 assert(openapi.paths["/launch-status.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /launch-status.json metadata");

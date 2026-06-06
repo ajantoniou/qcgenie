@@ -1,7 +1,10 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { estimateJobCost } from "../../cost-model.mjs";
+import { verifyCostBasis } from "../../scripts/verify-cost-basis.mjs";
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(path), "utf8"));
@@ -51,5 +54,35 @@ describe("public cost basis", () => {
     const manifest = readJson("public/agent-manifest.json");
 
     expect(manifest.cost_basis_url).toBe("https://qcgenie-api.onrender.com/cost-basis.json");
+  });
+
+  it("exposes an operator verifier for public cost basis drift", () => {
+    const output = execFileSync("npm", ["run", "--silent", "cost-basis:verify"], {
+      cwd: resolve("."),
+      encoding: "utf8"
+    });
+    const result = JSON.parse(output);
+
+    expect(result.ok).toBe(true);
+    expect(result.defaultGuardrail).toBe("downgrade");
+    expect(result.stressVerdict).toContain("too generous");
+  });
+
+  it("fails cost-basis verification when the stress plan drifts", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-cost-basis-"));
+    const path = join(dir, "cost-basis.json");
+
+    try {
+      const basis = readJson("public/cost-basis.json");
+      basis.plans.find((plan) => plan.plan_id === "stress_99_5000").max_cost_per_minute_cents_at_95_margin = 99;
+      writeFileSync(path, JSON.stringify(basis));
+
+      const result = verifyCostBasis({ costBasisPath: path });
+
+      expect(result.ok).toBe(false);
+      expect(result.errors.map((error) => error.reason)).toContain("mismatch");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

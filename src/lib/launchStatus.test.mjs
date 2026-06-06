@@ -34,11 +34,13 @@ describe("public launch status", () => {
     ]);
     expect(status.operator_commands).toEqual(expect.arrayContaining([
       "npm run codex:verify-install",
+      "npm run cost-basis:verify",
       "npm run render:validate-env",
       "npm run launch:check",
       "npm run readiness:check"
     ]));
     expect(status.verified_controls.find((control) => control.id === "codex_mcp")?.evidence).toContain("codex:verify-install");
+    expect(status.verified_controls.find((control) => control.id === "cost_basis")?.evidence).toContain("cost-basis:verify");
     expect(status.go_no_go_rule).toContain("readyForProductHunt=true");
   });
 

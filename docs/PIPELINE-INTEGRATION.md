@@ -183,6 +183,7 @@ Cost guardrail controls:
 - Use `cost_guardrail: "off"` only for internal experiments or paid deep-review add-ons.
 - Pass `plan_id: "creator" | "studio" | "network" | "stress_99_5000"` or custom `plan_price_cents` and `included_minutes` so the cost estimate matches the customer contract.
 - Call `qc_get_margin_telemetry`, `uploadcheck usage --billing-period YYYY-MM`, or `GET /v1/usage/margins` after live jobs to compare actual metered minutes, estimated COGS, allocated revenue, cost per minute, and gross margin against the Product Hunt launch threshold.
+- Run `npm run cost-basis:verify` before pricing or Product Hunt copy changes; it recomputes `/cost-basis.json` from `cost-model.mjs` and preserves the `$99 / 5,000` stress-plan verdict.
 
 CLI example:
 

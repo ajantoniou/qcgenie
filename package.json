@@ -19,6 +19,7 @@
     "render:apply": "node scripts/render-launch-ops.mjs apply",
     "packages:verify": "node scripts/verify-packages.mjs",
     "codex:verify-install": "node scripts/verify-codex-install.mjs",
+    "cost-basis:verify": "node scripts/verify-cost-basis.mjs",
     "secret:generate": "node scripts/generate-secret-key.mjs",
     "api-key:generate": "node scripts/generate-api-key.mjs",
     "test": "vitest run",

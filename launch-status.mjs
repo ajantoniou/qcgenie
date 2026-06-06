@@ -40,6 +40,7 @@ export function buildLaunchStatus(readiness, {
       "npm run render:audit",
       "npm run render:apply",
       "npm run codex:verify-install",
+      "npm run cost-basis:verify",
       "npm run launch:check",
       "npm run readiness:check"
     ],
@@ -88,6 +89,11 @@ function verifiedControls() {
       id: "cost_guardrail",
       status: "done",
       evidence: "qc_estimate_cost and job creation support plan-aware cost_guardrail downgrade/block/off."
+    },
+    {
+      id: "cost_basis",
+      status: "done",
+      evidence: "npm run cost-basis:verify checks public cost-per-minute and 95% gross-margin assumptions against cost-model.mjs."
     },
     {
       id: "observed_costs",

@@ -62,6 +62,7 @@ Public API:
 - Render API launch helper: `npm run render:env-template`, `npm run render:plan`, `npm run render:validate-env`, `npm run render:audit`, `npm run render:apply`
 - Package publish verifier: `npm run packages:verify` checks `@uploadcheck/cli` and `@uploadcheck/mcp` identity, bins, lock metadata, and `npm pack --dry-run` contents.
 - Codex install verifier: `npm run codex:verify-install` checks the global `uploadcheck` MCP server entry, hosted API base URL, executable MCP wrapper, and installed UploadCheck skill.
+- Cost-basis verifier: `npm run cost-basis:verify` checks public cost-per-minute and 95% gross-margin assumptions against `cost-model.mjs`.
 - CLI margin telemetry: `uploadcheck usage --billing-period YYYY-MM`
 
 Persistence state:
@@ -89,6 +90,7 @@ Persistence state:
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
 - `/v1/launch-status` derives a live machine-readable launch go/no-go summary from readiness, including current blockers and operator commands.
 - `/launch-status.json` publishes machine-readable completed controls, current blockers, operator commands, and Product Hunt go/no-go rules; `npm run launch-status:verify` keeps it aligned with readiness and public agent metadata.
+- `/cost-basis.json` publishes the plan-level revenue/minute, max COGS/minute, and full-review margin safety answer; `npm run cost-basis:verify` keeps it aligned with the cost model.
 - `npm run launch:check` combines live readiness, live launch status, DNS, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
 - `npm run readiness:check` fetches live readiness and prints the exact remaining Render/DNS/checkout actions.
 - `npm run render:verify` checks that `render.yaml` declares custom domains, a mounted disk, durable store/media paths, checkout prompts, and webhook encryption prompts.
