@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { MCP_TOOLS } from "./agentic";
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(path), "utf8"));
@@ -33,6 +34,7 @@ describe("UploadCheck pipeline recipes", () => {
     const longForm = recipes.profiles.nto_long_form.mcp_call;
     const shorts = recipes.profiles.nto_shorts.mcp_call;
     const audio = recipes.profiles.npo_podcast_or_audio.mcp_call;
+    const runLocalFile = MCP_TOOLS.find((tool) => tool.name === "qc_run_local_file");
 
     expect(longForm.tool).toBe("qc_run_local_file");
     expect(longForm.arguments.checks).toContain("repeat_fatigue");
@@ -50,6 +52,12 @@ describe("UploadCheck pipeline recipes", () => {
     expect(audio.arguments.file_path).toBe("/path/to/episode.wav");
     expect(audio.arguments.checks).toContain("pronunciation_watchlist");
     expect(audio.arguments.checks).toContain("script_faithfulness");
+
+    for (const call of [longForm, shorts, audio]) {
+      for (const key of Object.keys(call.arguments)) {
+        if (key.endsWith("_path")) expect(runLocalFile?.inputs).toContain(key);
+      }
+    }
   });
 
   it("links pipeline recipes from the public agent manifest", () => {

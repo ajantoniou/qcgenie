@@ -44,6 +44,7 @@ For Codex, Claude Code, Cursor, or NTO/NPO production pipelines, `qc_run_local_f
   "checks": "canvas_fill,loop_freeze,repeat_fatigue,dead_air,text_contrast,text_safe_area",
   "manifest_path": "/path/to/storybook.json",
   "transcript_path": "/path/to/transcript.txt",
+  "watchlist_path": "/path/to/watchlist.json",
   "expected_script_path": "/path/to/locked-script.txt",
   "plan_id": "creator",
   "cost_guardrail": "downgrade"
