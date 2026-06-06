@@ -68,6 +68,7 @@
       "npm run roadmap:verify",
       "npm run launch-status:verify",
       "npm run launch:dns",
+      "npm run launch:checkout",
       "npm run readiness:check",
       "npm run launch:check"
     ],

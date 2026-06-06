@@ -57,6 +57,7 @@ Public API:
 - CLI package: `cli/`
 - Product Hunt launch checker: `npm run launch:check`
 - DNS cutover helper: `npm run launch:dns`
+- Checkout config helper: `npm run launch:checkout`
 - Launch status verifier: `npm run launch-status:verify`
 - Product Hunt readiness CLI: `npm run readiness:check`
 - Render Blueprint verifier: `npm run render:verify`
@@ -101,6 +102,7 @@ Persistence state:
 - `/sample-reports/index.json` publishes PASS, WATCH, and BLOCK report examples with source-hash proof, timestamped flags, editor handoff artifacts, and repair-loop guidance.
 - `npm run roadmap:verify` keeps `docs/PRODUCT-ROADMAP.md` honest about the exact 50-point plan, expert-panel inputs, NTO-derived product tasks, and execution markers.
 - `npm run launch:dns` prints copy-paste DNS records and verification commands from `public/launch-targets.json`.
+- `npm run launch:checkout` prints the configured checkout source, host, and redacted URL for Creator, Studio, and Network without exposing checkout path secrets or Lemon Squeezy variant IDs.
 - `npm run launch:check` combines live readiness, live launch status, DNS, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
 - `npm run readiness:check` fetches live readiness and prints the exact remaining Render/DNS/checkout actions.
 - `npm run render:verify` checks that `render.yaml` declares custom domains, a mounted disk, durable store/media paths, checkout prompts, and webhook encryption prompts.
