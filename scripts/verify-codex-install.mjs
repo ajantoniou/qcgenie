@@ -69,7 +69,10 @@ export function verifyCodexInstall({
       "qc_estimate_cost",
       "qc_run_local_file",
       "qc_get_marker_csv",
-      "At `$99 / 5,000` minutes"
+      "At `$99 / 5,000` minutes",
+      "Checked minutes mean deterministic pre-upload QC minutes",
+      "0.0157",
+      "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com"
     ];
     for (const marker of requiredSkillMarkers) {
       if (!skillText.includes(marker)) {

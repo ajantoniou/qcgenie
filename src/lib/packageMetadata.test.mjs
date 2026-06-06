@@ -115,6 +115,9 @@ qc_run_local_file
 qc_get_marker_csv
 watchlist JSON
 At \`$99 / 5,000\` minutes
+Checked minutes mean deterministic pre-upload QC minutes
+0.0157
+UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com
 `);
 
       const result = verifyCodexInstall({

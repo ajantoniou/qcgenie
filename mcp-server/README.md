@@ -54,6 +54,12 @@ For Codex, Claude Code, Cursor, or NTO/NPO production pipelines, `qc_run_local_f
 
 Small files are base64 encoded by the local MCP process and evaluated through Render inline. Larger files use the signed-upload path automatically unless `upload_mode: "inline"` or `upload_mode: "signed"` is specified.
 
+Hosted media ingress can be smoke-tested from the repo before handing the MCP to another production pipeline:
+
+```bash
+UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify
+```
+
 When a project has a storybook, edit decision list, or visual timeline JSON, pass it as `manifest_json` with `checks: "repeat_fatigue"`. UploadCheck will use it to flag exact visual reuse and source-family dominance even before a final render is reviewed.
 
 When a project has transcript text or a script-sidecar, pass it as `transcript_text` or `transcript_json` with `checks: "spoken_leaks"`. UploadCheck will flag spoken URLs, markdown, prompt text, stage directions, vendor/tool names, and known wrong-name substitutions without running ASR.
@@ -67,6 +73,8 @@ When a project has local chunk QC reports, pass `sidecar_dir` with `checks: "chu
 For thumbnail candidates, call `qc_run_local_file` on the image with `checks: "thumbnail_text_readability"`. The same inline Render path evaluates OCR contrast and edge/safe-area readability without model spend.
 
 Use `plan_id`, `ai_review_seconds`, and `cost_guardrail` when an agent is asking for paid AI review beyond deterministic checks. The default guardrail is `downgrade`: margin-breaking AI review is removed and the job runs deterministic checks. Use `block` to reject unsafe requests, or `off` only for internal experiments/deep-review add-ons.
+
+Checked minutes mean deterministic pre-upload QC minutes. The old `$99 / 5,000` stress plan leaves only `0.0157` COGS cents/min after deterministic scanning, so unlimited full-video AI review is not included; model-backed deep review must be preflighted, downgraded, blocked, or sold separately to preserve the >95% gross-margin target.
 
 Call `qc_get_launch_status` before launch-sensitive production workflows when an agent needs the live Product Hunt go/no-go state, remaining blockers, and operator commands. This status endpoint is public; the other QC tools still require an API key.
 
