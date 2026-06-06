@@ -35,6 +35,33 @@ describe("UploadCheck launch targets", () => {
     expect(manifest.launch_targets_url).toBe("https://qcgenie-api.onrender.com/launch-targets.json");
   });
 
+  it("keeps launch status DNS blockers aligned with launch targets", () => {
+    const targets = readJson("public/launch-targets.json");
+    const launchStatus = readJson("public/launch-status.json");
+    const customDomain = launchStatus.remaining_blockers.find((blocker) => blocker.id === "custom_domain");
+
+    expect(customDomain.required_dns).toEqual(
+      targets.dns_records.map((record) => ({
+        type: record.type,
+        name: record.name,
+        target: record.target
+      }))
+    );
+  });
+
+  it("keeps deployment cutover docs aligned with launch targets", () => {
+    const targets = readJson("public/launch-targets.json");
+    const docs = readFileSync("docs/DEPLOYMENT-CUTOVER.md", "utf8");
+
+    expect(docs).toContain("https://qcgenie-api.onrender.com/launch-targets.json");
+    for (const record of targets.dns_records) {
+      expect(docs).toContain(`| ${record.type} | \`${record.name}\` | \`${record.target}\``);
+    }
+    for (const target of targets.http_targets) {
+      expect(docs).toContain(`curl -i ${target.url}`);
+    }
+  });
+
   it("uses launch-targets.json in the launch checker domain plan", async () => {
     const result = await buildLaunchCheck({
       apiBaseUrl: "https://api.example.test",
