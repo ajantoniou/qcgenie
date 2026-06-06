@@ -71,6 +71,7 @@
       "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
       "npm run launch:dns",
       "npm run launch:checkout",
+      "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
       "npm run launch:storage",
       "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
       "npm run readiness:check",

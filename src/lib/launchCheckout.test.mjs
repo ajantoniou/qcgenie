@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { buildCheckoutSummary, formatCheckoutSummary } from "../../launch-checkout.mjs";
+import { buildCheckoutSummary, buildCheckoutSummaryAsync, formatCheckoutSummary } from "../../launch-checkout.mjs";
 
 describe("launch checkout config helper", () => {
   it("summarizes configured Lemon Squeezy checkout URLs without exposing variant ids", () => {
@@ -73,5 +73,63 @@ describe("launch checkout config helper", () => {
     });
     expect(text).toContain("BLOCK creator");
     expect(text).toContain("reason: checkout_url_must_be_https");
+  });
+
+  it("optionally probes configured checkout URLs without exposing checkout paths", async () => {
+    const seen = [];
+    const summary = await buildCheckoutSummaryAsync({
+      UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator-secret",
+      UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio-secret",
+      UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network-secret",
+      UPLOADCHECK_CHECKOUT_PROBE: "1"
+    }, {
+      fetchImpl: async (url, options) => {
+        seen.push([url, options.method]);
+        return { status: 302 };
+      }
+    });
+    const text = formatCheckoutSummary(summary);
+
+    expect(summary.ok).toBe(true);
+    expect(summary.probeEnabled).toBe(true);
+    expect(summary.plans.map((plan) => plan.probe)).toEqual([
+      { checked: true, ok: true, status: 302, reason: "checkout_probe_passed" },
+      { checked: true, ok: true, status: 302, reason: "checkout_probe_passed" },
+      { checked: true, ok: true, status: 302, reason: "checkout_probe_passed" }
+    ]);
+    expect(seen).toEqual([
+      ["https://checkout.example/creator-secret", "HEAD"],
+      ["https://checkout.example/studio-secret", "HEAD"],
+      ["https://checkout.example/network-secret", "HEAD"]
+    ]);
+    expect(text).toContain("UploadCheck checkout config: READY");
+    expect(text).toContain("probe: pass (302)");
+    expect(text).not.toContain("creator-secret");
+    expect(text).not.toContain("studio-secret");
+    expect(text).not.toContain("network-secret");
+  });
+
+  it("fails optional checkout probing when a configured URL returns a bad status", async () => {
+    const summary = await buildCheckoutSummaryAsync({
+      UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://checkout.example/creator-secret",
+      UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://checkout.example/studio-secret",
+      UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://checkout.example/network-secret",
+      UPLOADCHECK_CHECKOUT_PROBE: "1"
+    }, {
+      fetchImpl: async (url) => ({ status: url.includes("studio") ? 500 : 200 })
+    });
+    const text = formatCheckoutSummary(summary);
+
+    expect(summary.ok).toBe(false);
+    expect(summary.plans[1]).toMatchObject({
+      plan: "studio",
+      ok: false,
+      reason: "checkout_probe_http_500",
+      probe: { checked: true, ok: false, status: 500, reason: "checkout_probe_http_500" }
+    });
+    expect(text).toContain("UploadCheck checkout config: NOT READY");
+    expect(text).toContain("BLOCK studio");
+    expect(text).toContain("probe: fail (checkout_probe_http_500)");
+    expect(text).not.toContain("studio-secret");
   });
 });

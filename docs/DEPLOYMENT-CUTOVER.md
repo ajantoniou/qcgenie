@@ -50,6 +50,7 @@ Before Product Hunt launch, sync the Blueprint or manually apply the same values
 npm run launch:doctor
 npm run launch:dns
 npm run launch:checkout
+UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout
 npm run launch:storage
 UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 npm run render:verify
@@ -79,6 +80,7 @@ npm run render:apply
 npm run launch:doctor
 npm run launch:dns
 npm run launch:checkout
+UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout
 npm run launch:storage
 UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 npm run launch:check
@@ -88,6 +90,8 @@ npm run readiness:check
 `render:bootstrap-env` is the recommended launch handoff because it pre-fills a hashed API key and webhook encryption key while leaving Render, checkout, and optional object-storage values for the operator. `render:env-template` is still available when you need a placeholders-only file. The generated env template is safe to commit only while placeholders are intact. A filled copy contains Render, checkout, API, webhook, and optional storage secrets and must stay local.
 `render:plan` reports `placeholderInputs` when a generated placeholder such as `<render_api_key>` or `https://...` is still present. Replace those values before running `render:apply`; the helper ignores placeholders instead of sending them to Render.
 `render:validate-env-file -- /tmp/uploadcheck-render-launch.env` checks the filled local file before it is sourced. `render:validate-env` checks the currently loaded shell environment before apply: real Render API key, valid API-key hash or bootstrap key, HTTPS checkout URLs or Lemon Squeezy store/variant inputs, strong webhook encryption key, durable `/mnt/...` paths, and complete optional object-storage settings. `launch:checkout` and `/v1/readiness` also reject non-HTTPS direct checkout URLs so Product Hunt readiness cannot pass with an insecure payment link. `render:apply` refuses to run when validation fails.
+
+After checkout env is configured, run `UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout` in the same environment. The regular checkout helper validates env shape and HTTPS without network calls; probe mode performs redacted live HEAD/GET reachability checks for Creator, Studio, and Network checkout URLs. Output shows only host and redacted checkout URL shape, never direct checkout paths or Lemon Squeezy variant IDs.
 
 `render:apply` adds the custom domains, sets the fixed durable env values, sets only the secret env values that are present in the local environment, and triggers web/API redeploys. It does not configure DNS; Cloudflare or the domain registrar still needs the CNAME records above.
 
@@ -101,6 +105,7 @@ After DNS propagation:
 npm run launch:doctor
 npm run launch:dns
 npm run launch:checkout
+UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout
 npm run launch:storage
 UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage
 curl -i https://uploadcheck.app/

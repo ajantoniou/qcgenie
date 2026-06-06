@@ -36,6 +36,7 @@ export function buildLaunchStatus(readiness, {
       "npm run launch:doctor",
       "npm run launch:dns",
       "npm run launch:checkout",
+      "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
       "npm run launch:storage",
       "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
       "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { buildCheckoutSummary, formatCheckoutSummary } from "../launch-checkout.mjs";
+import { buildCheckoutSummaryAsync, formatCheckoutSummary } from "../launch-checkout.mjs";
 
-const summary = buildCheckoutSummary();
+const summary = await buildCheckoutSummaryAsync();
 console.log(formatCheckoutSummary(summary));
 process.exit(summary.ok ? 0 : 1);

@@ -41,6 +41,7 @@ assert(status.go_no_go_rule.includes("readyForProductHunt=true"), "launch-status
 assert(status.operator_commands.includes("npm run launch:doctor"), "launch-status operator commands must include launch:doctor");
 assert(status.operator_commands.includes("npm run launch:dns"), "launch-status operator commands must include launch:dns");
 assert(status.operator_commands.includes("npm run launch:checkout"), "launch-status operator commands must include launch:checkout");
+assert(status.operator_commands.includes("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout"), "launch-status operator commands must include the explicit checkout probe");
 assert(status.operator_commands.includes("npm run launch:storage"), "launch-status operator commands must include launch:storage");
 assert(status.operator_commands.includes("npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env"), "launch-status operator commands must include render:bootstrap-env");
 assert(status.operator_commands.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "launch-status operator commands must include render:validate-env-file");
@@ -73,8 +74,10 @@ assert(launchKit.ready_when?.required_commands?.includes("npm run launch:doctor"
 assert(launchKit.ready_when?.required_commands?.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "Product Hunt launch kit must require render:validate-env-file");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:dns"), "Product Hunt launch kit must require launch:dns");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:checkout"), "Product Hunt launch kit must require launch:checkout");
+assert(launchKit.ready_when?.required_commands?.includes("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout"), "Product Hunt launch kit must require the explicit checkout probe");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:storage"), "Product Hunt launch kit must require launch:storage");
 assert(launchKit.ready_when?.required_commands?.includes("UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage"), "Product Hunt launch kit must require the explicit storage probe");
+assert(status.operator_commands.includes("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout"), "launch-status operator commands must include the explicit checkout probe");
 assert(status.operator_commands.includes("UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage"), "launch-status operator commands must include the explicit storage probe");
 assert(launchKit.public_links?.launch_status === status.public_artifacts.launch_status, "Product Hunt launch kit must link static launch status");
 assert(launchKit.public_links?.sample_reports_index === status.public_artifacts.sample_reports, "Product Hunt launch kit must link sample reports");

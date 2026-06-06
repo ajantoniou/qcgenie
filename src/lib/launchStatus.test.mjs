@@ -36,6 +36,7 @@ describe("public launch status", () => {
       "npm run launch:doctor",
       "npm run launch:dns",
       "npm run launch:checkout",
+      "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
       "npm run launch:storage",
       "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
       "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
