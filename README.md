@@ -50,6 +50,7 @@ Public API:
 - Authenticated API: `https://qcgenie-api.onrender.com` while the Render legacy slug remains active. Render display name: `uploadcheck-api`.
 - OpenAPI: `https://qcgenie-api.onrender.com/openapi.json`
 - Launch readiness: `https://qcgenie-api.onrender.com/v1/readiness`
+- Live launch status: `https://qcgenie-api.onrender.com/v1/launch-status`
 - Launch status metadata: `https://qcgenie-api.onrender.com/launch-status.json`
 - MCP wrapper package: `mcp-server/`
 - CLI package: `cli/`
@@ -84,6 +85,7 @@ Persistence state:
 - Production still needs hosted `UPLOADCHECK_SECRET_ENCRYPTION_KEY` configuration with a generated strong key and legacy webhook secret migration.
 - Durable upload retention can use a mounted storage path via `UPLOADCHECK_DURABLE_STORAGE_DIR`; object-storage buckets remain the next storage adapter.
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
+- `/v1/launch-status` derives a live machine-readable launch go/no-go summary from readiness, including current blockers and operator commands.
 - `/launch-status.json` publishes machine-readable completed controls, current blockers, operator commands, and Product Hunt go/no-go rules; `npm run launch-status:verify` keeps it aligned with readiness and public agent metadata.
 - `npm run launch:check` combines live readiness, DNS, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
 - `npm run readiness:check` fetches live readiness and prints the exact remaining Render/DNS/checkout actions.

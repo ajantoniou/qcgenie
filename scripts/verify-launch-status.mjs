@@ -2,6 +2,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { buildReadinessReport } from "../readiness.mjs";
+import { buildLaunchStatus } from "../launch-status.mjs";
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(path), "utf8"));
@@ -25,37 +26,25 @@ const representativeReadiness = buildReadinessReport({
   now: "2026-06-06T00:00:00.000Z"
 });
 
-const expectedStatus = {
-  api: representativeReadiness.checks.api.ok ? "pass" : "blocked",
-  agent_preflight: representativeReadiness.checks.agentPreflight.ok ? "pass" : "blocked",
-  api_auth: representativeReadiness.checks.apiAuth.ok ? "pass" : "blocked",
-  demo_clip: representativeReadiness.checks.demoClip.ok ? "pass" : "blocked",
-  checkout: representativeReadiness.checks.checkout.ok ? "pass" : "blocked",
-  custom_domain: representativeReadiness.checks.customDomain.ok ? "pass" : "blocked",
-  secret_encryption: representativeReadiness.checks.secretEncryption.ok ? "pass" : "blocked",
-  persistence: representativeReadiness.checks.persistence.ok ? "pass" : "blocked",
-  storage: representativeReadiness.checks.storage.ok ? "pass" : "blocked"
-};
+const expected = buildLaunchStatus(representativeReadiness, {
+  generatedFrom: status.generated_from,
+  lastVerifiedDate: status.last_verified_date
+});
 
 assert(status.product_hunt_ready === representativeReadiness.readyForProductHunt, "launch-status product_hunt_ready does not match representative readiness");
-assert(JSON.stringify(status.status) === JSON.stringify(expectedStatus), "launch-status status map does not match representative readiness");
-
-const blockedStatusKeys = Object.entries(status.status)
-  .filter(([, value]) => value === "blocked")
-  .map(([key]) => key);
-const blockerIds = status.remaining_blockers.map((blocker) => blocker.id);
-const expectedBlockers = blockedStatusKeys.map((key) => ({
-  custom_domain: "custom_domain",
-  secret_encryption: "secret_encryption"
-}[key] || key));
-
-assert(JSON.stringify(blockerIds) === JSON.stringify(expectedBlockers), "launch-status blockers do not match blocked status keys");
+assert(JSON.stringify(status.status) === JSON.stringify(expected.status), "launch-status status map does not match representative readiness");
+assert(JSON.stringify(status.remaining_blockers) === JSON.stringify(expected.remaining_blockers), "launch-status blockers do not match launch-status builder");
+assert(JSON.stringify(status.verified_controls) === JSON.stringify(expected.verified_controls), "launch-status verified controls do not match launch-status builder");
+assert(JSON.stringify(status.operator_commands) === JSON.stringify(expected.operator_commands), "launch-status operator commands do not match launch-status builder");
 assert(status.go_no_go_rule.includes("readyForProductHunt=true"), "launch-status go/no-go rule must cite readyForProductHunt=true");
 assert(status.operator_commands.includes("npm run render:validate-env"), "launch-status operator commands must include render:validate-env");
 assert(status.operator_commands.includes("npm run launch:check"), "launch-status operator commands must include launch:check");
 assert(status.operator_commands.includes("npm run readiness:check"), "launch-status operator commands must include readiness:check");
 assert(manifest.launch_status_url === status.public_artifacts.launch_status, "agent manifest launch_status_url must match launch-status public artifact URL");
+assert(manifest.live_launch_status_url === status.public_artifacts.live_launch_status, "agent manifest live_launch_status_url must match launch-status public artifact URL");
 assert(openapi.paths["/launch-status.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /launch-status.json metadata");
+assert(openapi.paths["/v1/launch-status"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /v1/launch-status metadata");
 assert(llms.includes(status.public_artifacts.launch_status), "llms.txt must link launch-status URL");
+assert(llms.includes(status.public_artifacts.live_launch_status), "llms.txt must link live launch-status URL");
 
 console.log("Launch status metadata matches readiness, manifest, OpenAPI, and llms.txt.");

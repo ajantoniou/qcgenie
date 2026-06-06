@@ -171,6 +171,20 @@
         }
       }
     },
+    "/v1/launch-status": {
+      "get": {
+        "summary": "Live Product Hunt launch status",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Live machine-readable launch go/no-go state derived from readiness checks, including completed controls, current blockers, and operator commands.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
     "/agent-manifest.json": {
       "get": {
         "summary": "UploadCheck agent manifest",

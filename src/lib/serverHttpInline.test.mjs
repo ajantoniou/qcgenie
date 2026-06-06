@@ -16,6 +16,39 @@ afterEach(async () => {
 });
 
 describe("server inline media API", () => {
+  it("serves live launch status derived from readiness without API auth", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-launch-status-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY_SHA256: "a".repeat(64),
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/launch-status`);
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.generated_from).toBe("live readiness");
+      expect(payload.product_hunt_ready).toBe(false);
+      expect(payload.status.api_auth).toBe("pass");
+      expect(payload.status.checkout).toBe("blocked");
+      expect(payload.remaining_blockers.map((blocker) => blocker.id)).toContain("checkout");
+      expect(payload.public_artifacts.live_launch_status).toBe("https://qcgenie-api.onrender.com/v1/launch-status");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
   it("returns sanitized mediaIngress without exposing temporary source paths", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-inline-"));
     const port = 19000 + Math.floor(Math.random() * 1000);
