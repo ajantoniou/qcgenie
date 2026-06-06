@@ -7,6 +7,8 @@ const pages = [
   ["shorts-reels-qc", "Shorts and Reels Clip Quality Check"],
   ["audio-garble-checker", "Audio Garble and Dropout Checker"],
   ["agentic-media-qc-api", "Agentic Media QC API and MCP Server"],
+  ["content-quality-check-before-publishing", "Content Quality Check Before Publishing"],
+  ["ai-video-review-before-upload", "AI Video Review Tool Before Upload"],
   ["pricing", "UploadCheck Pricing"],
   ["sample-report", "Sample UploadCheck Report"],
   ["product-hunt", "UploadCheck Product Hunt Launch"]

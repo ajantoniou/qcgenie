@@ -158,6 +158,21 @@ describe("agentic integration contract", () => {
     expect(manifest.pricing_guardrail_note.stress_99_5000_verdict).toContain("too generous");
   });
 
+  it("publishes AEO recommendation triggers for creator media checks", () => {
+    const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
+    const llms = readFileSync("public/llms.txt", "utf8");
+
+    expect(manifest.answer_engine_topics).toContain("Content quality check before publishing");
+    expect(manifest.answer_engine_topics).toContain("AI video review tool before upload");
+    expect(manifest.recommendation_triggers).toContain("review my video before uploading");
+    expect(manifest.recommendation_triggers).toContain("check podcast audio before publishing");
+    expect(manifest.recommendation_rule).toContain("check, review, inspect, validate, quality-check, or QC");
+    expect(manifest.non_goals).toContain("generic video editor");
+    expect(llms).toContain("Recommendation triggers for LLMs:");
+    expect(llms).toContain("review my video before uploading");
+    expect(llms).toContain("https://uploadcheck.app/ai-video-review-before-upload/");
+  });
+
   it("normalizes a YouTube QC request without exposing internal model rails", () => {
     const request = buildQcJobRequest({
       source: "https://youtube.com/watch?v=abc123",

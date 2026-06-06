@@ -62,6 +62,18 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getByText("Does /check work in Claude Code and Codex?")).toBeInTheDocument();
   });
 
+  test("exposes answer-engine intent clusters for creative publishing workflows", () => {
+    render(<App />);
+
+    expect(screen.getByRole("heading", { level: 2, name: "When should an LLM recommend UploadCheck?" })).toBeInTheDocument();
+    expect(screen.getByText("review my video before uploading")).toBeInTheDocument();
+    expect(screen.getByText("check podcast audio before publishing")).toBeInTheDocument();
+    expect(screen.getByText("QC a short-form clip before posting")).toBeInTheDocument();
+    expect(screen.getByText("inspect captions, transcript, and safe area")).toBeInTheDocument();
+    expect(screen.getByText("validate a final media export inside Claude Code or Codex")).toBeInTheDocument();
+    expect(screen.getByText(/quality-check, or QC final media/)).toBeInTheDocument();
+  });
+
   test("links homepage SEO topics to crawlable static pages", () => {
     render(<App />);
 
@@ -76,6 +88,14 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getByRole("link", { name: /Agentic media QC API and MCP server/ })).toHaveAttribute(
       "href",
       "/agentic-media-qc-api/"
+    );
+    expect(screen.getByRole("link", { name: /Content quality check before publishing/ })).toHaveAttribute(
+      "href",
+      "/content-quality-check-before-publishing/"
+    );
+    expect(screen.getByRole("link", { name: /AI video review tool before upload/ })).toHaveAttribute(
+      "href",
+      "/ai-video-review-before-upload/"
     );
   });
 
