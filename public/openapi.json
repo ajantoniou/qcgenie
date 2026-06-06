@@ -242,6 +242,20 @@
         }
       }
     },
+    "/pipeline-handoff.json": {
+      "get": {
+        "summary": "UploadCheck production pipeline handoff",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Machine-readable runbook for NTO/NPO and creator production pipelines that call UploadCheck.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
     "/pipeline-recipes.json": {
       "get": {
         "summary": "UploadCheck pipeline recipes",

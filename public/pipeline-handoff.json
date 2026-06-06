@@ -1,0 +1,140 @@
+{
+  "name": "UploadCheck Production Pipeline Handoff",
+  "description": "Callable runbook for NTO, NPO, and creator production pipelines that need UploadCheck before upload.",
+  "api_base_url": "https://qcgenie-api.onrender.com/v1",
+  "mcp_server": "uploadcheck",
+  "cli_package": "@uploadcheck/cli",
+  "mcp_package": "@uploadcheck/mcp",
+  "source_artifacts": {
+    "agent_manifest": "https://qcgenie-api.onrender.com/agent-manifest.json",
+    "pipeline_recipes": "https://qcgenie-api.onrender.com/pipeline-recipes.json",
+    "cost_basis": "https://qcgenie-api.onrender.com/cost-basis.json",
+    "launch_status": "https://qcgenie-api.onrender.com/launch-status.json",
+    "live_launch_status": "https://qcgenie-api.onrender.com/v1/launch-status",
+    "live_launch_handoff": "https://qcgenie-api.onrender.com/v1/launch-handoff",
+    "sample_reports": "https://qcgenie-api.onrender.com/sample-reports/index.json"
+  },
+  "profiles": [
+    "nto_long_form",
+    "nto_shorts",
+    "npo_podcast_or_audio",
+    "generic_creator_video",
+    "creator_thumbnail"
+  ],
+  "call_sequence": [
+    {
+      "step": 1,
+      "name": "Check launch state",
+      "mcp_tool": "qc_get_launch_status",
+      "api": "GET /v1/launch-status",
+      "cli": "uploadcheck launch-status --json",
+      "rule": "For launch-sensitive workflows, continue only when product_hunt_ready=true and remaining_blockers is empty."
+    },
+    {
+      "step": 2,
+      "name": "Fetch blocker handoff when blocked",
+      "mcp_tool": "qc_get_launch_handoff",
+      "api": "GET /v1/launch-handoff",
+      "cli": "uploadcheck launch-handoff --json",
+      "rule": "If blockers remain, report required actions and proof commands, then stop before Product Hunt or publish-sensitive steps."
+    },
+    {
+      "step": 3,
+      "name": "Load pipeline recipe",
+      "mcp_tool": "qc_get_pipeline_recipes",
+      "api": "GET /pipeline-recipes.json",
+      "cli": "uploadcheck recipes --json",
+      "rule": "Select the closest profile and pass its sidecar-aware arguments into qc_run_local_file or the CLI."
+    },
+    {
+      "step": 4,
+      "name": "Load cost basis",
+      "mcp_tool": "qc_get_cost_basis",
+      "api": "GET /cost-basis.json",
+      "cli": "uploadcheck cost-basis --json",
+      "rule": "Use this before pricing, plan, or model-backed review decisions."
+    },
+    {
+      "step": 5,
+      "name": "Preflight estimated cost",
+      "mcp_tool": "qc_estimate_cost",
+      "api": "POST /v1/qc/estimate",
+      "cli": "uploadcheck estimate --minutes <minutes> --checks <checks> --plan creator --cost-guardrail downgrade --json",
+      "rule": "Keep cost_guardrail=downgrade by default so margin-breaking model-backed checks are removed before hosted execution."
+    },
+    {
+      "step": 6,
+      "name": "Send media",
+      "preferred_mcp_tool": "qc_run_local_file",
+      "url_or_upload_mcp_tool": "qc_run_video",
+      "large_file_mcp_tool": "qc_create_upload_url",
+      "api": "POST /v1/qc/jobs",
+      "cli": "uploadcheck check <file> --checks <checks> --json",
+      "rule": "Reachable local files run through Render inline when small enough; large files use signed upload."
+    },
+    {
+      "step": 7,
+      "name": "Poll job completion",
+      "mcp_tool": "qc_get_job",
+      "api": "GET /v1/qc/jobs/{job_id}",
+      "rule": "Poll until completed, failed, or blocked by usage/abuse limits."
+    },
+    {
+      "step": 8,
+      "name": "Fetch report",
+      "mcp_tool": "qc_get_report",
+      "api": "GET /v1/qc/jobs/{job_id}/report",
+      "rule": "Use the report as the source of truth for verdict, flags, mediaIngress, observed provider usage, and cost telemetry."
+    },
+    {
+      "step": 9,
+      "name": "Fetch marker CSV",
+      "mcp_tool": "qc_get_marker_csv",
+      "api": "GET /v1/qc/jobs/{job_id}/artifacts/markers",
+      "rule": "Use marker CSV for editor handoff whenever timestamped media repairs are useful."
+    },
+    {
+      "step": 10,
+      "name": "Run repair loop",
+      "user_prompt": "Show all QC flags and ask: Fix now?",
+      "rule": "Group flags by BLOCK, WATCH, and PASS; apply only reachable fixes; return timestamped source/render instructions for unreachable media defects."
+    },
+    {
+      "step": 11,
+      "name": "Rerun before upload-ready",
+      "rule": "Do not call the asset upload-ready until UploadCheck has been rerun after edits and no BLOCK flags remain."
+    }
+  ],
+  "media_ingress": {
+    "inline_ephemeral": {
+      "recommended_for": "small or medium local video, audio, image, transcript, manifest, watchlist, and sidecar payloads",
+      "proof_fields": ["mode", "contentType", "bytes", "sha256", "ephemeral", "storageMode"],
+      "rule": "Inline media runs through Render temp storage and must not expose server temp paths."
+    },
+    "signed_upload": {
+      "recommended_for": "large video/audio masters",
+      "api_sequence": ["POST /v1/uploads", "PUT /v1/uploads/{upload_id}/content?token=...", "POST /v1/qc/jobs with upload_id"],
+      "mcp_sequence": ["qc_create_upload_url", "qc_run_video with upload_id"],
+      "rule": "Use Render temp storage by default or durable/object storage when configured."
+    }
+  },
+  "margin_rules": {
+    "target_gross_margin_pct": 95,
+    "checked_minutes_mean": "deterministic pre-upload QC minutes",
+    "default_cost_guardrail": "downgrade",
+    "stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute": 0.0157,
+    "stress_99_5000_verdict": "$99 for 5,000 checked minutes is too generous for unlimited full-video AI review. It is only margin-safe as deterministic scan minutes with model-backed review capped, sampled, downgraded, or sold separately."
+  },
+  "repair_loop_contract": {
+    "required_fetches": ["qc_get_report", "qc_get_marker_csv"],
+    "severity_order": ["BLOCK", "WATCH", "PASS"],
+    "must_show_all_flags": true,
+    "user_prompt": "Show all QC flags and ask: Fix now?",
+    "fixable_scopes": ["captions", "metadata", "manifests", "reachable source files", "checklists"],
+    "source_or_render_scopes": ["frozen video", "garbled audio", "duplicate characters", "cheap b-roll", "narration/visual mismatch", "unsafe render layout"],
+    "source_or_render_instruction": "Return timestamped source/render patch instructions instead of pretending the agent can edit unreachable media.",
+    "rerun_after_fix": true,
+    "completion_rule": "Do not call the asset upload-ready until UploadCheck is rerun after edits and no BLOCK flags remain."
+  },
+  "private_moat_rule": "Public artifacts expose callable categories and repair behavior; exact thresholds, prompts, fixtures, and validator internals stay private."
+}

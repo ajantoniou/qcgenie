@@ -60,6 +60,7 @@ export function buildLaunchStatus(readiness, {
     public_artifacts: {
       openapi: "https://qcgenie-api.onrender.com/openapi.json",
       agent_manifest: "https://qcgenie-api.onrender.com/agent-manifest.json",
+      pipeline_handoff: "https://qcgenie-api.onrender.com/pipeline-handoff.json",
       pipeline_recipes: "https://qcgenie-api.onrender.com/pipeline-recipes.json",
       launch_targets: "https://qcgenie-api.onrender.com/launch-targets.json",
       cost_basis: "https://qcgenie-api.onrender.com/cost-basis.json",

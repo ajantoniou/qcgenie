@@ -78,8 +78,11 @@ assert(manifest.launch_status_url === status.public_artifacts.launch_status, "ag
 assert(manifest.live_launch_status_url === status.public_artifacts.live_launch_status, "agent manifest live_launch_status_url must match launch-status public artifact URL");
 assert(manifest.live_launch_handoff_url === status.public_artifacts.live_launch_handoff, "agent manifest live_launch_handoff_url must match launch-status public artifact URL");
 assert(manifest.launch_handoff_command === "npm run launch:handoff -- --text", "agent manifest must expose the local launch handoff command");
+assert(manifest.pipeline_handoff_url === status.public_artifacts.pipeline_handoff, "agent manifest pipeline_handoff_url must match launch-status public artifact URL");
+assert(manifest.primary_endpoints?.includes("GET /pipeline-handoff.json"), "agent manifest must expose pipeline handoff as a primary endpoint");
 assert(manifest.primary_endpoints?.includes("GET /pipeline-recipes.json"), "agent manifest must expose pipeline recipes as a primary endpoint");
 assert(manifest.primary_endpoints?.includes("GET /cost-basis.json"), "agent manifest must expose cost basis as a primary endpoint");
+assert(openapi.paths["/pipeline-handoff.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /pipeline-handoff.json metadata");
 assert(openapi.paths["/launch-status.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /launch-status.json metadata");
 assert(openapi.paths["/product-hunt-launch-kit.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /product-hunt-launch-kit.json metadata");
 assert(openapi.paths["/v1/launch-status"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /v1/launch-status metadata");
@@ -87,6 +90,7 @@ assert(openapi.paths["/v1/launch-handoff"]?.get?.security?.length === 0, "OpenAP
 assert(llms.includes(status.public_artifacts.launch_status), "llms.txt must link launch-status URL");
 assert(llms.includes(status.public_artifacts.live_launch_status), "llms.txt must link live launch-status URL");
 assert(llms.includes(status.public_artifacts.live_launch_handoff), "llms.txt must link live launch handoff URL");
+assert(llms.includes(status.public_artifacts.pipeline_handoff), "llms.txt must link pipeline handoff URL");
 assert(llms.includes(status.public_artifacts.sample_reports), "llms.txt must link sample report artifacts URL");
 assert(llms.includes(status.public_artifacts.product_hunt_launch_kit), "llms.txt must link Product Hunt launch kit URL");
 assert(llms.includes("npm run launch:handoff -- --text"), "llms.txt must mention the local launch handoff command");
@@ -111,6 +115,7 @@ assert(status.operator_commands.includes("UPLOADCHECK_STORAGE_PROBE=1 npm run la
 assert(launchKit.public_links?.launch_status === status.public_artifacts.launch_status, "Product Hunt launch kit must link static launch status");
 assert(launchKit.public_links?.sample_reports_index === status.public_artifacts.sample_reports, "Product Hunt launch kit must link sample reports");
 assert(launchKit.public_links?.cost_basis === status.public_artifacts.cost_basis, "Product Hunt launch kit must link cost basis");
+assert(launchKit.public_links?.pipeline_handoff === status.public_artifacts.pipeline_handoff, "Product Hunt launch kit must link pipeline handoff");
 
 const builtStatus = readJsonIfExists("dist/launch-status.json");
 if (builtStatus) {

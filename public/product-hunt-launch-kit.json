@@ -55,6 +55,8 @@
     "sample_reports_index": "https://qcgenie-api.onrender.com/sample-reports/index.json",
     "block_sample_report": "https://qcgenie-api.onrender.com/sample-reports/duplicate-characters-block.json",
     "cost_basis": "https://qcgenie-api.onrender.com/cost-basis.json",
+    "pipeline_handoff": "https://qcgenie-api.onrender.com/pipeline-handoff.json",
+    "pipeline_recipes": "https://qcgenie-api.onrender.com/pipeline-recipes.json",
     "agent_manifest": "https://qcgenie-api.onrender.com/agent-manifest.json",
     "openapi": "https://qcgenie-api.onrender.com/openapi.json",
     "launch_status": "https://qcgenie-api.onrender.com/launch-status.json",

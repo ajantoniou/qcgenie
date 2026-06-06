@@ -23,6 +23,7 @@ Agent integration:
 - REST API preflight starts at POST /v1/qc/estimate; job lifecycle starts at POST /v1/qc/jobs.
 - OpenAPI: https://qcgenie-api.onrender.com/openapi.json
 - Hosted API base: https://qcgenie-api.onrender.com/v1
+- Production pipeline handoff runbook: https://qcgenie-api.onrender.com/pipeline-handoff.json
 - Pipeline recipes: https://qcgenie-api.onrender.com/pipeline-recipes.json
 - Launch targets and DNS records: https://qcgenie-api.onrender.com/launch-targets.json
 - Machine-readable launch status and blockers: https://qcgenie-api.onrender.com/launch-status.json
@@ -38,6 +39,7 @@ Agent integration:
 - MCP local-file workflow: qc_run_local_file reads a reachable local media path, encodes small files inline for Render evaluation, and falls back to signed upload for larger files.
 - QC job responses include sanitized mediaIngress metadata; inline Render runs report mode=inline_ephemeral plus a sha256 source hash and do not expose temporary server paths.
 - NTO/NPO pipeline profiles are machine-readable through MCP qc_get_pipeline_recipes, CLI uploadcheck recipes --json, and pipeline-recipes.json: nto_long_form, nto_shorts, npo_podcast_or_audio, and generic_creator_video.
+- NTO/NPO and creator production pipelines can load pipeline-handoff.json for the full call sequence: launch status, launch handoff, recipes, cost basis, estimate, media ingress, job polling, report, marker CSV, "Fix now?", and rerun before upload-ready.
 - Large local files use POST /v1/uploads, PUT /v1/uploads/{upload_id}/content?token=..., then POST /v1/qc/jobs with upload_id.
 - Signed-upload bytes use Render temp storage by default or mounted durable filesystem storage when UPLOADCHECK_DURABLE_STORAGE_DIR is configured.
 - API keys are workspace-scoped and should be stored as connector secrets.

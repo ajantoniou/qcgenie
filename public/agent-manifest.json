@@ -6,6 +6,7 @@
   "packages": ["@uploadcheck/cli", "@uploadcheck/mcp"],
   "api_base_url": "https://qcgenie-api.onrender.com/v1",
   "openapi_url": "https://qcgenie-api.onrender.com/openapi.json",
+  "pipeline_handoff_url": "https://qcgenie-api.onrender.com/pipeline-handoff.json",
   "pipeline_recipes_url": "https://qcgenie-api.onrender.com/pipeline-recipes.json",
   "launch_targets_url": "https://qcgenie-api.onrender.com/launch-targets.json",
   "launch_status_url": "https://qcgenie-api.onrender.com/launch-status.json",
@@ -119,6 +120,7 @@
     "GET /v1/readiness",
     "GET /v1/launch-status",
     "GET /v1/launch-handoff",
+    "GET /pipeline-handoff.json",
     "GET /pipeline-recipes.json",
     "GET /cost-basis.json",
     "POST /v1/qc/estimate",
@@ -143,6 +145,7 @@
   "agent_workflow": [
     "Before launch-sensitive workflows, the agent may call qc_get_launch_status or GET /v1/launch-status to verify the live go/no-go state, then qc_get_launch_handoff or GET /v1/launch-handoff for blocker-specific required actions and proof commands.",
     "Before launch-sensitive workflows, the agent may call GET /v1/readiness to verify checkout, custom domain, persistence, storage, demo clip, and Product Hunt readiness.",
+    "Production handoff can be fetched from GET /pipeline-handoff.json when an NTO/NPO or creator pipeline needs the exact launch preflight, recipe, cost, media-ingress, report, marker, repair-loop, and rerun sequence.",
     "Pipeline recipes can be fetched with qc_get_pipeline_recipes, uploadcheck recipes --json, or GET /pipeline-recipes.json; they include launch_preflight, cost_preflight, sidecar-aware qc_run_local_file arguments, and repair-loop instructions.",
     "Cost basis can be fetched with qc_get_cost_basis, uploadcheck cost-basis --json, or GET /cost-basis.json before pricing or model-backed review decisions.",
     "User runs /check with a media file, YouTube URL, upload id, or signed URL.",

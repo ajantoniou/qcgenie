@@ -49,6 +49,8 @@ export function buildProductHuntLaunchKit(status) {
       sample_reports_index: artifacts.sample_reports,
       block_sample_report: sampleReportUrl(artifacts.sample_reports, "duplicate-characters-block.json"),
       cost_basis: artifacts.cost_basis,
+      pipeline_handoff: artifacts.pipeline_handoff,
+      pipeline_recipes: artifacts.pipeline_recipes,
       agent_manifest: artifacts.agent_manifest,
       openapi: artifacts.openapi,
       launch_status: artifacts.launch_status,

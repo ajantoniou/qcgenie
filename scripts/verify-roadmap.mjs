@@ -27,6 +27,7 @@ const REQUIRED_EXECUTION_MARKERS = [
   "MCP `qc_run_local_file`",
   "MCP `qc_get_launch_handoff`",
   "MCP `qc_get_pipeline_recipes`",
+  "pipeline handoff artifact",
   "Product Hunt launch checker",
   "observed provider usage is now priced"
 ];

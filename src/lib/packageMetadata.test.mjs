@@ -111,6 +111,7 @@ name: uploadcheck
 MCP server: \`uploadcheck\`
 qc_get_launch_status
 qc_get_launch_handoff
+pipeline-handoff.json
 qc_get_pipeline_recipes
 qc_get_cost_basis
 qc_estimate_cost
