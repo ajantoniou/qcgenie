@@ -11,9 +11,11 @@ import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ENGINE = join(HERE, "scripts", "qc-engine", "run_gate.py");
+const REQUIREMENTS = join(HERE, "requirements.txt");
 const PYTHON = process.env.UPLOADCHECK_PYTHON || process.env.QCGENIE_PYTHON || "python3";
 const YTDLP = process.env.UPLOADCHECK_YTDLP || process.env.QCGENIE_YTDLP || "yt-dlp";
 const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"]);
+let pythonDepsReady = false;
 
 function isImagePath(path) {
   const lower = String(path || "").toLowerCase();
@@ -53,6 +55,9 @@ export function runQcEngine(videoPath, opts = {}) {
   if (!existsSync(ENGINE)) return { ranEngine: false, error: `engine not found at ${ENGINE}` };
   if (!existsSync(videoPath)) return { ranEngine: false, error: `video not found: ${videoPath}` };
 
+  const deps = ensurePythonGateDeps();
+  if (!deps.ok) return { ranEngine: false, error: deps.error };
+
   const outdir = join(tmpdir(), "qcgenie-gate-" + basename(videoPath).replace(/\W+/g, "_"));
   const args = [ENGINE, videoPath, "--out", outdir];
   if (opts.checks) args.push("--checks", opts.checks);
@@ -70,6 +75,31 @@ export function runQcEngine(videoPath, opts = {}) {
     }
   }
   return { ranEngine: false, error: (r.stderr || r.stdout || "engine produced no VERDICT.json").slice(-400) };
+}
+
+function ensurePythonGateDeps() {
+  if (pythonDepsReady) return { ok: true };
+  const probe = spawnSync(PYTHON, ["-c", "import PIL"], { encoding: "utf8", timeout: 1000 * 15 });
+  if (probe.status === 0) {
+    pythonDepsReady = true;
+    return { ok: true };
+  }
+  if (!existsSync(REQUIREMENTS)) {
+    return { ok: false, error: "Python gate dependency check failed and requirements.txt is missing" };
+  }
+  const install = spawnSync(PYTHON, ["-m", "pip", "install", "--user", "-r", REQUIREMENTS], {
+    encoding: "utf8",
+    timeout: 1000 * 60 * 5
+  });
+  if (install.status !== 0) {
+    return { ok: false, error: `Python gate dependency install failed: ${(install.stderr || install.stdout || "").slice(-400)}` };
+  }
+  const verify = spawnSync(PYTHON, ["-c", "import PIL"], { encoding: "utf8", timeout: 1000 * 15 });
+  if (verify.status !== 0) {
+    return { ok: false, error: `Python gate dependency verify failed: ${(verify.stderr || verify.stdout || "").slice(-400)}` };
+  }
+  pythonDepsReady = true;
+  return { ok: true };
 }
 
 // Convenience: resolve source + run engine. Returns { verdict, ranEngine, error, durationS }.
