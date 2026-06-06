@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { buildReadinessReport } from "../readiness.mjs";
 import { buildLaunchStatus } from "../launch-status.mjs";
@@ -7,6 +7,11 @@ import { buildProductHuntLaunchKit } from "../product-hunt-launch-kit.mjs";
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(path), "utf8"));
+}
+
+function readJsonIfExists(path) {
+  const fullPath = resolve(path);
+  return existsSync(fullPath) ? JSON.parse(readFileSync(fullPath, "utf8")) : null;
 }
 
 function assert(condition, message) {
@@ -93,4 +98,14 @@ assert(launchKit.public_links?.launch_status === status.public_artifacts.launch_
 assert(launchKit.public_links?.sample_reports_index === status.public_artifacts.sample_reports, "Product Hunt launch kit must link sample reports");
 assert(launchKit.public_links?.cost_basis === status.public_artifacts.cost_basis, "Product Hunt launch kit must link cost basis");
 
-console.log("Launch status metadata matches readiness, manifest, OpenAPI, and llms.txt.");
+const builtStatus = readJsonIfExists("dist/launch-status.json");
+if (builtStatus) {
+  assert(JSON.stringify(builtStatus) === JSON.stringify(status), "dist/launch-status.json must match public/launch-status.json; run npm run build");
+}
+
+const builtLaunchKit = readJsonIfExists("dist/product-hunt-launch-kit.json");
+if (builtLaunchKit) {
+  assert(JSON.stringify(builtLaunchKit) === JSON.stringify(launchKit), "dist/product-hunt-launch-kit.json must match public/product-hunt-launch-kit.json; run npm run build");
+}
+
+console.log("Launch status metadata matches readiness, manifest, OpenAPI, llms.txt, and built static artifacts.");
