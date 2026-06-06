@@ -69,7 +69,7 @@ const pricingTiers = [
     name: "Creator",
     label: "Best for most creators",
     price: "$99/mo",
-    minutes: "1,200",
+    minutes: "2,400",
     overage: "$0.12/min",
     checkoutHref: "/checkout/creator",
     detail: "Built for creators who publish weekly, batch clips, and want every final export checked before upload."
@@ -78,7 +78,7 @@ const pricingTiers = [
     name: "Studio",
     label: "Best value for teams",
     price: "$299/mo",
-    minutes: "5,000",
+    minutes: "10,000",
     overage: "$0.09/min",
     checkoutHref: "/checkout/studio",
     detail: "For editors, agencies, and teams checking multiple shows, clients, or channels."
@@ -87,7 +87,7 @@ const pricingTiers = [
     name: "Network",
     label: "High-volume",
     price: "$799/mo",
-    minutes: "18,000",
+    minutes: "36,000",
     overage: "$0.06/min",
     checkoutHref: "/checkout/network",
     detail: "For high-volume teams running daily uploads, large clip batches, or multi-channel operations."
@@ -95,9 +95,9 @@ const pricingTiers = [
 ] as const;
 
 const usageProfiles = [
-  { label: "Most creators", range: "300-900 min", detail: "weekly long uploads, clips, and 1-2 re-checks" },
-  { label: "Heavy users", range: "2,500-4,500 min", detail: "multiple shows, clients, or batch editing weeks" },
-  { label: "Super heavy", range: "10,000-16,000 min", detail: "daily uploads, networks, and large clip pipelines" }
+  { label: "Most creators", range: "300-1,800 min", detail: "weekly long uploads, clips, and repeated final checks" },
+  { label: "Heavy users", range: "4,000-8,500 min", detail: "multiple shows, clients, or batch editing weeks" },
+  { label: "Super heavy", range: "16,000-32,000 min", detail: "daily uploads, networks, and large clip pipelines" }
 ] as const;
 
 const searchTopics = [
@@ -170,7 +170,7 @@ const faqItems = [
   {
     question: "How many checked minutes do most creators need per month?",
     answer:
-      "Most serious solo creators fit around 300-900 checked minutes per month. The Creator plan includes 1,200 checked minutes so weekly uploads, clip batches, and a few re-checks fit without making every export feel metered."
+      "Most serious solo creators fit around 300-1,800 checked minutes per month. The Creator plan includes 2,400 checked minutes so weekly uploads, clip batches, and repeated final checks fit without making every export feel metered."
   },
   {
     question: "Does /check work in Claude Code and Codex?",
@@ -180,7 +180,7 @@ const faqItems = [
   {
     question: "Do re-checks count against included minutes?",
     answer:
-      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. If a request exceeds included minutes or AI-review allowance, UploadCheck either downgrades expensive model-backed checks or blocks the run before spend, depending on the selected guardrail."
+      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. If a request exceeds included minutes, UploadCheck blocks the run before additional metered spend."
   },
   {
     question: "What can UploadCheck fix automatically?",
@@ -354,10 +354,8 @@ function LandingView({ onOpenDashboard, onOpenAgents }: { onOpenDashboard: () =>
         </div>
         <p className="pricingNote">
           Overage is billed only when you exceed your included minutes. Re-checks count because UploadCheck analyzes the
-          actual media file each time. Included minutes cover deterministic pre-upload QC; model-backed deep review is
-          cost-preflighted and may be downgraded or sold separately when it would break the 95% gross-margin target.
-          The old $99 / 5,000 stress plan leaves only 0.0157 COGS cents/minute after deterministic scanning, so
-          unlimited full-video AI review is not included.
+          actual media file each time. Included minutes cover deterministic publish-readiness QC. Deep model review stays
+          internal for engine backtesting, roadmap generation, and measuring deterministic capture rate against expert review.
         </p>
       </section>
 

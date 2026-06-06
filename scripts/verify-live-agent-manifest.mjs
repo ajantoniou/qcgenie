@@ -93,7 +93,7 @@ export function validateAgentManifest(payload = {}) {
     errors.push({
       key: "pricing_guardrail_note.stress_99_5000_verdict",
       reason: "missing_stress_verdict",
-      detail: "Agent manifest must warn that $99 / 5,000 is too generous for unlimited full-video AI review."
+      detail: "Agent manifest must warn that $99 / 5,000 is too generous for full-model review."
     });
   }
   if (!Array.isArray(payload.pipeline_profiles) || !payload.pipeline_profiles.some((profile) => profile.id === "npo_podcast_or_audio")) {

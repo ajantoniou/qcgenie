@@ -30,7 +30,7 @@ describe("live web artifacts verifier", () => {
 
   it("rejects stale web copy missing pricing and launch proof", () => {
     const artifacts = currentArtifacts();
-    artifacts.pricing = artifacts.pricing.replace("0.0157 COGS cents/minute", "unlimited AI review");
+    artifacts.pricing = artifacts.pricing.replace("2,400 checked minutes", "1,200 checked minutes");
     artifacts.productHunt = artifacts.productHunt.replace("npm run launch:doctor", "launch soon");
     artifacts.demo = { ok: true, contentType: "text/html", bytes: 12 };
 

@@ -654,8 +654,8 @@ describe("server inline media API", () => {
     const storePath = join(dir, "store.json");
     const apiKey = "uck_test_usage_limit";
     const seedStore = new JsonStore(storePath);
-    const seededJob = seedStore.createJob({ source: "/tmp/previous.mp4", plan_id: "creator", included_minutes: 1200 });
-    seedStore.appendUsage(seededJob.jobId, 1199, currentTestBillingPeriod(), { planId: "creator", includedMinutes: 1200 });
+    const seededJob = seedStore.createJob({ source: "/tmp/previous.mp4", plan_id: "creator", included_minutes: 2400 });
+    seedStore.appendUsage(seededJob.jobId, 2399, currentTestBillingPeriod(), { planId: "creator", includedMinutes: 2400 });
 
     const port = 19000 + Math.floor(Math.random() * 1000);
     const server = spawn("node", ["server.mjs"], {
@@ -694,8 +694,8 @@ describe("server inline media API", () => {
       expect(payload).toMatchObject({
         error: "usage_limit_exceeded",
         planId: "creator",
-        includedMinutes: 1200,
-        minutesUsed: 1199,
+        includedMinutes: 2400,
+        minutesUsed: 2399,
         requestedMinutes: 2,
         minutesRemaining: 1
       });
@@ -712,14 +712,14 @@ describe("server inline media API", () => {
     const seededJob = seedStore.createJob({
       source: "/tmp/previous.mp4",
       plan_id: "creator",
-      included_minutes: 1200,
-      ai_review_budget_seconds: 3600,
+      included_minutes: 2400,
+      ai_review_budget_seconds: 0,
       ai_review_seconds: 3500
     });
     seedStore.appendUsage(seededJob.jobId, 10, currentTestBillingPeriod(), {
       planId: "creator",
-      includedMinutes: 1200,
-      aiReviewBudgetSeconds: 3600,
+      includedMinutes: 2400,
+      aiReviewBudgetSeconds: 0,
       aiReviewSeconds: 3500
     });
 
@@ -761,10 +761,10 @@ describe("server inline media API", () => {
       expect(payload).toMatchObject({
         error: "usage_limit_exceeded",
         planId: "creator",
-        aiReviewBudgetSeconds: 3600,
+        aiReviewBudgetSeconds: 0,
         aiReviewSecondsUsed: 3500,
         requestedAiReviewSeconds: 180,
-        aiReviewSecondsRemaining: 100
+        aiReviewSecondsRemaining: 0
       });
       expect(payload.message).toContain("AI-review seconds");
     } finally {

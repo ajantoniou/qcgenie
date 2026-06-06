@@ -73,7 +73,7 @@ describe("public launch status", () => {
     expect(status.verified_controls.find((control) => control.id === "hosted_public_artifacts")?.evidence).toContain("live-public-artifacts:verify");
     expect(status.verified_controls.find((control) => control.id === "hosted_web_artifacts")?.evidence).toContain("live-web-artifacts:verify");
     expect(status.verified_controls.find((control) => control.id === "render_web_artifacts")?.evidence).toContain("qcgenie-web.onrender.com");
-    expect(status.verified_controls.find((control) => control.id === "billing_enforcement")?.evidence).toContain("AI-review seconds");
+    expect(status.verified_controls.find((control) => control.id === "billing_enforcement")?.evidence).toContain("included deterministic QC minutes");
     expect(status.verified_controls.find((control) => control.id === "abuse_limits")?.evidence).toContain("active_job_limit_exceeded");
     expect(status.verified_controls.find((control) => control.id === "job_observability")?.evidence).toContain("processingDurationMs");
     expect(status.verified_controls.find((control) => control.id === "queued_worker")?.evidence).toContain("/v1/qc/jobs/drain");

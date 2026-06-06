@@ -62,7 +62,7 @@
     "Use qc_run_local_file for reachable local videos, podcasts, clips, stills, and NPO audio files.",
     "Small local files are encoded inline and evaluated through Render temp storage.",
     "Large local files use signed upload automatically in upload_mode auto.",
-    "Run qc_get_cost_basis before model-backed checks or deep review.",
+    "Run qc_get_cost_basis before internal model-backed checks.",
     "Do not claim Product Hunt launch readiness until qc_get_launch_status reports product_hunt_ready true and no remaining blockers."
   ]
 }

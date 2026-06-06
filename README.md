@@ -81,7 +81,7 @@ Persistence state:
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
 - Render cron can run `node scripts/drain-webhooks.mjs` with `UPLOADCHECK_API_KEY`, `UPLOADCHECK_API_BASE_URL`, and `UPLOADCHECK_DRAIN_LIMIT` to process due deliveries on a schedule.
 - Report reads append rounded-minute usage ledger entries.
-- Usage metering is idempotent per job and billing period; declared jobs with `plan_id` plus `minutes`, `duration_seconds`, or `ai_review_seconds` are rejected with `usage_limit_exceeded` before QC if they would exceed included plan minutes or AI-review seconds.
+- Usage metering is idempotent per job and billing period; declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they would exceed included deterministic QC minutes.
 - Abuse limits fail fast before QC compute: `duration_limit_exceeded`, `upload_size_limit_exceeded`, and `active_job_limit_exceeded`. Defaults are 240 minutes, 2048 MB, and 25 active jobs, configurable with `UPLOADCHECK_MAX_DURATION_MINUTES`, `UPLOADCHECK_MAX_UPLOAD_MB`, and `UPLOADCHECK_MAX_ACTIVE_JOBS`.
 - `uploadcheck usage` reads `/v1/usage/margins` and prints current estimated COGS, cost/minute, and gross margin.
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
@@ -93,9 +93,9 @@ Persistence state:
 - External full-video gate outputs can be imported with `/v1/qc/jobs/{job_id}/gate-verdict`; imported findings become stored flags, reports, marker CSV rows, and webhook-triggering job verdicts.
 - Reference full-video gate scripts live under `scripts/qc-engine/`.
 - `supabase/schema.sql` includes workspace membership and RLS policies for the production persistence model.
-- Production persistence currently uses the server-side JsonStore; launch-ready persistence requires `UPLOADCHECK_STORE_PATH` outside temp storage, for example `/mnt/uploadcheck-data/store.json`. Supabase remains the future multi-workspace persistence target until a server adapter is wired.
-- Production still needs hosted `UPLOADCHECK_SECRET_ENCRYPTION_KEY` configuration with a generated strong key and legacy webhook secret migration.
-- Durable upload retention can use a mounted storage path via `UPLOADCHECK_DURABLE_STORAGE_DIR`; object-storage buckets remain the next storage adapter.
+- Production persistence currently uses the server-side JsonStore; launch-ready persistence uses `UPLOADCHECK_STORE_PATH` outside temp storage, currently `/mnt/uploadcheck/store.json` on Render. Supabase remains the future multi-workspace persistence target until a server adapter is wired.
+- Hosted `UPLOADCHECK_SECRET_ENCRYPTION_KEY` is configured on Render for new encrypted webhook signing secrets; legacy plaintext webhook records still need migration when they exist.
+- Durable upload retention uses mounted storage through `UPLOADCHECK_DURABLE_STORAGE_DIR`; object-storage buckets remain the next storage adapter.
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
 - `/v1/launch-status` derives a live machine-readable launch go/no-go summary from readiness, including current blockers and operator commands.
 - `/launch-status.json` publishes machine-readable completed controls, current blockers, operator commands, and Product Hunt go/no-go rules; `npm run launch-status:generate` rebuilds it with the Product Hunt kit, and `npm run launch-status:verify` keeps it aligned with readiness and public agent metadata.

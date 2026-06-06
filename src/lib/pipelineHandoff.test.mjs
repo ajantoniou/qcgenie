@@ -56,14 +56,14 @@ describe("UploadCheck production pipeline handoff", () => {
     const launchKit = readJson("public/product-hunt-launch-kit.json");
     const llms = readFileSync(resolve("public/llms.txt"), "utf8");
 
-    expect(manifest.pipeline_handoff_url).toBe("https://qcgenie-api.onrender.com/pipeline-handoff.json");
+    expect(manifest.pipeline_handoff_url).toBe("https://api.uploadcheck.app/pipeline-handoff.json");
     expect(manifest.tools).toContain("qc_get_pipeline_handoff");
     expect(manifest.primary_endpoints).toContain("GET /pipeline-handoff.json");
     expect(manifest.agent_workflow.join("\n")).toContain("GET /pipeline-handoff.json");
     expect(openapi.paths["/pipeline-handoff.json"].get.security).toEqual([]);
-    expect(launchStatus.public_artifacts.pipeline_handoff).toBe("https://qcgenie-api.onrender.com/pipeline-handoff.json");
-    expect(launchKit.public_links.pipeline_handoff).toBe("https://qcgenie-api.onrender.com/pipeline-handoff.json");
-    expect(llms).toContain("https://qcgenie-api.onrender.com/pipeline-handoff.json");
+    expect(launchStatus.public_artifacts.pipeline_handoff).toBe("https://api.uploadcheck.app/pipeline-handoff.json");
+    expect(launchKit.public_links.pipeline_handoff).toBe("https://api.uploadcheck.app/pipeline-handoff.json");
+    expect(llms).toContain("https://api.uploadcheck.app/pipeline-handoff.json");
     expect(llms).toContain("launch status, launch handoff, recipes, cost basis");
   });
 });

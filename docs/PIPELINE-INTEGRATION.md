@@ -193,7 +193,7 @@ Agent repair loop:
 
 ## Cost Guard
 
-Job responses include `costEstimate`. The current roadmap verdict is that `$99 / 5000 minutes` is not margin-safe for every creator account if every minute receives full multimodal AI review. It is viable only when deterministic scan minutes are the billable baseline and expensive model calls are sampled or reserved for flagged regions.
+Job responses include `costEstimate`. The current roadmap verdict is that customer pricing should sell deterministic publish-readiness QC minutes. Expensive model calls remain an internal engine-improvement, backtesting, and deterministic capture-rate measurement path.
 
 Cost guardrail controls:
 

@@ -165,7 +165,7 @@ describe("agentic integration contract", () => {
     const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
 
     expect(manifest.pricing_guardrail_note).toMatchObject({
-      included_minutes_mean: "deterministic pre-upload QC minutes",
+      included_minutes_mean: "deterministic publish-readiness QC minutes",
       stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute: 0.0157
     });
     expect(manifest.pricing_guardrail_note.model_backed_deep_review).toContain("95% gross-margin target");

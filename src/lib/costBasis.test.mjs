@@ -80,10 +80,34 @@ describe("public cost basis", () => {
     }
   });
 
+  it("publishes doubled deterministic launch minutes without public AI-review allowance", () => {
+    const basis = readJson("public/cost-basis.json");
+
+    expect(basis.plans.find((plan) => plan.plan_id === "creator")).toMatchObject({
+      price_cents: 9900,
+      included_minutes: 2400,
+      ai_review_budget_seconds: 0,
+      deterministic_full_allowance_gross_margin_pct: 97.9806
+    });
+    expect(basis.plans.find((plan) => plan.plan_id === "studio")).toMatchObject({
+      price_cents: 29900,
+      included_minutes: 10000,
+      ai_review_budget_seconds: 0,
+      deterministic_full_allowance_gross_margin_pct: 97.214
+    });
+    expect(basis.plans.find((plan) => plan.plan_id === "network")).toMatchObject({
+      price_cents: 79900,
+      included_minutes: 36000,
+      ai_review_budget_seconds: 0,
+      deterministic_full_allowance_gross_margin_pct: 96.2468
+    });
+    expect(basis.verdict.launch_shape).toContain("Creator $99 / 2,400");
+  });
+
   it("links cost basis from the public agent manifest", () => {
     const manifest = readJson("public/agent-manifest.json");
 
-    expect(manifest.cost_basis_url).toBe("https://qcgenie-api.onrender.com/cost-basis.json");
+    expect(manifest.cost_basis_url).toBe("https://api.uploadcheck.app/cost-basis.json");
     expect(manifest.tools).toContain("qc_get_cost_basis");
     expect(manifest.primary_endpoints).toContain("GET /cost-basis.json");
   });

@@ -16,11 +16,11 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
   requiredText(errors, "pricing", pricing, [
     "UploadCheck Pricing",
     "$99/mo",
-    "1,200 checked minutes",
+    "2,400 checked minutes",
     "$299/mo",
-    "5,000 checked minutes",
-    "0.0157 COGS cents/minute",
-    "95% gross-margin target"
+    "10,000 checked minutes",
+    "Deep model review stays internal",
+    "deterministic capture-rate measurement"
   ]);
   requiredText(errors, "sample_report", sampleReport, [
     "Sample UploadCheck Report",
@@ -51,8 +51,8 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
     "https://uploadcheck.app/product-hunt/",
     "https://uploadcheck.app/pricing/",
     "https://uploadcheck.app/sample-report/",
-    "https://qcgenie-api.onrender.com/v1/launch-evidence",
-    "Checked minutes are deterministic pre-upload QC minutes"
+    "https://api.uploadcheck.app/v1/launch-evidence",
+    "Checked minutes are deterministic publish-readiness QC minutes"
   ]);
   if (!demo?.ok) {
     errors.push(error("demo_clip", "missing_demo_clip", "Demo clip must return HTTP 200."));

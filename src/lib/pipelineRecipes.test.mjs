@@ -100,7 +100,7 @@ describe("UploadCheck pipeline recipes", () => {
   it("links pipeline recipes from the public agent manifest", () => {
     const manifest = readJson("public/agent-manifest.json");
 
-    expect(manifest.pipeline_recipes_url).toBe("https://qcgenie-api.onrender.com/pipeline-recipes.json");
+    expect(manifest.pipeline_recipes_url).toBe("https://api.uploadcheck.app/pipeline-recipes.json");
     expect(manifest.tools).toContain("qc_get_pipeline_recipes");
     expect(manifest.primary_endpoints).toContain("GET /pipeline-recipes.json");
     expect(manifest.pipeline_profiles.map((profile) => profile.id)).toEqual([

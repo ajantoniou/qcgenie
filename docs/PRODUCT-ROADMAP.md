@@ -38,9 +38,9 @@ Derived unit economics:
 | OpenAI gpt-4o-transcribe every minute | `$0.006` | `$30.00` | about `69.7%` |
 | OpenAI GPT-Realtime-Whisper every minute | `$0.017` | `$85.00` | about `14.1%` |
 
-Pricing verdict: `$99 / 5,000 minutes` is too generous if every minute receives full Omni/video or hosted transcription. It can work only if most minutes are deterministic-only and AI review is limited to flagged/sampled windows. Launch pricing should either cut included minutes to `1,000-2,000`, meter Omni separately, or define `5,000 deterministic scan minutes` plus a smaller AI-review allowance.
+Pricing verdict: `$99 / 5,000 minutes` is too generous if it implies unlimited full-video AI review. Customer pricing should sell deterministic publish-readiness QC minutes, not AI review minutes. At `0.0833` COGS cents/minute for deterministic scanning, launch pricing can safely double the included minutes to `Creator $99 / 2,400`, `Studio $299 / 10,000`, and `Network $799 / 36,000` while staying above the 95% gross-margin target. Full-model review stays internal for backtesting, roadmap generation, and deterministic capture-rate measurement.
 
-Cost-per-minute target: at `$99 / 5,000`, the COGS ceiling is `$0.00099` per minute. Deterministic-only Render compute at 1x realtime is about `$0.000833` per minute before bandwidth/storage/retries, leaving only about `$0.000157` per minute of overhead. Full Gemini 2.5 Flash-Lite video+audio input alone is about `$0.002154` per media minute before output, Gemini 2.5 Flash Batch/Flex is about `$0.001664`, and Qwen3.5-Omni-Flash full video+audio input is about `$0.012072`; all break the stress-plan target before output. The margin-safe launch shape is therefore deterministic scan minutes plus a capped AI-review allowance, not unlimited full-video AI minutes.
+Cost-per-minute target: at `$99 / 2,400`, the deterministic-only full-allowance COGS is about `$1.9992`, or about `97.98%` gross margin. At `$299 / 10,000`, deterministic full-allowance COGS is about `$8.33`, or about `97.21%` gross margin. At `$799 / 36,000`, deterministic full-allowance COGS is about `$29.988`, or about `96.25%` gross margin. Full Gemini/Qwen/hosted transcription still stays out of the customer meter and is used internally for backtesting, roadmap generation, and deterministic capture-rate measurement.
 
 Speech-cost update: current OpenAI `gpt-4o-mini-transcribe` is a lower-cost fallback than realtime Whisper and slightly below ElevenLabs Scribe, but it still costs about `0.3` cents/minute. Running it across all `5,000` included stress-plan minutes would cost about `$15` before deterministic compute, so it remains a paid/sampled-window path, not a default included-minute path.
 
@@ -70,10 +70,10 @@ Preflight model-backed check pricing is now calibrated from that observed cost: 
 2. Cap full Omni/video review to sampled windows, flagged windows, and paid escalations.
 3. Add a per-job `cost_estimate` object with deterministic compute, AI input, AI output, storage, and bandwidth fields.
 4. Add an account-level cost guardrail that blocks or downgrades Omni when COGS exceeds the plan budget. Implemented first for caller-declared `ai_review_seconds` with `downgrade`, `block`, and `off` modes.
-5. Add an `ai_review_budget_seconds` field per plan.
-6. Add a `deterministic_minutes` vs `ai_review_seconds` usage split.
+5. Keep customer billing on deterministic checked minutes.
+6. Track internal model-review spend separately from customer minutes.
 7. Add a “margin mode” default: deterministic scan all, Omni only suspicious windows.
-8. Add a “deep review” paid add-on for full multimodal review.
+8. Use model review internally for deterministic capture-rate backtesting and roadmap generation.
 9. Prefer Gemini 2.5 Flash-Lite or queued Gemini 2.5 Flash Batch/Flex for advisory windows; keep Qwen/Omni for selected private escalations.
 10. Avoid hosted transcription on all minutes; run transcription only when garble/caption checks require it.
 
@@ -112,7 +112,7 @@ Preflight model-backed check pricing is now calibrated from that observed cost: 
 35. Show the agent transcript: `/check`, results, fixable items, human-only items.
 36. Add transparent “deterministic checks decide verdict” copy.
 37. Add privacy copy: ephemeral processing by default, durable storage only when configured.
-38. Add pricing copy that distinguishes scan minutes from deep AI review.
+38. Add pricing copy that sells deterministic publish-readiness QC minutes.
 39. Add an ROI proof section: fewer re-uploads, fewer client revision loops, safer publishing.
 40. Add Product Hunt-ready demo assets.
 
@@ -125,7 +125,7 @@ Preflight model-backed check pricing is now calibrated from that observed cost: 
 45. Add per-workspace API keys with hashed storage and scopes.
 46. Add webhook retries and signed delivery headers under UploadCheck naming while retaining legacy compatibility.
 47. Add observability for job duration, model usage, compute time, and failure reasons.
-48. Add billing enforcement for included minutes and AI-review add-ons.
+48. Add billing enforcement for included deterministic QC minutes.
 49. Add abuse limits for file size, duration, concurrent jobs, and repeated retries.
 50. Run a Product Hunt launch checklist only after cost telemetry proves the plan can hold margin.
 
@@ -225,7 +225,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO-derived `clean_segment_source_scrub` deterministic source-preflight gate added to `scripts/qc-engine/check_clean_segment_source_scrub.py`, included in `run_gate.py`, and exposed in pipeline recipes for source clips/storybook rows before b-roll references.
 - Done: NTO-derived `asset_triage_reuse_manifest` deterministic post-run manifest gate added to `scripts/qc-engine/check_asset_triage_reuse_manifest.py`, included in `run_gate.py`, and exposed in pipeline recipes for post-ship reusable-asset retention and cleanup discipline.
 - Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
-- Done: plan-aware cost guardrail added for declared AI-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked.
+- Done: plan-aware cost guardrail added for internal model-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked, but public plans sell deterministic checked minutes.
 - Done: first per-check model-call accounting added for `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch`; in downgrade mode, margin-breaking model-backed checks are removed before the engine runs.
 - Done: preflight cost estimation added through `POST /v1/qc/estimate`, CLI `uploadcheck estimate`, and MCP `qc_estimate_cost`, so agents can check effective/removed gates before sending media to Render.
 - Done: public cost-basis access added through MCP `qc_get_cost_basis` and CLI `uploadcheck cost-basis --json`, so agents can fetch cost/minute and the `$99 / 5,000` stress-plan warning before pricing or model-backed review decisions.
@@ -305,8 +305,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: hosted public-artifacts verifier added through `npm run live-public-artifacts:verify`; launch doctor now blocks if Render serves stale `/launch-status.json`, `/product-hunt-launch-kit.json`, `/sample-reports/index.json`, individual PASS/WATCH/BLOCK sample report JSON, or `/llms.txt` that omit launch-evidence, cost, sample-report, clone-crowd BLOCK, repair-loop, or public go/no-go proof.
 - Done: hosted web-artifacts verifier added through `npm run live-web-artifacts:verify`; launch doctor now blocks if Product Hunt, pricing, sample-report, agentic API, sitemap, `llms.txt`, or demo MP4 web artifacts are missing or stale on `uploadcheck.app`.
 - Done: `/cost-basis.json` now publishes remaining COGS budget after deterministic scanning for every plan; the `$99 / 5,000` stress plan exposes only `0.0157` COGS cents/minute of post-deterministic overhead before the 95% margin target breaks.
-- Done: Pricing pages and `agent-manifest.json` now state that checked minutes are deterministic scan minutes and that the old `$99 / 5,000` stress plan is not unlimited full-video AI review.
-- Done: `llms.txt` now repeats the deterministic-minutes pricing guardrail so answer engines and crawler-first agents do not infer unlimited AI review from the public plan names.
+- Done: Pricing pages, `agent-manifest.json`, and `llms.txt` now state that checked minutes are deterministic publish-readiness QC minutes and that deep model review stays internal for engine backtesting, roadmap generation, and deterministic capture-rate measurement.
 - Done: roadmap verifier added through `npm run roadmap:verify`, checking the 50-point plan sequence, expert-panel coverage, NTO replacement addendum, and execution-status markers.
 - Done: observed provider usage is now captured from real QC engine calls. Anthropic frame checks preserve token usage, DashScope/OpenRouter Omni calls preserve OpenAI-compatible usage when present, Scribe checks preserve request/audio seconds, and `VERDICT.json`, job reports, and margin telemetry expose rollups for cost reconciliation.
 - Done: observed provider usage is now priced into post-run COGS. Reports and `/v1/usage/margins` distinguish estimated preflight COGS from observed provider COGS, observed total COGS, observed cost/minute, and observed gross margin.
@@ -315,13 +314,13 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: public cost basis now includes a primary-source pricing audit and OpenAI transcription alternatives. `gpt-4o-mini-transcribe` is tracked at `0.3` cents/minute for observed COGS, but still marked unsafe for default every-minute transcription on the `$99 / 5,000` stress plan.
 - Done: billing enforcement for included minutes added. Usage metering is idempotent per job and billing period, and declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they exceed included plan minutes.
 - Done: completed jobs now record usage and cost snapshots at completion time, so margin telemetry does not depend on a later report fetch; unknown-duration no-run fallbacks no longer invent a 19-minute charge.
-- Done: plan-level AI-review budgets added to the cost model and public cost basis. Creator includes `3,600` AI-review seconds, Studio `7,200`, Network `21,600`, and the `$99 / 5,000` stress plan includes `0`; declared jobs that exceed the cumulative allowance return `usage_limit_exceeded` before QC.
+- Done: public plan AI-review budgets are set to `0`; the sold unit is deterministic QC minutes, while model-backed review is treated as an internal engine-improvement path.
 - Done: abuse limits added for file size, declared duration, and active job concurrency. Job/upload requests now fail fast with `duration_limit_exceeded`, `upload_size_limit_exceeded`, or `active_job_limit_exceeded` before QC compute or storage spend.
 - Done: job observability added for duration, stage timing, provider-usage count, engine mode, and fallback failure reasons. Job responses and reports now preserve `startedAt`, `completedAt`, `processingDurationMs`, `observability.stages`, and `failureReason`.
 - Done: queued worker execution added. `POST /v1/qc/jobs` can accept `process_async=true`, leaving the job queued, and `POST /v1/qc/jobs/drain` processes queued jobs for Render cron/workflow execution.
 - Done: queued worker sidecar URLs added. Async jobs can now persist HTTPS `manifest_url`, `transcript_url`, `watchlist_url`, `expected_script_url`, and `chunk_sidecars_url`; `POST /v1/qc/jobs/drain` fetches them into temporary storage for the gate run while public job/report responses expose only sanitized `sidecarIngress`.
-- Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
-- Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or an UploadCheck Lemon Squeezy product with Creator/Studio/Network monthly variant IDs configured on Render before launch. `npm run launch:checkout-discover` now verifies whether those variants exist and reports the exact missing plan env keys.
-- Next: use observed provider COGS from live Render runs to set final AI-review allowances per plan.
-- Next: cut over `uploadcheck.app` DNS/custom domains and decide whether to keep legacy Render slugs or recreate services for `uploadcheck-*` subdomains.
-- Partial: Product Hunt launch page, public report examples, and bundled demo clip exist; final launch still needs custom-domain cutover, live checkout proof, mounted persistence/storage envs, and generated secret encryption key configuration.
+- Done: launch pricing is updated to `Creator $99 / 2,400 minutes`, `Studio $299 / 10,000 minutes`, and `Network $799 / 36,000 minutes`; public cost-basis and hosted cost-basis verifiers now pass against live Render.
+- Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or an UploadCheck Lemon Squeezy product with Creator/Studio/Network monthly variant IDs configured on Render before launch. `npm run launch:checkout-discover` verifies whether those variants exist and currently reports all three UploadCheck plan variants missing from the configured Lemon Squeezy store.
+- Next: create the UploadCheck Lemon Squeezy subscription product with monthly Creator `$99`, Studio `$299`, and Network `$799` variants, then apply the resulting checkout env to Render and run `UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout`.
+- Next: decide whether to keep legacy immutable Render slugs (`qcgenie-web`, `qcgenie-api`) behind the verified UploadCheck custom domains or recreate services for `uploadcheck-*` Render subdomains.
+- Partial: Product Hunt launch page, public report examples, bundled demo clip, custom domains, mounted persistence/storage envs, and hosted secret encryption are live enough for readiness; final launch still needs live checkout proof.

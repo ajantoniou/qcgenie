@@ -689,8 +689,8 @@ describe("UploadCheck CLI request builder", () => {
         remaining_cost_per_minute_after_deterministic_full_allowance_cents: 0.0157
       }],
       verdict: {
-        stress_99_5000: "$99 for 5,000 checked minutes is too generous for unlimited full-video AI review."
+        stress_99_5000: "$99 for 5,000 checked minutes is too generous for full-model review. Public pricing stays deterministic QC minutes."
       }
-    })).toBe("UploadCheck cost basis: target margin 95% | $99/5,000 remaining post-deterministic COGS 0.0157c/min | $99 for 5,000 checked minutes is too generous for unlimited full-video AI review.");
+    })).toBe("UploadCheck cost basis: target margin 95% | $99/5,000 remaining post-deterministic COGS 0.0157c/min | $99 for 5,000 checked minutes is too generous for full-model review. Public pricing stays deterministic QC minutes.");
   });
 });

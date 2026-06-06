@@ -60,11 +60,11 @@ export function buildProductHuntLaunchKit(status) {
       live_launch_evidence: artifacts.live_launch_evidence
     },
     pricing_position: {
-      creator: "$99/mo for 1,200 checked minutes",
-      studio: "$299/mo for 5,000 checked minutes",
-      network: "$799/mo for 18,000 checked minutes",
-      margin_rule: "Included minutes cover deterministic pre-upload QC. Model-backed deep review is preflighted and may be downgraded or sold separately when it would break the 95% gross-margin target.",
-      stress_plan_verdict: "$99 for 5,000 checked minutes is too generous for unlimited full-video AI review."
+      creator: "$99/mo for 2,400 checked minutes",
+      studio: "$299/mo for 10,000 checked minutes",
+      network: "$799/mo for 36,000 checked minutes",
+      margin_rule: "Included minutes cover deterministic publish-readiness QC. Deep model review stays internal for engine backtesting, roadmap generation, and deterministic capture-rate measurement so public plans preserve the 95% gross-margin target.",
+      stress_plan_verdict: "$99 for 5,000 checked minutes is too generous for full-model review; public pricing stays deterministic QC minutes."
     },
     ready_when: {
       product_hunt_ready: true,

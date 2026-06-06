@@ -563,7 +563,7 @@
                     "type": "integer"
                   },
                   "ai_review_seconds": {
-                    "description": "Declared paid AI-review seconds requested for the job. Deterministic checks do not require this.",
+                    "description": "Internal or explicitly authorized model-review seconds for cost guardrails. Public included minutes are deterministic QC minutes.",
                     "type": "number"
                   },
                   "cost_guardrail": {

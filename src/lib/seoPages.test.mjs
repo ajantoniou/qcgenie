@@ -45,14 +45,16 @@ describe("static SEO/AEO pages", () => {
     expect(html).toContain("/product-hunt-launch-kit.json");
   });
 
-  it("keeps pricing honest about deep-review cost guardrails", () => {
+  it("keeps pricing focused on deterministic publish-readiness minutes", () => {
     const html = readFileSync("public/pricing/index.html", "utf8");
 
-    expect(html).toContain("Included minutes cover deterministic pre-upload QC");
-    expect(html).toContain("0.0157 COGS cents/minute");
-    expect(html).toContain("unlimited full-video AI review is not included");
-    expect(html).toContain("model-backed deep review is preflighted");
-    expect(html).toContain("95% gross-margin target");
+    expect(html).toContain("Creator includes 2,400 checked minutes/month");
+    expect(html).toContain("Studio includes 10,000 checked minutes/month");
+    expect(html).toContain("Network includes 36,000 checked minutes/month");
+    expect(html).toContain("Included minutes cover deterministic publish-readiness QC");
+    expect(html).toContain("Deep model review stays internal");
+    expect(html).toContain("deterministic capture-rate measurement");
+    expect(html).not.toContain("unlimited full-video AI review");
     expect(html).not.toContain("We never block a check");
   });
 

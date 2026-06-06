@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const DEFAULT_BASE_URL = "https://qcgenie-api.onrender.com";
+const DEFAULT_BASE_URL = "https://api.uploadcheck.app";
 
 export function validateLaunchStatusArtifact(payload) {
   const errors = [];
@@ -67,8 +67,8 @@ export function validateProductHuntLaunchKitArtifact(payload) {
       errors.push(error(`product_hunt_launch_kit.public_links.${key}`, "missing_public_link", `Missing public link for ${key}.`));
     }
   }
-  if (payload?.pricing_position?.studio !== "$299/mo for 5,000 checked minutes") {
-    errors.push(error("product_hunt_launch_kit.pricing_position.studio", "wrong_studio_price", "Product Hunt kit must preserve Studio $299 / 5,000 checked minutes."));
+  if (payload?.pricing_position?.studio !== "$299/mo for 10,000 checked minutes") {
+    errors.push(error("product_hunt_launch_kit.pricing_position.studio", "wrong_studio_price", "Product Hunt kit must preserve Studio $299 / 10,000 checked minutes."));
   }
   if (!String(payload?.pricing_position?.stress_plan_verdict || "").includes("too generous")) {
     errors.push(error("product_hunt_launch_kit.pricing_position.stress_plan_verdict", "missing_stress_verdict", "Product Hunt kit must preserve the $99 / 5,000 warning."));
@@ -176,11 +176,11 @@ export function validateLlmsArtifact(text) {
     "Quality check videos, podcasts, and clips before you upload.",
     "MCP server name: uploadcheck.",
     "CLI/package options: @uploadcheck/cli and @uploadcheck/mcp.",
-    "https://qcgenie-api.onrender.com/product-hunt-launch-kit.json",
-    "https://qcgenie-api.onrender.com/sample-reports/index.json",
-    "https://qcgenie-api.onrender.com/v1/launch-evidence",
-    "Checked minutes are deterministic pre-upload QC minutes",
-    "0.0157 COGS cents/minute",
+    "https://api.uploadcheck.app/product-hunt-launch-kit.json",
+    "https://api.uploadcheck.app/sample-reports/index.json",
+    "https://api.uploadcheck.app/v1/launch-evidence",
+    "Checked minutes are deterministic publish-readiness QC minutes",
+    "deterministic capture-rate measurement",
     "NTO/NPO pipeline profiles"
   ];
   for (const value of required) {

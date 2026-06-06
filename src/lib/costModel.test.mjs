@@ -16,10 +16,19 @@ describe("cost model", () => {
     expect(estimate.warning).toContain("Full-video Gemini review exceeds");
   });
 
-  it("exposes conservative AI-review seconds per paid plan", () => {
-    expect(estimateJobCost({ planId: "creator", minutesMetered: 1200 }).aiReviewBudgetSeconds).toBe(3600);
-    expect(estimateJobCost({ planId: "studio", minutesMetered: 5000 }).aiReviewBudgetSeconds).toBe(7200);
-    expect(estimateJobCost({ planId: "network", minutesMetered: 18000 }).aiReviewBudgetSeconds).toBe(21600);
+  it("prices paid plans as deterministic QC minutes without public AI-review allowance", () => {
+    expect(estimateJobCost({ planId: "creator", minutesMetered: 2400 })).toMatchObject({
+      includedMinutes: 2400,
+      aiReviewBudgetSeconds: 0
+    });
+    expect(estimateJobCost({ planId: "studio", minutesMetered: 10000 })).toMatchObject({
+      includedMinutes: 10000,
+      aiReviewBudgetSeconds: 0
+    });
+    expect(estimateJobCost({ planId: "network", minutesMetered: 36000 })).toMatchObject({
+      includedMinutes: 36000,
+      aiReviewBudgetSeconds: 0
+    });
   });
 
   it("marks sampled AI review as unsafe when it crosses the per-minute budget", () => {

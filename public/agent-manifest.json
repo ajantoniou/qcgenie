@@ -24,30 +24,31 @@
     {
       "plan": "Creator",
       "price_usd_monthly": 99,
-      "included_checked_minutes": 1200,
+      "included_checked_minutes": 2400,
       "positioning": "Best for most creators",
       "overage_usd_per_minute": 0.12
     },
     {
       "plan": "Studio",
       "price_usd_monthly": 299,
-      "included_checked_minutes": 5000,
+      "included_checked_minutes": 10000,
       "positioning": "Best value for teams",
       "overage_usd_per_minute": 0.09
     },
     {
       "plan": "Network",
       "price_usd_monthly": 799,
-      "included_checked_minutes": 18000,
+      "included_checked_minutes": 36000,
       "positioning": "High-volume",
       "overage_usd_per_minute": 0.06
     }
   ],
   "pricing_guardrail_note": {
-    "included_minutes_mean": "deterministic pre-upload QC minutes",
+    "included_minutes_mean": "deterministic publish-readiness QC minutes",
     "model_backed_deep_review": "preflighted, downgraded, blocked, or sold separately when it would break the 95% gross-margin target",
     "stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute": 0.0157,
-    "stress_99_5000_verdict": "$99 / 5,000 is too generous for unlimited full-video AI review."
+    "stress_99_5000_verdict": "$99 / 5,000 is too generous for full-model review; public pricing stays deterministic QC minutes.",
+    "deep_model_review_position": "Internal engine backtesting and deterministic capture-rate measurement, not a public minute allowance."
   },
   "answer_engine_topics": [
     "Video quality checker before YouTube upload",

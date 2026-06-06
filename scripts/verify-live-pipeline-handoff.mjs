@@ -101,7 +101,7 @@ export function validatePipelineHandoff(payload = {}) {
     errors.push({
       key: "margin_rules.stress_99_5000_verdict",
       reason: "missing_stress_verdict",
-      detail: "Pipeline handoff must warn that $99 / 5,000 is too generous for unlimited full-video AI review."
+      detail: "Pipeline handoff must warn that $99 / 5,000 is too generous for full-model review."
     });
   }
 

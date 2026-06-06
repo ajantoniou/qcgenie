@@ -14,14 +14,14 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "creator",
     name: "Creator",
     monthlyPrice: 99,
-    monthlyMinutes: 1200,
+    monthlyMinutes: 2400,
     checkoutLabel: "Start Creator"
   },
   studio: {
     id: "studio",
     name: "Studio",
     monthlyPrice: 299,
-    monthlyMinutes: 5000,
+    monthlyMinutes: 10000,
     checkoutLabel: "Upgrade Studio"
   }
 };

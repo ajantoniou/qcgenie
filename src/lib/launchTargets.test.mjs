@@ -52,7 +52,7 @@ describe("UploadCheck launch targets", () => {
   it("links launch targets from the public agent manifest", () => {
     const manifest = readJson("public/agent-manifest.json");
 
-    expect(manifest.launch_targets_url).toBe("https://qcgenie-api.onrender.com/launch-targets.json");
+    expect(manifest.launch_targets_url).toBe("https://api.uploadcheck.app/launch-targets.json");
   });
 
   it("keeps launch status DNS blockers aligned with launch targets", () => {

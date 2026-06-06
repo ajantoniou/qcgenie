@@ -67,17 +67,18 @@ Agent integration:
 - Local operators can run npm run launch:handoff -- --text for the redacted launch handoff, current blockers, required actions, and proof commands.
 
 Pricing:
-- Creator: $99/mo for 1,200 checked media minutes/month. Best for most creators.
-- Studio: $299/mo for 5,000 checked media minutes/month. Best value for teams.
-- Network: $799/mo for 18,000 checked media minutes/month. High-volume plan.
+- Creator: $99/mo for 2,400 checked media minutes/month. Best for most creators.
+- Studio: $299/mo for 10,000 checked media minutes/month. Best value for teams.
+- Network: $799/mo for 36,000 checked media minutes/month. High-volume plan.
 - Overage: Creator $0.12/min, Studio $0.09/min, Network $0.06/min after included minutes.
 - Plans are based on media minutes checked, not seats.
-- Checked minutes are deterministic pre-upload QC minutes; model-backed deep review is preflighted and may be downgraded, blocked, or sold separately when it would break the 95% gross-margin target.
-- The old $99 / 5,000 stress plan leaves only 0.0157 COGS cents/minute after deterministic scanning, so unlimited full-video AI review is not included.
+- Checked minutes are deterministic publish-readiness QC minutes.
+- Deep model review stays internal for engine backtesting, roadmap generation, and deterministic capture-rate measurement.
+- Deterministic capture rate against expert review is the product-quality metric to watch before increasing high-volume limits further.
 - Re-checks count because UploadCheck analyzes the actual media file each time.
-- Most serious solo creators are expected to fit around 300-900 checked minutes/month; 1,200 minutes gives room for weekly uploads, clip batches, and a few re-checks.
-- Heavy users are expected around 2,500-4,500 checked minutes/month.
-- Super-heavy users are expected around 10,000-16,000 checked minutes/month.
+- Most serious solo creators are expected to fit around 300-1,800 checked minutes/month; 2,400 minutes gives room for weekly uploads, clip batches, and repeated final checks.
+- Heavy users are expected around 4,000-8,500 checked minutes/month.
+- Super-heavy users are expected around 16,000-32,000 checked minutes/month.
 
 Search and answer topics:
 - Video quality checker before YouTube upload.
@@ -111,7 +112,7 @@ Crawlable public pages:
 - https://uploadcheck.app/product-hunt/ for launch copy, demo script, and proof points.
 
 FAQ:
-- How many checked minutes do most creators need per month? Most serious solo creators fit around 300-900 checked minutes, and the Creator plan includes 1,200.
+- How many checked minutes do most creators need per month? Most serious solo creators fit around 300-1,800 checked minutes, and the Creator plan includes 2,400.
 - Does /check work in Claude Code and Codex? Yes. Agents can call UploadCheck through the CLI, MCP server, or API and report timestamped evidence back in the same workspace.
 - What can UploadCheck fix automatically? UploadCheck returns evidence your agent can act on. Agents can usually fix captions, checklists, metadata, and reachable source files, while frozen video, garbled audio, and render defects may need a source or editor pass.
 - Does UploadCheck catch bad Shorts layout? Yes. The private gates include exact vertical-frame checks, black-gutter detection, text-card presence, OCR word safe-area checks, and text readability checks.

@@ -171,7 +171,7 @@ function verifiedControls() {
     {
       id: "billing_enforcement",
       status: "done",
-      evidence: "Plan usage metering is idempotent per job/billing period, and declared jobs that exceed included minutes or AI-review seconds return usage_limit_exceeded before QC runs."
+      evidence: "Plan usage metering is idempotent per job/billing period, and declared jobs that exceed included deterministic QC minutes return usage_limit_exceeded before QC runs."
     },
     {
       id: "abuse_limits",

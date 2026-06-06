@@ -60,8 +60,8 @@ describe("live public artifacts verifier", () => {
     ]));
   });
 
-  it("rejects llms text that implies unlimited AI review pricing", () => {
-    const llms = readFileSync(resolve("public/llms.txt"), "utf8").replace("0.0157 COGS cents/minute", "unlimited AI review");
+  it("rejects llms text missing deterministic capture-rate positioning", () => {
+    const llms = readFileSync(resolve("public/llms.txt"), "utf8").replace("deterministic capture-rate measurement", "unlimited AI review");
 
     expect(validateLlmsArtifact(llms).map((error) => error.reason)).toContain("missing_text");
   });

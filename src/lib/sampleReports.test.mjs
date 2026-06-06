@@ -69,8 +69,9 @@ describe("public sample reports", () => {
     expect(html).toContain("/sample-reports/duplicate-characters-block.json");
     expect(manifest.sample_reports_url).toBe("https://api.uploadcheck.app/sample-reports/index.json");
     expect(llms).toContain("https://api.uploadcheck.app/sample-reports/index.json");
-    expect(llms).toContain("Checked minutes are deterministic pre-upload QC minutes");
-    expect(llms).toContain("0.0157 COGS cents/minute");
-    expect(llms).toContain("unlimited full-video AI review is not included");
+    expect(llms).toContain("Checked minutes are deterministic publish-readiness QC minutes");
+    expect(llms).toContain("Deep model review stays internal");
+    expect(llms).toContain("deterministic capture-rate measurement");
+    expect(llms).not.toContain("unlimited full-video AI review is not included");
   });
 });

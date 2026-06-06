@@ -130,7 +130,7 @@
     "checked_minutes_mean": "deterministic pre-upload QC minutes",
     "default_cost_guardrail": "downgrade",
     "stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute": 0.0157,
-    "stress_99_5000_verdict": "$99 for 5,000 checked minutes is too generous for unlimited full-video AI review. It is only margin-safe as deterministic scan minutes with model-backed review capped, sampled, downgraded, or sold separately."
+    "stress_99_5000_verdict": "$99 for 5,000 checked minutes is too generous for full-model review. Public pricing stays deterministic QC minutes while model-backed review is used for internal backtesting and deterministic capture-rate measurement."
   },
   "repair_loop_contract": {
     "required_fetches": ["qc_get_report", "qc_get_marker_csv"],
