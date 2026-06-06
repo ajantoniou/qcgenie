@@ -48,6 +48,7 @@ Public API:
 - Public app: `https://qcgenie-web.onrender.com` while `uploadcheck.app` DNS/custom-domain cutover is pending. Render display name: `uploadcheck-web`.
 - Authenticated API: `https://qcgenie-api.onrender.com` while the Render legacy slug remains active. Render display name: `uploadcheck-api`.
 - OpenAPI: `https://qcgenie-api.onrender.com/openapi.json`
+- Launch readiness: `https://qcgenie-api.onrender.com/v1/readiness`
 - MCP wrapper package: `mcp-server/`
 - CLI package: `cli/`
 
@@ -70,6 +71,7 @@ Persistence state:
 - Reference full-video gate scripts live under `scripts/qc-engine/`.
 - `supabase/schema.sql` includes workspace membership and RLS policies for the production persistence model.
 - Production persistence still needs hosted `UPLOADCHECK_SECRET_ENCRYPTION_KEY` configuration, a live Supabase connection, advisor verification, legacy webhook secret migration, and storage buckets.
+- `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
 
 ## Stack
 

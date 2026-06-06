@@ -62,6 +62,17 @@
         }
       }
     },
+    "/v1/readiness": {
+      "get": {
+        "summary": "Launch readiness and operational configuration status",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "No-secret readiness report for checkout, custom domain, persistence, storage, and Product Hunt launch state"
+          }
+        }
+      }
+    },
     "/v1/qc/estimate": {
       "post": {
         "summary": "Preflight cost and margin estimate",
@@ -111,7 +122,7 @@
                   "idempotency_key": { "type": "string" },
                   "media_base64": { "type": "string" },
                   "media_content_type": { "type": "string" },
-                  "media_kind": { "type": "string", "enum": ["video", "audio"] },
+                  "media_kind": { "type": "string", "enum": ["video", "audio", "image"] },
                   "video_base64": { "type": "string" },
                   "video_content_type": { "type": "string" },
                   "audio_base64": { "type": "string" },

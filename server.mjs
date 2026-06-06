@@ -10,6 +10,7 @@ import { JsonStore } from "./server-store.mjs";
 import { cleanupInlineMedia, materializeInlineMedia } from "./inline-media.mjs";
 import { applyCostGuardrail, estimateJobCost } from "./cost-model.mjs";
 import { buildCheckoutUrl, normalizePlanId } from "./checkout-links.mjs";
+import { buildReadinessReport } from "./readiness.mjs";
 
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
@@ -36,6 +37,7 @@ createServer(async (req, res) => {
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
 
     if (url.pathname === "/healthz") return sendJson(res, 200, { ok: true, service: "uploadcheck" });
+    if (req.method === "GET" && url.pathname === "/v1/readiness") return getReadiness(req, res);
     if (req.method === "GET" && url.pathname === "/openapi.json") return serveStatic("/openapi.json", res);
     if (req.method === "GET" && /^\/checkout\/[^/]+$/.test(url.pathname)) return redirectCheckout(url, res);
     if (req.method === "POST" && url.pathname === "/v1/qc/estimate") return estimateQc(req, res);
@@ -88,6 +90,10 @@ async function estimateQc(req, res) {
     costEstimate: guardrail.estimate,
     originalCostEstimate: guardrail.originalEstimate || null
   });
+}
+
+function getReadiness(req, res) {
+  return sendJson(res, 200, buildReadinessReport({ host: req.headers.host || "" }));
 }
 
 async function createJob(req, res) {

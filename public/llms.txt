@@ -18,6 +18,7 @@ Agent integration:
 - MCP server name: uploadcheck.
 - CLI/package options: @uploadcheck/cli and @uploadcheck/mcp.
 - Slash command concept: /check.
+- Launch readiness check: GET /v1/readiness.
 - REST API preflight starts at POST /v1/qc/estimate; job lifecycle starts at POST /v1/qc/jobs.
 - OpenAPI: https://qcgenie-api.onrender.com/openapi.json
 - Hosted API base: https://qcgenie-api.onrender.com/v1
@@ -35,6 +36,7 @@ Agent integration:
 - Report reads append rounded-minute usage entries visible through GET /v1/usage.
 - Creating a QC job currently runs deterministic v0 processing immediately and stores lifecycle events, warning flags, and JSON/marker-export artifact records.
 - Marker exports are available as CSV at GET /v1/qc/jobs/{job_id}/artifacts/markers for editor handoff.
+- Product Hunt launch state should be verified with GET /v1/readiness before claiming checkout, custom domain, persistence, storage, demo clip, and launch readiness are complete.
 
 Pricing:
 - Creator: $99/mo for 1,200 checked media minutes/month. Best for most creators.
