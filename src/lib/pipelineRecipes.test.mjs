@@ -67,6 +67,7 @@ describe("UploadCheck pipeline recipes", () => {
     });
 
     expect(shorts.arguments.checks).toContain("shorts_format");
+    expect(shorts.arguments.checks).toContain("opening_footer_text_presence");
     expect(shorts.arguments.checks).toContain("first_three_seconds");
     expect(shorts.arguments.checks).toContain("end_screen_tease");
     expect(shorts.arguments.checks).toContain("sentence_boundary");
@@ -136,6 +137,10 @@ describe("UploadCheck pipeline recipes", () => {
       callable_check: "first_three_seconds"
     });
     expect(implemented.first_three_seconds.covers).toContain("Generic openings");
+    expect(implemented.opening_footer_text_presence).toMatchObject({
+      callable_check: "opening_footer_text_presence"
+    });
+    expect(implemented.opening_footer_text_presence.covers).toContain("0-3s hook card");
     expect(implemented.end_screen_tease).toMatchObject({
       callable_check: "end_screen_tease"
     });
