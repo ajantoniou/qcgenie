@@ -33,6 +33,7 @@ describe("public launch status", () => {
       "storage"
     ]);
     expect(status.operator_commands).toEqual(expect.arrayContaining([
+      "npm run launch:dns",
       "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
       "npm run codex:verify-install",
       "npm run cost-basis:verify",

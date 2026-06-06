@@ -33,6 +33,7 @@ export function buildLaunchStatus(readiness, {
     verified_controls: verifiedControls(),
     remaining_blockers: remainingBlockers(status),
     operator_commands: [
+      "npm run launch:dns",
       "npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env",
       "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
       "npm run render:plan",

@@ -1,7 +1,9 @@
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildLaunchCheck } from "../../launch-check.mjs";
+import { formatLaunchDns } from "../../launch-dns.mjs";
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(path), "utf8"));
@@ -27,6 +29,23 @@ describe("UploadCheck launch targets", () => {
       ["api", "qcgenie-api.onrender.com"]
     ]);
     expect(targets.verification_commands).toContain("curl -i https://qcgenie-api.onrender.com/v1/launch-status");
+  });
+
+  it("prints copy-paste DNS cutover records from launch-targets.json", () => {
+    const targets = readJson("public/launch-targets.json");
+    const formatted = formatLaunchDns(targets);
+    const cliOutput = execFileSync("npm", ["run", "--silent", "launch:dns"], {
+      cwd: resolve("."),
+      encoding: "utf8"
+    });
+
+    expect(cliOutput).toBe(`${formatted}\n`);
+    for (const record of targets.dns_records) {
+      expect(cliOutput).toContain(`| ${record.type} | ${record.name} | ${record.host} | ${record.target} |`);
+    }
+    for (const command of targets.verification_commands) {
+      expect(cliOutput).toContain(`- ${command}`);
+    }
   });
 
   it("links launch targets from the public agent manifest", () => {

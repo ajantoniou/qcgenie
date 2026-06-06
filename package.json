@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "start": "node server.mjs",
+    "launch:dns": "node scripts/launch-dns.mjs",
     "launch:check": "node scripts/launch-check.mjs",
     "launch-status:verify": "node scripts/verify-launch-status.mjs",
     "readiness:check": "node scripts/product-hunt-readiness.mjs",

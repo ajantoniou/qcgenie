@@ -67,6 +67,7 @@
       "npm run cost-basis:verify",
       "npm run roadmap:verify",
       "npm run launch-status:verify",
+      "npm run launch:dns",
       "npm run readiness:check",
       "npm run launch:check"
     ],
