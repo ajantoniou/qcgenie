@@ -75,7 +75,8 @@ describe("JsonStore", () => {
       expect(delivery).toMatchObject({
         webhookId: webhook.webhookId,
         eventType: "job.completed",
-        signatureHeader: "X-QCGenie-Signature"
+        signatureHeader: "X-UploadCheck-Signature",
+        legacySignatureHeader: "X-QCGenie-Signature"
       });
       expect(delivery.signature).toMatch(/^sha256=[a-f0-9]{64}$/);
       expect(delivery.signature).toBe(signPayload(webhook.signingSecret, JSON.stringify(delivery.payload)));

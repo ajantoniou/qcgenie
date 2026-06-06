@@ -365,7 +365,8 @@ export class JsonStore {
       url: endpoint.url,
       attemptCount: 0,
       nextAttemptAt: new Date().toISOString(),
-      signatureHeader: "X-QCGenie-Signature",
+      signatureHeader: "X-UploadCheck-Signature",
+      legacySignatureHeader: "X-QCGenie-Signature",
       signature: signPayload(signingSecret, encodedPayload),
       payload,
       createdAt: new Date().toISOString()

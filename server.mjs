@@ -542,6 +542,9 @@ async function sendWebhookDelivery(delivery) {
       headers: {
         "content-type": "application/json",
         [delivery.signatureHeader]: delivery.signature,
+        [delivery.legacySignatureHeader || "X-QCGenie-Signature"]: delivery.signature,
+        "x-uploadcheck-delivery-id": delivery.deliveryId,
+        "x-uploadcheck-event": delivery.eventType,
         "x-qcgenie-delivery-id": delivery.deliveryId,
         "x-qcgenie-event": delivery.eventType
       },

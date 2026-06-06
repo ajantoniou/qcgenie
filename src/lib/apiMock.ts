@@ -59,7 +59,8 @@ export interface WebhookDeliveryPreview {
   webhookId: string;
   eventType: string;
   jobId: string;
-  signatureHeader: "X-QCGenie-Signature";
+  signatureHeader: "X-UploadCheck-Signature";
+  legacySignatureHeader: "X-QCGenie-Signature";
   payload: {
     event: string;
     job_id: string;
@@ -154,7 +155,8 @@ export function previewWebhookDelivery(webhookId: string, eventType: string, job
     webhookId,
     eventType,
     jobId,
-    signatureHeader: "X-QCGenie-Signature",
+    signatureHeader: "X-UploadCheck-Signature",
+    legacySignatureHeader: "X-QCGenie-Signature",
     payload: {
       event: eventType,
       job_id: jobId,
