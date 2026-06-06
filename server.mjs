@@ -12,6 +12,7 @@ import { applyCostGuardrail, estimateJobCost, resolvePlanEconomics, summarizeUsa
 import { buildCheckoutUrl, normalizePlanId } from "./checkout-links.mjs";
 import { buildReadinessReport } from "./readiness.mjs";
 import { buildLaunchStatus } from "./launch-status.mjs";
+import { buildLaunchHandoff } from "./launch-handoff.mjs";
 import { getObjectStorageConfig, objectKeyForUpload, uploadFileToObjectStorage } from "./object-storage.mjs";
 
 const port = Number(process.env.PORT || 10000);
@@ -53,6 +54,7 @@ createServer(async (req, res) => {
     if (url.pathname === "/healthz") return sendJson(res, 200, { ok: true, service: "uploadcheck" });
     if (req.method === "GET" && url.pathname === "/v1/readiness") return getReadiness(req, res);
     if (req.method === "GET" && url.pathname === "/v1/launch-status") return getLaunchStatus(req, res);
+    if (req.method === "GET" && url.pathname === "/v1/launch-handoff") return getLaunchHandoff(req, res);
     if (req.method === "GET" && url.pathname === "/openapi.json") return serveStatic("/openapi.json", res);
     if (req.method === "GET" && /^\/checkout\/[^/]+$/.test(url.pathname)) return redirectCheckout(url, res);
     if (req.method === "POST" && url.pathname === "/v1/qc/estimate") return estimateQc(req, res);
@@ -116,6 +118,11 @@ function getReadiness(req, res) {
 function getLaunchStatus(req, res) {
   const readiness = buildReadinessReport({ host: req.headers.host || "" });
   return sendJson(res, 200, buildLaunchStatus(readiness, { generatedFrom: "live readiness" }));
+}
+
+function getLaunchHandoff(req, res) {
+  const readiness = buildReadinessReport({ host: req.headers.host || "" });
+  return sendJson(res, 200, buildLaunchHandoff(readiness, { generatedAt: readiness.generatedAt }));
 }
 
 async function createJob(req, res) {

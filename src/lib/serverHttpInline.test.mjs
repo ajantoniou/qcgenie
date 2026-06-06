@@ -50,6 +50,41 @@ describe("server inline media API", () => {
     }
   }, 20000);
 
+  it("serves live launch handoff derived from readiness without API auth", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-launch-handoff-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY_SHA256: "a".repeat(64),
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/launch-handoff`);
+      const payload = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(payload.name).toBe("UploadCheck.app Launch Handoff");
+      expect(payload.source).toBe("https://qcgenie-api.onrender.com/v1/readiness");
+      expect(payload.productHuntReady).toBe(false);
+      expect(payload.remainingBlockers.map((blocker) => blocker.id)).toContain("checkout");
+      expect(payload.requiredActions.map((action) => action.id)).toContain("checkout");
+      expect(payload.blockerProofCommands.find((blocker) => blocker.id === "checkout")?.commands).toContain("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
+      expect(payload.operatorCommandSequence).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+      expect(payload.rule).toContain("Do not launch on Product Hunt");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
   it("returns sanitized mediaIngress without exposing temporary source paths", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-inline-"));
     const port = 19000 + Math.floor(Math.random() * 1000);

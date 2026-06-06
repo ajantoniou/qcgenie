@@ -73,9 +73,11 @@ describe("public launch status", () => {
 
     expect(manifest.launch_status_url).toBe("https://qcgenie-api.onrender.com/launch-status.json");
     expect(manifest.live_launch_status_url).toBe("https://qcgenie-api.onrender.com/v1/launch-status");
+    expect(manifest.live_launch_handoff_url).toBe("https://qcgenie-api.onrender.com/v1/launch-handoff");
     expect(manifest.launch_handoff_command).toBe("npm run launch:handoff -- --text");
     expect(openapi.paths["/launch-status.json"].get.security).toEqual([]);
     expect(openapi.paths["/v1/launch-status"].get.security).toEqual([]);
+    expect(openapi.paths["/v1/launch-handoff"].get.security).toEqual([]);
   });
 
   it("builds live launch status from readiness checks", () => {
@@ -99,6 +101,7 @@ describe("public launch status", () => {
     expect(Object.values(status.status).every((value) => value === "pass")).toBe(true);
     expect(status.remaining_blockers).toEqual([]);
     expect(status.public_artifacts.live_launch_status).toBe("https://qcgenie-api.onrender.com/v1/launch-status");
+    expect(status.public_artifacts.live_launch_handoff).toBe("https://qcgenie-api.onrender.com/v1/launch-handoff");
     expect(status.public_artifacts.sample_reports).toBe("https://qcgenie-api.onrender.com/sample-reports/index.json");
     expect(status.public_artifacts.product_hunt_launch_kit).toBe("https://qcgenie-api.onrender.com/product-hunt-launch-kit.json");
   });

@@ -27,6 +27,7 @@ Agent integration:
 - Launch targets and DNS records: https://qcgenie-api.onrender.com/launch-targets.json
 - Machine-readable launch status and blockers: https://qcgenie-api.onrender.com/launch-status.json
 - Live machine-readable launch status and blockers: https://qcgenie-api.onrender.com/v1/launch-status
+- Live launch handoff, required actions, and proof commands: https://qcgenie-api.onrender.com/v1/launch-handoff
 - Product Hunt launch kit: https://qcgenie-api.onrender.com/product-hunt-launch-kit.json
 - Cost basis and margin assumptions: https://qcgenie-api.onrender.com/cost-basis.json
 - Public sample reports: https://qcgenie-api.onrender.com/sample-reports/index.json
@@ -54,6 +55,7 @@ Agent integration:
 - The machine-readable repair loop contract is in agent-manifest.json and pipeline-recipes.json. Agents must fetch qc_get_report and qc_get_marker_csv, show all flags grouped by BLOCK/WATCH/PASS, ask "Fix now?", apply only reachable fixes, return timestamped source/render instructions for unreachable media defects, and rerun UploadCheck before upload-ready claims.
 - Product Hunt launch state should be verified with GET /v1/readiness before claiming checkout, custom domain, persistence, storage, demo clip, and launch readiness are complete.
 - Agents can call GET /v1/launch-status for a live go/no-go summary derived from the same readiness checks plus operator commands and blockers.
+- Agents can call GET /v1/launch-handoff for the current blocker-specific required actions and proof commands, or run npm run launch:handoff -- --text locally.
 - Local operators can run npm run launch:handoff -- --text for the redacted launch handoff, current blockers, required actions, and proof commands.
 
 Pricing:

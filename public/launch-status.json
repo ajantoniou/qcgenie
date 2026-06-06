@@ -207,6 +207,7 @@
     "product_hunt_launch_kit": "https://qcgenie-api.onrender.com/product-hunt-launch-kit.json",
     "launch_status": "https://qcgenie-api.onrender.com/launch-status.json",
     "live_launch_status": "https://qcgenie-api.onrender.com/v1/launch-status",
+    "live_launch_handoff": "https://qcgenie-api.onrender.com/v1/launch-handoff",
     "product_hunt_page": "https://uploadcheck.app/product-hunt/",
     "demo_clip": "https://uploadcheck.app/demo/uploadcheck-product-hunt-demo.mp4"
   },

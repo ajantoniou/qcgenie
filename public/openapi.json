@@ -214,6 +214,20 @@
         }
       }
     },
+    "/v1/launch-handoff": {
+      "get": {
+        "summary": "Live Product Hunt launch handoff",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Live operator and agent handoff derived from readiness checks, including current blockers, required actions, proof commands, and the no-launch rule.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
     "/agent-manifest.json": {
       "get": {
         "summary": "UploadCheck agent manifest",
