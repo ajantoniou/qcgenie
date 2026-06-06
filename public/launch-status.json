@@ -75,6 +75,11 @@
       "evidence": "Plan usage metering is idempotent per job/billing period, and declared jobs that exceed included minutes or AI-review seconds return usage_limit_exceeded before QC runs."
     },
     {
+      "id": "abuse_limits",
+      "status": "done",
+      "evidence": "Job creation and upload reservation fail fast on duration_limit_exceeded, upload_size_limit_exceeded, and active_job_limit_exceeded."
+    },
+    {
       "id": "package_verify",
       "status": "done",
       "evidence": "npm run packages:verify checks @uploadcheck/cli and @uploadcheck/mcp pack contents."

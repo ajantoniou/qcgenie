@@ -52,6 +52,13 @@
     "header": "Authorization",
     "format": "Bearer <workspace_api_key>"
   },
+  "abuse_limits": {
+    "max_duration_minutes_default": 240,
+    "max_upload_mb_default": 2048,
+    "max_active_jobs_default": 25,
+    "config_env": ["UPLOADCHECK_MAX_DURATION_MINUTES", "UPLOADCHECK_MAX_UPLOAD_MB", "UPLOADCHECK_MAX_ACTIVE_JOBS"],
+    "fail_fast_errors": ["duration_limit_exceeded", "upload_size_limit_exceeded", "active_job_limit_exceeded"]
+  },
   "tools": [
     "qc_get_launch_status",
     "qc_estimate_cost",

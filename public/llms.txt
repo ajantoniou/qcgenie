@@ -41,6 +41,7 @@ Agent integration:
 - API keys are workspace-scoped and should be stored as connector secrets.
 - Agents should send idempotency_key on retries; repeated keys return the existing QC job instead of creating another run.
 - Agents should call qc_estimate_cost before sending large media or requesting model-backed checks; the estimate returns effective checks, removed checks, cost, and margin safety.
+- Abuse limits fail fast before QC compute: duration_limit_exceeded, upload_size_limit_exceeded, and active_job_limit_exceeded. Defaults are 240 minutes, 2048 MB, and 25 active jobs unless configured by UPLOADCHECK_MAX_DURATION_MINUTES, UPLOADCHECK_MAX_UPLOAD_MB, and UPLOADCHECK_MAX_ACTIVE_JOBS.
 - Webhook endpoints can receive job.completed and job.failed events with X-UploadCheck-Signature metadata. Legacy X-QCGenie-Signature aliases are still sent during migration.
 - Webhook signing secrets require a strong UPLOADCHECK_SECRET_ENCRYPTION_KEY for encrypted-at-rest storage; generate one with npm run --silent secret:generate.
 - Completed jobs enqueue signed webhook delivery records; delivery logs are available at GET /v1/webhooks/deliveries, manual retries at POST /v1/webhooks/deliveries/{delivery_id}/retry, and due pending delivery drains at POST /v1/webhooks/deliveries/drain.

@@ -21,6 +21,9 @@ const durableStorageDir = process.env.UPLOADCHECK_DURABLE_STORAGE_DIR || process
 const uploadStorageDir = durableStorageDir || uploadDir;
 const objectStorageConfig = getObjectStorageConfig();
 const uploadStorageMode = durableStorageDir ? "durable_filesystem" : (objectStorageConfig.configured ? "object_storage" : "render_temp_storage");
+const maxDurationMinutes = positiveNumberEnv("UPLOADCHECK_MAX_DURATION_MINUTES", 240);
+const maxUploadMb = positiveNumberEnv("UPLOADCHECK_MAX_UPLOAD_MB", 2048);
+const maxActiveJobs = positiveNumberEnv("UPLOADCHECK_MAX_ACTIVE_JOBS", 25);
 const store = new JsonStore(process.env.UPLOADCHECK_STORE_PATH || process.env.QCGENIE_STORE_PATH || "/tmp/uploadcheck/store.json", {
   secretEncryptionKey: process.env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || process.env.QCGENIE_SECRET_ENCRYPTION_KEY
 });
@@ -125,6 +128,8 @@ async function createJob(req, res) {
   const inlineExpectedScript = await materializeInlineExpectedScript(body);
   try {
     const declaredMinutes = estimateRequestedMinutes(body);
+    const abuseLimit = checkJobAbuseLimits(body, { declaredMinutes });
+    if (!abuseLimit.ok) return sendJson(res, abuseLimit.status, abuseLimit.payload);
     const guardrail = applyCostGuardrail(declaredMinutes ? { ...body, minutes: declaredMinutes } : body);
     if (!guardrail.ok) {
       return sendJson(res, 402, {
@@ -403,6 +408,15 @@ async function createUpload(req, res) {
   const auth = requireScope(req, "uploads:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
+  const sizeBytes = Number(body.size_bytes ?? body.sizeBytes ?? 0);
+  if (Number.isFinite(sizeBytes) && sizeBytes > maxUploadMb * 1024 * 1024) {
+    return sendJson(res, 413, {
+      error: "upload_size_limit_exceeded",
+      message: `Upload reservation exceeds ${maxUploadMb} MB limit.`,
+      maxUploadMb,
+      requestedBytes: sizeBytes
+    });
+  }
   return sendJson(res, 201, store.createUpload(body, { baseUrl: requestBaseUrl(req) }));
 }
 
@@ -416,6 +430,14 @@ async function putUploadContent(req, url, res) {
   const expected = Number(upload.sizeBytes || 0);
   const contentLength = Number(req.headers["content-length"] || 0);
   if (expected && contentLength && contentLength > expected) return sendJson(res, 413, { error: "upload_too_large" });
+  if (contentLength && contentLength > maxUploadMb * 1024 * 1024) {
+    return sendJson(res, 413, {
+      error: "upload_size_limit_exceeded",
+      message: `Upload content exceeds ${maxUploadMb} MB limit.`,
+      maxUploadMb,
+      requestedBytes: contentLength
+    });
+  }
 
   mkdirSync(uploadStorageDir, { recursive: true });
   const safeName = String(upload.filename || "upload.mp4").replace(/[^a-zA-Z0-9._-]+/g, "_");
@@ -505,6 +527,55 @@ function getUsageMargins(req, res) {
     summary: summarizeUsageMargins(entries),
     usageLedger: entries.slice(-50).reverse()
   });
+}
+
+function checkJobAbuseLimits(body = {}, { declaredMinutes = 0 } = {}) {
+  if (declaredMinutes && declaredMinutes > maxDurationMinutes) {
+    return {
+      ok: false,
+      status: 413,
+      payload: {
+        error: "duration_limit_exceeded",
+        message: `Declared media duration exceeds ${maxDurationMinutes} minute limit.`,
+        maxDurationMinutes,
+        requestedMinutes: declaredMinutes
+      }
+    };
+  }
+  const requestedBytes = Number(
+    body.size_bytes ??
+    body.sizeBytes ??
+    body.media_bytes ??
+    body.mediaBytes ??
+    body.inline_media?.bytes ??
+    0
+  );
+  if (Number.isFinite(requestedBytes) && requestedBytes > maxUploadMb * 1024 * 1024) {
+    return {
+      ok: false,
+      status: 413,
+      payload: {
+        error: "upload_size_limit_exceeded",
+        message: `Declared media size exceeds ${maxUploadMb} MB limit.`,
+        maxUploadMb,
+        requestedBytes
+      }
+    };
+  }
+  const activeJobs = store.listJobs({ limit: 100 }).filter((job) => ["queued", "ingesting", "metadata_probe", "deterministic_qc", "agent_review", "reporting"].includes(job.status)).length;
+  if (activeJobs >= maxActiveJobs) {
+    return {
+      ok: false,
+      status: 429,
+      payload: {
+        error: "active_job_limit_exceeded",
+        message: `Active job count has reached the ${maxActiveJobs} job limit.`,
+        maxActiveJobs,
+        activeJobs
+      }
+    };
+  }
+  return { ok: true };
 }
 
 async function createWebhook(req, res) {
@@ -747,6 +818,11 @@ function estimateRequestedMinutes(body = {}) {
   const durationSeconds = Number(body.duration_seconds ?? body.durationSeconds);
   if (Number.isFinite(durationSeconds) && durationSeconds > 0) return Math.ceil(durationSeconds / 60);
   return 0;
+}
+
+function positiveNumberEnv(name, fallback) {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
 function requireScope(req, requiredScope) {

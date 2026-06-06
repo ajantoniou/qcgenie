@@ -55,7 +55,7 @@ describe("public OpenAPI spec", () => {
 
   it("documents public machine-readable metadata endpoints", () => {
     const spec = loadSpec();
-    for (const path of ["/agent-manifest.json", "/pipeline-recipes.json", "/launch-targets.json", "/launch-status.json", "/cost-basis.json"]) {
+    for (const path of ["/agent-manifest.json", "/pipeline-recipes.json", "/launch-targets.json", "/launch-status.json", "/cost-basis.json", "/sample-reports/index.json"]) {
       expect(spec.paths[path].get.security).toEqual([]);
       expect(spec.paths[path].get.responses["200"].content["application/json"].schema).toEqual({ type: "object" });
     }
@@ -75,5 +75,17 @@ describe("public OpenAPI spec", () => {
     expect(spec.components.schemas.QcJob.properties.mediaIngress.properties.sha256.description).toContain("checked media bytes");
     expect(spec.components.schemas.QcJob.properties.mediaIngress.properties.storageMode.enum).toContain("render_temp_storage");
     expect(spec.components.schemas.QcJob.properties.sourceRedacted.description).toContain("local server path");
+  });
+
+  it("documents job abuse-limit inputs and fail-fast responses", () => {
+    const spec = loadSpec();
+    const jobPost = spec.paths["/v1/qc/jobs"].post;
+    const uploadPost = spec.paths["/v1/uploads"].post;
+
+    expect(jobPost.requestBody.content["application/json"].schema.properties.duration_seconds.description).toContain("abuse-limit");
+    expect(jobPost.requestBody.content["application/json"].schema.properties.size_bytes.description).toContain("abuse-limit");
+    expect(jobPost.responses["413"].description).toContain("abuse limit");
+    expect(jobPost.responses["429"].description).toContain("concurrency");
+    expect(uploadPost.responses["413"].description).toContain("maximum size");
   });
 });

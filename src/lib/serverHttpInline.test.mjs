@@ -105,6 +105,146 @@ describe("server inline media API", () => {
     }
   }, 20000);
 
+  it("rejects declared jobs that exceed the max duration limit", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-duration-limit-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const apiKey = "uck_test_duration_limit";
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_MAX_DURATION_MINUTES: "2",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/long-final.mp4",
+          source_type: "signed_url",
+          duration_seconds: 181,
+          checks: "canvas_fill"
+        })
+      });
+      const payload = await response.json();
+
+      expect(response.status).toBe(413);
+      expect(payload).toMatchObject({
+        error: "duration_limit_exceeded",
+        maxDurationMinutes: 2,
+        requestedMinutes: 4
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("rejects upload reservations that exceed the max upload size", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-upload-limit-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const apiKey = "uck_test_upload_limit";
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_MAX_UPLOAD_MB: "1",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/uploads`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          filename: "too-large.mp4",
+          content_type: "video/mp4",
+          size_bytes: 2 * 1024 * 1024
+        })
+      });
+      const payload = await response.json();
+
+      expect(response.status).toBe(413);
+      expect(payload).toMatchObject({
+        error: "upload_size_limit_exceeded",
+        maxUploadMb: 1,
+        requestedBytes: 2 * 1024 * 1024
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("rejects job creation when active job concurrency is exhausted", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-active-limit-"));
+    const storePath = join(dir, "store.json");
+    const seedStore = new JsonStore(storePath);
+    seedStore.createJob({ source: "https://example.com/already-running.mp4" });
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const apiKey = "uck_test_active_limit";
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_MAX_ACTIVE_JOBS: "1",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/new-job.mp4",
+          source_type: "signed_url",
+          duration_seconds: 30,
+          checks: "canvas_fill"
+        })
+      });
+      const payload = await response.json();
+
+      expect(response.status).toBe(429);
+      expect(payload).toMatchObject({
+        error: "active_job_limit_exceeded",
+        maxActiveJobs: 1,
+        activeJobs: 1
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
   it("rejects declared jobs that exceed included plan minutes", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-usage-limit-"));
     const storePath = join(dir, "store.json");

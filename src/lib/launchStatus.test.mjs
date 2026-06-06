@@ -45,6 +45,7 @@ describe("public launch status", () => {
     expect(status.verified_controls.find((control) => control.id === "roadmap")?.evidence).toContain("roadmap:verify");
     expect(status.verified_controls.find((control) => control.id === "sample_reports")?.evidence).toContain("PASS, WATCH, and BLOCK");
     expect(status.verified_controls.find((control) => control.id === "billing_enforcement")?.evidence).toContain("AI-review seconds");
+    expect(status.verified_controls.find((control) => control.id === "abuse_limits")?.evidence).toContain("active_job_limit_exceeded");
     expect(status.go_no_go_rule).toContain("readyForProductHunt=true");
   });
 

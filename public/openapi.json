@@ -269,6 +269,20 @@
         }
       }
     },
+    "/sample-reports/index.json": {
+      "get": {
+        "summary": "Public UploadCheck sample report index",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "PASS, WATCH, and BLOCK sample report artifacts.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
     "/v1/qc/estimate": {
       "post": {
         "summary": "Preflight cost and margin estimate",
@@ -325,6 +339,14 @@
                   "audio_content_type": { "type": "string" },
                   "data_url": { "type": "string" },
                   "filename": { "type": "string" },
+                  "duration_seconds": {
+                    "description": "Declared media duration used for cost, usage, and abuse-limit preflight.",
+                    "type": "number"
+                  },
+                  "size_bytes": {
+                    "description": "Declared media size used for upload abuse-limit preflight.",
+                    "type": "integer"
+                  },
                   "manifest_json": {
                     "description": "Optional storybook/edit manifest JSON used by repeat_fatigue for visual reuse and source-family analysis.",
                     "type": ["object", "array", "string"]
@@ -399,6 +421,8 @@
         "responses": {
           "200": { "description": "Existing idempotent job returned" },
           "202": { "description": "Job queued" },
+          "413": { "description": "Duration or upload-size abuse limit exceeded" },
+          "429": { "description": "Active job concurrency limit exceeded" },
           "401": { "description": "Missing or invalid API key" },
           "403": { "description": "Insufficient scope" }
         }
@@ -549,7 +573,8 @@
                 "schema": { "$ref": "#/components/schemas/Upload" }
               }
             }
-          }
+          },
+          "413": { "description": "Upload reservation exceeds configured maximum size" }
         }
       }
     },

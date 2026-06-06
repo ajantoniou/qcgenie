@@ -48,6 +48,7 @@ assert(status.verified_controls.some((control) => control.id === "cost_basis" &&
 assert(status.verified_controls.some((control) => control.id === "roadmap" && control.evidence.includes("roadmap:verify")), "launch-status roadmap evidence must cite roadmap:verify");
 assert(status.verified_controls.some((control) => control.id === "sample_reports" && control.evidence.includes("PASS, WATCH, and BLOCK")), "launch-status sample report evidence must cite PASS, WATCH, and BLOCK");
 assert(status.verified_controls.some((control) => control.id === "billing_enforcement" && control.evidence.includes("AI-review seconds") && control.evidence.includes("usage_limit_exceeded")), "launch-status billing enforcement evidence must cite AI-review seconds and usage_limit_exceeded");
+assert(status.verified_controls.some((control) => control.id === "abuse_limits" && control.evidence.includes("duration_limit_exceeded") && control.evidence.includes("active_job_limit_exceeded")), "launch-status abuse limits evidence must cite fail-fast errors");
 assert(manifest.launch_status_url === status.public_artifacts.launch_status, "agent manifest launch_status_url must match launch-status public artifact URL");
 assert(manifest.live_launch_status_url === status.public_artifacts.live_launch_status, "agent manifest live_launch_status_url must match launch-status public artifact URL");
 assert(openapi.paths["/launch-status.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /launch-status.json metadata");

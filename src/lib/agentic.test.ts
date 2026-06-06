@@ -87,6 +87,21 @@ describe("agentic integration contract", () => {
     expect(manifest.repair_loop_contract.completion_rule).toContain("no BLOCK flags remain");
   });
 
+  it("publishes fail-fast abuse limits for agent workflows", () => {
+    const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
+
+    expect(manifest.abuse_limits).toMatchObject({
+      max_duration_minutes_default: 240,
+      max_upload_mb_default: 2048,
+      max_active_jobs_default: 25
+    });
+    expect(manifest.abuse_limits.fail_fast_errors).toEqual([
+      "duration_limit_exceeded",
+      "upload_size_limit_exceeded",
+      "active_job_limit_exceeded"
+    ]);
+  });
+
   it("normalizes a YouTube QC request without exposing internal model rails", () => {
     const request = buildQcJobRequest({
       source: "https://youtube.com/watch?v=abc123",
