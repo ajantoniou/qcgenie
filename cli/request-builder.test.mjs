@@ -286,10 +286,11 @@ describe("UploadCheck CLI request builder", () => {
       mediaIngress: {
         mode: "inline_ephemeral",
         contentType: "video/mp4",
-        bytes: 12345
+        bytes: 12345,
+        sha256: "a1".repeat(32)
       },
       costEstimate: { estimatedCogsUsd: 0.0017 }
-    })).toContain("job_1: completed / WATCH | 2 min | media inline_ephemeral video/mp4 12 KB | est. COGS $0.0017");
+    })).toContain("job_1: completed / WATCH | 2 min | media inline_ephemeral video/mp4 12 KB sha256 a1a1a1a1a1a1... | est. COGS $0.0017");
     expect(formatJobSummary({
       jobId: "job_2",
       status: "completed",
@@ -298,10 +299,11 @@ describe("UploadCheck CLI request builder", () => {
       mediaIngress: {
         mode: "signed_upload",
         contentType: "audio/wav",
-        bytes: 1048576
+        bytes: 1048576,
+        sha256: "B2".repeat(32)
       },
       costEstimate: { estimatedCogsCents: 0.0833, observedTotalCogsCents: 0.7364 }
-    })).toContain("job_2: completed / PASS | 1 min | media signed_upload audio/wav 1.00 MB | est. COGS $0.0008 | observed COGS $0.0074");
+    })).toContain("job_2: completed / PASS | 1 min | media signed_upload audio/wav 1.00 MB sha256 b2b2b2b2b2b2... | est. COGS $0.0008 | observed COGS $0.0074");
   });
 
   it("formats a compact usage margin summary", () => {

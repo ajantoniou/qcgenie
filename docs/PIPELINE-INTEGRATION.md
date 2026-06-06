@@ -141,6 +141,8 @@ Agent projects can load `public/pipeline-recipes.json` and map the selected prof
 
 The hosted API writes inline media to temporary server storage, runs the deterministic gate, parses the gate verdict, stores the report, and deletes the temporary media file after the request finishes. Job responses include sanitized `mediaIngress` metadata such as `mode=inline_ephemeral`, content type, byte count, and `sha256` source hash so agents can verify the low-storage path and checked bytes without seeing temporary server paths. Signed-upload media uses local staging for the immediate run; durable filesystem or object storage retention is only used when configured.
 
+Plain CLI summaries show a shortened `sha256` prefix for scan logs; use `--json` when a pipeline needs the full 64-character source hash.
+
 For NTO specifically, UploadCheck is the replacement target for the current production QC personas and scripts. The product should eventually cover the NTO gates for audio garble, script faithfulness, pronunciation watchlists, visual-to-narration match, literal named-subject match, canvas/aspect errors, Shorts safe area, low-contrast overlay text, repeat fatigue, source-family dominance, cheap filler, dead air, first-three-second hook quality, re-hook cadence, and repair-loop instructions. The current engine already includes `canvas_fill`, `dead_air`, `repeat_fatigue`, `script_faithfulness`, `spoken_leaks`, `text_contrast`, `text_safe_area`, and opt-in `shorts_format`.
 
 Agent repair loop:

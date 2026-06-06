@@ -307,8 +307,13 @@ function attachCostOptions(payload, options) {
 
 function formatMediaIngress(mediaIngress) {
   if (!mediaIngress?.mode) return "";
-  const detail = [mediaIngress.mode, mediaIngress.contentType, formatBytes(mediaIngress.bytes)].filter(Boolean).join(" ");
+  const detail = [mediaIngress.mode, mediaIngress.contentType, formatBytes(mediaIngress.bytes), formatSha256(mediaIngress.sha256)].filter(Boolean).join(" ");
   return detail ? ` | media ${detail}` : "";
+}
+
+function formatSha256(value) {
+  const text = String(value || "");
+  return /^[a-f0-9]{64}$/i.test(text) ? `sha256 ${text.slice(0, 12).toLowerCase()}...` : "";
 }
 
 function formatBytes(bytes) {
