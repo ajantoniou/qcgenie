@@ -114,6 +114,19 @@
                     "type": "string"
                   },
                   "watchlist_filename": { "type": "string" },
+                  "expected_script_text": {
+                    "description": "Optional locked script text used by script_faithfulness with transcript_text/transcript_json.",
+                    "type": "string"
+                  },
+                  "expected_script_json": {
+                    "description": "Optional locked script JSON with text, script, or words fields used by script_faithfulness.",
+                    "type": ["object", "array", "string"]
+                  },
+                  "expected_script_base64": {
+                    "description": "Optional base64-encoded locked script text or JSON.",
+                    "type": "string"
+                  },
+                  "expected_script_filename": { "type": "string" },
                   "checks": { "type": "string" }
                 }
               }

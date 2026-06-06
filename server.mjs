@@ -73,6 +73,7 @@ async function createJob(req, res) {
   const inlineManifest = await materializeInlineManifest(body);
   const inlineTranscript = await materializeInlineTranscript(body);
   const inlineWatchlist = await materializeInlineWatchlist(body);
+  const inlineExpectedScript = await materializeInlineExpectedScript(body);
   try {
     if (inlineMedia) {
       body.source = inlineMedia.filePath;
@@ -89,7 +90,8 @@ async function createJob(req, res) {
       checks: body.checks || inlineMedia?.checks,
       manifestPath: inlineManifest?.filePath,
       transcriptPath: inlineTranscript?.filePath,
-      watchlistPath: inlineWatchlist?.filePath
+      watchlistPath: inlineWatchlist?.filePath,
+      expectedScriptPath: inlineExpectedScript?.filePath
     });
     store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
     return sendJson(res, 202, withCostEstimate(completed || job));
@@ -98,6 +100,7 @@ async function createJob(req, res) {
     await cleanupInlineManifest(inlineManifest);
     await cleanupInlineTranscript(inlineTranscript);
     await cleanupInlineWatchlist(inlineWatchlist);
+    await cleanupInlineExpectedScript(inlineExpectedScript);
   }
 }
 
@@ -177,6 +180,32 @@ async function materializeInlineWatchlist(body = {}) {
 async function cleanupInlineWatchlist(watchlist) {
   if (!watchlist?.cleanupPath) return;
   await rm(watchlist.cleanupPath, { recursive: true, force: true });
+}
+
+async function materializeInlineExpectedScript(body = {}) {
+  const raw = body.expected_script_text ?? body.expectedScriptText ?? body.script_text ?? body.scriptText ?? body.expected_script_json ?? body.expectedScriptJson ?? null;
+  const b64 = body.expected_script_base64 ?? body.expectedScriptBase64 ?? body.script_base64 ?? body.scriptBase64 ?? null;
+  if (raw == null && !b64) return null;
+
+  let payload;
+  let ext = ".txt";
+  if (b64) {
+    payload = Buffer.from(String(b64), "base64").toString("utf8");
+  } else if (typeof raw === "string") {
+    payload = raw;
+  } else {
+    payload = JSON.stringify(raw);
+    ext = ".json";
+  }
+  const dir = await mkdtemp(join(tmpdir(), "uploadcheck-expected-script-"));
+  const filePath = join(dir, `expected-script${ext}`);
+  await writeFile(filePath, payload);
+  return { filePath, cleanupPath: dir };
+}
+
+async function cleanupInlineExpectedScript(expectedScript) {
+  if (!expectedScript?.cleanupPath) return;
+  await rm(expectedScript.cleanupPath, { recursive: true, force: true });
 }
 
 function redirectCheckout(url, res) {

@@ -43,6 +43,10 @@ server.tool(
     watchlist_json: z.any().optional(),
     watchlist_base64: z.string().optional(),
     watchlist_filename: z.string().optional(),
+    expected_script_text: z.string().optional(),
+    expected_script_json: z.any().optional(),
+    expected_script_base64: z.string().optional(),
+    expected_script_filename: z.string().optional(),
     checks: z.string().optional(),
     callback_url: z.string().optional(),
     idempotency_key: z.string().optional()

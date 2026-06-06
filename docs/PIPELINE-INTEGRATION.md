@@ -72,6 +72,17 @@ node "/Applications/DrAntoniou Projects/QCGenie/cli/index.mjs" check "/path/to/m
   --json
 ```
 
+Run a locked-script faithfulness check without full video/audio model review:
+
+```bash
+UPLOADCHECK_API_KEY="<workspace_api_key>" \
+node "/Applications/DrAntoniou Projects/QCGenie/cli/index.mjs" check "/path/to/master.mp4" \
+  --checks script_faithfulness \
+  --transcript "/path/to/final-transcript.txt" \
+  --expected-script "/path/to/locked-script.txt" \
+  --json
+```
+
 Run a YouTube URL or signed asset URL:
 
 ```bash
@@ -103,14 +114,14 @@ Signed-upload flow:
 For NTO long-form episodes, shorts, or NPO media exports:
 
 1. Render the final candidate to a local file.
-2. Call `uploadcheck check <file>`. Small files inline; larger files use signed upload. MCP callers can use `media_base64` for small files or `qc_create_upload_url` + `qc_run_video` with `upload_id` for large files. When a storybook/edit manifest exists, pass `manifest_json` or CLI `--manifest` so `repeat_fatigue` can catch reuse before and after render. When a transcript or script-sidecar exists, pass `transcript_text`, `transcript_json`, or CLI `--transcript` so `spoken_leaks` can catch prompt/stage/vendor leakage without ASR spend. Add `watchlist_json` or CLI `--watchlist` to catch customer-specific pronunciation and wrong-name substitutions.
+2. Call `uploadcheck check <file>`. Small files inline; larger files use signed upload. MCP callers can use `media_base64` for small files or `qc_create_upload_url` + `qc_run_video` with `upload_id` for large files. When a storybook/edit manifest exists, pass `manifest_json` or CLI `--manifest` so `repeat_fatigue` can catch reuse before and after render. When a transcript or script-sidecar exists, pass `transcript_text`, `transcript_json`, or CLI `--transcript` so `spoken_leaks` can catch prompt/stage/vendor leakage without ASR spend. Add `watchlist_json` or CLI `--watchlist` to catch customer-specific pronunciation and wrong-name substitutions. Add `expected_script_text`, `expected_script_json`, or CLI `--expected-script` when a locked script exists so `script_faithfulness` can catch narration drift using WER.
 3. Poll `qc_get_job` until `status=completed`.
 4. Fetch `qc_get_report` and `qc_get_marker_csv`.
 5. Treat `BLOCK` as stop-ship, `WATCH` as source review, and `PASS` as ready only after the project-specific editorial checklist is also complete.
 
 The hosted API writes inline media to temporary server storage, runs the deterministic gate, parses the gate verdict, stores the report, and deletes the temporary media file after the request finishes.
 
-For NTO specifically, UploadCheck is the replacement target for the current production QC personas and scripts. The product should eventually cover the NTO gates for audio garble, script faithfulness, pronunciation watchlists, visual-to-narration match, literal named-subject match, canvas/aspect errors, Shorts safe area, low-contrast overlay text, repeat fatigue, source-family dominance, cheap filler, dead air, first-three-second hook quality, re-hook cadence, and repair-loop instructions. The current engine already includes `canvas_fill`, `dead_air`, `repeat_fatigue`, `text_contrast`, `text_safe_area`, and opt-in `shorts_format`.
+For NTO specifically, UploadCheck is the replacement target for the current production QC personas and scripts. The product should eventually cover the NTO gates for audio garble, script faithfulness, pronunciation watchlists, visual-to-narration match, literal named-subject match, canvas/aspect errors, Shorts safe area, low-contrast overlay text, repeat fatigue, source-family dominance, cheap filler, dead air, first-three-second hook quality, re-hook cadence, and repair-loop instructions. The current engine already includes `canvas_fill`, `dead_air`, `repeat_fatigue`, `script_faithfulness`, `spoken_leaks`, `text_contrast`, `text_safe_area`, and opt-in `shorts_format`.
 
 Agent repair loop:
 

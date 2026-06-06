@@ -52,6 +52,7 @@ export function buildJobRequest(target, options = {}) {
   attachManifest(payload, options);
   attachTranscript(payload, options);
   attachWatchlist(payload, options);
+  attachExpectedScript(payload, options);
   if (options.callbackUrl) payload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) payload.idempotency_key = options.idempotencyKey;
 
@@ -74,6 +75,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
   attachManifest(jobPayload, options);
   attachTranscript(jobPayload, options);
   attachWatchlist(jobPayload, options);
+  attachExpectedScript(jobPayload, options);
   if (options.callbackUrl) jobPayload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) jobPayload.idempotency_key = options.idempotencyKey;
 
@@ -124,6 +126,8 @@ export function parseArgs(argv) {
       options.transcriptPath = requireValue(arg, args.shift());
     } else if (arg === "--watchlist") {
       options.watchlistPath = requireValue(arg, args.shift());
+    } else if (arg === "--expected-script") {
+      options.expectedScriptPath = requireValue(arg, args.shift());
     } else if (arg === "--callback-url") {
       options.callbackUrl = requireValue(arg, args.shift());
     } else if (arg === "--idempotency-key") {
@@ -199,6 +203,18 @@ function attachWatchlist(payload, options) {
   const text = readFileSync(options.watchlistPath, "utf8");
   payload.watchlist_json = JSON.parse(text);
   payload.watchlist_filename = basename(options.watchlistPath);
+}
+
+function attachExpectedScript(payload, options) {
+  if (!options.expectedScriptPath) return;
+  if (!existsSync(options.expectedScriptPath)) throw new Error(`Expected script not found: ${options.expectedScriptPath}`);
+  const text = readFileSync(options.expectedScriptPath, "utf8");
+  if (options.expectedScriptPath.toLowerCase().endsWith(".json")) {
+    payload.expected_script_json = JSON.parse(text);
+  } else {
+    payload.expected_script_text = text;
+  }
+  payload.expected_script_filename = basename(options.expectedScriptPath);
 }
 
 function formatMb(bytes) {

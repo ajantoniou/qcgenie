@@ -12,14 +12,15 @@ Current offer under review: `$99 / month` for `5,000` metered minutes.
 
 To hold `>95%` gross margin, fully loaded COGS must stay below `$4.95` per account per month, or `$0.00099` per metered minute.
 
-Research inputs verified on 2026-06-05:
+Research inputs verified on 2026-06-06:
 
-- Google Gemini counts video at about `263 tokens / second`, so one video minute is about `15,780` input tokens.
-- Google Gemini counts audio at about `32 tokens / second`, so one audio minute is about `1,920` input tokens.
-- Gemini 2.5 Flash-Lite standard pricing is `$0.10 / 1M` text/image/video input tokens, `$0.30 / 1M` audio input tokens, and `$0.40 / 1M` output tokens.
-- Gemini 2.5 Flash standard pricing is `$0.30 / 1M` text/image/video input tokens, `$1.00 / 1M` audio input tokens, and `$2.50 / 1M` output tokens.
+- Google Gemini counts video at about `263 tokens / second`, so one video minute is about `15,780` input tokens. Source: `https://ai.google.dev/gemini-api/docs/tokens`.
+- Google Gemini counts audio at about `32 tokens / second`, so one audio minute is about `1,920` input tokens. Source: `https://ai.google.dev/gemini-api/docs/tokens`.
+- Gemini 2.5 Flash-Lite standard pricing is `$0.10 / 1M` text/image/video input tokens, `$0.30 / 1M` audio input tokens, and `$0.40 / 1M` output tokens. Source: `https://ai.google.dev/gemini-api/docs/pricing`.
+- Gemini 2.5 Flash standard pricing is `$0.30 / 1M` text/image/video input tokens, `$1.00 / 1M` audio input tokens, and `$2.50 / 1M` output tokens. Source: `https://ai.google.dev/gemini-api/docs/pricing`.
+- Gemini 3 family paid rows are currently higher than the 2.5 Flash-Lite margin baseline for this use case; do not switch default QC review to Gemini 3 without fresh telemetry.
 - OpenAI GPT-Realtime-Whisper is listed at `$0.017 / minute`; OpenAI GPT-Realtime-Translate is listed at `$0.034 / minute`.
-- Render task compute starts at `$0.05 / hour` for starter tasks; persistent disks are listed at `$0.25 / GB-month`.
+- Render task compute starts at `$0.05 / hour` for starter tasks. Source: `https://render.com/docs/workflows-limits`.
 
 Derived unit economics:
 
@@ -31,6 +32,8 @@ Derived unit economics:
 | OpenAI GPT-Realtime-Whisper every minute | `$0.017` | `$85.00` | about `14.1%` |
 
 Pricing verdict: `$99 / 5,000 minutes` is too generous if every minute receives full Omni/video or hosted transcription. It can work only if most minutes are deterministic-only and AI review is limited to flagged/sampled windows. Launch pricing should either cut included minutes to `1,000-2,000`, meter Omni separately, or define `5,000 deterministic scan minutes` plus a smaller AI-review allowance.
+
+Cost-per-minute target: at `$99 / 5,000`, the COGS ceiling is `$0.00099` per minute. Deterministic-only Render compute at 1x realtime is about `$0.000833` per minute before bandwidth/storage/retries, leaving only about `$0.000157` per minute of overhead. Full Gemini 2.5 Flash-Lite video+audio input alone is about `$0.002154` per media minute before output, which breaks the target. The margin-safe launch shape is therefore deterministic scan minutes plus a capped AI-review allowance, not unlimited full-video AI minutes.
 
 ## Expert Panel Synthesis
 
@@ -131,7 +134,7 @@ NTO-derived private QC tasks to add to the product:
 3. `text_crop_jitter`: reject cropped, overlapping, jittering, or edge-to-edge text cards.
 4. `shorts_format`: verify exact 1080x1920, full-bleed 9:16, no gutters, no unintended dialogue, correct duration. Implemented as an opt-in specialized gate.
 5. `canvas_fill`: verify long-form 16:9 fills the canvas and blocks pillarbox/letterbox misuse. Implemented in the default gate.
-6. `audio_script_faithfulness`: compare transcript against locked script/expected narration with WER thresholds.
+6. `script_faithfulness`: compare transcript against locked script/expected narration with WER thresholds. Implemented first as a deterministic transcript-side WER gate when callers pass a transcript and expected-script sidecar.
 7. `pronunciation_watchlist`: flag customer-provided banned words, names, and terms that commonly misrender. Implemented first as a deterministic transcript-side watchlist gate.
 8. `spoken_leaks`: detect stage directions, URLs, vendor names, prompt text, or production notes spoken aloud. Implemented first as a deterministic transcript-side gate when callers pass transcript/script text.
 9. `dead_air`: block unintended silence longer than customer threshold. Implemented in the default gate with ffmpeg `silencedetect`.
@@ -148,7 +151,7 @@ NTO-derived private QC tasks to add to the product:
 20. `repair_loop`: after report generation, agent/MCP should show all QC flags and ask the user whether to fix now. Fixable items should be routed to the LLM or local project files; render-source defects should be described with timestamped patch instructions.
 21. `literal_subject_match`: when narration names a person, place, source, date, or event, require an actual matching visual or an explicit neutral/source-card fallback. This is stricter than mood matching.
 22. `source_family_dominance`: flag one source family, motif, or visual bucket dominating a 120-second window even when the exact file is different. Implemented when callers provide a JSON storybook/edit manifest to `repeat_fatigue`; hosted API manifest ingest still needs product surfacing.
-23. `clip_reuse_ledger`: accept storybook/edit-decision manifests so UploadCheck can catch repeated visuals before export as well as after render. Implemented in the engine script; API/CLI/MCP payload support is next.
+23. `clip_reuse_ledger`: accept storybook/edit-decision manifests so UploadCheck can catch repeated visuals before export as well as after render. Implemented through `repeat_fatigue` manifest payloads across engine, API, CLI, and MCP.
 24. `spoken_production_leaks`: use transcript patterns for vendor names, URLs, markdown, prompt text, stage directions, and wrong-name substitutions. Implemented through `spoken_leaks`; ASR-generated transcript ingestion remains optional/future.
 25. `chunk_sidecar_failures`: ingest local render sidecars such as `*.garble-report.json` and failed chunk reports as first-class blockers.
 26. `sentence_boundary`: for voice-clip shorts or extracted clips, block mid-word and mid-sentence endings.
@@ -176,13 +179,13 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO-derived `dead_air` deterministic gate added to `scripts/qc-engine/check_dead_air.py` and included in `run_gate.py`.
 - Done: NTO-derived `repeat_fatigue` deterministic gate added to `scripts/qc-engine/check_repeat_fatigue.py` and included in `run_gate.py`.
 - Done: NTO-derived `spoken_leaks` deterministic transcript-side gate added to `scripts/qc-engine/check_spoken_leaks.py` and included in `run_gate.py`.
+- Done: NTO-derived `script_faithfulness` deterministic transcript-side WER gate added to `scripts/qc-engine/check_script_faithfulness.py`, plus REST/CLI/MCP expected-script sidecar support.
+- Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
 - Done: global Codex MCP entry is installed locally through the `uploadcheck` server and was smoke-tested with a live hosted report.
 - Done: authenticated hosted inline-media execution is verified on Render with a blocking `twins` report.
 - Done: checkout route plumbing exists at `/checkout/creator`, `/checkout/studio`, and `/checkout/network`, with env-driven Lemon Squeezy redirects.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
-- Next: expose manifest upload/inline payloads through API, CLI, and MCP so NTO storybook timelines can be checked before render spend and final masters can be checked after export.
-- Next: add optional locked-script faithfulness.
 - Next: add durable object storage or direct-to-bucket upload for production-scale retention beyond Render temp storage.
 - Next: cut over `uploadcheck.app` DNS/custom domains and decide whether to keep legacy Render slugs or recreate services for `uploadcheck-*` subdomains.
 - Partial: Product Hunt launch page and public report examples exist; final launch still needs custom-domain cutover, live checkout proof, and a polished public demo clip.

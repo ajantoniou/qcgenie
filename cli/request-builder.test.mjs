@@ -123,6 +123,35 @@ describe("UploadCheck CLI request builder", () => {
     expect(request.payload.watchlist_filename).toBe("watchlist.json");
   });
 
+  it("attaches expected scripts to inline and signed jobs", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-cli-"));
+    const file = join(dir, "master.mp4");
+    const transcript = join(dir, "transcript.txt");
+    const expectedScript = join(dir, "locked-script.txt");
+    writeFileSync(file, Buffer.from("fake-mp4"));
+    writeFileSync(transcript, "Marcion was born in Sinope.");
+    writeFileSync(expectedScript, "Marcion was born in Sinope and later challenged Rome.");
+
+    const inline = buildJobRequest(file, {
+      maxInlineMb: 1,
+      checks: "script_faithfulness",
+      transcriptPath: transcript,
+      expectedScriptPath: expectedScript
+    });
+    expect(inline.payload.transcript_text).toContain("Marcion");
+    expect(inline.payload.expected_script_text).toContain("challenged Rome");
+    expect(inline.payload.expected_script_filename).toBe("locked-script.txt");
+
+    const signed = buildJobRequest(file, {
+      maxInlineMb: 0.000001,
+      checks: "script_faithfulness",
+      transcriptPath: transcript,
+      expectedScriptPath: expectedScript
+    });
+    expect(signed.createJob.payload.expected_script_text).toContain("challenged Rome");
+    expect(signed.createJob.payload.expected_script_filename).toBe("locked-script.txt");
+  });
+
   it("parses command flags", () => {
     const parsed = parseArgs([
       "check",
@@ -139,6 +168,8 @@ describe("UploadCheck CLI request builder", () => {
       "transcript.txt",
       "--watchlist",
       "watchlist.json",
+      "--expected-script",
+      "locked-script.txt",
       "--json"
     ]);
 
@@ -150,6 +181,7 @@ describe("UploadCheck CLI request builder", () => {
       manifestPath: "storybook.json",
       transcriptPath: "transcript.txt",
       watchlistPath: "watchlist.json",
+      expectedScriptPath: "locked-script.txt",
       json: true
     });
   });
