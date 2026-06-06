@@ -67,6 +67,7 @@ describe("public cost basis", () => {
 
     expect(manifest.cost_basis_url).toBe("https://qcgenie-api.onrender.com/cost-basis.json");
     expect(manifest.tools).toContain("qc_get_cost_basis");
+    expect(manifest.primary_endpoints).toContain("GET /cost-basis.json");
   });
 
   it("exposes an operator verifier for public cost basis drift", () => {

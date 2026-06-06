@@ -84,7 +84,7 @@ export const expertPanels = [
     experts: "MCP designer, API architect, Claude/Codex automation user",
     recommendations: [
       "Expose job creation, polling, reports, and webhooks through stable API endpoints.",
-      "Ship UploadCheck MCP tools for qc_estimate_cost, qc_run_video, qc_run_local_file, qc_get_report, and qc_list_recent_jobs.",
+      "Ship UploadCheck MCP tools for launch status, handoff, pipeline recipes, cost basis, estimates, runs, reports, and recent-job lookup.",
       "Keep internal model/provider rails hidden from customer-facing tools."
     ]
   },

@@ -78,6 +78,8 @@ assert(manifest.launch_status_url === status.public_artifacts.launch_status, "ag
 assert(manifest.live_launch_status_url === status.public_artifacts.live_launch_status, "agent manifest live_launch_status_url must match launch-status public artifact URL");
 assert(manifest.live_launch_handoff_url === status.public_artifacts.live_launch_handoff, "agent manifest live_launch_handoff_url must match launch-status public artifact URL");
 assert(manifest.launch_handoff_command === "npm run launch:handoff -- --text", "agent manifest must expose the local launch handoff command");
+assert(manifest.primary_endpoints?.includes("GET /pipeline-recipes.json"), "agent manifest must expose pipeline recipes as a primary endpoint");
+assert(manifest.primary_endpoints?.includes("GET /cost-basis.json"), "agent manifest must expose cost basis as a primary endpoint");
 assert(openapi.paths["/launch-status.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /launch-status.json metadata");
 assert(openapi.paths["/product-hunt-launch-kit.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /product-hunt-launch-kit.json metadata");
 assert(openapi.paths["/v1/launch-status"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /v1/launch-status metadata");

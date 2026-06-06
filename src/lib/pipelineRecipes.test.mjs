@@ -100,6 +100,8 @@ describe("UploadCheck pipeline recipes", () => {
     const manifest = readJson("public/agent-manifest.json");
 
     expect(manifest.pipeline_recipes_url).toBe("https://qcgenie-api.onrender.com/pipeline-recipes.json");
+    expect(manifest.tools).toContain("qc_get_pipeline_recipes");
+    expect(manifest.primary_endpoints).toContain("GET /pipeline-recipes.json");
     expect(manifest.pipeline_profiles.map((profile) => profile.id)).toEqual([
       "nto_long_form",
       "nto_shorts",

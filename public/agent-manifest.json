@@ -119,6 +119,8 @@
     "GET /v1/readiness",
     "GET /v1/launch-status",
     "GET /v1/launch-handoff",
+    "GET /pipeline-recipes.json",
+    "GET /cost-basis.json",
     "POST /v1/qc/estimate",
     "POST /v1/qc/jobs",
     "POST /v1/qc/jobs/drain",
