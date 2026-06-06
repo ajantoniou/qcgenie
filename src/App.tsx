@@ -147,7 +147,7 @@ const faqItems = [
   {
     question: "Do re-checks count against included minutes?",
     answer:
-      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. We never block a check; if you regularly go over, the plan should recommend the cheaper monthly path."
+      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. If a request exceeds included minutes or AI-review allowance, UploadCheck either downgrades expensive model-backed checks or blocks the run before spend, depending on the selected guardrail."
   },
   {
     question: "What can UploadCheck fix automatically?",

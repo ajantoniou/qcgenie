@@ -40,6 +40,8 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getByText(/18,000 checked minutes\/month/)).toBeInTheDocument();
     expect(screen.getByText(/Included minutes cover deterministic pre-upload QC/)).toBeInTheDocument();
     expect(screen.getByText(/95% gross-margin target/)).toBeInTheDocument();
+    expect(screen.getByText(/downgrades expensive model-backed checks or blocks the run before spend/)).toBeInTheDocument();
+    expect(screen.queryByText(/We never block a check/)).not.toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Start Creator" })[0]).toHaveAttribute("href", "/checkout/creator");
     expect(screen.getByRole("link", { name: "Start Studio" })).toHaveAttribute("href", "/checkout/studio");
     expect(screen.getByRole("link", { name: "Start Network" })).toHaveAttribute("href", "/checkout/network");
