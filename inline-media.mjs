@@ -13,7 +13,11 @@ const EXT_BY_CONTENT_TYPE = new Map([
   ["audio/mp4", ".m4a"],
   ["audio/wav", ".wav"],
   ["audio/x-wav", ".wav"],
-  ["audio/webm", ".webm"]
+  ["audio/webm", ".webm"],
+  ["image/jpeg", ".jpg"],
+  ["image/jpg", ".jpg"],
+  ["image/png", ".png"],
+  ["image/webp", ".webp"]
 ]);
 
 export async function materializeInlineMedia(input, options = {}) {
@@ -21,13 +25,13 @@ export async function materializeInlineMedia(input, options = {}) {
   if (!payload) return null;
 
   const maxMb = Number(options.maxMb || process.env.UPLOADCHECK_INLINE_MEDIA_MAX_MB || DEFAULT_MAX_MB);
-  const { base64, contentType } = parseInlinePayload(payload.value, payload.contentType || input.content_type || input.contentType);
+  const { base64, contentType } = parseInlinePayload(payload.value, payload.contentType || input.media_mime_type || input.mediaMimeType || input.content_type || input.contentType);
   const bytes = Buffer.from(base64, "base64");
   if (!bytes.length) throw new Error("inline media payload is empty");
   if (bytes.length > maxMb * 1024 * 1024) throw new Error(`inline media exceeds ${maxMb} MB limit`);
 
   const dir = await mkdtemp(join(tmpdir(), "uploadcheck-inline-"));
-  const ext = extensionFor(contentType, input.filename || input.file_name || payload.name);
+  const ext = extensionFor(contentType, input.filename || input.file_name || input.media_filename || input.mediaFilename || payload.name);
   const filePath = join(dir, `source${ext}`);
   await writeFile(filePath, bytes);
 
@@ -46,10 +50,10 @@ export async function cleanupInlineMedia(materialized) {
 }
 
 function pickInlinePayload(input = {}) {
-  if (input.media_base64) return { value: input.media_base64, contentType: input.media_content_type, kind: input.media_kind, name: input.filename };
-  if (input.video_base64) return { value: input.video_base64, contentType: input.video_content_type || "video/mp4", kind: "video", name: input.filename };
-  if (input.audio_base64) return { value: input.audio_base64, contentType: input.audio_content_type || "audio/mpeg", kind: "audio", name: input.filename };
-  if (input.data_url) return { value: input.data_url, contentType: null, kind: input.media_kind, name: input.filename };
+  if (input.media_base64) return { value: input.media_base64, contentType: input.media_content_type || input.media_mime_type, kind: input.media_kind, name: input.media_filename || input.filename };
+  if (input.video_base64) return { value: input.video_base64, contentType: input.video_content_type || input.video_mime_type || "video/mp4", kind: "video", name: input.video_filename || input.filename };
+  if (input.audio_base64) return { value: input.audio_base64, contentType: input.audio_content_type || input.audio_mime_type || "audio/mpeg", kind: "audio", name: input.audio_filename || input.filename };
+  if (input.data_url) return { value: input.data_url, contentType: null, kind: input.media_kind, name: input.media_filename || input.filename };
   return null;
 }
 

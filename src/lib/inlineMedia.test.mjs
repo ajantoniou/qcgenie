@@ -34,4 +34,20 @@ describe("inline media materialization", () => {
       await cleanupInlineMedia(materialized);
     }
   });
+
+  it("honors media filename and mime aliases for inline image payloads", async () => {
+    const materialized = await materializeInlineMedia({
+      media_filename: "crowd-frame.jpg",
+      media_mime_type: "image/jpeg",
+      media_base64: Buffer.from("fake-jpeg").toString("base64")
+    });
+
+    try {
+      expect(materialized.filePath.endsWith(".jpg")).toBe(true);
+      expect(materialized.contentType).toBe("image/jpeg");
+      expect(await readFile(materialized.filePath, "utf8")).toBe("fake-jpeg");
+    } finally {
+      await cleanupInlineMedia(materialized);
+    }
+  });
 });
