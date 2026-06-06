@@ -70,6 +70,7 @@ describe("UploadCheck pipeline recipes", () => {
     expect(shorts.arguments.checks).toContain("first_three_seconds");
     expect(shorts.arguments.checks).toContain("end_screen_tease");
     expect(shorts.arguments.checks).toContain("sentence_boundary");
+    expect(shorts.arguments.checks).toContain("dialogue_in_music_short");
     expect(shorts.arguments.checks).toContain("text_safe_area");
     expect(audio.arguments.file_path).toBe("/path/to/episode.wav");
     expect(audio.arguments.checks).toContain("pronunciation_watchlist");
@@ -147,6 +148,10 @@ describe("UploadCheck pipeline recipes", () => {
       callable_check: "contact_sheet_evidence"
     });
     expect(implemented.contact_sheet_evidence.covers).toContain("Before/after visual proof");
+    expect(implemented.dialogue_in_music_short).toMatchObject({
+      callable_check: "dialogue_in_music_short"
+    });
+    expect(implemented.dialogue_in_music_short.covers).toContain("unintended spoken dialogue");
 
     expect(planned.size).toBe(0);
 

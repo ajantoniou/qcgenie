@@ -164,7 +164,7 @@ NTO-derived private QC tasks to add to the product:
 26. `sentence_boundary`: for voice-clip shorts or extracted clips, block mid-word and mid-sentence endings. Implemented first as a deterministic transcript-side gate when callers pass transcript sidecars.
 27. `speaker_visual_binding`: block storybook/edit-manifest rows where a named speaker's voice is paired with another named character's face. Implemented first as a deterministic manifest-side gate.
 28. `opening_footer_text_presence`: for text-card Shorts, verify the 0-3s hook card and 50-60s CTA/footer card exist.
-29. `dialogue_in_music_short`: for music-only Shorts, flag any detected spoken dialogue as a format violation.
+29. `dialogue_in_music_short`: for music-only Shorts, flag any detected spoken dialogue as a format violation. Implemented first as a deterministic transcript-side gate so pipelines with captions/transcripts can block speech without ASR spend.
 30. `contact_sheet_evidence`: require before/after contact-sheet artifacts for repeated founder complaint windows and repair verification; fail a repair when fixing one repeated/mismatched visual introduces another repeat or mismatch. Implemented first as a deterministic manifest-side evidence gate.
 
 Private moat note: competitors can copy the public idea of upload QC, but our sticky layer is the accumulated private failure catalog, thresholds, fixtures, and agent repair loops learned from real NTO production. Publish the outcomes and broad categories, not the full validator internals.
@@ -195,6 +195,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO-derived `end_screen_tease` deterministic manifest-side final-window gate added to `scripts/qc-engine/check_end_screen_tease.py`, included in `run_gate.py`, and added to the NTO long-form and Shorts recipe defaults.
 - Done: NTO-derived `rehook_cadence` deterministic manifest-side cadence gate added to `scripts/qc-engine/check_rehook_cadence.py`, included in `run_gate.py`, and added to the NTO long-form recipe default.
 - Done: NTO-derived `contact_sheet_evidence` deterministic manifest-side evidence gate added to `scripts/qc-engine/check_contact_sheet_evidence.py`, included in `run_gate.py`, and added to the NTO long-form recipe default.
+- Done: NTO-derived `dialogue_in_music_short` deterministic transcript-side Shorts gate added to `scripts/qc-engine/check_dialogue_in_music_short.py`, included in `run_gate.py`, and added to the NTO Shorts recipe default.
 - Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
 - Done: plan-aware cost guardrail added for declared AI-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked.
 - Done: first per-check model-call accounting added for `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch`; in downgrade mode, margin-breaking model-backed checks are removed before the engine runs.

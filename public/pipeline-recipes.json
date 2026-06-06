@@ -63,6 +63,11 @@
         "callable_check": "shorts_format"
       },
       {
+        "id": "dialogue_in_music_short",
+        "covers": "Music-only Shorts with supplied transcript sidecars that contain unintended spoken dialogue.",
+        "callable_check": "dialogue_in_music_short"
+      },
+      {
         "id": "repeat_fatigue",
         "covers": "Exact visual reuse, source-family dominance, and cheap repeated visual patterns from storybook/edit manifests.",
         "callable_check": "repeat_fatigue"
@@ -173,17 +178,17 @@
     },
     "nto_shorts": {
       "label": "NTO Shorts or Reels export",
-      "default_checks": "canvas_fill,shorts_format,first_three_seconds,end_screen_tease,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks,sentence_boundary",
+      "default_checks": "canvas_fill,shorts_format,first_three_seconds,end_screen_tease,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks,sentence_boundary,dialogue_in_music_short",
       "optional_model_checks": "garble,twins",
       "recommended_sidecars": {
         "manifest_path": "Shorts edit manifest or clip list for repeated visual reuse, 0-3s hook-card verification, and final footer-card verification.",
-        "transcript_path": "Short transcript or caption text for spoken_leaks and Shorts text-card checks."
+        "transcript_path": "Short transcript or caption text for spoken_leaks, sentence_boundary, and dialogue_in_music_short."
       },
       "mcp_call": {
         "tool": "qc_run_local_file",
         "arguments": {
           "file_path": "/path/to/short.mp4",
-          "checks": "canvas_fill,shorts_format,first_three_seconds,end_screen_tease,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks,sentence_boundary",
+          "checks": "canvas_fill,shorts_format,first_three_seconds,end_screen_tease,text_contrast,text_safe_area,repeat_fatigue,dead_air,spoken_leaks,sentence_boundary,dialogue_in_music_short",
           "manifest_path": "/path/to/short-manifest.json",
           "transcript_path": "/path/to/short-transcript.txt",
           "plan_id": "creator",
