@@ -7,6 +7,7 @@ describe("agentic integration contract", () => {
     expect(AGENT_API_ENDPOINTS.map((endpoint) => endpoint.methodPath)).toEqual([
       "GET /v1/launch-status",
       "GET /v1/launch-handoff",
+      "GET /pipeline-handoff.json",
       "POST /v1/qc/estimate",
       "POST /v1/qc/jobs",
       "POST /v1/qc/jobs/drain",
@@ -29,6 +30,7 @@ describe("agentic integration contract", () => {
     expect(getMcpToolNames()).toEqual([
       "qc_get_launch_status",
       "qc_get_launch_handoff",
+      "qc_get_pipeline_handoff",
       "qc_get_pipeline_recipes",
       "qc_get_cost_basis",
       "qc_estimate_cost",
@@ -49,6 +51,10 @@ describe("agentic integration contract", () => {
     const launchHandoff = MCP_TOOLS.find((tool) => tool.name === "qc_get_launch_handoff");
     expect(launchHandoff?.outputs).toContain("blockerProofCommands");
     expect(launchHandoff?.outputs).toContain("rule");
+    const pipelineHandoff = MCP_TOOLS.find((tool) => tool.name === "qc_get_pipeline_handoff");
+    expect(pipelineHandoff?.outputs).toContain("call_sequence");
+    expect(pipelineHandoff?.outputs).toContain("media_ingress");
+    expect(pipelineHandoff?.outputs).toContain("repair_loop_contract");
     const pipelineRecipes = MCP_TOOLS.find((tool) => tool.name === "qc_get_pipeline_recipes");
     expect(pipelineRecipes?.outputs).toContain("profiles");
     expect(pipelineRecipes?.outputs).toContain("repair_loop_contract");

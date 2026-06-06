@@ -47,6 +47,7 @@ export interface QcJobRequest {
 export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "GET /v1/launch-status", purpose: "Fetch live Product Hunt launch go/no-go state, blockers, and operator commands." },
   { methodPath: "GET /v1/launch-handoff", purpose: "Fetch live Product Hunt launch blockers, required actions, proof commands, and no-launch rule." },
+  { methodPath: "GET /pipeline-handoff.json", purpose: "Fetch the production pipeline handoff runbook for NTO/NPO and creator workflows." },
   { methodPath: "POST /v1/qc/estimate", purpose: "Preflight cost, margin guardrail behavior, and effective checks before uploading media." },
   { methodPath: "POST /v1/qc/jobs", purpose: "Create a QC job from a YouTube URL, upload id, or signed asset URL." },
   { methodPath: "POST /v1/qc/jobs/drain", purpose: "Process queued async QC jobs for Render cron/workflow worker execution." },
@@ -76,6 +77,12 @@ export const MCP_TOOLS: McpTool[] = [
     purpose: "Fetch live UploadCheck launch blockers, required actions, proof commands, and no-launch rule for agent/operator handoff.",
     inputs: [],
     outputs: ["productHuntReady", "remainingBlockers", "requiredActions", "blockerProofCommands", "operatorCommandSequence", "rule"]
+  },
+  {
+    name: "qc_get_pipeline_handoff",
+    purpose: "Fetch the production pipeline handoff runbook for NTO/NPO and creator workflows.",
+    inputs: [],
+    outputs: ["source_artifacts", "profiles", "call_sequence", "media_ingress", "margin_rules", "repair_loop_contract"]
   },
   {
     name: "qc_get_pipeline_recipes",

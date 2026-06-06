@@ -35,11 +35,11 @@ Agent integration:
 - The Render service display name is uploadcheck-api, but the live Render URL still uses the legacy qcgenie-api slug until custom-domain cutover.
 - Legacy qcgenie-api environment names are accepted only as migration fallbacks.
 - MCP wrapper package lives in the repository under mcp-server.
-- MCP tools: qc_get_launch_status, qc_get_launch_handoff, qc_get_pipeline_recipes, qc_get_cost_basis, qc_estimate_cost, qc_run_video, qc_run_local_file, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_get_margin_telemetry, qc_create_upload_url.
+- MCP tools: qc_get_launch_status, qc_get_launch_handoff, qc_get_pipeline_handoff, qc_get_pipeline_recipes, qc_get_cost_basis, qc_estimate_cost, qc_run_video, qc_run_local_file, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_get_margin_telemetry, qc_create_upload_url.
 - MCP local-file workflow: qc_run_local_file reads a reachable local media path, encodes small files inline for Render evaluation, and falls back to signed upload for larger files.
 - QC job responses include sanitized mediaIngress metadata; inline Render runs report mode=inline_ephemeral plus a sha256 source hash and do not expose temporary server paths.
 - NTO/NPO pipeline profiles are machine-readable through MCP qc_get_pipeline_recipes, CLI uploadcheck recipes --json, and pipeline-recipes.json: nto_long_form, nto_shorts, npo_podcast_or_audio, and generic_creator_video.
-- NTO/NPO and creator production pipelines can load pipeline-handoff.json for the full call sequence: launch status, launch handoff, recipes, cost basis, estimate, media ingress, job polling, report, marker CSV, "Fix now?", and rerun before upload-ready.
+- NTO/NPO and creator production pipelines can call MCP qc_get_pipeline_handoff, run uploadcheck pipeline-handoff --json, or load pipeline-handoff.json for the full call sequence: launch status, launch handoff, recipes, cost basis, estimate, media ingress, job polling, report, marker CSV, "Fix now?", and rerun before upload-ready.
 - Large local files use POST /v1/uploads, PUT /v1/uploads/{upload_id}/content?token=..., then POST /v1/qc/jobs with upload_id.
 - Signed-upload bytes use Render temp storage by default or mounted durable filesystem storage when UPLOADCHECK_DURABLE_STORAGE_DIR is configured.
 - API keys are workspace-scoped and should be stored as connector secrets.

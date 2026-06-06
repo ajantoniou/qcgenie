@@ -113,7 +113,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
 export function parseArgs(argv) {
   const args = [...argv];
   const command = args.shift();
-  if (!["check", "estimate", "usage", "launch-status", "launch-handoff", "recipes", "cost-basis"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status | uploadcheck launch-handoff | uploadcheck recipes | uploadcheck cost-basis");
+  if (!["check", "estimate", "usage", "launch-status", "launch-handoff", "pipeline-handoff", "recipes", "cost-basis"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status | uploadcheck launch-handoff | uploadcheck pipeline-handoff | uploadcheck recipes | uploadcheck cost-basis");
 
   const target = command === "check" ? args.shift() : null;
   const options = { json: false };
@@ -194,6 +194,17 @@ export function buildLaunchHandoffRequest(options = {}) {
     path: "/v1/launch-handoff",
     method: "GET",
     kind: "launch_handoff",
+    public: true
+  };
+}
+
+export function buildPipelineHandoffRequest(options = {}) {
+  const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
+  return {
+    apiBaseUrl,
+    path: "/pipeline-handoff.json",
+    method: "GET",
+    kind: "pipeline_handoff",
     public: true
   };
 }
@@ -294,6 +305,13 @@ export function formatPipelineRecipesSummary(payload) {
   const profiles = Object.keys(payload.profiles || {});
   const checks = payload.nto_replacement_qc?.implemented_gates?.length || 0;
   return `UploadCheck pipeline recipes: ${profiles.length} profiles${profiles.length ? ` (${profiles.join(", ")})` : ""} | ${checks} implemented NTO/NPO replacement gates`;
+}
+
+export function formatPipelineHandoffSummary(payload) {
+  const steps = payload.call_sequence?.length || 0;
+  const profiles = payload.profiles || [];
+  const ingress = Object.keys(payload.media_ingress || {});
+  return `UploadCheck pipeline handoff: ${steps} steps${profiles.length ? ` | profiles ${profiles.join(", ")}` : ""}${ingress.length ? ` | media ingress ${ingress.join(", ")}` : ""}`;
 }
 
 export function formatCostBasisSummary(payload) {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildCostBasisRequest, buildEstimateRequest, buildJobRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildPipelineRecipesRequest, buildUsageRequest, formatCostBasisSummary, formatJobSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+import { buildCostBasisRequest, buildEstimateRequest, buildJobRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildPipelineHandoffRequest, buildPipelineRecipesRequest, buildUsageRequest, formatCostBasisSummary, formatJobSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatPipelineHandoffSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 describe("UploadCheck CLI request builder", () => {
   it("builds a YouTube job request", () => {
@@ -368,6 +368,26 @@ describe("UploadCheck CLI request builder", () => {
     });
   });
 
+  it("builds and parses a public pipeline handoff request", () => {
+    const parsed = parseArgs([
+      "pipeline-handoff",
+      "--api-base",
+      "https://api.example.test",
+      "--json"
+    ]);
+    const request = buildPipelineHandoffRequest(parsed.options);
+
+    expect(parsed.command).toBe("pipeline-handoff");
+    expect(parsed.target).toBeNull();
+    expect(request).toEqual({
+      apiBaseUrl: "https://api.example.test",
+      path: "/pipeline-handoff.json",
+      method: "GET",
+      kind: "pipeline_handoff",
+      public: true
+    });
+  });
+
   it("builds and parses a public cost-basis request", () => {
     const parsed = parseArgs([
       "cost-basis",
@@ -478,6 +498,17 @@ describe("UploadCheck CLI request builder", () => {
         implemented_gates: [{ id: "text_contrast" }, { id: "repeat_fatigue" }]
       }
     })).toBe("UploadCheck pipeline recipes: 2 profiles (nto_long_form, npo_podcast_or_audio) | 2 implemented NTO/NPO replacement gates");
+  });
+
+  it("formats a compact pipeline handoff summary", () => {
+    expect(formatPipelineHandoffSummary({
+      profiles: ["nto_long_form", "npo_podcast_or_audio"],
+      call_sequence: [{ step: 1 }, { step: 2 }, { step: 3 }],
+      media_ingress: {
+        inline_ephemeral: {},
+        signed_upload: {}
+      }
+    })).toBe("UploadCheck pipeline handoff: 3 steps | profiles nto_long_form, npo_podcast_or_audio | media ingress inline_ephemeral, signed_upload");
   });
 
   it("formats a compact public cost-basis summary", () => {

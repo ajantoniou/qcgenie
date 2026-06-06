@@ -5,6 +5,8 @@
   "mcp_server": "uploadcheck",
   "cli_package": "@uploadcheck/cli",
   "mcp_package": "@uploadcheck/mcp",
+  "mcp_tool": "qc_get_pipeline_handoff",
+  "cli_command": "uploadcheck pipeline-handoff --json",
   "source_artifacts": {
     "agent_manifest": "https://qcgenie-api.onrender.com/agent-manifest.json",
     "pipeline_recipes": "https://qcgenie-api.onrender.com/pipeline-recipes.json",

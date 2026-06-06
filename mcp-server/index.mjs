@@ -27,6 +27,13 @@ server.tool(
 );
 
 server.tool(
+  "qc_get_pipeline_handoff",
+  "Fetch the UploadCheck production pipeline handoff runbook for NTO/NPO and creator workflows.",
+  {},
+  async () => jsonTool(await publicApiFetch("/pipeline-handoff.json"))
+);
+
+server.tool(
   "qc_get_pipeline_recipes",
   "Fetch machine-readable UploadCheck pipeline recipes for NTO/NPO, creator video, audio, thumbnail, and repair-loop workflows.",
   {},

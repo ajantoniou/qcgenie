@@ -23,11 +23,11 @@ UPLOADCHECK_API_BASE_URL = "https://qcgenie-api.onrender.com"
 UPLOADCHECK_API_KEY = "<workspace_api_key>"
 ```
 
-The server exposes `qc_get_launch_status`, `qc_get_launch_handoff`, `qc_get_pipeline_recipes`, `qc_get_cost_basis`, `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_get_margin_telemetry`, and `qc_create_upload_url`.
+The server exposes `qc_get_launch_status`, `qc_get_launch_handoff`, `qc_get_pipeline_handoff`, `qc_get_pipeline_recipes`, `qc_get_cost_basis`, `qc_estimate_cost`, `qc_run_video`, `qc_run_local_file`, `qc_get_job`, `qc_get_report`, `qc_get_events`, `qc_get_artifacts`, `qc_get_marker_csv`, `qc_submit_gate_verdict`, `qc_list_recent_jobs`, `qc_get_margin_telemetry`, and `qc_create_upload_url`.
 
 The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadcheck`. Use `$uploadcheck` when a project needs the standard preflight -> hosted QC -> report -> repair-loop workflow.
 
-Machine-readable production handoff is available at `https://qcgenie-api.onrender.com/pipeline-handoff.json` for NTO/NPO and creator pipelines that need the full call sequence without scraping prose. It covers launch status, launch handoff, pipeline recipes, cost basis, estimates, inline/signed media ingress, job polling, reports, marker CSV, the "Fix now?" repair loop, and the rerun-before-upload-ready rule.
+Machine-readable production handoff is available through MCP `qc_get_pipeline_handoff`, CLI `uploadcheck pipeline-handoff --json`, and `https://qcgenie-api.onrender.com/pipeline-handoff.json` for NTO/NPO and creator pipelines that need the full call sequence without scraping prose. It covers launch status, launch handoff, pipeline recipes, cost basis, estimates, inline/signed media ingress, job polling, reports, marker CSV, the "Fix now?" repair loop, and the rerun-before-upload-ready rule.
 
 Machine-readable pipeline profiles are available through MCP `qc_get_pipeline_recipes`, CLI `uploadcheck recipes --json`, and `https://qcgenie-api.onrender.com/pipeline-recipes.json` for agents that need profile defaults. The current profiles are `nto_long_form`, `nto_shorts`, `npo_podcast_or_audio`, and `generic_creator_video`. The recipe file includes `launch_preflight`, `cost_preflight`, profile-specific `qc_run_local_file` arguments, and repair-loop instructions.
 
@@ -159,7 +159,7 @@ For NTO long-form episodes, shorts, or NPO media exports:
 5. Fetch `qc_get_report` and `qc_get_marker_csv`.
 6. Treat `BLOCK` as stop-ship, `WATCH` as source review, and `PASS` as ready only after the project-specific editorial checklist is also complete.
 
-Agent projects should load `public/pipeline-handoff.json` when they need the complete production sequence, then call MCP `qc_get_pipeline_recipes`, run `uploadcheck recipes --json`, or load `public/pipeline-recipes.json` for the selected profile's `mcp_call.arguments`. The files are intentionally explicit about sidecar fields so NTO/NPO pipelines can pass manifests, transcripts, watchlists, and locked scripts without each project re-learning the UploadCheck payload shape.
+Agent projects should call MCP `qc_get_pipeline_handoff`, run `uploadcheck pipeline-handoff --json`, or load `public/pipeline-handoff.json` when they need the complete production sequence, then call MCP `qc_get_pipeline_recipes`, run `uploadcheck recipes --json`, or load `public/pipeline-recipes.json` for the selected profile's `mcp_call.arguments`. The files are intentionally explicit about sidecar fields so NTO/NPO pipelines can pass manifests, transcripts, watchlists, and locked scripts without each project re-learning the UploadCheck payload shape.
 The same recipe file also exposes `repair_loop_contract` for callers that need structured instructions instead of prose: required report/marker fetches, severity grouping, the "Fix now?" prompt, fixable scopes, source/render-only scopes, and the rerun-before-upload-ready rule.
 
 For thumbnail candidates, use the `creator_thumbnail` profile or call `qc_run_local_file` / `uploadcheck check` on the image file with `checks: "thumbnail_text_readability"`. This runs OCR contrast and safe-composition checks on the image before upload without model spend.

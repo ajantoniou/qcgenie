@@ -12,6 +12,8 @@ describe("UploadCheck production pipeline handoff", () => {
     const sequenceText = JSON.stringify(handoff.call_sequence);
 
     expect(handoff.mcp_server).toBe("uploadcheck");
+    expect(handoff.mcp_tool).toBe("qc_get_pipeline_handoff");
+    expect(handoff.cli_command).toBe("uploadcheck pipeline-handoff --json");
     expect(handoff.profiles).toEqual([
       "nto_long_form",
       "nto_shorts",
@@ -53,6 +55,7 @@ describe("UploadCheck production pipeline handoff", () => {
     const llms = readFileSync(resolve("public/llms.txt"), "utf8");
 
     expect(manifest.pipeline_handoff_url).toBe("https://qcgenie-api.onrender.com/pipeline-handoff.json");
+    expect(manifest.tools).toContain("qc_get_pipeline_handoff");
     expect(manifest.primary_endpoints).toContain("GET /pipeline-handoff.json");
     expect(manifest.agent_workflow.join("\n")).toContain("GET /pipeline-handoff.json");
     expect(openapi.paths["/pipeline-handoff.json"].get.security).toEqual([]);
