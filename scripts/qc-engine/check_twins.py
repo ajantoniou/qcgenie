@@ -15,8 +15,12 @@ PROMPT=(
  "You are a strict image QC gate for an AI-generated historical documentary. Look ONLY for UNINTENDED "
  "DUPLICATE PEOPLE: the SAME person's face appearing two or more times in this single frame, OR one "
  "face clearly copy-pasted across a crowd, OR a scene where many extras share the same face/hair/body "
- "so the crowd needs more character variation. Distinct different extras are FINE. Background blur is "
- "FINE. Be conservative: only flag if the duplication is clear enough that an editor should change the "
+ "so the crowd needs more character variation. For crowd scenes, also flag if many background people "
+ "look like variants of the same generated character: same long dark hair, same beard, same age, same "
+ "robe silhouette, same facial structure, or multiple Jesus-like duplicates around the lead. This is a "
+ "BLOCK even if the faces are not pixel-identical, because the scene needs more distinct characters. "
+ "Distinct different extras are FINE. Background blur is "
+ "FINE. Be conservative for small casts, but in large crowds flag clear same-face or same-silhouette repetition that an editor should change the "
  'render. Reply ONLY JSON: {"has_twins": true|false, "needs_more_character_variation": true|false, '
  '"duplicate_count": <int>, "reason": "<one short sentence>", "action": "<one short editor instruction>"}'
 )
