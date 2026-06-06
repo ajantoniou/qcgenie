@@ -39,6 +39,8 @@ assert(JSON.stringify(status.remaining_blockers) === JSON.stringify(expected.rem
 assert(JSON.stringify(status.verified_controls) === JSON.stringify(expected.verified_controls), "launch-status verified controls do not match launch-status builder");
 assert(JSON.stringify(status.operator_commands) === JSON.stringify(expected.operator_commands), "launch-status operator commands do not match launch-status builder");
 assert(status.go_no_go_rule.includes("readyForProductHunt=true"), "launch-status go/no-go rule must cite readyForProductHunt=true");
+assert(status.go_no_go_rule.includes("npm run launch:doctor exits 0"), "launch-status go/no-go rule must require launch:doctor");
+assert(status.go_no_go_rule.includes("npm run launch:check"), "launch-status go/no-go rule must require launch:check");
 assert(status.operator_commands.includes("npm run launch:doctor"), "launch-status operator commands must include launch:doctor");
 assert(status.operator_commands.includes("npm run launch:dns"), "launch-status operator commands must include launch:dns");
 assert(status.operator_commands.includes("npm run launch:checkout"), "launch-status operator commands must include launch:checkout");

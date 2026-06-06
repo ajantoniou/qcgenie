@@ -65,7 +65,7 @@ export function buildLaunchStatus(readiness, {
       product_hunt_page: "https://uploadcheck.app/product-hunt/",
       demo_clip: "https://uploadcheck.app/demo/uploadcheck-product-hunt-demo.mp4"
     },
-    go_no_go_rule: "Do not claim Product Hunt launch readiness until GET /v1/readiness returns readyForProductHunt=true and npm run launch:check passes DNS and HTTP for uploadcheck.app, www.uploadcheck.app, and api.uploadcheck.app."
+    go_no_go_rule: "Do not claim Product Hunt launch readiness until GET /v1/readiness returns readyForProductHunt=true, npm run launch:doctor exits 0, and npm run launch:check passes DNS and HTTP for uploadcheck.app, www.uploadcheck.app, and api.uploadcheck.app."
   };
 }
 

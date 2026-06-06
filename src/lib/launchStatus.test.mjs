@@ -57,6 +57,8 @@ describe("public launch status", () => {
     expect(status.verified_controls.find((control) => control.id === "job_observability")?.evidence).toContain("processingDurationMs");
     expect(status.verified_controls.find((control) => control.id === "queued_worker")?.evidence).toContain("/v1/qc/jobs/drain");
     expect(status.go_no_go_rule).toContain("readyForProductHunt=true");
+    expect(status.go_no_go_rule).toContain("npm run launch:doctor exits 0");
+    expect(status.go_no_go_rule).toContain("npm run launch:check");
   });
 
   it("links launch status from public agent metadata", () => {
@@ -104,16 +106,15 @@ describe("public launch status", () => {
   });
 
   it("regenerates launch status and Product Hunt kit idempotently", () => {
+    const beforeStatus = readFileSync(resolve("public/launch-status.json"), "utf8");
+    const beforeKit = readFileSync(resolve("public/product-hunt-launch-kit.json"), "utf8");
     const output = execFileSync("npm", ["run", "--silent", "launch-status:generate"], {
       cwd: resolve("."),
       encoding: "utf8"
     });
 
     expect(output).toContain("Wrote public/launch-status.json and public/product-hunt-launch-kit.json.");
-    const diff = execFileSync("git", ["diff", "--", "public/launch-status.json", "public/product-hunt-launch-kit.json"], {
-      cwd: resolve("."),
-      encoding: "utf8"
-    });
-    expect(diff).toBe("");
+    expect(readFileSync(resolve("public/launch-status.json"), "utf8")).toBe(beforeStatus);
+    expect(readFileSync(resolve("public/product-hunt-launch-kit.json"), "utf8")).toBe(beforeKit);
   });
 });
