@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
 VIDEO QC GATE — runs all checks and emits one ship/block verdict.
-Checks: canvas_fill + loop_freeze + dead_air + cheap_broll + text_contrast + text_safe_area + garble (deterministic-ish), twins + narration_match + omni_watch
+Checks: canvas_fill + loop_freeze + repeat_fatigue + dead_air + cheap_broll + text_contrast + text_safe_area + garble (deterministic-ish), twins + narration_match + omni_watch
 (vision). Deterministic checks are authoritative; vision checks supplement. Skipped checks (missing
 key) are reported but do not fail the gate.
 Usage:
-  run_gate.py VIDEO [--checks canvas_fill,loop_freeze,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch]
+  run_gate.py VIDEO [--checks canvas_fill,loop_freeze,repeat_fatigue,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch]
               [--lang eng] [--out DIR] [--fast]
 Exit 0 only if every RUN check PASSES.
 """
 import sys, os, json, subprocess, argparse, time
 
 HERE=os.path.dirname(os.path.abspath(__file__))
-ALL=["canvas_fill","loop_freeze","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch","shorts_format"]
-DEFAULT=["canvas_fill","loop_freeze","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch"]
+ALL=["canvas_fill","loop_freeze","repeat_fatigue","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch","shorts_format"]
+DEFAULT=["canvas_fill","loop_freeze","repeat_fatigue","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch"]
 SCRIPT={c:f"check_{c}.py" for c in ALL}; SCRIPT["omni_watch"]="omni_watch.py"
 
 def run(check,video,lang,outdir,fast):
