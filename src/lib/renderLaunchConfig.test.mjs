@@ -18,6 +18,10 @@ describe("Render launch blueprint", () => {
     expect(renderYaml).not.toMatch(/key:\s*UPLOADCHECK_STORE_PATH\s*\n\s*value:\s*\/tmp\//);
   });
 
+  it("keeps dev dependencies available during Render builds", () => {
+    expect(renderYaml).toMatch(/key:\s*NPM_CONFIG_PRODUCTION\s*\n\s*value:\s*"false"/);
+  });
+
   it("prompts for hashed API auth instead of plaintext API keys", () => {
     expect(renderYaml).toMatch(/key:\s*UPLOADCHECK_API_KEY_SHA256\s*\n\s*sync:\s*false/);
     expect(renderYaml).not.toMatch(/key:\s*UPLOADCHECK_API_KEY\s*\n\s*sync:\s*false/);

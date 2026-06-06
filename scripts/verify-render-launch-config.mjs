@@ -5,6 +5,7 @@ const text = readFileSync("render.yaml", "utf8");
 const required = [
   ["web custom domain", /domains:\s*\n\s*-\s*uploadcheck\.app\s*\n\s*-\s*www\.uploadcheck\.app/],
   ["api custom domain", /domains:\s*\n\s*-\s*api\.uploadcheck\.app/],
+  ["api build installs dev dependencies", /key:\s*NPM_CONFIG_PRODUCTION\s*\n\s*value:\s*"false"/],
   ["api persistent disk", /disk:\s*\n\s*name:\s*uploadcheck-data\s*\n\s*mountPath:\s*\/mnt\/uploadcheck\s*\n\s*sizeGB:\s*1/],
   ["durable JSON store path", /key:\s*UPLOADCHECK_STORE_PATH\s*\n\s*value:\s*\/mnt\/uploadcheck\/store\.json/],
   ["durable upload storage path", /key:\s*UPLOADCHECK_DURABLE_STORAGE_DIR\s*\n\s*value:\s*\/mnt\/uploadcheck\/uploads/],

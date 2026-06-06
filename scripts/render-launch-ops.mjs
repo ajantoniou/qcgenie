@@ -13,6 +13,7 @@ const API_SERVICE_ID = process.env.UPLOADCHECK_RENDER_API_SERVICE_ID || "srv-d8h
 
 const FIXED_API_ENV = {
   NODE_ENV: "production",
+  NPM_CONFIG_PRODUCTION: "false",
   UPLOADCHECK_API_SCOPES: "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write",
   UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck/store.json",
   UPLOADCHECK_INLINE_MEDIA_MAX_MB: "128",
@@ -431,8 +432,9 @@ export async function applyRenderLaunch(token, plan = buildRenderLaunchPlan()) {
 
 function domainStatus(expected, actual) {
   return expected.map((domain) => {
-    const found = actual.find((item) => item.name === domain.name);
-    return { name: domain.name, configured: Boolean(found), verificationStatus: found?.verificationStatus || null };
+    const found = actual.find((item) => (item.customDomain?.name || item.name) === domain.name);
+    const record = found?.customDomain || found;
+    return { name: domain.name, configured: Boolean(found), verificationStatus: record?.verificationStatus || null };
   });
 }
 

@@ -26,6 +26,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
       - key: UPLOADCHECK_API_KEY_SHA256
         sync: false
       - key: UPLOADCHECK_CREATOR_CHECKOUT_URL
