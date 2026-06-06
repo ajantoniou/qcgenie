@@ -44,6 +44,7 @@
     "9:16 Shorts format and black-gutter checker",
     "Audio garble and dropout checker",
     "Low-contrast overlay text checker",
+    "Thumbnail text readability checker",
     "Shorts safe-area and text-readability checker",
     "Caption safe-area and transcript grounding",
     "Agentic media QC API and MCP server"
@@ -163,6 +164,10 @@
     {
       "id": "generic_creator_video",
       "purpose": "Default creator-video upload checks using deterministic full-timeline gates."
+    },
+    {
+      "id": "creator_thumbnail",
+      "purpose": "Creator thumbnail image candidates with OCR contrast and safe-area readability checks."
     }
   ]
 }

@@ -37,7 +37,8 @@ describe("UploadCheck pipeline recipes", () => {
       "nto_long_form",
       "nto_shorts",
       "npo_podcast_or_audio",
-      "generic_creator_video"
+      "generic_creator_video",
+      "creator_thumbnail"
     ]);
   });
 
@@ -46,6 +47,7 @@ describe("UploadCheck pipeline recipes", () => {
     const longForm = recipes.profiles.nto_long_form.mcp_call;
     const shorts = recipes.profiles.nto_shorts.mcp_call;
     const audio = recipes.profiles.npo_podcast_or_audio.mcp_call;
+    const thumbnail = recipes.profiles.creator_thumbnail.mcp_call;
     const runLocalFile = MCP_TOOLS.find((tool) => tool.name === "qc_run_local_file");
 
     expect(longForm.tool).toBe("qc_run_local_file");
@@ -81,6 +83,8 @@ describe("UploadCheck pipeline recipes", () => {
     expect(audio.arguments.checks).toContain("pronunciation_watchlist");
     expect(audio.arguments.checks).toContain("script_faithfulness");
     expect(audio.arguments.checks).toContain("chunk_sidecar_failures");
+    expect(thumbnail.arguments.file_path).toBe("/path/to/thumbnail.jpg");
+    expect(thumbnail.arguments.checks).toBe("thumbnail_text_readability");
 
     for (const call of [longForm, shorts, audio]) {
       for (const key of Object.keys(call.arguments)) {
@@ -97,7 +101,8 @@ describe("UploadCheck pipeline recipes", () => {
       "nto_long_form",
       "nto_shorts",
       "npo_podcast_or_audio",
-      "generic_creator_video"
+      "generic_creator_video",
+      "creator_thumbnail"
     ]);
     expect(manifest.response_fields.qc_job).toContain("mediaIngress");
     expect(manifest.response_fields.qc_job).toContain("costEstimate");
@@ -124,6 +129,10 @@ describe("UploadCheck pipeline recipes", () => {
       callable_check: "text_crop_jitter"
     });
     expect(implemented.text_crop_jitter.covers).toContain("jittering");
+    expect(implemented.thumbnail_text_readability).toMatchObject({
+      callable_check: "thumbnail_text_readability"
+    });
+    expect(implemented.thumbnail_text_readability.covers).toContain("low-contrast");
     expect(implemented.twins.covers).toContain("more character variation");
     expect(implemented.narration_match.covers).toContain("Visual/narration mismatch");
     expect(implemented.sentence_boundary).toMatchObject({

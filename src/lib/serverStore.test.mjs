@@ -520,6 +520,40 @@ describe("JsonStore", () => {
     }
   });
 
+  it("ingests thumbnail readability findings with readable summaries", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const job = store.createJob({ source: "/tmp/thumbnail.jpg" });
+      const result = store.ingestGateVerdict(job.jobId, {
+        verdict: "BLOCK",
+        blocked: ["thumbnail_text_readability"],
+        skipped: [],
+        per_check: {
+          thumbnail_text_readability: {
+            pass: false,
+            findings: [{
+              label: "THUMBNAIL_LOW_CONTRAST_TEXT",
+              reason: "Thumbnail text is too low-contrast against the image/background.",
+              words: [{ text: "Buried", contrast: 1.57 }, { text: "Truth", contrast: 1.57 }]
+            }]
+          }
+        }
+      });
+
+      expect(result.importedFlags).toHaveLength(1);
+      expect(store.listFlags(job.jobId)[0]).toMatchObject({
+        gate: "thumbnail_text_readability",
+        severity: "block",
+        summary: 'Thumbnail text readability issue: "Buried Truth" - Thumbnail text is too low-contrast against the image/background.'
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("returns the existing job for repeated idempotency keys", () => {
     const dir = mkdtempSync(join(tmpdir(), "qcgenie-store-"));
     const path = join(dir, "state.json");

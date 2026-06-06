@@ -58,6 +58,11 @@
         "callable_check": "text_crop_jitter"
       },
       {
+        "id": "thumbnail_text_readability",
+        "covers": "Thumbnail candidate text that is low-contrast, too close to the edge, or unsafe for platform preview crops.",
+        "callable_check": "thumbnail_text_readability"
+      },
+      {
         "id": "canvas_fill",
         "covers": "Long-form pillarbox, letterbox, portrait-in-landscape, and black-gutter layout defects.",
         "callable_check": "canvas_fill"
@@ -255,6 +260,22 @@
           "plan_id": "creator",
           "cost_guardrail": "downgrade",
           "idempotency_key": "creator-final-upload"
+        }
+      }
+    },
+    "creator_thumbnail": {
+      "label": "Creator thumbnail candidate",
+      "default_checks": "thumbnail_text_readability",
+      "optional_model_checks": "",
+      "recommended_sidecars": {},
+      "mcp_call": {
+        "tool": "qc_run_local_file",
+        "arguments": {
+          "file_path": "/path/to/thumbnail.jpg",
+          "checks": "thumbnail_text_readability",
+          "plan_id": "creator",
+          "cost_guardrail": "downgrade",
+          "idempotency_key": "creator-thumbnail"
         }
       }
     }

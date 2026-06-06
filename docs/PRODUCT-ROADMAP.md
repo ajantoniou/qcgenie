@@ -154,7 +154,7 @@ NTO-derived private QC tasks to add to the product:
 16. `first_three_seconds`: flag generic openers, missing hook frame, or title/thumb mismatch. Implemented first as a deterministic manifest-side opening gate.
 17. `rehook_cadence`: flag long-form stretches without pattern interruption. Implemented first as a deterministic manifest-side cadence gate.
 18. `end_screen_tease`: flag missing next-video, CTA, or episode handoff. Implemented first as a deterministic manifest-side final-window gate.
-19. `thumbnail_text_readability`: apply text contrast/safe-area rules to thumbnail candidates.
+19. `thumbnail_text_readability`: apply text contrast/safe-area rules to thumbnail candidates. Implemented first as a deterministic OCR image/first-frame gate and exposed as a `creator_thumbnail` recipe profile.
 20. `repair_loop`: after report generation, agent/MCP should show all QC flags and ask the user whether to fix now. Fixable items should be routed to the LLM or local project files; render-source defects should be described with timestamped patch instructions.
 21. `literal_subject_match`: when narration names a person, place, source, date, or event, require an actual matching visual or an explicit neutral/source-card fallback. This is stricter than mood matching. Implemented first as a deterministic manifest-side gate.
 22. `source_family_dominance`: flag one source family, motif, or visual bucket dominating a 120-second window even when the exact file is different. Implemented when callers provide a JSON storybook/edit manifest to `repeat_fatigue`; hosted API manifest ingest still needs product surfacing.
@@ -199,6 +199,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO-derived `dialogue_in_music_short` deterministic transcript-side Shorts gate added to `scripts/qc-engine/check_dialogue_in_music_short.py`, included in `run_gate.py`, and added to the NTO Shorts recipe default.
 - Done: NTO-derived `opening_footer_text_presence` deterministic manifest-side Shorts gate added to `scripts/qc-engine/check_opening_footer_text_presence.py`, included in `run_gate.py`, and added to the NTO Shorts recipe default.
 - Done: NTO-derived `chunk_sidecar_failures` deterministic sidecar-directory gate added to `scripts/qc-engine/check_chunk_sidecar_failures.py`, included in `run_gate.py`, and exposed through API inline sidecars, CLI `--sidecar-dir`, MCP `sidecar_dir`, and NTO/NPO recipe defaults.
+- Done: NTO-derived `thumbnail_text_readability` deterministic OCR image gate added to `scripts/qc-engine/check_thumbnail_text_readability.py`, included in `run_gate.py`, and exposed through the `creator_thumbnail` pipeline recipe.
 - Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
 - Done: plan-aware cost guardrail added for declared AI-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked.
 - Done: first per-check model-call accounting added for `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch`; in downgrade mode, margin-breaking model-backed checks are removed before the engine runs.

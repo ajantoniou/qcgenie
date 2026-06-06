@@ -752,6 +752,10 @@ function summarizeFinding(gate, finding) {
     const reason = finding.reason || finding.summary || finding.label || "Repeated faces or bodies detected in the scene.";
     return action ? `${countText}: ${reason} ${action}` : `${countText}: ${reason}`;
   }
+  if (gate === "thumbnail_text_readability" && Array.isArray(finding.words) && finding.words.length) {
+    const sample = finding.words.map((word) => word.text).filter(Boolean).slice(0, 5).join(" ");
+    return `Thumbnail text readability issue: "${sample}" - ${finding.reason || finding.label || "text may be hard to read"}`;
+  }
   if (finding.summary || finding.reason || finding.label) return finding.summary || finding.reason || finding.label;
   if (gate === "text_contrast" && Array.isArray(finding.words) && finding.words.length) {
     const sample = finding.words.map((word) => word.text).filter(Boolean).slice(0, 5).join(" ");

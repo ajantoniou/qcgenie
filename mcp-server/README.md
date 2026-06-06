@@ -64,6 +64,8 @@ When a project has a locked narration script and final transcript, pass `expecte
 
 When a project has local chunk QC reports, pass `sidecar_dir` with `checks: "chunk_sidecar_failures"`. The local MCP process packages JSON sidecars such as `*.garble-report.json`, Render evaluates them from memory/temp storage, and failed chunk reports become BLOCK flags before upload.
 
+For thumbnail candidates, call `qc_run_local_file` on the image with `checks: "thumbnail_text_readability"`. The same inline Render path evaluates OCR contrast and edge/safe-area readability without model spend.
+
 Use `plan_id`, `ai_review_seconds`, and `cost_guardrail` when an agent is asking for paid AI review beyond deterministic checks. The default guardrail is `downgrade`: margin-breaking AI review is removed and the job runs deterministic checks. Use `block` to reject unsafe requests, or `off` only for internal experiments/deep-review add-ons.
 
 Call `qc_get_launch_status` before launch-sensitive production workflows when an agent needs the live Product Hunt go/no-go state, remaining blockers, and operator commands. This status endpoint is public; the other QC tools still require an API key.
