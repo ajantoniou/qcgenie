@@ -55,6 +55,7 @@ describe("public launch status", () => {
       "npm run live-npo-pipeline-handoff:verify",
       "npm run live-openapi:verify",
       "npm run live-public-artifacts:verify",
+      "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
       "npm run live-web-artifacts:verify",
       "npm run roadmap:verify",
       "npm run render:validate-env",
@@ -71,6 +72,7 @@ describe("public launch status", () => {
     expect(status.verified_controls.find((control) => control.id === "npo_pipeline_handoff")?.evidence).toContain("live-npo-pipeline-handoff:verify");
     expect(status.verified_controls.find((control) => control.id === "hosted_public_artifacts")?.evidence).toContain("live-public-artifacts:verify");
     expect(status.verified_controls.find((control) => control.id === "hosted_web_artifacts")?.evidence).toContain("live-web-artifacts:verify");
+    expect(status.verified_controls.find((control) => control.id === "render_web_artifacts")?.evidence).toContain("qcgenie-web.onrender.com");
     expect(status.verified_controls.find((control) => control.id === "billing_enforcement")?.evidence).toContain("AI-review seconds");
     expect(status.verified_controls.find((control) => control.id === "abuse_limits")?.evidence).toContain("active_job_limit_exceeded");
     expect(status.verified_controls.find((control) => control.id === "job_observability")?.evidence).toContain("processingDurationMs");
@@ -114,6 +116,7 @@ describe("public launch status", () => {
     });
     const status = buildLaunchStatus(readiness, { generatedFrom: "test readiness", lastVerifiedDate: "2026-06-06" });
 
+    expect(status.contractVersion).toBe("2026-06-06.render-web-proof");
     expect(status.product_hunt_ready).toBe(true);
     expect(Object.values(status.status).every((value) => value === "pass")).toBe(true);
     expect(status.remaining_blockers).toEqual([]);

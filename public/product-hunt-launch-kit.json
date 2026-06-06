@@ -90,6 +90,7 @@
       "npm run live-npo-pipeline-handoff:verify",
       "npm run live-openapi:verify",
       "npm run live-public-artifacts:verify",
+      "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
       "npm run live-web-artifacts:verify",
       "npm run media-ingress:verify",
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",

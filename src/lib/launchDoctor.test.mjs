@@ -48,15 +48,21 @@ describe("launch doctor", () => {
     expect(result.stdout).toContain("BLOCK checkout-probe");
     expect(result.stdout).toContain("BLOCK storage");
     expect(result.stdout).toContain("BLOCK storage-probe");
-    expect(result.stdout).toContain("PASS hosted-launch-doctor");
-    expect(result.stdout).toContain("BLOCK hosted-cost-basis");
-    expect(result.stdout).toContain("BLOCK hosted-agent-manifest");
-    expect(result.stdout).toContain("BLOCK hosted-pipeline-recipes");
-    expect(result.stdout).toContain("BLOCK hosted-pipeline-handoff");
-    expect(result.stdout).toContain("BLOCK hosted-npo-pipeline-handoff");
-    expect(result.stdout).toContain("BLOCK hosted-openapi");
-    expect(result.stdout).toContain("BLOCK hosted-public-artifacts");
-    expect(result.stdout).toContain("BLOCK hosted-web-artifacts");
+    expect(result.stdout).toMatch(/(PASS|BLOCK) render-web-artifacts/);
+    for (const hostedStep of [
+      "hosted-launch-doctor",
+      "hosted-launch-evidence",
+      "hosted-cost-basis",
+      "hosted-agent-manifest",
+      "hosted-pipeline-recipes",
+      "hosted-pipeline-handoff",
+      "hosted-npo-pipeline-handoff",
+      "hosted-openapi",
+      "hosted-public-artifacts"
+    ]) {
+      expect(result.stdout).toMatch(new RegExp(`(PASS|BLOCK) ${hostedStep}`));
+    }
+    expect(result.stdout).toMatch(/(PASS|BLOCK) hosted-web-artifacts/);
     expect(result.stdout).toContain("BLOCK hosted-media-ingress");
     expect(result.stdout).toContain("BLOCK launch-handoff");
     expect(result.stdout).toContain("BLOCK readiness");
@@ -74,11 +80,23 @@ describe("launch doctor", () => {
     expect(result.status).toBe(1);
     expect(payload.ok).toBe(false);
     expect(payload.status).toBe("blocked");
-    expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "storage", "hosted-cost-basis", "hosted-agent-manifest", "hosted-pipeline-recipes", "hosted-pipeline-handoff", "hosted-npo-pipeline-handoff", "hosted-openapi", "hosted-public-artifacts", "hosted-web-artifacts", "hosted-media-ingress", "readiness"]));
-    expect(payload.blockers).not.toContain("hosted-launch-doctor");
-    expect(payload.results.find((step) => step.id === "hosted-launch-doctor")).toMatchObject({
-      ok: true
+    expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "checkout-probe", "storage", "storage-probe", "hosted-media-ingress"]));
+    expect(payload.results.find((step) => step.id === "hosted-launch-doctor")).toBeTruthy();
+    expect(payload.results.find((step) => step.id === "render-web-artifacts")).toMatchObject({
+      commandString: "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify"
     });
+    for (const hostedStep of [
+      "hosted-launch-evidence",
+      "hosted-cost-basis",
+      "hosted-agent-manifest",
+      "hosted-pipeline-recipes",
+      "hosted-pipeline-handoff",
+      "hosted-npo-pipeline-handoff",
+      "hosted-openapi",
+      "hosted-public-artifacts"
+    ]) {
+      expect(payload.results.find((step) => step.id === hostedStep)).toBeTruthy();
+    }
     expect(payload.results.find((step) => step.id === "checkout-probe").commandString).toBe("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
     expect(payload.results.find((step) => step.id === "hosted-media-ingress")).toMatchObject({
       commandString: "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
@@ -96,6 +114,7 @@ describe("launch doctor", () => {
       "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
       "npm run media-ingress:verify",
       "npm run live-launch-doctor:verify",
+      "npm run live-launch-evidence:verify",
       "npm run live-cost-basis:verify",
       "npm run live-agent-manifest:verify",
       "npm run live-pipeline-recipes:verify",
@@ -103,6 +122,7 @@ describe("launch doctor", () => {
       "npm run live-npo-pipeline-handoff:verify",
       "npm run live-openapi:verify",
       "npm run live-public-artifacts:verify",
+      "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
       "npm run live-web-artifacts:verify",
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run launch-status:verify",

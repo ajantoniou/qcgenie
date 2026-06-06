@@ -15,31 +15,33 @@ function listen(handler) {
   });
 }
 
-describe("live launch doctor verifier", () => {
-  it("passes when the hosted endpoint returns the launch doctor JSON shape", async () => {
+describe("live launch evidence verifier", () => {
+  it("passes when command coverage includes hosted media and Render static web proof", async () => {
     const { server, baseUrl } = await listen((_req, res) => {
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({
-        name: "UploadCheck.app Launch Doctor",
+        name: "UploadCheck.app Remote Launch Evidence",
         contractVersion: "2026-06-06.render-web-proof",
-        launchDoctorCommands: [
+        source: "https://qcgenie-api.onrender.com/v1/launch-doctor",
+        productHuntReady: false,
+        status: "blocked",
+        blockers: ["checkout"],
+        commandCoverage: [
           "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
           "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
-        ],
-        blockerFixPlan: { phases: [] },
-        remainingBlockers: []
+        ]
       }));
     });
 
     try {
-      const result = await execFileAsync("node", ["scripts/verify-live-launch-doctor.mjs"], {
+      const result = await execFileAsync("node", ["scripts/verify-live-launch-evidence.mjs"], {
         cwd: process.cwd(),
-        env: { ...process.env, UPLOADCHECK_LIVE_LAUNCH_DOCTOR_BASE_URL: baseUrl }
+        env: { ...process.env, UPLOADCHECK_LIVE_LAUNCH_EVIDENCE_BASE_URL: baseUrl }
       });
       expect(JSON.parse(result.stdout)).toMatchObject({
         ok: true,
         contractVersion: "2026-06-06.render-web-proof",
-        hostedMediaIngressCommandPresent: true,
+        redactedHostedMediaIngressCommandPresent: true,
         renderWebArtifactsCommandPresent: true
       });
     } finally {
@@ -47,70 +49,50 @@ describe("live launch doctor verifier", () => {
     }
   });
 
-  it("blocks when the hosted launch doctor omits Render static web proof", async () => {
+  it("blocks when command coverage omits Render static web proof", async () => {
     const { server, baseUrl } = await listen((_req, res) => {
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({
-        name: "UploadCheck.app Launch Doctor",
+        name: "UploadCheck.app Remote Launch Evidence",
         contractVersion: "2026-06-06.render-web-proof",
-        launchDoctorCommands: [
+        source: "https://qcgenie-api.onrender.com/v1/launch-doctor",
+        commandCoverage: [
           "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
-        ],
-        blockerFixPlan: { phases: [] },
-        remainingBlockers: []
+        ]
       }));
     });
 
     try {
-      await expect(execFileAsync("node", ["scripts/verify-live-launch-doctor.mjs"], {
+      await expect(execFileAsync("node", ["scripts/verify-live-launch-evidence.mjs"], {
         cwd: process.cwd(),
-        env: { ...process.env, UPLOADCHECK_LIVE_LAUNCH_DOCTOR_BASE_URL: baseUrl }
+        env: { ...process.env, UPLOADCHECK_LIVE_LAUNCH_EVIDENCE_BASE_URL: baseUrl }
       })).rejects.toMatchObject({
-        stderr: expect.stringContaining("Missing Render static web-artifacts command")
+        stderr: expect.stringContaining("Missing Render static web-artifacts command coverage")
       });
     } finally {
       server.close();
     }
   });
 
-  it("blocks when the hosted launch doctor omits the current contract version", async () => {
+  it("blocks when the hosted launch evidence omits the current contract version", async () => {
     const { server, baseUrl } = await listen((_req, res) => {
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({
-        name: "UploadCheck.app Launch Doctor",
-        launchDoctorCommands: [
+        name: "UploadCheck.app Remote Launch Evidence",
+        source: "https://qcgenie-api.onrender.com/v1/launch-doctor",
+        commandCoverage: [
           "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
           "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
-        ],
-        blockerFixPlan: { phases: [] },
-        remainingBlockers: []
+        ]
       }));
     });
 
     try {
-      await expect(execFileAsync("node", ["scripts/verify-live-launch-doctor.mjs"], {
+      await expect(execFileAsync("node", ["scripts/verify-live-launch-evidence.mjs"], {
         cwd: process.cwd(),
-        env: { ...process.env, UPLOADCHECK_LIVE_LAUNCH_DOCTOR_BASE_URL: baseUrl }
+        env: { ...process.env, UPLOADCHECK_LIVE_LAUNCH_EVIDENCE_BASE_URL: baseUrl }
       })).rejects.toMatchObject({
         stderr: expect.stringContaining("Expected contractVersion")
-      });
-    } finally {
-      server.close();
-    }
-  });
-
-  it("blocks when the hosted endpoint returns the static HTML app", async () => {
-    const { server, baseUrl } = await listen((_req, res) => {
-      res.setHeader("content-type", "text/html; charset=utf-8");
-      res.end("<!doctype html><title>UploadCheck</title>");
-    });
-
-    try {
-      await expect(execFileAsync("node", ["scripts/verify-live-launch-doctor.mjs"], {
-        cwd: process.cwd(),
-        env: { ...process.env, UPLOADCHECK_LIVE_LAUNCH_DOCTOR_BASE_URL: baseUrl }
-      })).rejects.toMatchObject({
-        stderr: expect.stringContaining("instead of application/json")
       });
     } finally {
       server.close();

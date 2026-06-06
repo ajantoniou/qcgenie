@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { buildLaunchEvidence, formatLaunchEvidence, redactLaunchText } from "../../launch-evidence.mjs";
+import { LAUNCH_PROOF_CONTRACT_VERSION, buildLaunchEvidence, formatLaunchEvidence, redactLaunchText } from "../../launch-evidence.mjs";
 
 describe("launch evidence", () => {
   it("summarizes launch doctor results without raw secret output", () => {
@@ -26,6 +26,7 @@ describe("launch evidence", () => {
     const text = formatLaunchEvidence(evidence);
 
     expect(evidence.ok).toBe(false);
+    expect(evidence.contractVersion).toBe(LAUNCH_PROOF_CONTRACT_VERSION);
     expect(evidence.results[0]).toMatchObject({
       id: "checkout",
       commandString: "UPLOADCHECK_API_KEY=<private_bearer> npm run launch:checkout",
@@ -54,6 +55,7 @@ describe("launch evidence", () => {
 
     expect(result.status).toBe(1);
     expect(payload.name).toBe("UploadCheck.app Launch Evidence");
+    expect(payload.contractVersion).toBe(LAUNCH_PROOF_CONTRACT_VERSION);
     expect(payload.ok).toBe(false);
     expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "hosted-media-ingress", "readiness"]));
     expect(JSON.stringify(payload)).not.toContain("uck_");

@@ -2,8 +2,8 @@
 """
 VIDEO QC GATE — runs all checks and emits one ship/block verdict.
 Checks: canvas_fill + loop_freeze + repeat_fatigue + speaker_visual_binding + static_head_dominance + literal_subject_match + first_three_seconds + end_screen_tease + rehook_cadence + contact_sheet_evidence + opening_footer_text_presence + text_crop_jitter + thumbnail_text_readability + hallucinated_plate_text + clean_segment_source_scrub + asset_triage_reuse_manifest + chunk_sidecar_failures + spoken_leaks + pronunciation_watchlist + script_faithfulness + sentence_boundary + dialogue_in_music_short + dead_air + cheap_broll + text_contrast + text_safe_area + garble (deterministic-ish), twins + narration_match + omni_watch
-(vision). Deterministic checks are authoritative; vision checks supplement. Skipped checks (missing
-key) are reported but do not fail the gate.
+(vision). Deterministic checks are authoritative; vision checks supplement. Requested mandatory
+firewall checks such as twins must not skip clean when their runtime dependency is missing.
 Usage:
   run_gate.py VIDEO [--checks canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,end_screen_tease,rehook_cadence,contact_sheet_evidence,opening_footer_text_presence,text_crop_jitter,thumbnail_text_readability,hallucinated_plate_text,clean_segment_source_scrub,asset_triage_reuse_manifest,chunk_sidecar_failures,spoken_leaks,pronunciation_watchlist,script_faithfulness,sentence_boundary,dialogue_in_music_short,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch]
               [--lang eng] [--out DIR] [--manifest storybook.json] [--transcript transcript.txt] [--watchlist watchlist.json] [--expected-script script.txt] [--sidecar-dir _dialogue-chunks] [--fast]
@@ -15,6 +15,7 @@ HERE=os.path.dirname(os.path.abspath(__file__))
 ALL=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","opening_footer_text_presence","text_crop_jitter","thumbnail_text_readability","hallucinated_plate_text","clean_segment_source_scrub","asset_triage_reuse_manifest","chunk_sidecar_failures","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dialogue_in_music_short","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch","shorts_format"]
 DEFAULT=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch"]
 SCRIPT={c:f"check_{c}.py" for c in ALL}; SCRIPT["omni_watch"]="omni_watch.py"
+MANDATORY_NO_SKIP={"twins"}
 
 def run(check,video,lang,outdir,fast,manifest=None,transcript=None,watchlist=None,expected_script=None,sidecar_dir=None):
     j=os.path.join(outdir,f"{check}.json")
@@ -80,6 +81,12 @@ def main():
             results[c]["findings"] = [{
                 "reason": results[c].get("error") or f"{c} checker exited {results[c].get('_returncode')}",
                 "action": "Fix the checker/runtime dependency and rerun the gate before shipping."
+            }]
+        if c in MANDATORY_NO_SKIP and results[c].get("pass") is None:
+            results[c]["pass"] = False
+            results[c]["findings"] = [{
+                "reason": results[c].get("reason") or f"{c} checker skipped, so the mandatory QC firewall did not run.",
+                "action": "Fix the checker/runtime dependency or explicitly remove this check from the requested gate set before shipping."
             }]
         v=results[c].get("pass"); tag="PASS" if v is True else ("SKIP" if v is None else "BLOCK")
         print(f"[ gate ] {c}: {tag} ({results[c].get('_seconds')}s)",flush=True)

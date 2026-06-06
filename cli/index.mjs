@@ -13,7 +13,9 @@ try {
   const rawPayload = request.kind === "signed_upload"
     ? await runSignedUploadJob(request, apiKey)
     : (request.method === "GET" ? await getJson(request.apiBaseUrl, request.path, apiKey) : await postJson(request.apiBaseUrl, request.path, request.payload, apiKey));
-  const payload = request.kind === "launch_evidence" ? buildRemoteLaunchEvidence(rawPayload, { source: `${request.apiBaseUrl}${request.path}` }) : rawPayload;
+  const payload = request.kind === "launch_evidence" && rawPayload.name !== "UploadCheck.app Remote Launch Evidence"
+    ? buildRemoteLaunchEvidence(rawPayload, { source: `${request.apiBaseUrl}${request.path}` })
+    : rawPayload;
 
   console.log(options.json ? JSON.stringify(payload, null, 2) : formatSummary(request.kind, payload));
 } catch (error) {

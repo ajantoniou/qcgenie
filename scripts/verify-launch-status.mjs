@@ -39,6 +39,7 @@ const expected = buildLaunchStatus(representativeReadiness, {
 });
 
 assert(status.product_hunt_ready === representativeReadiness.readyForProductHunt, "launch-status product_hunt_ready does not match representative readiness");
+assert(status.contractVersion === representativeReadiness.contractVersion, "launch-status contractVersion does not match representative readiness");
 assert(JSON.stringify(status.status) === JSON.stringify(expected.status), "launch-status status map does not match representative readiness");
 assert(JSON.stringify(status.remaining_blockers) === JSON.stringify(expected.remaining_blockers), "launch-status blockers do not match launch-status builder");
 assert(JSON.stringify(status.verified_controls) === JSON.stringify(expected.verified_controls), "launch-status verified controls do not match launch-status builder");
@@ -70,6 +71,7 @@ assert(status.operator_commands.includes("npm run live-pipeline-handoff:verify")
 assert(status.operator_commands.includes("npm run live-npo-pipeline-handoff:verify"), "launch-status operator commands must include live-npo-pipeline-handoff:verify");
 assert(status.operator_commands.includes("npm run live-openapi:verify"), "launch-status operator commands must include live-openapi:verify");
 assert(status.operator_commands.includes("npm run live-public-artifacts:verify"), "launch-status operator commands must include live-public-artifacts:verify");
+assert(status.operator_commands.includes("UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify"), "launch-status operator commands must include Render static web-artifacts verifier");
 assert(status.operator_commands.includes("npm run live-web-artifacts:verify"), "launch-status operator commands must include live-web-artifacts:verify");
 assert(status.operator_commands.includes("npm run roadmap:verify"), "launch-status operator commands must include roadmap:verify");
 assert(status.operator_commands.includes("npm run launch:check"), "launch-status operator commands must include launch:check");
@@ -83,6 +85,7 @@ assert(status.verified_controls.some((control) => control.id === "product_hunt_l
 assert(status.verified_controls.some((control) => control.id === "npo_pipeline_handoff" && control.evidence.includes("live-npo-pipeline-handoff:verify")), "launch-status NPO pipeline handoff evidence must cite live-npo-pipeline-handoff:verify");
 assert(status.verified_controls.some((control) => control.id === "hosted_public_artifacts" && control.evidence.includes("live-public-artifacts:verify")), "launch-status hosted public-artifacts evidence must cite live-public-artifacts:verify");
 assert(status.verified_controls.some((control) => control.id === "hosted_web_artifacts" && control.evidence.includes("live-web-artifacts:verify")), "launch-status hosted web-artifacts evidence must cite live-web-artifacts:verify");
+assert(status.verified_controls.some((control) => control.id === "render_web_artifacts" && control.evidence.includes("qcgenie-web.onrender.com")), "launch-status Render web-artifacts evidence must cite the Render static URL");
 assert(status.verified_controls.some((control) => control.id === "billing_enforcement" && control.evidence.includes("AI-review seconds") && control.evidence.includes("usage_limit_exceeded")), "launch-status billing enforcement evidence must cite AI-review seconds and usage_limit_exceeded");
 assert(status.verified_controls.some((control) => control.id === "abuse_limits" && control.evidence.includes("duration_limit_exceeded") && control.evidence.includes("active_job_limit_exceeded")), "launch-status abuse limits evidence must cite fail-fast errors");
 assert(status.verified_controls.some((control) => control.id === "job_observability" && control.evidence.includes("processingDurationMs") && control.evidence.includes("failureReason")), "launch-status job observability evidence must cite processingDurationMs and failureReason");
@@ -136,6 +139,7 @@ assert(launchKit.ready_when?.required_commands?.includes("npm run live-pipeline-
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-npo-pipeline-handoff:verify"), "Product Hunt launch kit must require live-npo-pipeline-handoff:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-openapi:verify"), "Product Hunt launch kit must require live-openapi:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-public-artifacts:verify"), "Product Hunt launch kit must require live-public-artifacts:verify");
+assert(launchKit.ready_when?.required_commands?.includes("UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify"), "Product Hunt launch kit must require Render static web-artifacts verifier");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-web-artifacts:verify"), "Product Hunt launch kit must require live-web-artifacts:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "Product Hunt launch kit must require render:validate-env-file");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:dns"), "Product Hunt launch kit must require launch:dns");

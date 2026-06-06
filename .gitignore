@@ -1,6 +1,8 @@
 .env
+.env.local
 node_modules/
 dist/
+_qc/
 .playwright-mcp/
 *.png
 qcgenie-*.md

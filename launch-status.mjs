@@ -18,6 +18,7 @@ export function buildLaunchStatus(readiness, {
 
   return {
     name: "UploadCheck.app Launch Status",
+    contractVersion: readiness?.contractVersion || null,
     description: "Machine-readable Product Hunt launch state for UploadCheck.app agents and operators.",
     generated_from: generatedFrom,
     last_verified_date: lastVerifiedDate,
@@ -62,6 +63,7 @@ export function buildLaunchStatus(readiness, {
       "npm run live-npo-pipeline-handoff:verify",
       "npm run live-openapi:verify",
       "npm run live-public-artifacts:verify",
+      "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
       "npm run live-web-artifacts:verify",
       "npm run roadmap:verify",
       "npm run live-launch-evidence:verify",
@@ -150,6 +152,11 @@ function verifiedControls() {
       id: "npo_pipeline_handoff",
       status: "done",
       evidence: "GET /npo-pipeline-handoff.json and npm run live-npo-pipeline-handoff:verify expose a focused NPO audio pipeline sequence for MCP, CLI, Render media ingress, sidecars, repair loop, and rerun-before-publish-ready."
+    },
+    {
+      id: "render_web_artifacts",
+      status: "done",
+      evidence: "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify checks the Render static Product Hunt, pricing, sample-report, agentic API pages, sitemap, llms.txt, and demo MP4 before DNS cutover."
     },
     {
       id: "hosted_web_artifacts",

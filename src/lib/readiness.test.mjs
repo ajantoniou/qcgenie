@@ -14,6 +14,7 @@ describe("launch readiness report", () => {
       now: "2026-06-06T00:00:00.000Z"
     });
 
+    expect(report.contractVersion).toBe("2026-06-06.render-web-proof");
     expect(report.readyForProductHunt).toBe(false);
     expect(report.checks.api.ok).toBe(true);
     expect(report.checks.apiAuth.ok).toBe(true);
@@ -64,6 +65,7 @@ describe("launch readiness report", () => {
     });
 
     expect(report.readyForProductHunt).toBe(true);
+    expect(report.contractVersion).toBe("2026-06-06.render-web-proof");
     expect(report.checks.checkout.plans.creator).toMatchObject({
       ok: true,
       configured: true,

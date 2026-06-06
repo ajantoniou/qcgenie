@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -213,5 +213,134 @@ img.save(${JSON.stringify(mediaPath)})
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it("blocks instead of skipping when the twins vision key is missing", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-no-key-"));
+    const mediaPath = join(dir, "single-person.jpg");
+    const jsonPath = join(dir, "twins.json");
+
+    try {
+      const ffmpeg = spawnSync("ffmpeg", [
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=c=gray:s=640x360",
+        "-frames:v",
+        "1",
+        mediaPath
+      ], { cwd: resolve("."), encoding: "utf8" });
+      expect(ffmpeg.status).toBe(0);
+
+      const result = spawnSync("python3", [
+        resolve("scripts/qc-engine/check_twins.py"),
+        mediaPath,
+        "--json",
+        jsonPath
+      ], {
+        cwd: resolve("."),
+        encoding: "utf8",
+        env: { ...process.env, UPLOADCHECK_TEST_NO_ANTHROPIC_KEY: "1" }
+      });
+      const payload = JSON.parse(readFileSync(jsonPath, "utf8"));
+
+      expect(result.status).toBe(1);
+      expect(payload).toMatchObject({
+        check: "twins",
+        pass: false,
+        skipped: false,
+        reason: "ANTHROPIC_API_KEY missing"
+      });
+      expect(payload.findings[0]).toMatchObject({
+        method: "vision_key_required"
+      });
+      expect(payload.findings[0].reason).toContain("cannot certify no cloned or under-varied crowd faces");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("blocks through run_gate.py when the requested twins firewall cannot run vision", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-gate-no-key-"));
+    const mediaPath = join(dir, "single-person.jpg");
+    const outDir = join(dir, "gate");
+
+    try {
+      const ffmpeg = spawnSync("ffmpeg", [
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=c=gray:s=640x360",
+        "-frames:v",
+        "1",
+        mediaPath
+      ], { cwd: resolve("."), encoding: "utf8" });
+      expect(ffmpeg.status).toBe(0);
+
+      const result = spawnSync("python3", [
+        resolve("scripts/qc-engine/run_gate.py"),
+        mediaPath,
+        "--checks",
+        "twins",
+        "--out",
+        outDir
+      ], {
+        cwd: resolve("."),
+        encoding: "utf8",
+        env: { ...process.env, UPLOADCHECK_TEST_NO_ANTHROPIC_KEY: "1" }
+      });
+      const payload = JSON.parse(readFileSync(join(outDir, "VERDICT.json"), "utf8"));
+
+      expect(result.status).toBe(1);
+      expect(payload).toMatchObject({
+        verdict: "BLOCK",
+        blocked: ["twins"],
+        skipped: []
+      });
+      expect(payload.per_check.twins.pass).toBe(false);
+      expect(payload.per_check.twins.findings[0].reason).toContain("ANTHROPIC_API_KEY missing");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("locally blocks the NTO founder clone-crowd regression frame", () => {
+    const fixture = "/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/content/videos/ep02-tampering-with-the-four-gospels/render-v25/_qc-clean/_scratch/inframe/clone_0615s.png";
+
+    if (!existsSync(fixture)) {
+      return;
+    }
+
+    const script = `
+import importlib.util, tempfile, json, shutil
+spec = importlib.util.spec_from_file_location("check_twins", "scripts/qc-engine/check_twins.py")
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+tmp=tempfile.mkdtemp(prefix="twins_nto_regression_")
+try:
+    frames=mod.extract_frames(${JSON.stringify(fixture)}, tmp, 0.25)
+    findings=[]
+    for fp,t in frames:
+        local=mod.deterministic_clone_crowd_finding(fp,t)
+        if local:
+            findings.append(local)
+            break
+    print(json.dumps({"frames": len(frames), "findings": findings}))
+finally:
+    shutil.rmtree(tmp)
+`;
+    const result = spawnSync("python3", ["-c", script], { cwd: resolve("."), encoding: "utf8" });
+    const payload = JSON.parse(result.stdout);
+
+    expect(result.status).toBe(0);
+    expect(payload.frames).toBeGreaterThan(0);
+    expect(payload.findings[0]).toMatchObject({
+      needs_more_character_variation: true,
+      method: "local_crowd_archetype_cluster",
+      action: "Regenerate or edit the scene with more distinct characters."
+    });
+    expect(payload.findings[0].duplicate_count).toBeGreaterThanOrEqual(6);
   });
 });

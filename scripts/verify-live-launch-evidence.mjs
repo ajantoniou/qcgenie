@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_LAUNCH_EVIDENCE_BASE_URL || "https://qcgenie-api.onrender.com");
+const expectedContractVersion = "2026-06-06.render-web-proof";
 const expectedSource = "https://qcgenie-api.onrender.com/v1/launch-doctor";
+const expectedRenderWebCommand = "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify";
 const url = `${baseUrl}/v1/launch-evidence`;
 
 try {
@@ -26,11 +28,17 @@ try {
   if (payload.name !== "UploadCheck.app Remote Launch Evidence") {
     fail(`UploadCheck live launch evidence: NOT READY\nExpected name UploadCheck.app Remote Launch Evidence, got ${JSON.stringify(payload.name)}`);
   }
+  if (payload.contractVersion !== expectedContractVersion) {
+    fail(`UploadCheck live launch evidence: NOT READY\nExpected contractVersion ${expectedContractVersion}, got ${JSON.stringify(payload.contractVersion)}.`);
+  }
   if (payload.source !== expectedSource) {
     fail(`UploadCheck live launch evidence: NOT READY\nExpected source ${expectedSource}, got ${JSON.stringify(payload.source)}`);
   }
   if (!Array.isArray(payload.commandCoverage) || !payload.commandCoverage.some((command) => command.includes("UPLOADCHECK_API_KEY=<private_bearer>"))) {
     fail("UploadCheck live launch evidence: NOT READY\nMissing redacted hosted media-ingress command coverage.");
+  }
+  if (!Array.isArray(payload.commandCoverage) || !payload.commandCoverage.includes(expectedRenderWebCommand)) {
+    fail("UploadCheck live launch evidence: NOT READY\nMissing Render static web-artifacts command coverage.");
   }
   if (serialized.includes("uck_") || /\/tmp\/uploadcheck\/(?!<redacted>)/.test(serialized)) {
     fail("UploadCheck live launch evidence: NOT READY\nPayload leaks a bearer-token or temp-path pattern.");
@@ -40,12 +48,14 @@ try {
     ok: true,
     url,
     name: payload.name,
+    contractVersion: payload.contractVersion,
     source: payload.source,
     productHuntReady: Boolean(payload.productHuntReady),
     status: payload.status,
     blockers: payload.blockers || [],
     commandCoverageCount: payload.commandCoverage.length,
-    redactedHostedMediaIngressCommandPresent: true
+    redactedHostedMediaIngressCommandPresent: true,
+    renderWebArtifactsCommandPresent: true
   }, null, 2));
 } catch (error) {
   fail(`UploadCheck live launch evidence: NOT READY\n${error.message}`);

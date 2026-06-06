@@ -41,6 +41,7 @@ describe("server inline media API", () => {
 
       expect(response.status).toBe(200);
       expect(payload.generated_from).toBe("live readiness");
+      expect(payload.contractVersion).toBe("2026-06-06.render-web-proof");
       expect(payload.product_hunt_ready).toBe(false);
       expect(payload.status.api_auth).toBe("pass");
       expect(payload.status.checkout).toBe("blocked");
@@ -110,6 +111,7 @@ describe("server inline media API", () => {
 
       expect(response.status).toBe(200);
       expect(payload.name).toBe("UploadCheck.app Launch Doctor");
+      expect(payload.contractVersion).toBe("2026-06-06.render-web-proof");
       expect(payload.handoffUrl).toBe("https://qcgenie-api.onrender.com/v1/launch-handoff");
       expect(payload.blockerFixPlan.status).toBe("blocked");
       expect(payload.launchDoctorCommands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
@@ -141,6 +143,7 @@ describe("server inline media API", () => {
 
       expect(response.status).toBe(200);
       expect(payload.name).toBe("UploadCheck.app Remote Launch Evidence");
+      expect(payload.contractVersion).toBe("2026-06-06.render-web-proof");
       expect(payload.source).toBe("https://qcgenie-api.onrender.com/v1/launch-doctor");
       expect(payload.productHuntReady).toBe(false);
       expect(payload.status).toBe("blocked");
@@ -148,6 +151,38 @@ describe("server inline media API", () => {
       expect(payload.commandCoverage.join("\n")).toContain("<private_bearer>");
       expect(JSON.stringify(payload)).not.toContain("uck_");
       expect(JSON.stringify(payload)).not.toContain(dir);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("returns JSON 404 for missing public artifact paths instead of SPA HTML", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-static-miss-"));
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY_SHA256: "a".repeat(64),
+        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const response = await fetch(`http://127.0.0.1:${port}/missing-public-artifact.json`);
+      const payload = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(response.headers.get("content-type")).toContain("application/json");
+      expect(payload).toEqual({
+        error: "artifact_not_found",
+        path: "/missing-public-artifact.json"
+      });
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

@@ -65,6 +65,7 @@ npm run live-pipeline-handoff:verify
 npm run live-npo-pipeline-handoff:verify
 npm run live-openapi:verify
 npm run live-public-artifacts:verify
+UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify
 npm run live-web-artifacts:verify
 npm run render:verify
 npm run launch:check
@@ -84,7 +85,7 @@ The launch doctor also includes `npm run live-pipeline-handoff:verify` and repor
 The launch doctor also includes `npm run live-npo-pipeline-handoff:verify` and reports `hosted-npo-pipeline-handoff` as a blocker until hosted `/npo-pipeline-handoff.json` exposes the focused NPO audio MCP sequence, sidecars, cost guardrail, media-ingress privacy rule, marker CSV, and repair-loop contract.
 The launch doctor also includes `npm run live-openapi:verify` and reports `hosted-openapi` as a blocker until hosted `/openapi.json` exposes launch evidence, queued worker drain, media/base64 inputs, remote sidecar URLs, cost guardrails, usage margins, and signed uploads.
 The launch doctor also includes `npm run live-public-artifacts:verify` and reports `hosted-public-artifacts` as a blocker until hosted `/launch-status.json`, `/product-hunt-launch-kit.json`, `/sample-reports/index.json`, the individual PASS/WATCH/BLOCK sample reports, and `/llms.txt` expose the current launch-evidence, cost, sample-report, and public go/no-go contract.
-The launch doctor also includes `npm run live-web-artifacts:verify` and reports `hosted-web-artifacts` as a blocker until hosted Product Hunt, pricing, sample-report, agentic API, sitemap, `llms.txt`, and demo MP4 content expose the current public launch proof.
+The launch doctor also includes `UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify` to prove the Render static site before DNS cutover, then `npm run live-web-artifacts:verify` and reports `hosted-web-artifacts` as a blocker until hosted Product Hunt, pricing, sample-report, agentic API, sitemap, `llms.txt`, and demo MP4 content expose the current public launch proof on `uploadcheck.app`.
 
 Agents outside this repo can use the packaged CLI fallback `uploadcheck launch-doctor --json`; it fetches the live launch handoff and blocker fix plan from Render without requiring local repo scripts. They can also call `GET /v1/launch-evidence`, MCP `qc_get_launch_evidence`, or `uploadcheck launch-evidence --json` to get a redacted evidence bundle for handoff.
 
@@ -168,6 +169,7 @@ npm run live-pipeline-recipes:verify
 npm run live-pipeline-handoff:verify
 npm run live-openapi:verify
 npm run live-public-artifacts:verify
+UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify
 npm run live-web-artifacts:verify
 curl -i https://uploadcheck.app/
 curl -i https://www.uploadcheck.app/

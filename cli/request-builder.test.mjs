@@ -591,7 +591,7 @@ describe("UploadCheck CLI request builder", () => {
 
     expect(request).toMatchObject({
       apiBaseUrl: "https://api.example.test",
-      path: "/v1/launch-doctor",
+      path: "/v1/launch-evidence",
       method: "GET",
       kind: "launch_evidence",
       public: true
@@ -619,13 +619,13 @@ describe("UploadCheck CLI request builder", () => {
 
   it("prints packaged launch evidence JSON without leaking live secret-like values", async () => {
     const server = createServer((req, res) => {
-      if (req.url !== "/v1/launch-doctor") {
+      if (req.url !== "/v1/launch-evidence") {
         res.writeHead(404, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "not_found", url: req.url }));
         return;
       }
       res.writeHead(200, { "content-type": "application/json" });
-      res.end(JSON.stringify({
+      res.end(JSON.stringify(buildRemoteLaunchEvidence({
         productHuntReady: false,
         remainingBlockers: [{ id: "checkout" }],
         launchDoctorCommands: [
@@ -640,7 +640,9 @@ describe("UploadCheck CLI request builder", () => {
             proof_commands: ["https://checkout.example/creator-secret"]
           }]
         }
-      }));
+      }, {
+        source: "http://127.0.0.1/v1/launch-doctor"
+      })));
     });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     servers.push(server);

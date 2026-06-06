@@ -1,11 +1,14 @@
 import { createHash } from "node:crypto";
 import { runLaunchDoctor } from "./launch-doctor.mjs";
 
+export const LAUNCH_PROOF_CONTRACT_VERSION = "2026-06-06.render-web-proof";
+
 export function buildLaunchEvidence(options = {}) {
   const report = options.report || runLaunchDoctor(options);
   const generatedAt = options.generatedAt || new Date().toISOString();
   return {
     name: "UploadCheck.app Launch Evidence",
+    contractVersion: LAUNCH_PROOF_CONTRACT_VERSION,
     generatedAt,
     ok: Boolean(report.ok),
     status: report.status || (report.ok ? "ready" : "blocked"),
@@ -26,6 +29,7 @@ export function buildRemoteLaunchEvidence(payload = {}, options = {}) {
   const phases = Array.isArray(payload.blockerFixPlan?.phases) ? payload.blockerFixPlan.phases : [];
   return {
     name: "UploadCheck.app Remote Launch Evidence",
+    contractVersion: LAUNCH_PROOF_CONTRACT_VERSION,
     generatedAt: options.generatedAt || new Date().toISOString(),
     source: options.source || "https://qcgenie-api.onrender.com/v1/launch-doctor",
     productHuntReady: Boolean(payload.productHuntReady),

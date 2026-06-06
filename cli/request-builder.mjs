@@ -214,7 +214,7 @@ export function buildLaunchEvidenceRequest(options = {}) {
   const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
   return {
     apiBaseUrl,
-    path: "/v1/launch-doctor",
+    path: "/v1/launch-evidence",
     method: "GET",
     kind: "launch_evidence",
     public: true

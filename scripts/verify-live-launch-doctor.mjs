@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_LAUNCH_DOCTOR_BASE_URL || "https://qcgenie-api.onrender.com");
+const expectedContractVersion = "2026-06-06.render-web-proof";
 const expectedHostedCommand = "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://qcgenie-api.onrender.com UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify";
+const expectedRenderWebCommand = "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify";
 const url = `${baseUrl}/v1/launch-doctor`;
 
 try {
@@ -26,8 +28,14 @@ try {
   if (payload.name !== "UploadCheck.app Launch Doctor") {
     fail(`UploadCheck live launch doctor: NOT READY\nExpected name UploadCheck.app Launch Doctor, got ${JSON.stringify(payload.name)}`);
   }
+  if (payload.contractVersion !== expectedContractVersion) {
+    fail(`UploadCheck live launch doctor: NOT READY\nExpected contractVersion ${expectedContractVersion}, got ${JSON.stringify(payload.contractVersion)}.`);
+  }
   if (!Array.isArray(commands) || !commands.includes(expectedHostedCommand)) {
     fail(`UploadCheck live launch doctor: NOT READY\nMissing hosted media-ingress command in launchDoctorCommands.`);
+  }
+  if (!Array.isArray(commands) || !commands.includes(expectedRenderWebCommand)) {
+    fail(`UploadCheck live launch doctor: NOT READY\nMissing Render static web-artifacts command in launchDoctorCommands.`);
   }
   if (!payload.blockerFixPlan || !Array.isArray(payload.blockerFixPlan.phases)) {
     fail(`UploadCheck live launch doctor: NOT READY\nMissing blockerFixPlan.phases.`);
@@ -37,10 +45,12 @@ try {
     ok: true,
     url,
     name: payload.name,
+    contractVersion: payload.contractVersion,
     productHuntReady: Boolean(payload.productHuntReady),
     remainingBlockers: (payload.remainingBlockers || []).map((blocker) => blocker.id).filter(Boolean),
     launchDoctorCommandCount: commands.length,
-    hostedMediaIngressCommandPresent: true
+    hostedMediaIngressCommandPresent: true,
+    renderWebArtifactsCommandPresent: true
   }, null, 2));
 } catch (error) {
   fail(`UploadCheck live launch doctor: NOT READY\n${error.message}`);

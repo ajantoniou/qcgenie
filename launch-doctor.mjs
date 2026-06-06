@@ -17,6 +17,7 @@ export const LAUNCH_DOCTOR_STEPS = [
   { id: "hosted-npo-pipeline-handoff", label: "Verify hosted NPO pipeline handoff", command: ["npm", "run", "--silent", "live-npo-pipeline-handoff:verify"] },
   { id: "hosted-openapi", label: "Verify hosted OpenAPI", command: ["npm", "run", "--silent", "live-openapi:verify"] },
   { id: "hosted-public-artifacts", label: "Verify hosted public launch artifacts", command: ["npm", "run", "--silent", "live-public-artifacts:verify"] },
+  { id: "render-web-artifacts", label: "Verify Render static web artifacts before DNS cutover", command: ["npm", "run", "--silent", "live-web-artifacts:verify"], env: { UPLOADCHECK_LIVE_WEB_BASE_URL: "https://qcgenie-web.onrender.com" } },
   { id: "hosted-web-artifacts", label: "Verify hosted web launch artifacts", command: ["npm", "run", "--silent", "live-web-artifacts:verify"] },
   {
     id: "hosted-media-ingress",

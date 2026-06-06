@@ -13,7 +13,7 @@ import { buildCheckoutUrl, normalizePlanId } from "./checkout-links.mjs";
 import { buildReadinessReport } from "./readiness.mjs";
 import { buildLaunchStatus } from "./launch-status.mjs";
 import { buildLaunchHandoff } from "./launch-handoff.mjs";
-import { buildRemoteLaunchEvidence } from "./launch-evidence.mjs";
+import { LAUNCH_PROOF_CONTRACT_VERSION, buildRemoteLaunchEvidence } from "./launch-evidence.mjs";
 import { getObjectStorageConfig, objectKeyForUpload, uploadFileToObjectStorage } from "./object-storage.mjs";
 
 const port = Number(process.env.PORT || 10000);
@@ -134,6 +134,7 @@ function getLaunchDoctor(req, res) {
   return sendJson(res, 200, {
     ...handoff,
     name: "UploadCheck.app Launch Doctor",
+    contractVersion: LAUNCH_PROOF_CONTRACT_VERSION,
     description: "Live Product Hunt blocker fix plan and normalized launch-doctor command coverage for UploadCheck.app agents and operators.",
     handoffUrl: "https://qcgenie-api.onrender.com/v1/launch-handoff"
   });
@@ -145,6 +146,7 @@ function getLaunchEvidence(req, res) {
   const doctor = {
     ...handoff,
     name: "UploadCheck.app Launch Doctor",
+    contractVersion: LAUNCH_PROOF_CONTRACT_VERSION,
     description: "Live Product Hunt blocker fix plan and normalized launch-doctor command coverage for UploadCheck.app agents and operators.",
     handoffUrl: "https://qcgenie-api.onrender.com/v1/launch-handoff"
   };
@@ -945,10 +947,16 @@ async function serveStatic(pathname, res) {
   if (resolved.startsWith(distDir) && existsSync(resolved)) {
     const stat = statSync(resolved);
     target = stat.isDirectory() ? join(resolved, "index.html") : resolved;
+  } else if (isPublicArtifactPath(safePath)) {
+    return sendJson(res, 404, { error: "artifact_not_found", path: safePath });
   }
   if (!existsSync(target)) target = join(distDir, "index.html");
   res.writeHead(200, { "Content-Type": mimeTypes[extname(target)] || "application/octet-stream" });
   createReadStream(target).pipe(res);
+}
+
+function isPublicArtifactPath(pathname) {
+  return /\.(json|txt|xml|webmanifest|mp4|svg)$/i.test(pathname);
 }
 
 async function readJson(req) {

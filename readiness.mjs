@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { CHECKOUT_PLANS, resolveCheckout } from "./checkout-links.mjs";
+import { LAUNCH_PROOF_CONTRACT_VERSION } from "./launch-evidence.mjs";
 import { validateSecretEncryptionKey } from "./secrets.mjs";
 import { getObjectStorageConfig } from "./object-storage.mjs";
 import { hostForUrl, isSecureCheckoutUrl, redactCheckoutUrl } from "./launch-checkout.mjs";
@@ -107,6 +108,7 @@ export function buildReadinessReport({ env = process.env, host = "", now = new D
 
   return {
     service: "uploadcheck",
+    contractVersion: LAUNCH_PROOF_CONTRACT_VERSION,
     generatedAt: now,
     readyForProductHunt: checks.productHunt.ok,
     checks

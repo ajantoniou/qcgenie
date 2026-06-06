@@ -33,6 +33,8 @@ PROMPT=(
 IMAGE_EXTS={".jpg",".jpeg",".png",".webp",".bmp",".tif",".tiff"}
 
 def load_key():
+    if os.environ.get("UPLOADCHECK_TEST_NO_ANTHROPIC_KEY"):
+        return None
     p="/Applications/DrAntoniou Projects/AgentCompanies/.env"
     if os.path.exists(p):
         t=open(p).read()
@@ -217,32 +219,51 @@ def deterministic_clone_crowd_finding(jpg, t):
     chips=appearance_chips(jpg)
     if len(chips) < 8:
         return None
-    clusters=[]
-    used=set()
-    for i,a in enumerate(chips):
-        if i in used: continue
-        cluster=[i]
-        for j,b in enumerate(chips[i+1:], start=i+1):
-            if j in used: continue
-            if hamming(a["hash"], b["hash"]) <= 11 and rgb_distance(a["rgb"], b["rgb"]) <= 34:
-                cluster.append(j)
-        if len(cluster) >= 5:
-            for idx in cluster: used.add(idx)
-            clusters.append(cluster)
-    if not clusters:
-        return None
-    largest=max(clusters, key=len)
-    duplicate_count=len(largest)
-    if duplicate_count < 5:
-        return None
-    return {
-        "t": t,
-        "duplicate_count": duplicate_count,
-        "needs_more_character_variation": True,
-        "reason": f"Local appearance clustering found {duplicate_count} highly similar head-and-shoulder chips in one crowd frame.",
-        "action": "Regenerate or edit the scene with more distinct characters.",
-        "method": "local_appearance_cluster"
-    }
+    cluster_specs=[
+        {
+            "method": "local_appearance_cluster",
+            "hash_threshold": 11,
+            "rgb_threshold": 34,
+            "min_cluster": 5,
+            "reason": "highly similar head-and-shoulder chips",
+        },
+        {
+            "method": "local_crowd_archetype_cluster",
+            "hash_threshold": 18,
+            "rgb_threshold": 52,
+            "min_cluster": 6,
+            "reason": "similar AI-crowd facial archetype chips",
+        },
+    ]
+    for spec in cluster_specs:
+        clusters=[]
+        used=set()
+        for i,a in enumerate(chips):
+            if i in used: continue
+            cluster=[i]
+            for j,b in enumerate(chips[i+1:], start=i+1):
+                if j in used: continue
+                if (hamming(a["hash"], b["hash"]) <= spec["hash_threshold"] and
+                    rgb_distance(a["rgb"], b["rgb"]) <= spec["rgb_threshold"]):
+                    cluster.append(j)
+            if len(cluster) >= spec["min_cluster"]:
+                for idx in cluster: used.add(idx)
+                clusters.append(cluster)
+        if not clusters:
+            continue
+        largest=max(clusters, key=len)
+        duplicate_count=len(largest)
+        if duplicate_count < spec["min_cluster"]:
+            continue
+        return {
+            "t": t,
+            "duplicate_count": duplicate_count,
+            "needs_more_character_variation": True,
+            "reason": f"Local appearance clustering found {duplicate_count} {spec['reason']} in one crowd frame.",
+            "action": "Regenerate or edit the scene with more distinct characters.",
+            "method": spec["method"]
+        }
+    return None
 
 def normalize_twins_finding(v, t):
     return {
@@ -289,10 +310,16 @@ def main():
     if not key:
         result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video","frames_checked":0,
                 "deterministic_frames_checked":deterministic_checked,"vision_errors":0,
-                "skipped":True,"reason":"ANTHROPIC_API_KEY missing","pass":None}
+                "findings":[{
+                    "t":0,
+                    "reason":"ANTHROPIC_API_KEY missing after deterministic twins precheck; cannot certify no cloned or under-varied crowd faces.",
+                    "action":"Configure ANTHROPIC_API_KEY or remove the twins check from this run through an explicit cost/coverage decision, then rerun UploadCheck before shipping.",
+                    "method":"vision_key_required"
+                }],
+                "skipped":False,"reason":"ANTHROPIC_API_KEY missing","pass":False}
         out=json.dumps(result,indent=2)
         if a.json: open(a.json,"w").write(out)
-        print(out); sys.exit(0)
+        print(out); sys.exit(1)
     checked=0; errors=0; provider_usage=[]
     for fp,t in frames:
         v=vision(key,fp)
