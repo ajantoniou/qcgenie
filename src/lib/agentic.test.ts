@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { AGENT_API_ENDPOINTS, JOB_STATUSES, MCP_TOOLS, buildQcJobRequest, getMcpToolNames } from "./agentic";
 
 describe("agentic integration contract", () => {
@@ -69,6 +70,21 @@ describe("agentic integration contract", () => {
       "failed",
       "cancelled"
     ]);
+  });
+
+  it("publishes a structured repair-loop contract for agent workflows", () => {
+    const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
+
+    expect(manifest.repair_loop_contract).toMatchObject({
+      required_fetches: ["qc_get_report", "qc_get_marker_csv"],
+      severity_order: ["BLOCK", "WATCH", "PASS"],
+      must_show_all_flags: true,
+      user_prompt: "Show all QC flags and ask: Fix now?",
+      rerun_after_fix: true
+    });
+    expect(manifest.repair_loop_contract.fixable_scopes).toContain("reachable source files");
+    expect(manifest.repair_loop_contract.source_or_render_instruction).toContain("timestamped source/render patch instructions");
+    expect(manifest.repair_loop_contract.completion_rule).toContain("no BLOCK flags remain");
   });
 
   it("normalizes a YouTube QC request without exposing internal model rails", () => {

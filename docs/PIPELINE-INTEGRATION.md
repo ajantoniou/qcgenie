@@ -156,6 +156,7 @@ For NTO long-form episodes, shorts, or NPO media exports:
 6. Treat `BLOCK` as stop-ship, `WATCH` as source review, and `PASS` as ready only after the project-specific editorial checklist is also complete.
 
 Agent projects can load `public/pipeline-recipes.json` and map the selected profile's `mcp_call.arguments` directly into `qc_run_local_file`. The file is intentionally explicit about sidecar fields so NTO/NPO pipelines can pass manifests, transcripts, watchlists, and locked scripts without each project re-learning the UploadCheck payload shape.
+The same recipe file also exposes `repair_loop_contract` for callers that need structured instructions instead of prose: required report/marker fetches, severity grouping, the "Fix now?" prompt, fixable scopes, source/render-only scopes, and the rerun-before-upload-ready rule.
 
 The hosted API writes inline media to temporary server storage, runs the deterministic gate, parses the gate verdict, stores the report, and deletes the temporary media file after the request finishes. Job responses include sanitized `mediaIngress` metadata such as `mode=inline_ephemeral`, content type, byte count, and `sha256` source hash so agents can verify the low-storage path and checked bytes without seeing temporary server paths. Signed-upload media uses local staging for the immediate run; durable filesystem or object storage retention is only used when configured.
 

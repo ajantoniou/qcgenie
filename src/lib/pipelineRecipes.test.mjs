@@ -21,6 +21,16 @@ describe("UploadCheck pipeline recipes", () => {
       tool: "qc_estimate_cost",
       default_cost_guardrail: "downgrade"
     });
+    expect(recipes.repair_loop_contract).toMatchObject({
+      required_fetches: ["qc_get_report", "qc_get_marker_csv"],
+      severity_order: ["BLOCK", "WATCH", "PASS"],
+      must_show_all_flags: true,
+      user_prompt: "Show all QC flags and ask: Fix now?",
+      rerun_after_fix: true
+    });
+    expect(recipes.repair_loop_contract.fixable_scopes).toContain("captions");
+    expect(recipes.repair_loop_contract.source_or_render_scopes).toContain("duplicate characters");
+    expect(recipes.repair_loop_contract.completion_rule).toContain("no BLOCK flags remain");
     expect(Object.keys(recipes.profiles)).toEqual([
       "nto_long_form",
       "nto_shorts",
@@ -78,5 +88,6 @@ describe("UploadCheck pipeline recipes", () => {
     });
     expect(manifest.response_fields.mediaIngress.safe_to_show).toContain("sha256");
     expect(manifest.response_fields.mediaIngress.never_exposes).toContain("temporary server file paths");
+    expect(manifest.repair_loop_contract).toEqual(readJson("public/pipeline-recipes.json").repair_loop_contract);
   });
 });

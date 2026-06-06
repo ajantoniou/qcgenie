@@ -116,6 +116,17 @@
     "The agent fetches qc_get_report and lists timestamped evidence.",
     "The agent shows all BLOCK and WATCH flags, asks whether to fix now, fixes captions/checklists/source-level issues it can reach, then flags issues requiring a source or render pass."
   ],
+  "repair_loop_contract": {
+    "required_fetches": ["qc_get_report", "qc_get_marker_csv"],
+    "severity_order": ["BLOCK", "WATCH", "PASS"],
+    "must_show_all_flags": true,
+    "user_prompt": "Show all QC flags and ask: Fix now?",
+    "fixable_scopes": ["captions", "metadata", "manifests", "reachable source files", "checklists"],
+    "source_or_render_scopes": ["frozen video", "garbled audio", "duplicate characters", "cheap b-roll", "narration/visual mismatch", "unsafe render layout"],
+    "source_or_render_instruction": "Return timestamped source/render patch instructions instead of pretending the agent can edit unreachable media.",
+    "rerun_after_fix": true,
+    "completion_rule": "Do not call the asset upload-ready until UploadCheck is rerun after edits and no BLOCK flags remain."
+  },
   "pipeline_profiles": [
     {
       "id": "nto_long_form",
