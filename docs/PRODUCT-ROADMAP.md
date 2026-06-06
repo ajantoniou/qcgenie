@@ -193,6 +193,7 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: signed-upload media can use mounted durable filesystem storage via `UPLOADCHECK_DURABLE_STORAGE_DIR`; upload reports retain `storageMode`.
 - Done: mounted-disk JSON persistence is recognized as production persistence when `UPLOADCHECK_STORE_PATH` points outside temp storage; Supabase remains the future multi-workspace store.
 - Done: strong webhook encryption key generation and readiness validation added through `npm run --silent secret:generate` and `GET /v1/readiness`.
+- Done: Product Hunt readiness CLI added through `npm run readiness:check`; it fetches live readiness and prints exact remaining Render/DNS/checkout actions.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
 - Next: add direct object-storage upload for production-scale retention beyond mounted filesystem storage.

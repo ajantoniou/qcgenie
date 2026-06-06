@@ -51,6 +51,7 @@ Public API:
 - Launch readiness: `https://qcgenie-api.onrender.com/v1/readiness`
 - MCP wrapper package: `mcp-server/`
 - CLI package: `cli/`
+- Product Hunt readiness CLI: `npm run readiness:check`
 
 Persistence state:
 
@@ -74,6 +75,7 @@ Persistence state:
 - Production still needs hosted `UPLOADCHECK_SECRET_ENCRYPTION_KEY` configuration with a generated strong key and legacy webhook secret migration.
 - Durable upload retention can use a mounted storage path via `UPLOADCHECK_DURABLE_STORAGE_DIR`; object-storage buckets remain the next storage adapter.
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
+- `npm run readiness:check` fetches live readiness and prints the exact remaining Render/DNS/checkout actions.
 
 ## Stack
 
