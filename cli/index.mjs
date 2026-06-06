@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createReadStream } from "node:fs";
-import { buildEstimateRequest, buildJobRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildUsageRequest, formatJobSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+import { buildEstimateRequest, buildJobRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildPipelineRecipesRequest, buildUsageRequest, formatJobSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 try {
   const { command, target, options } = parseArgs(process.argv.slice(2));
@@ -8,7 +8,7 @@ try {
 
   const request = command === "estimate"
     ? buildEstimateRequest(options)
-    : (command === "usage" ? buildUsageRequest(options) : (command === "launch-status" ? buildLaunchStatusRequest(options) : (command === "launch-handoff" ? buildLaunchHandoffRequest(options) : buildJobRequest(target, options))));
+    : (command === "usage" ? buildUsageRequest(options) : (command === "launch-status" ? buildLaunchStatusRequest(options) : (command === "launch-handoff" ? buildLaunchHandoffRequest(options) : (command === "recipes" ? buildPipelineRecipesRequest(options) : buildJobRequest(target, options)))));
   if (!request.public && !apiKey) throw new Error("Set UPLOADCHECK_API_KEY or pass --api-key.");
   const payload = request.kind === "signed_upload"
     ? await runSignedUploadJob(request, apiKey)
@@ -24,6 +24,7 @@ function formatSummary(kind, payload) {
   if (kind === "usage") return formatUsageSummary(payload);
   if (kind === "launch_status") return formatLaunchStatusSummary(payload);
   if (kind === "launch_handoff") return formatLaunchHandoffSummary(payload);
+  if (kind === "pipeline_recipes") return formatPipelineRecipesSummary(payload);
   return formatJobSummary(payload);
 }
 

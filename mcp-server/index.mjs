@@ -27,6 +27,13 @@ server.tool(
 );
 
 server.tool(
+  "qc_get_pipeline_recipes",
+  "Fetch machine-readable UploadCheck pipeline recipes for NTO/NPO, creator video, audio, thumbnail, and repair-loop workflows.",
+  {},
+  async () => jsonTool(await publicApiFetch("/pipeline-recipes.json"))
+);
+
+server.tool(
   "qc_estimate_cost",
   "Preflight UploadCheck cost and margin guardrail behavior before uploading or running media.",
   {

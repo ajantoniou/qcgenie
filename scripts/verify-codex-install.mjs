@@ -67,6 +67,7 @@ export function verifyCodexInstall({
       "MCP server: `uploadcheck`",
       "qc_get_launch_status",
       "qc_get_launch_handoff",
+      "qc_get_pipeline_recipes",
       "qc_estimate_cost",
       "qc_run_local_file",
       "qc_get_marker_csv",

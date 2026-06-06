@@ -36,7 +36,7 @@ The API writes the payload to a temp file, runs the gate, and deletes the temp f
 
 The agent should call `qc_run_local_file` for a reachable local export, or `qc_run_video` when it already has a YouTube URL, signed URL, upload id, or base64 payload. Then poll `qc_get_job`, fetch `qc_get_report`, and list timestamped evidence plus source-level issues it can reach.
 
-For Codex, Claude Code, Cursor, or NTO/NPO production pipelines, `qc_run_local_file` is the default local workflow:
+For Codex, Claude Code, Cursor, or NTO/NPO production pipelines, call `qc_get_pipeline_recipes` first when you need the current default checks and sidecar arguments. Then use `qc_run_local_file` for the selected profile:
 
 ```json
 {
@@ -85,6 +85,7 @@ Call `qc_estimate_cost` before uploading large media or asking for model-backed 
 - `qc_estimate_cost`
 - `qc_get_launch_status`
 - `qc_get_launch_handoff`
+- `qc_get_pipeline_recipes`
 - `qc_run_video`
 - `qc_run_local_file`
 - `qc_get_job`

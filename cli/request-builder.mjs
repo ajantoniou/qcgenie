@@ -113,7 +113,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
 export function parseArgs(argv) {
   const args = [...argv];
   const command = args.shift();
-  if (!["check", "estimate", "usage", "launch-status", "launch-handoff"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status | uploadcheck launch-handoff");
+  if (!["check", "estimate", "usage", "launch-status", "launch-handoff", "recipes"].includes(command)) throw new Error("Usage: uploadcheck check <file-or-url> | uploadcheck estimate --minutes N | uploadcheck usage | uploadcheck launch-status | uploadcheck launch-handoff | uploadcheck recipes");
 
   const target = command === "check" ? args.shift() : null;
   const options = { json: false };
@@ -198,6 +198,17 @@ export function buildLaunchHandoffRequest(options = {}) {
   };
 }
 
+export function buildPipelineRecipesRequest(options = {}) {
+  const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
+  return {
+    apiBaseUrl,
+    path: "/pipeline-recipes.json",
+    method: "GET",
+    kind: "pipeline_recipes",
+    public: true
+  };
+}
+
 export function buildUsageRequest(options = {}) {
   const apiBaseUrl = trimTrailingSlash(options.apiBaseUrl || process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL);
   const params = new URLSearchParams();
@@ -266,6 +277,12 @@ export function formatLaunchHandoffSummary(payload) {
   const blockers = (payload.remainingBlockers || []).map((blocker) => blocker.id).filter(Boolean);
   const actions = (payload.requiredActions || []).map((action) => action.id).filter(Boolean);
   return `UploadCheck launch handoff: ${status}${blockers.length ? ` | blockers ${blockers.join(", ")}` : ""}${actions.length ? ` | required actions ${actions.join(", ")}` : ""}`;
+}
+
+export function formatPipelineRecipesSummary(payload) {
+  const profiles = Object.keys(payload.profiles || {});
+  const checks = payload.nto_replacement_qc?.implemented_gates?.length || 0;
+  return `UploadCheck pipeline recipes: ${profiles.length} profiles${profiles.length ? ` (${profiles.join(", ")})` : ""} | ${checks} implemented NTO/NPO replacement gates`;
 }
 
 function requireValue(flag, value) {

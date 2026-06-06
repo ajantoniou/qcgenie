@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildEstimateRequest, buildJobRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildUsageRequest, formatJobSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
+import { buildEstimateRequest, buildJobRequest, buildLaunchHandoffRequest, buildLaunchStatusRequest, buildPipelineRecipesRequest, buildUsageRequest, formatJobSummary, formatLaunchHandoffSummary, formatLaunchStatusSummary, formatPipelineRecipesSummary, formatUsageSummary, parseArgs } from "./request-builder.mjs";
 
 describe("UploadCheck CLI request builder", () => {
   it("builds a YouTube job request", () => {
@@ -348,6 +348,26 @@ describe("UploadCheck CLI request builder", () => {
     });
   });
 
+  it("builds and parses a public pipeline recipes request", () => {
+    const parsed = parseArgs([
+      "recipes",
+      "--api-base",
+      "https://api.example.test",
+      "--json"
+    ]);
+    const request = buildPipelineRecipesRequest(parsed.options);
+
+    expect(parsed.command).toBe("recipes");
+    expect(parsed.target).toBeNull();
+    expect(request).toEqual({
+      apiBaseUrl: "https://api.example.test",
+      path: "/pipeline-recipes.json",
+      method: "GET",
+      kind: "pipeline_recipes",
+      public: true
+    });
+  });
+
   it("formats a compact job summary", () => {
     expect(formatJobSummary({
       jobId: "job_1",
@@ -426,5 +446,17 @@ describe("UploadCheck CLI request builder", () => {
       remainingBlockers: [],
       requiredActions: []
     })).toBe("UploadCheck launch handoff: READY");
+  });
+
+  it("formats a compact pipeline recipes summary", () => {
+    expect(formatPipelineRecipesSummary({
+      profiles: {
+        nto_long_form: {},
+        npo_podcast_or_audio: {}
+      },
+      nto_replacement_qc: {
+        implemented_gates: [{ id: "text_contrast" }, { id: "repeat_fatigue" }]
+      }
+    })).toBe("UploadCheck pipeline recipes: 2 profiles (nto_long_form, npo_podcast_or_audio) | 2 implemented NTO/NPO replacement gates");
   });
 });
