@@ -23,14 +23,18 @@ export function runLaunchDoctor({ steps = LAUNCH_DOCTOR_STEPS, runner = runComma
     const result = runner(step.command, step);
     results.push({
       ...step,
+      commandString: formatDoctorCommand(step),
       status: result.status,
       ok: result.status === 0,
       stdout: result.stdout || "",
       stderr: result.stderr || ""
     });
   }
+  const blockers = results.filter((result) => !result.ok).map((result) => result.id);
   return {
     ok: results.every((result) => result.ok),
+    status: blockers.length ? "blocked" : "ready",
+    blockers,
     results
   };
 }
@@ -48,7 +52,7 @@ export function formatLaunchDoctor(report) {
     const output = firstMeaningfulLine(result.stdout || result.stderr);
     if (output) lines.push(`  ${output}`);
   }
-  const blockers = report.results.filter((result) => !result.ok).map((result) => result.id);
+  const blockers = report.blockers || report.results.filter((result) => !result.ok).map((result) => result.id);
   if (blockers.length) {
     lines.push("");
     lines.push(`Blockers: ${blockers.join(", ")}`);

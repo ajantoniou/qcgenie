@@ -21,6 +21,10 @@ describe("launch doctor", () => {
     const text = formatLaunchDoctor(report);
 
     expect(report.ok).toBe(false);
+    expect(report.status).toBe("blocked");
+    expect(report.blockers).toEqual(["two"]);
+    expect(report.results[0].commandString).toBe("first");
+    expect(report.results[1].commandString).toBe("UPLOADCHECK_CHECKOUT_PROBE=1 second");
     expect(seen).toEqual([
       ["first", null],
       ["second", { UPLOADCHECK_CHECKOUT_PROBE: "1" }]
@@ -47,6 +51,21 @@ describe("launch doctor", () => {
     expect(result.stdout).toContain("BLOCK launch-handoff");
     expect(result.stdout).toContain("BLOCK readiness");
     expect(result.stdout).toContain("BLOCK launch-check");
+  });
+
+  it("prints machine-readable JSON for agent launch blockers", () => {
+    const result = spawnSync("npm", ["run", "--silent", "launch:doctor", "--", "--json"], {
+      cwd: resolve("."),
+      encoding: "utf8",
+      env: { ...process.env, RENDER_API_KEY: "" }
+    });
+    const payload = JSON.parse(result.stdout);
+
+    expect(result.status).toBe(1);
+    expect(payload.ok).toBe(false);
+    expect(payload.status).toBe("blocked");
+    expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "storage", "readiness"]));
+    expect(payload.results.find((step) => step.id === "checkout-probe").commandString).toBe("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
   });
 
   it("publishes normalized doctor command coverage for Product Hunt launch-kit verification", () => {
