@@ -41,6 +41,7 @@
               "mode": { "type": "string", "enum": ["inline_ephemeral", "signed_upload", "youtube_url", "remote_url", "local_or_remote_source"] },
               "contentType": { "type": ["string", "null"] },
               "bytes": { "type": ["integer", "null"] },
+              "sha256": { "type": ["string", "null"], "description": "SHA-256 hash of the checked media bytes when UploadCheck handled the bytes directly." },
               "ephemeral": { "type": "boolean" },
               "storageMode": { "type": "string", "enum": ["render_temp_storage", "durable_filesystem", "object_storage"] }
             }

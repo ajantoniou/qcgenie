@@ -1,6 +1,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
 
 const DEFAULT_MAX_MB = 128;
 
@@ -40,6 +41,7 @@ export async function materializeInlineMedia(input, options = {}) {
     cleanupPath: dir,
     contentType,
     bytes: bytes.length,
+    sha256: createHash("sha256").update(bytes).digest("hex"),
     checks: input.checks || defaultChecksFor(payload.kind)
   };
 }

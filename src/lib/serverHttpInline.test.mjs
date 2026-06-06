@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 
 const servers = [];
@@ -57,6 +58,7 @@ describe("server inline media API", () => {
         mode: "inline_ephemeral",
         contentType: "video/mp4",
         bytes: 8,
+        sha256: createHash("sha256").update("fake-mp4").digest("hex"),
         ephemeral: true,
         storageMode: "render_temp_storage"
       });

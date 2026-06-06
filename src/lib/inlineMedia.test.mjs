@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { cleanupInlineMedia, materializeInlineMedia } from "../../inline-media.mjs";
 
@@ -13,6 +14,7 @@ describe("inline media materialization", () => {
     try {
       expect(materialized.filePath.endsWith(".mp4")).toBe(true);
       expect(materialized.bytes).toBe(8);
+      expect(materialized.sha256).toBe(createHash("sha256").update("fake-mp4").digest("hex"));
       expect(await readFile(materialized.filePath, "utf8")).toBe("fake-mp4");
     } finally {
       await cleanupInlineMedia(materialized);

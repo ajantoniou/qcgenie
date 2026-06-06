@@ -588,6 +588,7 @@ function buildMediaIngress(input = {}, upload = null) {
       mode: "inline_ephemeral",
       contentType: inline.content_type || inline.contentType || null,
       bytes: numberOrNull(inline.bytes),
+      sha256: safeSha256(inline.sha256),
       ephemeral: true,
       storageMode: "render_temp_storage"
     };
@@ -597,6 +598,7 @@ function buildMediaIngress(input = {}, upload = null) {
       mode: "signed_upload",
       contentType: upload.contentType || null,
       bytes: numberOrNull(upload.bytesReceived ?? upload.sizeBytes),
+      sha256: safeSha256(upload.sha256),
       ephemeral: false,
       storageMode: upload.storageMode || "render_temp_storage"
     };
@@ -605,6 +607,11 @@ function buildMediaIngress(input = {}, upload = null) {
   if (input.signed_url || input.signedUrl) return { mode: "remote_url", ephemeral: false };
   if (input.source) return { mode: "local_or_remote_source", ephemeral: false };
   return null;
+}
+
+function safeSha256(value) {
+  const text = String(value || "");
+  return /^[a-f0-9]{64}$/i.test(text) ? text.toLowerCase() : null;
 }
 
 function sanitizeProviderUsageEntry(entry) {

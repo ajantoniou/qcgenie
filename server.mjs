@@ -141,6 +141,7 @@ async function createJob(req, res) {
       body.inline_media = {
         content_type: inlineMedia.contentType,
         bytes: inlineMedia.bytes,
+        sha256: inlineMedia.sha256,
         ephemeral: true
       };
     }

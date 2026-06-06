@@ -63,6 +63,7 @@ describe("UploadCheck pipeline recipes", () => {
       inline_mode: "inline_ephemeral",
       signed_upload_mode: "signed_upload"
     });
+    expect(manifest.response_fields.mediaIngress.safe_to_show).toContain("sha256");
     expect(manifest.response_fields.mediaIngress.never_exposes).toContain("temporary server file paths");
   });
 });

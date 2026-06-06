@@ -75,6 +75,7 @@ describe("JsonStore", () => {
         inline_media: {
           content_type: "video/mp4",
           bytes: 12345,
+          sha256: "A".repeat(64),
           ephemeral: true,
           filePath: join(dir, "should-not-persist.mp4"),
           cleanupPath: dir
@@ -86,6 +87,7 @@ describe("JsonStore", () => {
         mode: "inline_ephemeral",
         contentType: "video/mp4",
         bytes: 12345,
+        sha256: "a".repeat(64),
         ephemeral: true,
         storageMode: "render_temp_storage"
       });
