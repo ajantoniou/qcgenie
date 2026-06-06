@@ -27,7 +27,7 @@ The server exposes `qc_get_launch_status`, `qc_get_launch_handoff`, `qc_get_laun
 
 The local Codex skill is installed at `/Users/drantoniou/.codex/skills/uploadcheck`. Use `$uploadcheck` when a project needs the standard preflight -> hosted QC -> report -> repair-loop workflow.
 
-Machine-readable production handoff is available through MCP `qc_get_pipeline_handoff`, CLI `uploadcheck pipeline-handoff --json`, and `https://qcgenie-api.onrender.com/pipeline-handoff.json` for NTO/NPO and creator pipelines that need the full call sequence without scraping prose. It covers launch status, launch handoff, pipeline recipes, cost basis, estimates, inline/signed media ingress, job polling, reports, marker CSV, the "Fix now?" repair loop, and the rerun-before-upload-ready rule.
+Machine-readable production handoff is available through MCP `qc_get_pipeline_handoff`, CLI `uploadcheck pipeline-handoff --json`, and `https://qcgenie-api.onrender.com/pipeline-handoff.json` for NTO/NPO and creator pipelines that need the full call sequence without scraping prose. It covers launch status, launch handoff, pipeline recipes, cost basis, estimates, inline/signed media ingress, internal Gemini capture-rate backtesting for NTO, job polling, reports, marker CSV, the "Fix now?" repair loop, and the rerun-before-upload-ready rule.
 
 Machine-readable pipeline profiles are available through MCP `qc_get_pipeline_recipes`, CLI `uploadcheck recipes --json`, and `https://qcgenie-api.onrender.com/pipeline-recipes.json` for agents that need profile defaults. The current profiles are `nto_long_form`, `nto_shorts`, `npo_podcast_or_audio`, and `generic_creator_video`. The recipe file includes `launch_preflight`, `cost_preflight`, profile-specific `qc_run_local_file` arguments, and repair-loop instructions.
 
@@ -169,6 +169,8 @@ For NTO long-form episodes, shorts, or NPO media exports:
 
 Agent projects should call MCP `qc_get_pipeline_handoff`, run `uploadcheck pipeline-handoff --json`, or load `public/pipeline-handoff.json` when they need the complete production sequence, then call MCP `qc_get_pipeline_recipes`, run `uploadcheck recipes --json`, or load `public/pipeline-recipes.json` for the selected profile's `mcp_call.arguments`. The files are intentionally explicit about sidecar fields so NTO/NPO pipelines can pass manifests, transcripts, watchlists, and locked scripts without each project re-learning the UploadCheck payload shape.
 NPO podcast/audio projects can skip the broader bundle and load `public/npo-pipeline-handoff.json` directly when they only need audio QC calls: it keeps the deterministic checks, sidecar arguments, cost guardrail, media-ingress privacy rule, marker CSV handoff, and repair-loop completion rule in one file.
+
+For NTO final masters, run deterministic UploadCheck first, then run the internal Gemini oracle through MCP `qc_run_gemini_backtest` or CLI `uploadcheck gemini-backtest <file> --transcript <transcript-or-words.json> --output <gemini-watch.json> --json`. Use the Gemini output only to measure deterministic capture rate and identify roadmap misses. Do not present Gemini as the customer verdict or as included-minute review.
 The same recipe file also exposes `repair_loop_contract` for callers that need structured instructions instead of prose: required report/marker fetches, severity grouping, the "Fix now?" prompt, fixable scopes, source/render-only scopes, and the rerun-before-upload-ready rule.
 
 For thumbnail candidates, use the `creator_thumbnail` profile or call `qc_run_local_file` / `uploadcheck check` on the image file with `checks: "thumbnail_text_readability"`. This runs OCR contrast and safe-composition checks on the image before upload without model spend.
@@ -189,7 +191,10 @@ Agent repair loop:
 2. Fetch `qc_get_report`.
 3. Show all flags grouped by `BLOCK`, `WATCH`, and fixability.
 4. Ask the user whether to fix now.
-5. Apply fixes only where the agent has reachable source files or captions. For render/source defects, return timestamped patch instructions and rerun UploadCheck after the user or renderer updates the asset.
+5. Apply fixes only to the exact flagged spans where the agent has reachable source files, captions, metadata, or checklists.
+6. Do not broadly rewrite the video, perform taste-based refactors, invent new review criteria, or claim the agent "improved the whole video."
+7. For render/source defects, return timestamped patch instructions and rerun UploadCheck after the user or renderer updates the asset.
+8. Treat UploadCheck as the SaaS QC authority. Claude Code, Codex, Cursor, and other agents are repair agents, not reviewers making up their own verdicts.
 
 ## Cost Guard
 

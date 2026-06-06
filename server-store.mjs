@@ -16,9 +16,53 @@ export class JsonStore {
       flags: [],
       artifacts: [],
       usageLedger: [],
-      webhookDeliveries: []
+      webhookDeliveries: [],
+      apiKeys: [],
+      spendAlerts: []
     };
     this.load();
+  }
+
+  createApiKey(input = {}) {
+    const now = new Date().toISOString();
+    const token = input.token || `uck_${randomBytes(24).toString("base64url")}`;
+    const key = {
+      keyId: `key_${randomId()}`,
+      name: input.name || "UploadCheck API key",
+      workspaceId: input.workspace_id || input.workspaceId || "default",
+      ownerEmail: input.owner_email || input.ownerEmail || null,
+      tokenPrefix: token.slice(0, 12),
+      tokenHash: hashApiToken(token),
+      scopes: normalizeScopes(input.scopes),
+      planId: input.plan_id || input.planId || null,
+      includedMinutes: numberOrNull(input.included_minutes ?? input.includedMinutes),
+      planPriceCents: numberOrNull(input.plan_price_cents ?? input.planPriceCents),
+      overageCapCents: numberOrNull(input.overage_cap_cents ?? input.overageCapCents),
+      active: input.active !== false,
+      createdAt: now,
+      lastUsedAt: null
+    };
+    this.state.apiKeys.push(key);
+    this.persist();
+    return { apiKey: token, record: publicApiKey(key) };
+  }
+
+  listApiKeys(options = {}) {
+    const workspaceId = options.workspace_id || options.workspaceId || null;
+    return this.state.apiKeys
+      .filter((key) => !workspaceId || key.workspaceId === workspaceId)
+      .map((key) => publicApiKey(key));
+  }
+
+  findApiKeyByToken(token) {
+    if (!token) return null;
+    const tokenHash = hashApiToken(token);
+    const key = this.state.apiKeys.find((candidate) => candidate.active !== false && candidate.tokenHash === tokenHash) || null;
+    if (key) {
+      key.lastUsedAt = new Date().toISOString();
+      this.persist();
+    }
+    return key;
   }
 
   createJob(input) {
@@ -57,6 +101,9 @@ export class JsonStore {
       planId: input.plan_id || input.planId || null,
       planPriceCents: numberOrNull(input.plan_price_cents ?? input.planPriceCents),
       includedMinutes: numberOrNull(input.included_minutes ?? input.includedMinutes),
+      workspaceId: input.workspace_id || input.workspaceId || null,
+      ownerEmail: input.owner_email || input.ownerEmail || null,
+      apiKeyId: input.api_key_id || input.apiKeyId || null,
       aiReviewBudgetSeconds: Math.max(0, Number(input.ai_review_budget_seconds ?? input.aiReviewBudgetSeconds ?? 0) || 0),
       aiReviewSeconds: Math.max(0, Number(input.ai_review_seconds ?? input.aiReviewSeconds ?? 0) || 0),
       requestedAiReviewSeconds: Math.max(0, Number(input.requested_ai_review_seconds ?? input.requestedAiReviewSeconds ?? input.ai_review_seconds ?? input.aiReviewSeconds ?? 0) || 0),
@@ -548,6 +595,8 @@ export class JsonStore {
       aiReviewSeconds: Math.max(0, Number(job?.aiReviewSeconds ?? costSnapshot?.aiReviewSeconds ?? 0) || 0),
       aiReviewBudgetSeconds: Math.max(0, Number(job?.aiReviewBudgetSeconds ?? costSnapshot?.aiReviewBudgetSeconds ?? 0) || 0),
       costSnapshot,
+      workspaceId: job?.workspaceId || costSnapshot?.workspaceId || null,
+      ownerEmail: job?.ownerEmail || costSnapshot?.ownerEmail || null,
       createdAt: new Date().toISOString()
     };
     this.state.usageLedger.push(entry);
@@ -602,6 +651,39 @@ export class JsonStore {
     };
   }
 
+  recordSpendAlert(input = {}) {
+    const dedupeKey = input.dedupeKey || [
+      input.workspaceId || "default",
+      input.planId || "unknown",
+      input.billingPeriod || currentBillingPeriod(),
+      input.type || "spend"
+    ].join(":");
+    const existing = this.state.spendAlerts.find((alert) => alert.dedupeKey === dedupeKey);
+    if (existing) return { ...existing, idempotentReplay: true };
+    const alert = {
+      alertId: `alert_${randomId()}`,
+      dedupeKey,
+      type: input.type || "spend",
+      workspaceId: input.workspaceId || null,
+      ownerEmail: input.ownerEmail || null,
+      planId: input.planId || null,
+      billingPeriod: input.billingPeriod || currentBillingPeriod(),
+      minutesUsed: Number(input.minutesUsed || 0),
+      includedMinutes: numberOrNull(input.includedMinutes),
+      planPriceCents: numberOrNull(input.planPriceCents),
+      observedTotalCogsCents: Number(input.observedTotalCogsCents || 0),
+      overageCostCents: Number(input.overageCostCents || 0),
+      status: input.status || "pending",
+      provider: input.provider || null,
+      providerMessageId: input.providerMessageId || null,
+      error: input.error || null,
+      createdAt: new Date().toISOString()
+    };
+    this.state.spendAlerts.push(alert);
+    this.persist();
+    return alert;
+  }
+
   load() {
     if (!existsSync(this.filePath)) return;
     const raw = readFileSync(this.filePath, "utf8");
@@ -613,6 +695,10 @@ export class JsonStore {
     mkdirSync(dirname(this.filePath), { recursive: true });
     writeFileSync(this.filePath, JSON.stringify(this.state, null, 2));
   }
+}
+
+export function hashApiToken(token) {
+  return createHash("sha256").update(String(token)).digest("hex");
 }
 
 export function signPayload(secret, payload) {
@@ -646,6 +732,30 @@ function deriveEncryptionKey(keyMaterial) {
 
 function randomId() {
   return Math.random().toString(36).slice(2, 10);
+}
+
+function normalizeScopes(value) {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value === "string") return value.split(",").map((scope) => scope.trim()).filter(Boolean);
+  return ["jobs:write", "jobs:read", "reports:read", "uploads:write"];
+}
+
+function publicApiKey(key) {
+  return {
+    keyId: key.keyId,
+    name: key.name,
+    workspaceId: key.workspaceId,
+    ownerEmail: key.ownerEmail,
+    tokenPrefix: key.tokenPrefix,
+    scopes: key.scopes,
+    planId: key.planId,
+    includedMinutes: key.includedMinutes,
+    planPriceCents: key.planPriceCents,
+    overageCapCents: key.overageCapCents,
+    active: key.active,
+    createdAt: key.createdAt,
+    lastUsedAt: key.lastUsedAt
+  };
 }
 
 function currentBillingPeriod() {

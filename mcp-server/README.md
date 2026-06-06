@@ -109,6 +109,7 @@ Call `qc_estimate_cost` before uploading large media or asking for model-backed 
 
 Use `idempotency_key` with `qc_run_video` when an agent may retry the same asset. The hosted API returns the existing job instead of creating a duplicate run.
 Use `qc_submit_gate_verdict` after running `scripts/qc-engine/run_gate.py` so the hosted job report reflects the full-video gate result.
+Internal Gemini capture-rate backtests are not part of the public MCP package. Run them only from the private UploadCheck repo with `scripts/qc-engine/gemini_watch.py`.
 
 ## Codex Install Shape
 

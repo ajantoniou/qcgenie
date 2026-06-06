@@ -56,7 +56,8 @@
     "qc_get_cost_basis",
     "qc_get_npo_pipeline_handoff",
     "qc_estimate_cost",
-    "qc_run_local_file"
+    "qc_run_local_file",
+    "qc_run_video"
   ],
   "notes": [
     "Use qc_run_local_file for reachable local videos, podcasts, clips, stills, and NPO audio files.",

@@ -180,7 +180,9 @@ export function validateLlmsArtifact(text) {
     "https://api.uploadcheck.app/sample-reports/index.json",
     "https://api.uploadcheck.app/v1/launch-evidence",
     "Checked minutes are deterministic publish-readiness QC minutes",
-    "deterministic capture-rate measurement",
+    "Internal AI helps improve the QC engine",
+    "report feeds back to the user's LLM",
+    "stops before unapproved overage",
     "NTO/NPO pipeline profiles"
   ];
   for (const value of required) {

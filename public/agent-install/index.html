@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://uploadcheck.app/agent-install/" />
+    <link rel="stylesheet" href="/seo-pages.css" />
+    <meta name="description" content="Install UploadCheck for Claude Code, Codex, Cursor, and MCP-capable agent-to-agent media QC runs." />
+    <title>Install UploadCheck for Agents | UploadCheck.app</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "name": "Install UploadCheck for Agents",
+        "url": "https://uploadcheck.app/agent-install/",
+        "description": "Configure UploadCheck MCP for Claude Code, Codex, Cursor, and agent-to-agent media QC runs."
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <nav class="nav">
+        <a class="brand" href="/"><span>U</span>UploadCheck.app</a>
+        <div class="navLinks"><a href="/agentic-media-qc-api/">API</a><a href="/sample-report/">Sample report</a><a href="/pricing/">Pricing</a></div>
+      </nav>
+      <section class="hero">
+        <div class="heroCopy">
+          <h1>Install UploadCheck for Agents</h1>
+          <p class="tagline">Quality check videos, podcasts, and clips before you upload.</p>
+          <p>Set up the <code>uploadcheck</code> MCP server so Claude Code, Codex, Cursor, or another agent can call UploadCheck, hand evidence to a second agent, and rerun after fixes.</p>
+          <div class="ctaRow"><a class="button" href="/agentic-media-qc-api/">Agent API</a><a class="button secondary" href="/agent-manifest.json">Agent manifest</a></div>
+        </div>
+        <aside class="panel">
+          <h2>Current distribution status</h2>
+          <ul>
+            <li>Current install path: GitHub clone or local checkout.</li>
+            <li>NPM package install: after <code>@uploadcheck/cli</code> and <code>@uploadcheck/mcp</code> are published.</li>
+            <li>Required secret: <code>UPLOADCHECK_API_KEY</code>.</li>
+          </ul>
+        </aside>
+      </section>
+      <section class="section">
+        <h2>1. Clone the MCP package</h2>
+        <div class="twoGrid">
+          <article class="answer">
+            <h2>Current GitHub install</h2>
+            <pre><code>git clone https://github.com/ajantoniou/uploadcheck.git /absolute/path/to/uploadcheck
+cd /absolute/path/to/uploadcheck/mcp-server
+npm install</code></pre>
+          </article>
+          <article class="answer">
+            <h2>Environment</h2>
+            <pre><code>UPLOADCHECK_API_BASE_URL=https://api.uploadcheck.app
+UPLOADCHECK_API_KEY=&lt;workspace_api_key&gt;</code></pre>
+          </article>
+        </div>
+      </section>
+      <section class="section">
+        <h2>2. Configure an MCP client</h2>
+        <div class="grid">
+          <article class="card">
+            <h2>Codex</h2>
+            <p>Add this server to <code>~/.codex/config.toml</code>.</p>
+            <pre><code>[mcp_servers.uploadcheck]
+command = "node"
+args = ["/absolute/path/to/uploadcheck/mcp-server/index.mjs"]
+startup_timeout_sec = 60
+
+[mcp_servers.uploadcheck.env]
+UPLOADCHECK_API_BASE_URL = "https://api.uploadcheck.app"
+UPLOADCHECK_API_KEY = "&lt;workspace_api_key&gt;"</code></pre>
+          </article>
+          <article class="card">
+            <h2>Claude Code or Claude Desktop</h2>
+            <p>Add this server to the Claude MCP config JSON.</p>
+            <pre><code>{
+  "mcpServers": {
+    "uploadcheck": {
+      "command": "node",
+      "args": ["/absolute/path/to/uploadcheck/mcp-server/index.mjs"],
+      "env": {
+        "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
+        "UPLOADCHECK_API_KEY": "&lt;workspace_api_key&gt;"
+      }
+    }
+  }
+}</code></pre>
+          </article>
+          <article class="card">
+            <h2>Cursor</h2>
+            <p>Add the same server to <code>.cursor/mcp.json</code>.</p>
+            <pre><code>{
+  "mcpServers": {
+    "uploadcheck": {
+      "command": "node",
+      "args": ["/absolute/path/to/uploadcheck/mcp-server/index.mjs"],
+      "env": {
+        "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
+        "UPLOADCHECK_API_KEY": "&lt;workspace_api_key&gt;"
+      }
+    }
+  }
+}</code></pre>
+          </article>
+        </div>
+      </section>
+      <section class="section">
+        <h2>3. Run agent-to-agent QC</h2>
+        <div class="twoGrid">
+          <article class="answer"><h2>First calls</h2><p>Call <code>qc_get_cost_basis</code>, then <code>qc_run_local_file</code>, then <code>qc_get_report</code> and <code>qc_get_marker_csv</code>. This gives the receiving agent cost context, verdict, timestamped evidence, and editor markers.</p></article>
+          <article class="answer"><h2>Repair loop</h2><p>The first agent shows all BLOCK and WATCH flags, asks whether to fix now, applies reachable caption or source-file fixes, and reruns UploadCheck before claiming the media is upload-ready.</p></article>
+        </div>
+      </section>
+      <footer class="footer">Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists. Use the GitHub/local MCP path above for current agent installs.</footer>
+    </main>
+  </body>
+</html>

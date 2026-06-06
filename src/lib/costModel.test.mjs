@@ -168,4 +168,34 @@ describe("cost model", () => {
       cogsCents: 0.3
     });
   });
+
+  it("prices Gemini video/audio oracle usage from modality token metadata", () => {
+    const result = estimateObservedProviderCost([
+      {
+        provider: "google",
+        model: "gemini-2.5-flash",
+        operation: "gemini_video_audio_oracle",
+        promptTokenCount: 269865,
+        candidatesTokenCount: 825,
+        totalTokenCount: 282480,
+        promptTokensDetails: [
+          { modality: "TEXT", tokenCount: 2890 },
+          { modality: "VIDEO", tokenCount: 238015 },
+          { modality: "AUDIO", tokenCount: 28960 }
+        ]
+      }
+    ]);
+
+    expect(result.observedProviderCogsCents).toBeCloseTo(5.2678, 4);
+    expect(result.details[0]).toMatchObject({
+      provider: "google",
+      model: "gemini-2.5-flash",
+      inputTokens: 269865,
+      outputTokens: 825,
+      textTokens: 2890,
+      videoTokens: 238015,
+      audioTokens: 28960,
+      pricingSource: "google_gemini_official_api_pricing"
+    });
+  });
 });

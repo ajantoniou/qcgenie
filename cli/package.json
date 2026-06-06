@@ -2,6 +2,7 @@
   "name": "@uploadcheck/cli",
   "version": "0.1.0",
   "description": "Quality check videos, podcasts, and clips before you upload.",
+  "homepage": "https://uploadcheck.app",
   "type": "module",
   "exports": {
     ".": "./index.mjs",
@@ -14,5 +15,8 @@
     "index.mjs",
     "request-builder.mjs"
   ],
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "publishConfig": {
+    "access": "public"
+  }
 }

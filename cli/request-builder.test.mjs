@@ -39,6 +39,10 @@ describe("UploadCheck CLI request builder", () => {
     });
   });
 
+  it("keeps internal Gemini backtests out of the public CLI command surface", () => {
+    expect(() => parseArgs(["gemini-backtest", "/tmp/video.mp4"])).toThrow(/Usage: uploadcheck check/);
+  });
+
   it("builds an inline local audio request", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-cli-"));
     const file = join(dir, "episode.wav");

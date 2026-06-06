@@ -13,6 +13,7 @@ function currentArtifacts() {
     pricing: readText("public/pricing/index.html"),
     sampleReport: readText("public/sample-report/index.html"),
     agenticApi: readText("public/agentic-media-qc-api/index.html"),
+    agentInstall: readText("public/agent-install/index.html"),
     sitemap: readText("public/sitemap.xml"),
     llms: readText("public/llms.txt"),
     demo: {

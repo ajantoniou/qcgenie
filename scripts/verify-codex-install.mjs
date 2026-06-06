@@ -79,6 +79,7 @@ export function verifyCodexInstall({
       "qc_get_cost_basis",
       "qc_estimate_cost",
       "qc_run_local_file",
+      "uploadcheck check",
       "qc_get_marker_csv",
       "At `$99 / 5,000` minutes",
       "Checked minutes mean deterministic pre-upload QC minutes",

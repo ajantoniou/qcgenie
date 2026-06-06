@@ -1,6 +1,15 @@
 :root {
-  color: #101827;
-  background: #f4f6f8;
+  color: #18212f;
+  background: #fbfcff;
+  --ink: #18212f;
+  --muted: #64748b;
+  --line: #dfe7f1;
+  --mint: #bdf5e5;
+  --mint-strong: #0f766e;
+  --sky: #d9ecff;
+  --lavender: #e8ddff;
+  --peach: #ffe1ce;
+  --cream: #fff8ea;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
@@ -30,14 +39,15 @@ code {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   background:
-    radial-gradient(circle at top left, rgba(20, 184, 166, 0.1), transparent 30%),
-    linear-gradient(135deg, rgba(15, 23, 42, 0.04), transparent 42%),
-    #f4f6f8;
+    linear-gradient(160deg, rgba(217, 236, 255, 0.7), transparent 34%),
+    linear-gradient(20deg, rgba(255, 225, 206, 0.5), transparent 42%),
+    #fbfcff;
 }
 
 .sidebar {
-  background: #101827;
-  color: #e5edf5;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--ink);
+  border-right: 1px solid var(--line);
   padding: 24px 18px;
   display: flex;
   flex-direction: column;
@@ -59,8 +69,8 @@ code {
   border-radius: 8px;
   display: grid;
   place-items: center;
-  color: #101827;
-  background: #5eead4;
+  color: #0f3b3a;
+  background: linear-gradient(135deg, var(--mint), var(--sky));
   font-weight: 850;
 }
 
@@ -68,7 +78,7 @@ code {
 .sidebarFooter small,
 .sidebarFooter span {
   display: block;
-  color: #94a3b8;
+  color: var(--muted);
   font-size: 13px;
   margin-top: 3px;
 }
@@ -81,7 +91,7 @@ code {
 .navItem {
   border: 0;
   background: transparent;
-  color: #cbd5e1;
+  color: #475569;
   padding: 11px 12px;
   border-radius: 8px;
   display: flex;
@@ -94,13 +104,13 @@ code {
 
 .navItem.active,
 .navItem:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: #eef7f4;
+  color: #0f766e;
 }
 
 .sidebarFooter {
   margin-top: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid var(--line);
   padding-top: 18px;
 }
 
@@ -111,20 +121,22 @@ code {
 
 .pageStack {
   display: grid;
-  gap: 24px;
+  gap: 22px;
 }
 
 .landingHero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 460px;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 500px);
+  gap: 30px;
   align-items: stretch;
-  min-height: 520px;
-  background: #ffffff;
-  border: 1px solid #dce3ec;
+  min-height: 600px;
+  background:
+    linear-gradient(135deg, rgba(189, 245, 229, 0.7), rgba(217, 236, 255, 0.55) 46%, rgba(255, 225, 206, 0.52)),
+    #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 8px;
-  padding: 34px;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.07);
+  padding: 42px;
+  box-shadow: 0 24px 60px rgba(36, 50, 71, 0.1);
 }
 
 .heroCopy {
@@ -135,20 +147,21 @@ code {
 }
 
 .heroCopy h1 {
-  font-size: 56px;
-  max-width: 780px;
+  color: var(--ink);
+  font-size: 58px;
+  max-width: 820px;
 }
 
 .heroCopy p {
-  color: #334155;
-  font-size: 22px;
+  color: #263547;
+  font-size: 21px;
   line-height: 1.45;
   max-width: 700px;
   margin-top: 18px;
 }
 
 .heroCopy .heroSupport {
-  color: #64748b;
+  color: #415268;
   font-size: 17px;
   line-height: 1.6;
 }
@@ -165,11 +178,12 @@ code {
   margin-top: 26px;
 }
 
+.heroActions a,
 .heroActions button,
 .secondaryButton {
   border: 0;
   border-radius: 8px;
-  background: #101827;
+  background: var(--ink);
   color: #ffffff;
   padding: 13px 18px;
   display: inline-flex;
@@ -179,22 +193,73 @@ code {
   cursor: pointer;
   font-weight: 800;
   min-height: 46px;
+  text-decoration: none;
 }
 
 .heroActions .secondaryButton {
   background: #ffffff;
-  color: #101827;
-  border: 1px solid #cfd8e3;
+  color: var(--ink);
+  border: 1px solid rgba(100, 116, 139, 0.28);
+}
+
+.heroPriceStrip {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(100, 116, 139, 0.18);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 18px;
+  padding: 12px 14px;
+}
+
+.heroPriceStrip strong {
+  color: #0f766e;
+}
+
+.heroPriceStrip span {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.issueChecklist,
+.paymentStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.issueChecklist span,
+.paymentStrip span {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(100, 116, 139, 0.18);
+  border-radius: 8px;
+  color: #243244;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 9px;
+}
+
+.issueChecklist svg,
+.paymentStrip svg {
+  color: #0f766e;
 }
 
 .workflowStrip {
   margin-top: 28px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  border: 1px solid #dce3ec;
+  border: 1px solid rgba(100, 116, 139, 0.2);
   border-radius: 8px;
   overflow: hidden;
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .workflowStrip span {
@@ -206,13 +271,12 @@ code {
   font-size: 13px;
   font-weight: 800;
   line-height: 1.35;
-  border-right: 1px solid #dce3ec;
+  border-right: 1px solid rgba(100, 116, 139, 0.2);
 }
 
 .workflowStrip span:first-child {
   color: #0f766e;
-  background: #ecfdf5;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: rgba(236, 253, 245, 0.84);
 }
 
 .workflowStrip span:last-child {
@@ -244,11 +308,11 @@ code {
   grid-template-rows: auto auto;
   align-content: start;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.02);
+  box-shadow: 0 22px 48px rgba(36, 50, 71, 0.14);
 }
 
 .terminalHeader {
-  background: #101827;
+  background: #18212f;
   color: #e2e8f0;
   padding: 14px 16px;
   display: flex;
@@ -264,13 +328,13 @@ code {
 }
 
 .terminalHeader strong {
-  color: #5eead4;
+  color: #a7f3d0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 13px;
 }
 
 .terminalBody {
-  padding: 16px;
+  padding: 18px;
   color: #334155;
   display: grid;
   align-content: start;
@@ -302,7 +366,7 @@ code {
 
 .terminalBody li {
   display: grid;
-  grid-template-columns: 62px minmax(0, 1fr);
+  grid-template-columns: 58px 62px minmax(0, 1fr);
   gap: 8px 10px;
   padding: 10px;
   border: 1px solid #e2e8f0;
@@ -321,10 +385,31 @@ code {
 }
 
 .terminalBody em {
-  grid-column: 2;
+  grid-column: 3;
   color: #64748b;
   font-size: 13px;
   font-style: normal;
+}
+
+.findingVerdict {
+  align-self: start;
+  border-radius: 8px;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 900;
+  justify-content: center;
+  line-height: 1;
+  padding: 6px 7px;
+}
+
+.findingVerdict.block {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.findingVerdict.watch {
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .proofBand {
@@ -334,7 +419,7 @@ code {
 }
 
 .proofBand article {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.88);
   padding: 18px;
 }
 
@@ -374,12 +459,13 @@ code {
 }
 
 .workflowPanel,
+.costComparison,
 .pricingBand,
 .seoPanel,
 .intentPanel,
 .faqPanel {
-  background: #ffffff;
-  padding: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 22px;
 }
 
 .workflowPanel {
@@ -388,12 +474,26 @@ code {
   gap: 20px;
 }
 
+.costComparison {
+  background:
+    linear-gradient(135deg, rgba(217, 236, 255, 0.84), rgba(189, 245, 229, 0.38)),
+    #ffffff;
+  display: grid;
+  gap: 18px;
+}
+
 .pricingBand,
 .seoPanel,
 .intentPanel,
 .faqPanel {
   display: grid;
   gap: 18px;
+}
+
+.pricingBand {
+  background:
+    linear-gradient(135deg, rgba(255, 248, 234, 0.9), rgba(232, 221, 255, 0.36)),
+    #ffffff;
 }
 
 .pricingIntro,
@@ -408,6 +508,7 @@ code {
 }
 
 .workflowCards,
+.comparisonCards,
 .priceCards,
 .packageGrid,
 .usageModel,
@@ -424,6 +525,7 @@ code {
 }
 
 .workflowCards article,
+.comparisonCards article,
 .priceCards article,
 .packageGrid article,
 .usageModel article,
@@ -434,6 +536,50 @@ code {
   border: 1px solid #dce3ec;
   border-radius: 8px;
   padding: 18px;
+}
+
+.comparisonCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.comparisonCards span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.comparisonCards strong {
+  color: var(--ink);
+  display: block;
+  font-size: 24px;
+  line-height: 1.1;
+  margin-top: 10px;
+}
+
+.comparisonCards p {
+  color: #475569;
+  font-weight: 800;
+  margin-top: 10px;
+}
+
+.comparisonCards small {
+  color: #0f766e;
+  display: block;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.4;
+  margin-top: 12px;
+}
+
+.sourceNote {
+  border-top: 1px solid rgba(100, 116, 139, 0.18);
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+  padding-top: 12px;
 }
 
 .intentGrid strong {
@@ -473,7 +619,7 @@ code {
 .priceCta,
 .planButton {
   align-items: center;
-  background: #101827;
+  background: var(--ink);
   border: 0;
   border-radius: 8px;
   color: #ffffff;
@@ -548,8 +694,11 @@ code {
 }
 
 .featuredPrice {
+  background: #f8fffc !important;
   border-color: #0f766e !important;
-  box-shadow: inset 0 0 0 1px rgba(15, 118, 110, 0.2);
+  box-shadow:
+    inset 0 0 0 1px rgba(15, 118, 110, 0.2),
+    0 18px 38px rgba(15, 118, 110, 0.12);
 }
 
 .topbar {
@@ -868,6 +1017,47 @@ h2 {
   white-space: normal;
 }
 
+.inlineDocLink {
+  color: #0f766e;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.inlineDocLink:hover {
+  text-decoration: underline;
+}
+
+.installMatrix {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.installMatrix article {
+  background: #ffffff;
+  border: 1px solid #dce3ec;
+  border-radius: 8px;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.installMatrix strong {
+  color: #0f766e;
+}
+
+.installMatrix code {
+  display: block;
+  color: #c7f9ee;
+  background: #101827;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .packageGrid article {
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04);
 }
@@ -939,21 +1129,24 @@ input:focus-visible {
   }
 
   .grid,
-  .landingHero,
-  .workflowPanel,
-  .pricingBand,
+	  .landingHero,
+	  .workflowPanel,
+	  .costComparison,
+	  .pricingBand,
   .seoPanel,
   .intentPanel,
   .faqPanel,
   .agentRunPanel,
   .agentGrid,
+  .installMatrix,
   .panelGrid {
     grid-template-columns: 1fr;
   }
 
-  .proofBand,
-  .workflowCards,
-  .priceCards,
+	  .proofBand,
+	  .workflowCards,
+	  .comparisonCards,
+	  .priceCards,
   .usageModel,
   .seoTopicGrid,
   .intentGrid,
@@ -1007,6 +1200,7 @@ input:focus-visible {
   }
 
   .heroActions button,
+  .heroActions a,
   .secondaryButton {
     width: 100%;
   }

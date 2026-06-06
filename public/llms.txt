@@ -10,6 +10,7 @@ Core workflow:
 - UploadCheck scans the full timeline for frozen frames, audio garble, caption and safe-area issues, aspect-ratio problems, transcript-grounded review notes, and external full-video gate results.
 - Reports include verdict, timestamps, evidence, editor handoff notes, suggested fixes, and export-ready artifacts.
 - External full-video gate results can be imported with POST /v1/qc/jobs/{job_id}/gate-verdict after an agent runs scripts/qc-engine/run_gate.py.
+- Product boundary: UploadCheck is the SaaS QC authority. Claude Code, Codex, Cursor, and other agents are repair agents, not reviewers making up their own verdicts.
 
 Tagline:
 - Quality check videos, podcasts, and clips before you upload.
@@ -58,6 +59,8 @@ Agent integration:
 - For queued execution, create jobs with process_async=true and process them through POST /v1/qc/jobs/drain. Inline media and inline sidecars remain synchronous because temporary files are deleted after the create request; queued jobs should use durable media plus HTTPS sidecar URLs such as manifest_url, transcript_url, watchlist_url, expected_script_url, and chunk_sidecars_url.
 - Marker exports are available as CSV at GET /v1/qc/jobs/{job_id}/artifacts/markers for editor handoff.
 - The machine-readable repair loop contract is in agent-manifest.json and pipeline-recipes.json. Agents must fetch qc_get_report and qc_get_marker_csv, show all flags grouped by BLOCK/WATCH/PASS, ask "Fix now?", apply only reachable fixes, return timestamped source/render instructions for unreachable media defects, and rerun UploadCheck before upload-ready claims.
+- Agents must repair only flagged spans they can reach. No broad rewrite, no taste-based refactor, no "I improved the whole video", and no agent-authored replacement verdict.
+- Best workflow payoff: the report feeds back to the user's LLM so it can start fixing reachable captions, checklists, metadata, and source files right away.
 - Product Hunt launch state should be verified with GET /v1/readiness before claiming checkout, custom domain, persistence, storage, demo clip, and launch readiness are complete.
 - Agents can call GET /v1/launch-status for a live go/no-go summary derived from the same readiness checks plus operator commands and blockers.
 - Agents can call GET /v1/launch-handoff for the current blocker-specific required actions, proof commands, and launchDoctorCommands, call MCP qc_get_launch_handoff, or run uploadcheck launch-handoff --json.
@@ -70,15 +73,18 @@ Pricing:
 - Creator: $99/mo for 2,400 checked media minutes/month. Best for most creators.
 - Studio: $299/mo for 10,000 checked media minutes/month. Best value for teams.
 - Network: $799/mo for 36,000 checked media minutes/month. High-volume plan.
-- Overage: Creator $0.12/min, Studio $0.09/min, Network $0.06/min after included minutes.
+- Overage: Creator $0.12/min, Studio $0.09/min, Network $0.06/min after approval.
 - Plans are based on media minutes checked, not seats.
 - Checked minutes are deterministic publish-readiness QC minutes.
-- Deep model review stays internal for engine backtesting, roadmap generation, and deterministic capture-rate measurement.
-- Deterministic capture rate against expert review is the product-quality metric to watch before increasing high-volume limits further.
+- Checked minutes are not bundled AI review minutes.
+- Internal AI helps improve the QC engine; it is not sold as a separate public review feature.
 - Re-checks count because UploadCheck analyzes the actual media file each time.
+- Teams can set a monthly cap so UploadCheck stops before unapproved overage.
 - Most serious solo creators are expected to fit around 300-1,800 checked minutes/month; 2,400 minutes gives room for weekly uploads, clip batches, and repeated final checks.
 - Heavy users are expected around 4,000-8,500 checked minutes/month.
 - Super-heavy users are expected around 16,000-32,000 checked minutes/month.
+- Generation-cost comparison: Google lists Veo 3 Fast video+audio at $0.15/second ($9/minute) and Veo 3 Standard video+audio at $0.40/second ($24/minute), while Creator included QC is about $0.041 per checked minute.
+- Higgsfield comparison: Higgsfield uses credits that vary by model, clip length, resolution, and premium apps, so compare UploadCheck against the user's actual generation credit burn rather than a single public $/minute.
 
 Search and answer topics:
 - Video quality checker before YouTube upload.
@@ -105,6 +111,7 @@ Crawlable public pages:
 - https://uploadcheck.app/shorts-reels-qc/ for short-form clip QC.
 - https://uploadcheck.app/audio-garble-checker/ for garble, dropout, and audio evidence.
 - https://uploadcheck.app/agentic-media-qc-api/ for CLI, MCP, API, and slash-command workflows.
+- https://uploadcheck.app/agent-install/ for current Claude Code, Codex, Cursor, and MCP client install steps. Use the GitHub/local MCP path until @uploadcheck/cli and @uploadcheck/mcp are published to npm.
 - https://uploadcheck.app/content-quality-check-before-publishing/ for broad content, audio, video, podcast, clip, ad, demo, and course pre-publish QC queries.
 - https://uploadcheck.app/ai-video-review-before-upload/ for AI video review, Claude Code, Codex, MCP, and agentic pre-upload QC queries.
 - https://uploadcheck.app/pricing/ for metered pricing.
@@ -114,12 +121,15 @@ Crawlable public pages:
 FAQ:
 - How many checked minutes do most creators need per month? Most serious solo creators fit around 300-1,800 checked minutes, and the Creator plan includes 2,400.
 - Does /check work in Claude Code and Codex? Yes. Agents can call UploadCheck through the CLI, MCP server, or API and report timestamped evidence back in the same workspace.
-- What can UploadCheck fix automatically? UploadCheck returns evidence your agent can act on. Agents can usually fix captions, checklists, metadata, and reachable source files, while frozen video, garbled audio, and render defects may need a source or editor pass.
+- What can UploadCheck fix automatically? UploadCheck returns evidence your LLM can act on immediately. Agents can usually fix captions, checklists, metadata, and reachable source files, while frozen video, garbled audio, and render defects may need a source or editor pass.
 - Does UploadCheck catch bad Shorts layout? Yes. The private gates include exact vertical-frame checks, black-gutter detection, text-card presence, OCR word safe-area checks, and text readability checks.
 - What happens after QC flags appear? Agents should show every flag, group what is fixable, ask whether to fix now, then rerun UploadCheck after edits.
+- What should agents not do after a report? They should not rewrite the whole video, invent new review criteria, or mark a file ready without rerunning UploadCheck on the repaired asset.
 - Is UploadCheck only for video? No. UploadCheck is positioned for videos, podcasts, and clips.
 
 Trust rule:
 - Hard fails come from automated quality checks, imported full-video gates, or explicit evidence.
 - Advisory review notes cannot create invented hard-fails.
 - Agents should distinguish direct fixes from issues requiring a human source/render pass.
+
+- NTO final-master production should run qc_run_gemini_backtest after deterministic QC when GEMINI_API_KEY is available; Gemini is the internal capture-rate oracle, not the customer verdict.

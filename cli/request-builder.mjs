@@ -133,6 +133,12 @@ export function parseArgs(argv) {
       options.manifestPath = requireValue(arg, args.shift());
     } else if (arg === "--transcript") {
       options.transcriptPath = requireValue(arg, args.shift());
+    } else if (arg === "--output") {
+      options.outputPath = requireValue(arg, args.shift());
+    } else if (arg === "--model") {
+      options.model = requireValue(arg, args.shift());
+    } else if (arg === "--keep-file") {
+      options.keepFile = true;
     } else if (arg === "--watchlist") {
       options.watchlistPath = requireValue(arg, args.shift());
     } else if (arg === "--expected-script") {

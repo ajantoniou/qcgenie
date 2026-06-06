@@ -3,7 +3,7 @@
 const DEFAULT_WEB_BASE_URL = "https://uploadcheck.app";
 const MIN_DEMO_BYTES = 1000;
 
-export function validateWebArtifacts({ productHunt, pricing, sampleReport, agenticApi, sitemap, llms, demo }) {
+export function validateWebArtifacts({ productHunt, pricing, sampleReport, agenticApi, agentInstall, sitemap, llms, demo }) {
   const errors = [];
   requiredText(errors, "product_hunt", productHunt, [
     "UploadCheck Product Hunt Launch",
@@ -19,8 +19,9 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
     "2,400 checked minutes",
     "$299/mo",
     "10,000 checked minutes",
-    "Deep model review stays internal",
-    "deterministic capture-rate measurement"
+    "feeds back to your LLM",
+    "not bundled AI review minutes",
+    "Internal AI helps improve the engine"
   ]);
   requiredText(errors, "sample_report", sampleReport, [
     "Sample UploadCheck Report",
@@ -40,19 +41,33 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
     "/agent-manifest.json",
     "/openapi.json"
   ]);
+  requiredText(errors, "agent_install", agentInstall, [
+    "Install UploadCheck for Agents",
+    "git clone https://github.com/ajantoniou/uploadcheck.git",
+    "/absolute/path/to/uploadcheck/mcp-server/index.mjs",
+    "~/.codex/config.toml",
+    ".cursor/mcp.json",
+    "qc_get_cost_basis",
+    "qc_run_local_file",
+    "Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists"
+  ]);
   requiredText(errors, "sitemap", sitemap, [
     "https://uploadcheck.app/product-hunt/",
     "https://uploadcheck.app/pricing/",
     "https://uploadcheck.app/sample-report/",
-    "https://uploadcheck.app/agentic-media-qc-api/"
+    "https://uploadcheck.app/agentic-media-qc-api/",
+    "https://uploadcheck.app/agent-install/"
   ]);
   requiredText(errors, "llms", llms, [
     "UploadCheck.app",
     "https://uploadcheck.app/product-hunt/",
     "https://uploadcheck.app/pricing/",
     "https://uploadcheck.app/sample-report/",
+    "https://uploadcheck.app/agent-install/",
     "https://api.uploadcheck.app/v1/launch-evidence",
-    "Checked minutes are deterministic publish-readiness QC minutes"
+    "Checked minutes are deterministic publish-readiness QC minutes",
+    "report feeds back to the user's LLM",
+    "stops before unapproved overage"
   ]);
   if (!demo?.ok) {
     errors.push(error("demo_clip", "missing_demo_clip", "Demo clip must return HTTP 200."));
@@ -73,29 +88,31 @@ async function main() {
     pricing: cacheBustUrl(`${baseUrl}/pricing/`),
     sampleReport: cacheBustUrl(`${baseUrl}/sample-report/`),
     agenticApi: cacheBustUrl(`${baseUrl}/agentic-media-qc-api/`),
+    agentInstall: cacheBustUrl(`${baseUrl}/agent-install/`),
     sitemap: cacheBustUrl(`${baseUrl}/sitemap.xml`),
     llms: cacheBustUrl(`${baseUrl}/llms.txt`),
     demo: cacheBustUrl(`${baseUrl}/demo/uploadcheck-product-hunt-demo.mp4`)
   };
 
   try {
-    const [productHunt, pricing, sampleReport, agenticApi, sitemap, llms, demo] = await Promise.all([
+    const [productHunt, pricing, sampleReport, agenticApi, agentInstall, sitemap, llms, demo] = await Promise.all([
       fetchText(urls.productHunt, "Product Hunt page"),
       fetchText(urls.pricing, "pricing page"),
       fetchText(urls.sampleReport, "sample report page"),
       fetchText(urls.agenticApi, "agentic API page"),
+      fetchText(urls.agentInstall, "agent install page"),
       fetchText(urls.sitemap, "sitemap"),
       fetchText(urls.llms, "llms.txt"),
       fetchBinaryMeta(urls.demo, "demo clip")
     ]);
-    const errors = validateWebArtifacts({ productHunt, pricing, sampleReport, agenticApi, sitemap, llms, demo });
+    const errors = validateWebArtifacts({ productHunt, pricing, sampleReport, agenticApi, agentInstall, sitemap, llms, demo });
     if (errors.length) {
       fail(`UploadCheck live web artifacts: NOT READY\n${JSON.stringify({ urls, errors }, null, 2)}`);
     }
     console.log(JSON.stringify({
       ok: true,
       urls,
-      pages: 6,
+      pages: 7,
       demoBytes: demo.bytes,
       demoContentType: demo.contentType
     }, null, 2));

@@ -3,7 +3,10 @@
   "description": "Quality check videos, podcasts, and clips before you upload.",
   "mcp_server": "uploadcheck",
   "slash_command": "/check",
-  "packages": ["@uploadcheck/cli", "@uploadcheck/mcp"],
+  "packages": [
+    "@uploadcheck/cli",
+    "@uploadcheck/mcp"
+  ],
   "api_base_url": "https://api.uploadcheck.app/v1",
   "openapi_url": "https://api.uploadcheck.app/openapi.json",
   "pipeline_handoff_url": "https://api.uploadcheck.app/pipeline-handoff.json",
@@ -92,8 +95,16 @@
     "max_duration_minutes_default": 240,
     "max_upload_mb_default": 2048,
     "max_active_jobs_default": 25,
-    "config_env": ["UPLOADCHECK_MAX_DURATION_MINUTES", "UPLOADCHECK_MAX_UPLOAD_MB", "UPLOADCHECK_MAX_ACTIVE_JOBS"],
-    "fail_fast_errors": ["duration_limit_exceeded", "upload_size_limit_exceeded", "active_job_limit_exceeded"]
+    "config_env": [
+      "UPLOADCHECK_MAX_DURATION_MINUTES",
+      "UPLOADCHECK_MAX_UPLOAD_MB",
+      "UPLOADCHECK_MAX_ACTIVE_JOBS"
+    ],
+    "fail_fast_errors": [
+      "duration_limit_exceeded",
+      "upload_size_limit_exceeded",
+      "active_job_limit_exceeded"
+    ]
   },
   "tools": [
     "qc_get_launch_status",
@@ -137,16 +148,44 @@
       "purpose": "Sanitized media ingress proof for low-storage Render execution.",
       "inline_mode": "inline_ephemeral",
       "signed_upload_mode": "signed_upload",
-      "safe_to_show": ["mode", "contentType", "bytes", "sha256", "ephemeral", "storageMode"],
-      "never_exposes": ["temporary server file paths", "cleanup paths"]
+      "safe_to_show": [
+        "mode",
+        "contentType",
+        "bytes",
+        "sha256",
+        "ephemeral",
+        "storageMode"
+      ],
+      "never_exposes": [
+        "temporary server file paths",
+        "cleanup paths"
+      ]
     },
     "observability": {
       "purpose": "Debug job runtime, engine fallback, provider usage, and slow-stage behavior without reprocessing media.",
-      "safe_to_show": ["startedAt", "completedAt", "processingDurationMs", "outcome", "engine", "providerUsageEntries", "failureReason", "stages"]
+      "safe_to_show": [
+        "startedAt",
+        "completedAt",
+        "processingDurationMs",
+        "outcome",
+        "engine",
+        "providerUsageEntries",
+        "failureReason",
+        "stages"
+      ]
     },
     "launch_handoff": {
       "purpose": "Live launch and Product Hunt blocker handoff for agents and operators.",
-      "safe_to_show": ["productHuntReady", "remainingBlockers", "requiredActions", "blockerProofCommands", "launchDoctorCommands", "blockerFixPlan", "operatorCommandSequence", "rule"],
+      "safe_to_show": [
+        "productHuntReady",
+        "remainingBlockers",
+        "requiredActions",
+        "blockerProofCommands",
+        "launchDoctorCommands",
+        "blockerFixPlan",
+        "operatorCommandSequence",
+        "rule"
+      ],
       "hosted_media_ingress_command": "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
     }
   },
@@ -194,12 +233,32 @@
     "The agent shows all BLOCK and WATCH flags, asks whether to fix now, fixes captions/checklists/source-level issues it can reach, then flags issues requiring a source or render pass."
   ],
   "repair_loop_contract": {
-    "required_fetches": ["qc_get_report", "qc_get_marker_csv"],
-    "severity_order": ["BLOCK", "WATCH", "PASS"],
+    "required_fetches": [
+      "qc_get_report",
+      "qc_get_marker_csv"
+    ],
+    "severity_order": [
+      "BLOCK",
+      "WATCH",
+      "PASS"
+    ],
     "must_show_all_flags": true,
     "user_prompt": "Show all QC flags and ask: Fix now?",
-    "fixable_scopes": ["captions", "metadata", "manifests", "reachable source files", "checklists"],
-    "source_or_render_scopes": ["frozen video", "garbled audio", "duplicate characters", "cheap b-roll", "narration/visual mismatch", "unsafe render layout"],
+    "fixable_scopes": [
+      "captions",
+      "metadata",
+      "manifests",
+      "reachable source files",
+      "checklists"
+    ],
+    "source_or_render_scopes": [
+      "frozen video",
+      "garbled audio",
+      "duplicate characters",
+      "cheap b-roll",
+      "narration/visual mismatch",
+      "unsafe render layout"
+    ],
     "source_or_render_instruction": "Return timestamped source/render patch instructions instead of pretending the agent can edit unreachable media.",
     "rerun_after_fix": true,
     "completion_rule": "Do not call the asset upload-ready until UploadCheck is rerun after edits and no BLOCK flags remain."
@@ -207,11 +266,13 @@
   "pipeline_profiles": [
     {
       "id": "nto_long_form",
-      "purpose": "NTO long-form final masters with manifests, transcript sidecars, pronunciation watchlists, and locked scripts."
+      "purpose": "NTO long-form final masters with manifests, transcript sidecars, pronunciation watchlists, and locked scripts.",
+      "internal_capture_rate_backtest": "Use the repo-only Gemini oracle after deterministic QC when GEMINI_API_KEY is available."
     },
     {
       "id": "nto_shorts",
-      "purpose": "NTO Shorts/Reels exports with vertical layout, safe-area, text-readability, repeat, dead-air, and transcript leak checks."
+      "purpose": "NTO Shorts/Reels exports with vertical layout, safe-area, text-readability, repeat, dead-air, and transcript leak checks.",
+      "internal_capture_rate_backtest": "Use the repo-only Gemini oracle after deterministic QC when GEMINI_API_KEY is available."
     },
     {
       "id": "npo_podcast_or_audio",

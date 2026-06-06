@@ -46,9 +46,26 @@ const PROVIDER_PRICING = {
       "gpt-realtime-whisper": 0.017,
       "gpt-realtime-translate": 0.034
     }
+  },
+  google: {
+    defaultTextImageVideoInputUsdPerMTok: 0.15,
+    defaultAudioInputUsdPerMTok: 0.5,
+    defaultOutputUsdPerMTok: 2.5,
+    models: {
+      "gemini-2.5-flash": {
+        textImageVideoInputUsdPerMTok: 0.15,
+        audioInputUsdPerMTok: 0.5,
+        outputUsdPerMTok: 2.5
+      },
+      "gemini-2.5-flash-lite": {
+        textImageVideoInputUsdPerMTok: 0.1,
+        audioInputUsdPerMTok: 0.3,
+        outputUsdPerMTok: 0.4
+      }
+    }
   }
 };
-const MODEL_BACKED_CHECKS = new Set(["twins", "cheap_broll", "narration_match", "omni_watch", "garble"]);
+const MODEL_BACKED_CHECKS = new Set(["twins", "cheap_broll", "narration_match", "omni_watch", "gemini_watch", "garble"]);
 const DEFAULT_CHECKS = [
   "canvas_fill",
   "loop_freeze",
@@ -63,13 +80,15 @@ const DEFAULT_CHECKS = [
   "garble",
   "twins",
   "narration_match",
-  "omni_watch"
+  "omni_watch",
+  "gemini_watch"
 ];
 const MODEL_CHECK_CALLS_PER_MINUTE = {
   twins: 12,
   cheap_broll: 12,
   narration_match: 4,
   omni_watch: 2,
+  gemini_watch: 1,
   garble: 2
 };
 const PLAN_PRESETS = {
@@ -253,6 +272,7 @@ function estimateObservedProviderEntryCost(entry) {
   if (provider === "dashscope" || provider === "openrouter") return estimateQwenOmniEntryCost(entry, provider);
   if (provider === "elevenlabs") return estimateElevenLabsEntryCost(entry);
   if (provider === "openai") return estimateOpenAiEntryCost(entry);
+  if (provider === "google" || provider === "gemini") return estimateGoogleEntryCost(entry);
   return { provider: provider || "unknown", model: entry.model || null, cogsCents: 0, pricingSource: "unknown_provider" };
 }
 
@@ -330,6 +350,52 @@ function estimateOpenAiEntryCost(entry) {
     cogsCents: round(cogsUsd * 100),
     pricingSource: rate ? "openai_official_transcription_pricing" : "openai_unknown_model"
   };
+}
+
+function estimateGoogleEntryCost(entry) {
+  const model = String(entry.model || "gemini-2.5-flash");
+  const pricing = PROVIDER_PRICING.google.models[model] || {};
+  const textImageVideoRate = pricing.textImageVideoInputUsdPerMTok || PROVIDER_PRICING.google.defaultTextImageVideoInputUsdPerMTok;
+  const audioRate = pricing.audioInputUsdPerMTok || PROVIDER_PRICING.google.defaultAudioInputUsdPerMTok;
+  const outputRate = pricing.outputUsdPerMTok || PROVIDER_PRICING.google.defaultOutputUsdPerMTok;
+  const modality = geminiModalityTokens(entry.promptTokensDetails || entry.prompt_tokens_details || []);
+  const promptTokens = number(entry.promptTokenCount ?? entry.prompt_token_count ?? entry.input_tokens ?? entry.inputTokens);
+  const outputTokens = number(entry.candidatesTokenCount ?? entry.candidates_token_count ?? entry.output_tokens ?? entry.outputTokens);
+  const totalTokens = number(entry.totalTokenCount ?? entry.total_token_count ?? entry.total_tokens ?? entry.totalTokens);
+  const textTokens = modality.text || Math.max(0, promptTokens - modality.video - modality.audio - modality.image);
+  const textImageVideoTokens = textTokens + modality.video + modality.image;
+  const cogsUsd =
+    mtok(textImageVideoTokens) * textImageVideoRate +
+    mtok(modality.audio) * audioRate +
+    mtok(outputTokens) * outputRate;
+  return {
+    provider: "google",
+    model,
+    operation: entry.operation || null,
+    inputTokens: promptTokens,
+    outputTokens,
+    totalTokens,
+    textTokens,
+    imageTokens: modality.image,
+    videoTokens: modality.video,
+    audioTokens: modality.audio,
+    cogsCents: round(cogsUsd * 100),
+    pricingSource: "google_gemini_official_api_pricing"
+  };
+}
+
+function geminiModalityTokens(details = []) {
+  const out = { text: 0, image: 0, video: 0, audio: 0 };
+  if (!Array.isArray(details)) return out;
+  for (const item of details) {
+    const modality = String(item?.modality || "").toLowerCase();
+    const tokenCount = number(item?.tokenCount ?? item?.token_count);
+    if (modality === "text") out.text += tokenCount;
+    if (modality === "image") out.image += tokenCount;
+    if (modality === "video") out.video += tokenCount;
+    if (modality === "audio") out.audio += tokenCount;
+  }
+  return out;
 }
 
 export function summarizeObservedProviderUsage(entries = []) {

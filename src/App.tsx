@@ -11,6 +11,7 @@ import {
   KeyRound,
   ListChecks,
   Play,
+  ReceiptText,
   Rocket,
   ShieldCheck,
   Sparkles,
@@ -45,23 +46,53 @@ const publicNav = [
 ] satisfies Array<{ label: string; icon: typeof Rocket; href: string }>;
 
 const workflowSteps = [
-  "/check final-upload.mp4",
-  "UploadCheck inspects frames, audio, captions, and format",
-  "agent receives timestamped evidence",
-  "agent fixes captions, checklists, and source-level issues it can reach"
+  "Agent calls UploadCheck",
+  "UploadCheck returns evidence",
+  "Agent repairs flagged spans",
+  "Rerun before upload"
+] as const;
+
+const authorityRules = [
+  "UploadCheck is the QC authority: PASS, WATCH, BLOCK, timestamps, spans, source hash, and job id.",
+  "Agents are repair executors: no broad rewrite, no taste-based refactor, no self-invented verdict.",
+  "Ship only after UploadCheck reruns on the repaired file and blockers are cleared."
 ] as const;
 
 const agentFindings = [
-  { time: "00:12.4", issue: "frozen frame detected", evidence: "frame hash held for 2.9s" },
-  { time: "01:08.7", issue: "right-channel audio dropout", evidence: "waveform evidence saved" },
-  { time: "02:44.0", issue: "caption mismatch", evidence: "subtitle differs from spoken words" },
-  { time: "09:16.2", issue: "black frame before end card", evidence: "visual evidence requires review" }
+  { verdict: "BLOCK", time: "00:12.4", issue: "frozen frame detected", evidence: "frame hash held for 2.9s" },
+  { verdict: "WATCH", time: "01:08.7", issue: "right-channel audio dropout", evidence: "waveform evidence saved" },
+  { verdict: "WATCH", time: "02:44.0", issue: "caption mismatch", evidence: "subtitle differs from spoken words" },
+  { verdict: "BLOCK", time: "09:16.2", issue: "black frame before end card", evidence: "visual evidence requires review" }
+] as const;
+
+const issueChecks = [
+  "Frozen frames",
+  "Black frames",
+  "Garbled audio",
+  "Caption safe-area",
+  "Canvas gutters",
+  "Transcript mismatch"
 ] as const;
 
 const packageOptions = [
   { name: "@uploadcheck/cli", detail: "Run checks from terminal, scripts, or CI before upload." },
   { name: "@uploadcheck/mcp", detail: "Expose UploadCheck tools to Claude Code, Codex, and MCP-capable agents." },
   { name: "uploadcheck", detail: "MCP server name for connector setup and agent manifests." }
+] as const;
+
+const installTargets = [
+  {
+    name: "1. Clone the current installable package",
+    code: "git clone https://github.com/ajantoniou/uploadcheck.git /absolute/path/to/uploadcheck"
+  },
+  {
+    name: "2. Codex config",
+    code: 'command = "node" | args = ["/absolute/path/to/uploadcheck/mcp-server/index.mjs"]'
+  },
+  {
+    name: "3. Claude Code or Cursor MCP JSON",
+    code: '"uploadcheck": { "command": "node", "args": ["/absolute/path/to/uploadcheck/mcp-server/index.mjs"] }'
+  }
 ] as const;
 
 const pricingTiers = [
@@ -100,6 +131,33 @@ const usageProfiles = [
   { label: "Super heavy", range: "16,000-32,000 min", detail: "daily uploads, networks, and large clip pipelines" }
 ] as const;
 
+const paymentOptions = [
+  "Secure monthly checkout",
+  "Creator, Studio, and Network plans",
+  "Set a monthly cap before overage"
+] as const;
+
+const generationCostComparisons = [
+  {
+    label: "Veo 3 Fast video + audio",
+    generation: "$9.00 generated minute",
+    qc: "$0.041 Creator included QC minute",
+    ratio: "QC is about 0.46% of generation cost."
+  },
+  {
+    label: "Veo 3 Standard video + audio",
+    generation: "$24.00 generated minute",
+    qc: "$0.041 Creator included QC minute",
+    ratio: "QC is about 0.17% of generation cost."
+  },
+  {
+    label: "Higgsfield premium workflows",
+    generation: "Variable credit burn",
+    qc: "Fixed checked-minute plans",
+    ratio: "Check the final file before another paid generation or edit pass."
+  }
+] as const;
+
 const searchTopics = [
   {
     title: "Video quality checker before YouTube upload",
@@ -130,6 +188,11 @@ const searchTopics = [
     title: "Agentic media QC API and MCP server",
     href: "/agentic-media-qc-api/",
     detail: "Use @uploadcheck/cli, @uploadcheck/mcp, or the uploadcheck MCP server to bring reports into creator agents."
+  },
+  {
+    title: "Agent install guide",
+    href: "/agent-install/",
+    detail: "Configure UploadCheck MCP for Claude Code, Codex, Cursor, and agent-to-agent media QC runs."
   },
   {
     title: "Content quality check before publishing",
@@ -180,12 +243,12 @@ const faqItems = [
   {
     question: "Do re-checks count against included minutes?",
     answer:
-      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. If a request exceeds included minutes, UploadCheck blocks the run before additional metered spend."
+      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. Extra checked minutes are metered by tier after approval, and teams can set a monthly cap so UploadCheck stops before unapproved overage."
   },
   {
     question: "What can UploadCheck fix automatically?",
     answer:
-      "UploadCheck returns evidence your agent can act on. Agents can usually fix captions, checklists, metadata, and reachable source files, while frozen video, garbled audio, and render defects may need a source or editor pass."
+      "UploadCheck returns evidence your LLM can act on immediately. Agents should repair only flagged spans they can reach: captions, checklists, metadata, and source files. Frozen video, garbled audio, and render defects get timestamped source or editor instructions."
   },
   {
     question: "Is UploadCheck only for video?",
@@ -241,7 +304,7 @@ export function App() {
       </aside>
 
       <section className="workspace">
-        {view === "home" && <LandingView onOpenDashboard={() => setView("dashboard")} onOpenAgents={() => setView("agents")} />}
+        {view === "home" && <LandingView />}
         {view === "dashboard" && <DashboardView />}
         {view === "agents" && <AgentView />}
         {view === "readiness" && <ReadinessView />}
@@ -250,26 +313,43 @@ export function App() {
   );
 }
 
-function LandingView({ onOpenDashboard, onOpenAgents }: { onOpenDashboard: () => void; onOpenAgents: () => void }) {
+function LandingView() {
   return (
     <div className="pageStack">
       <section className="landingHero">
         <div className="heroCopy">
-          <h1>Give your agent eyes and ears before upload.</h1>
-          <p>Quality check videos, podcasts, and clips before you upload.</p>
+          <h1>Catch broken exports before your audience or client does.</h1>
+          <p>
+            UploadCheck is final-export insurance for creators, editors, agencies, and studios already spending real
+            money on every upload.
+          </p>
           <p className="heroSupport">
-            Run <code>/check</code> from Claude Code, Codex, or another creator workspace. UploadCheck returns
-            timestamped frame, audio, caption, and format evidence so your agent can list issues and fix what it can.
+            Run deterministic publish-readiness QC on videos, podcasts, and clips before YouTube, clients, sponsors, or
+            your audience find freezes, audio dropouts, caption issues, crop risk, black frames, or format mistakes. The
+            report is fed back to your LLM so it can start fixing reachable issues right away.
           </p>
           <div className="heroActions">
-            <button onClick={onOpenAgents} type="button">
-              <Code2 size={17} />
-              Run /check workflow
-            </button>
-            <button className="secondaryButton" onClick={onOpenDashboard} type="button">
+            <a className="primaryCta" href="/checkout/creator">
+              <CircleDollarSign size={17} />
+              Start Creator - $99/mo
+            </a>
+            <a className="secondaryButton" href="/sample-report/">
               <Play size={17} />
-              Try sample video
-            </button>
+              View sample report
+            </a>
+          </div>
+          <div className="heroPriceStrip" aria-label="Creator plan summary">
+            <strong>2,400 checked minutes/month</strong>
+            <span>Most creators use 300-1,800.</span>
+            <span>$0.12/min approved overage.</span>
+          </div>
+          <div className="issueChecklist" aria-label="UploadCheck catches">
+            {issueChecks.map((check) => (
+              <span key={check}>
+                <CheckCircle2 size={15} />
+                {check}
+              </span>
+            ))}
           </div>
           <div className="workflowStrip" aria-label="UploadCheck agent workflow">
             {workflowSteps.map((step) => (
@@ -282,53 +362,79 @@ function LandingView({ onOpenDashboard, onOpenAgents }: { onOpenDashboard: () =>
 
       <section className="proofBand">
         <article>
-          <Sparkles size={22} />
-          <strong>Multimodal sensory layer</strong>
-          <p>Agents get structured visual, audio, caption, and transcript signals they cannot infer from code alone.</p>
+          <ShieldCheck size={22} />
+          <strong>Insurance before publish</strong>
+          <p>Protect expensive production work before a broken export reaches subscribers, sponsors, or a client review.</p>
         </article>
         <article>
-          <BadgeCheck size={22} />
-          <strong>Evidence over vibes</strong>
-          <p>Findings carry timecodes, severity, evidence notes, and clear boundaries around what needs human review.</p>
+          <ReceiptText size={22} />
+          <strong>Timestamped proof</strong>
+          <p>Every finding carries timecodes, severity, evidence notes, and clear boundaries around what needs review.</p>
         </article>
         <article>
           <Webhook size={22} />
-          <strong>Same report everywhere</strong>
-          <p>Use the web app, CLI, MCP server, REST API, or webhooks without changing the core report format.</p>
+          <strong>LLM repair loop</strong>
+          <p>Feed the report to Claude Code, Codex, or your agent so it repairs only the flagged spans it can reach, then reruns UploadCheck.</p>
         </article>
       </section>
 
       <section className="workflowPanel">
         <div>
-          <h2>Built for the moment before publish</h2>
+          <h2>UploadCheck decides. Agents repair.</h2>
           <p>
-            UploadCheck is a repeatable pre-upload gate for creator teams using agents to produce, edit, caption, and
-            package media.
+            UploadCheck is the SaaS QC authority. Claude Code, Codex, Cursor, and production agents become repair
+            agents, not reviewers inventing their own verdicts.
           </p>
         </div>
         <div className="workflowCards">
-          <article>
-            <strong>Videos</strong>
-            <p>Freeze, black frame, aspect, caption safe-area, transcript grounding, and export checks.</p>
-          </article>
-          <article>
-            <strong>Podcasts</strong>
-            <p>Audio dropout, clipping, dead air, transcript alignment, and episode handoff notes.</p>
-          </article>
-          <article>
-            <strong>Clips</strong>
-            <p>Shorts-safe captions, mobile crop risk, loudness, intro/outro trim, and upload-ready reports.</p>
-          </article>
+          {authorityRules.map((rule) => (
+            <article key={rule}>
+              <strong>{rule.split(":")[0]}</strong>
+              <p>{rule.includes(":") ? rule.slice(rule.indexOf(":") + 2) : rule}</p>
+            </article>
+          ))}
         </div>
+      </section>
+
+      <section className="costComparison">
+        <div className="pricingIntro">
+          <h2>QC is tiny compared with generating the video.</h2>
+          <p>
+            AI video minutes are expensive. Checking the finished file is the cheap step that protects the generation,
+            editing, client, and upload work that came before it.
+          </p>
+        </div>
+        <div className="comparisonCards">
+          {generationCostComparisons.map((item) => (
+            <article key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.generation}</strong>
+              <p>{item.qc}</p>
+              <small>{item.ratio}</small>
+            </article>
+          ))}
+        </div>
+        <p className="sourceNote">
+          Google lists Veo 3 video+audio generation at $0.15-$0.40 per second. Higgsfield uses credits that vary by
+          model, clip length, resolution, and premium apps, so compare UploadCheck against your actual credit burn.
+        </p>
       </section>
 
       <section className="pricingBand">
         <div className="pricingIntro">
-          <h2>Quality check every upload before your audience sees it.</h2>
+          <h2>Publish-readiness checks priced by media minutes, not seats.</h2>
           <p>
-            UploadCheck checks videos, podcasts, and clips for publish-blocking issues before they go live. Plans are
-            based on media minutes checked, not seats.
+            Every plan includes deterministic checked minutes for final exports and re-checks. Start with Creator at
+            $99/month, then move up only when your volume needs it.
           </p>
+        </div>
+        <div className="paymentStrip" aria-label="Payment and billing options">
+          {paymentOptions.map((option) => (
+            <span key={option}>
+              <BadgeCheck size={15} />
+              {option}
+            </span>
+          ))}
         </div>
         <div className="priceCards">
           {pricingTiers.map((tier) => (
@@ -338,7 +444,7 @@ function LandingView({ onOpenDashboard, onOpenAgents }: { onOpenDashboard: () =>
               <p>
                 {tier.minutes} checked minutes/month. {tier.detail}
               </p>
-              <small>{tier.overage} overage after included minutes</small>
+              <small>{tier.overage} approved overage after included minutes</small>
               <a className="priceCta" href={tier.checkoutHref}>Start {tier.name}</a>
             </article>
           ))}
@@ -353,9 +459,9 @@ function LandingView({ onOpenDashboard, onOpenAgents }: { onOpenDashboard: () =>
           ))}
         </div>
         <p className="pricingNote">
-          Overage is billed only when you exceed your included minutes. Re-checks count because UploadCheck analyzes the
-          actual media file each time. Included minutes cover deterministic publish-readiness QC. Deep model review stays
-          internal for engine backtesting, roadmap generation, and measuring deterministic capture rate against expert review.
+          Re-checks count because UploadCheck analyzes the actual media file each time. Included minutes cover
+          deterministic publish-readiness checks, not bundled AI review minutes. Internal AI helps improve the engine; it
+          is not sold as a separate public review feature.
         </p>
       </section>
 
@@ -426,6 +532,7 @@ function AgentTranscript() {
         <ol>
           {agentFindings.map((finding) => (
             <li key={`${finding.time}-${finding.issue}`}>
+              <strong className={`findingVerdict ${finding.verdict.toLowerCase()}`}>{finding.verdict}</strong>
               <time>{finding.time}</time>
               <span>{finding.issue}</span>
               <em>{finding.evidence}</em>
@@ -433,8 +540,8 @@ function AgentTranscript() {
           ))}
         </ol>
         <p className="terminalLine">
-          I can fix the caption file and update the render checklist now. Frozen video and audio stem issues need a
-          source/render pass.
+          I will only patch the flagged caption span and checklist item, then rerun UploadCheck on the repaired file.
+          Frozen video and audio stem issues need the timestamped source/render instructions.
         </p>
       </div>
     </aside>
@@ -630,20 +737,31 @@ function AgentView() {
         <div className="quickstart">
           <div className="sectionTitle">
             <Code2 size={19} />
-            <h2>Agent QC in 60 seconds</h2>
+            <h2>Install for agent-to-agent runs</h2>
           </div>
           <div className="commandBlock">
-            <code>npm install -g @uploadcheck/cli</code>
-            <code>uploadcheck mcp install</code>
+            <code>Current install: GitHub clone or local checkout</code>
+            <code>Set UPLOADCHECK_API_BASE_URL=https://api.uploadcheck.app</code>
+            <code>Set UPLOADCHECK_API_KEY as the agent client secret</code>
             <code>/check ./final-upload.mp4</code>
           </div>
           <p>
-            The agent starts the check, waits for results, summarizes evidence, then updates captions, render checklists,
-            or source files where it has access.
+            Claude Code, Codex, Cursor, and another MCP-capable agent can all run the same <code>uploadcheck</code> server.
+            Use the GitHub/local install path until the npm packages are published.
           </p>
-          <p>agent fixes captions, checklists, and source-level issues it can reach</p>
+          <p>{"agent-to-agent handoff: qc_get_cost_basis -> qc_run_local_file -> qc_get_report -> qc_get_marker_csv"}</p>
+          <a className="inlineDocLink" href="/agent-install/">Open install guide</a>
         </div>
         <AgentTranscript />
+      </section>
+
+      <section className="installMatrix" aria-label="Agent install targets">
+        {installTargets.map((target) => (
+          <article key={target.name}>
+            <strong>{target.name}</strong>
+            <code>{target.code}</code>
+          </article>
+        ))}
       </section>
 
       <section className="packageGrid" aria-label="UploadCheck packages">

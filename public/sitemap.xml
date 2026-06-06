@@ -36,6 +36,11 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://uploadcheck.app/agent-install/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
     <loc>https://uploadcheck.app/content-quality-check-before-publishing/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>

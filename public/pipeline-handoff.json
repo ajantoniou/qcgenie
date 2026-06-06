@@ -83,26 +83,32 @@
     },
     {
       "step": 8,
+      "name": "Run internal Gemini capture-rate backtest",
+      "internal_command": "python3 scripts/qc-engine/gemini_watch.py <file> --transcript <transcript-or-words.json> --json <gemini-watch.json>",
+      "rule": "For NTO production, run after the deterministic gate on the final master when GEMINI_API_KEY is available. Use it to measure deterministic capture rate against Gemini issue-family flags; do not treat it as customer included-minute QC."
+    },
+    {
+      "step": 9,
       "name": "Fetch report",
       "mcp_tool": "qc_get_report",
       "api": "GET /v1/qc/jobs/{job_id}/report",
       "rule": "Use the report as the source of truth for verdict, flags, mediaIngress, observed provider usage, and cost telemetry."
     },
     {
-      "step": 9,
+      "step": 10,
       "name": "Fetch marker CSV",
       "mcp_tool": "qc_get_marker_csv",
       "api": "GET /v1/qc/jobs/{job_id}/artifacts/markers",
       "rule": "Use marker CSV for editor handoff whenever timestamped media repairs are useful."
     },
     {
-      "step": 10,
+      "step": 11,
       "name": "Run repair loop",
       "user_prompt": "Show all QC flags and ask: Fix now?",
       "rule": "Group flags by BLOCK, WATCH, and PASS; apply only reachable fixes; return timestamped source/render instructions for unreachable media defects."
     },
     {
-      "step": 11,
+      "step": 12,
       "name": "Rerun before upload-ready",
       "rule": "Do not call the asset upload-ready until UploadCheck has been rerun after edits and no BLOCK flags remain."
     }
@@ -110,18 +116,38 @@
   "media_ingress": {
     "inline_ephemeral": {
       "recommended_for": "small or medium local video, audio, image, transcript, manifest, watchlist, and sidecar payloads",
-      "proof_fields": ["mode", "contentType", "bytes", "sha256", "ephemeral", "storageMode"],
+      "proof_fields": [
+        "mode",
+        "contentType",
+        "bytes",
+        "sha256",
+        "ephemeral",
+        "storageMode"
+      ],
       "rule": "Inline media runs through Render temp storage and must not expose server temp paths."
     },
     "signed_upload": {
       "recommended_for": "large video/audio masters",
-      "api_sequence": ["POST /v1/uploads", "PUT /v1/uploads/{upload_id}/content?token=...", "POST /v1/qc/jobs with upload_id"],
-      "mcp_sequence": ["qc_create_upload_url", "qc_run_video with upload_id"],
+      "api_sequence": [
+        "POST /v1/uploads",
+        "PUT /v1/uploads/{upload_id}/content?token=...",
+        "POST /v1/qc/jobs with upload_id"
+      ],
+      "mcp_sequence": [
+        "qc_create_upload_url",
+        "qc_run_video with upload_id"
+      ],
       "rule": "Use Render temp storage by default or durable/object storage when configured."
     },
     "remote_sidecar_urls": {
       "recommended_for": "queued Render worker jobs that need manifests, transcripts, watchlists, locked scripts, or chunk QC sidecars",
-      "fields": ["manifest_url", "transcript_url", "watchlist_url", "expected_script_url", "chunk_sidecars_url"],
+      "fields": [
+        "manifest_url",
+        "transcript_url",
+        "watchlist_url",
+        "expected_script_url",
+        "chunk_sidecars_url"
+      ],
       "rule": "Use HTTPS sidecar URLs with process_async=true; UploadCheck fetches them only during drain, stores them temporarily for the gate run, and redacts the URLs from public job responses."
     }
   },
@@ -130,15 +156,36 @@
     "checked_minutes_mean": "deterministic pre-upload QC minutes",
     "default_cost_guardrail": "downgrade",
     "stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute": 0.0157,
-    "stress_99_5000_verdict": "$99 for 5,000 checked minutes is too generous for full-model review. Public pricing stays deterministic QC minutes while model-backed review is used for internal backtesting and deterministic capture-rate measurement."
+    "stress_99_5000_verdict": "$99 for 5,000 checked minutes is too generous for full-model review. Public pricing stays deterministic QC minutes while model-backed review is used for internal backtesting and deterministic capture-rate measurement.",
+    "internal_capture_rate_oracle": "Gemini video+audio via repo-only scripts/qc-engine/gemini_watch.py; model spend is internal product QA, not included customer minutes."
   },
   "repair_loop_contract": {
-    "required_fetches": ["qc_get_report", "qc_get_marker_csv"],
-    "severity_order": ["BLOCK", "WATCH", "PASS"],
+    "required_fetches": [
+      "qc_get_report",
+      "qc_get_marker_csv"
+    ],
+    "severity_order": [
+      "BLOCK",
+      "WATCH",
+      "PASS"
+    ],
     "must_show_all_flags": true,
     "user_prompt": "Show all QC flags and ask: Fix now?",
-    "fixable_scopes": ["captions", "metadata", "manifests", "reachable source files", "checklists"],
-    "source_or_render_scopes": ["frozen video", "garbled audio", "duplicate characters", "cheap b-roll", "narration/visual mismatch", "unsafe render layout"],
+    "fixable_scopes": [
+      "captions",
+      "metadata",
+      "manifests",
+      "reachable source files",
+      "checklists"
+    ],
+    "source_or_render_scopes": [
+      "frozen video",
+      "garbled audio",
+      "duplicate characters",
+      "cheap b-roll",
+      "narration/visual mismatch",
+      "unsafe render layout"
+    ],
     "source_or_render_instruction": "Return timestamped source/render patch instructions instead of pretending the agent can edit unreachable media.",
     "rerun_after_fix": true,
     "completion_rule": "Do not call the asset upload-ready until UploadCheck is rerun after edits and no BLOCK flags remain."

@@ -24,12 +24,32 @@
     "For render defects, return timestamped source/render instructions and rerun UploadCheck after the media changes."
   ],
   "repair_loop_contract": {
-    "required_fetches": ["qc_get_report", "qc_get_marker_csv"],
-    "severity_order": ["BLOCK", "WATCH", "PASS"],
+    "required_fetches": [
+      "qc_get_report",
+      "qc_get_marker_csv"
+    ],
+    "severity_order": [
+      "BLOCK",
+      "WATCH",
+      "PASS"
+    ],
     "must_show_all_flags": true,
     "user_prompt": "Show all QC flags and ask: Fix now?",
-    "fixable_scopes": ["captions", "metadata", "manifests", "reachable source files", "checklists"],
-    "source_or_render_scopes": ["frozen video", "garbled audio", "duplicate characters", "cheap b-roll", "narration/visual mismatch", "unsafe render layout"],
+    "fixable_scopes": [
+      "captions",
+      "metadata",
+      "manifests",
+      "reachable source files",
+      "checklists"
+    ],
+    "source_or_render_scopes": [
+      "frozen video",
+      "garbled audio",
+      "duplicate characters",
+      "cheap b-roll",
+      "narration/visual mismatch",
+      "unsafe render layout"
+    ],
     "source_or_render_instruction": "Return timestamped source/render patch instructions instead of pretending the agent can edit unreachable media.",
     "rerun_after_fix": true,
     "completion_rule": "Do not call the asset upload-ready until UploadCheck is rerun after edits and no BLOCK flags remain."
@@ -221,7 +241,12 @@
         "covers": "Private YouTube or Shorts watch URLs still matching the rendered artifact after platform transcode: full-bleed layout, readable text after chrome, music/VO state, captions uploaded, and no public-flip blocker.",
         "planned_check": "posted_platform_visual_check"
       }
-    ]
+    ],
+    "internal_capture_rate_metric": {
+      "oracle": "Internal Gemini video+audio oracle via repo-only scripts/qc-engine/gemini_watch.py",
+      "benchmark_pct": 90,
+      "rule": "NTO production should run deterministic gates first, then Gemini backtest on the final master. Track the percent of Gemini issue-family flags captured by deterministic checks. Add misses to deterministic gates."
+    }
   },
   "profiles": {
     "nto_long_form": {
@@ -249,6 +274,15 @@
           "cost_guardrail": "downgrade",
           "idempotency_key": "nto-episode-final-master"
         }
+      },
+      "internal_capture_rate_backtest": {
+        "purpose": "Internal deterministic capture-rate measurement against Gemini video+audio expert review. This is not customer included-minute QC.",
+        "internal_command": "python3 scripts/qc-engine/gemini_watch.py <final-master.mp4> --transcript <final-transcript-or-words.json> --json <gemini-watch.json>",
+        "required_env": "GEMINI_API_KEY",
+        "default_model": "gemini-2.5-flash",
+        "run_after": "deterministic UploadCheck gate completes on the final master",
+        "capture_rate_rule": "Map Gemini issue-family flags to deterministic blocked checks; benchmark is 90% captured. Misses become deterministic product-roadmap work, not customer-facing deep review.",
+        "report_artifact": "gemini_watch.json"
       }
     },
     "nto_shorts": {
@@ -270,6 +304,15 @@
           "cost_guardrail": "downgrade",
           "idempotency_key": "nto-short-final"
         }
+      },
+      "internal_capture_rate_backtest": {
+        "purpose": "Internal deterministic capture-rate measurement against Gemini video+audio expert review. This is not customer included-minute QC.",
+        "internal_command": "python3 scripts/qc-engine/gemini_watch.py <final-master.mp4> --transcript <final-transcript-or-words.json> --json <gemini-watch.json>",
+        "required_env": "GEMINI_API_KEY",
+        "default_model": "gemini-2.5-flash",
+        "run_after": "deterministic UploadCheck gate completes on the final master",
+        "capture_rate_rule": "Map Gemini issue-family flags to deterministic blocked checks; benchmark is 90% captured. Misses become deterministic product-roadmap work, not customer-facing deep review.",
+        "report_artifact": "gemini_watch.json"
       }
     },
     "npo_podcast_or_audio": {

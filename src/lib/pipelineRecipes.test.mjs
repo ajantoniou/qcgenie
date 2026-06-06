@@ -36,6 +36,10 @@ describe("UploadCheck pipeline recipes", () => {
     expect(recipes.repair_loop_contract.completion_rule).toContain("no BLOCK flags remain");
     expect(recipes.nto_replacement_qc.purpose).toContain("production-pipeline QC");
     expect(recipes.nto_replacement_qc.private_moat_rule).toContain("keep exact thresholds");
+    expect(recipes.nto_replacement_qc.internal_capture_rate_metric).toMatchObject({
+      oracle: "Gemini video+audio via qc_run_gemini_backtest",
+      benchmark_pct: 90
+    });
     expect(Object.keys(recipes.profiles)).toEqual([
       "nto_long_form",
       "nto_shorts",
@@ -54,6 +58,8 @@ describe("UploadCheck pipeline recipes", () => {
     const runLocalFile = MCP_TOOLS.find((tool) => tool.name === "qc_run_local_file");
 
     expect(longForm.tool).toBe("qc_run_local_file");
+    expect(recipes.profiles.nto_long_form.internal_capture_rate_backtest.primary_mcp_tool).toBe("qc_run_gemini_backtest");
+    expect(recipes.profiles.nto_shorts.internal_capture_rate_backtest.primary_mcp_tool).toBe("qc_run_gemini_backtest");
     expect(longForm.arguments.checks).toContain("repeat_fatigue");
     expect(longForm.arguments.checks).toContain("speaker_visual_binding");
     expect(longForm.arguments.checks).toContain("static_head_dominance");
@@ -102,6 +108,7 @@ describe("UploadCheck pipeline recipes", () => {
 
     expect(manifest.pipeline_recipes_url).toBe("https://api.uploadcheck.app/pipeline-recipes.json");
     expect(manifest.tools).toContain("qc_get_pipeline_recipes");
+    expect(manifest.tools).toContain("qc_run_gemini_backtest");
     expect(manifest.primary_endpoints).toContain("GET /pipeline-recipes.json");
     expect(manifest.pipeline_profiles.map((profile) => profile.id)).toEqual([
       "nto_long_form",
@@ -119,6 +126,7 @@ describe("UploadCheck pipeline recipes", () => {
     expect(manifest.response_fields.mediaIngress.safe_to_show).toContain("sha256");
     expect(manifest.response_fields.mediaIngress.never_exposes).toContain("temporary server file paths");
     expect(manifest.repair_loop_contract).toEqual(readJson("public/pipeline-recipes.json").repair_loop_contract);
+    expect(manifest.agent_workflow.join("\n")).toContain("qc_run_gemini_backtest");
   });
 
   it("exposes NTO replacement QC tasks without publishing private implementation details", () => {

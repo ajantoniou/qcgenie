@@ -125,7 +125,7 @@ Preflight model-backed check pricing is now calibrated from that observed cost: 
 45. Add per-workspace API keys with hashed storage and scopes.
 46. Add webhook retries and signed delivery headers under UploadCheck naming while retaining legacy compatibility.
 47. Add observability for job duration, model usage, compute time, and failure reasons.
-48. Add billing enforcement for included deterministic QC minutes.
+48. Add billing enforcement for included deterministic QC minutes, and make external Claude Code, Codex, Cursor, and MCP installs usable only for workspaces with paid credits or an active subscription.
 49. Add abuse limits for file size, duration, concurrent jobs, and repeated retries.
 50. Run a Product Hunt launch checklist only after cost telemetry proves the plan can hold margin.
 
@@ -137,7 +137,9 @@ Source evidence reviewed:
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-engineer.md`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/council/20-video-qc-watcher.md`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/personas/qc-snippets/visual-qc-learning-locks.md`
+- `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/UPLOADCHECK-QC-SPEC.md`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/scripts/qc-gates-cinema.py`
+- `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/scripts/clone_crowd_detect.py`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/scripts/qc-shorts-format.py`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/scripts/vo-audio-qc.py`
 - `/Applications/DrAntoniou Projects/AgentCompanies/companies/NTO/content/videos/tampered-with-the-gospels-2026-05-27/STAGE-17-5-AI-PROMPT-PACK-v12.md`
@@ -190,6 +192,8 @@ NTO-derived private QC tasks to add to the product:
 
 Private moat note: competitors can copy the public idea of upload QC, but our sticky layer is the accumulated private failure catalog, thresholds, fixtures, and agent repair loops learned from real NTO production. Publish the outcomes and broad categories, not the full validator internals.
 
+Porting spec: the current NTO handoff contract is captured in `docs/UPLOADCHECK-QC-SPEC.md`. It defines `POST /v1/check -> verdict + timestamped flags`, the agent rule to repair only flagged spans, source-backed thresholds for `G_LOOP`, `G_HOLD`, clone-crowd, and audio WER/garble gates, and the fail-loud/no-silent-skip rule. Use it as the private implementation checklist while keeping public surfaces focused on broad QC outcomes.
+
 ## Execution Status
 
 - Done: real QC engine exists under `scripts/qc-engine/`.
@@ -227,6 +231,8 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
 - Done: plan-aware cost guardrail added for internal model-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked, but public plans sell deterministic checked minutes.
 - Done: first per-check model-call accounting added for `twins`, `cheap_broll`, `garble`, `narration_match`, and `omni_watch`; in downgrade mode, margin-breaking model-backed checks are removed before the engine runs.
+- Done: `gemini_watch` added as the primary internal capture-rate oracle: Gemini Files API uploads full video+audio, uses optional transcript sidecars, returns structured issue-family flags, records modality token usage for observed COGS, and is wired through `run_gate.py`. First funded Gemini backtest on `Y657dAzHR9g` found cheap/generic B-roll and repeat fatigue; deterministic gates captured 3/3 Gemini issue-family flags, for a first-pass capture rate of `100%` against the `90%` benchmark.
+- Done: `omni_watch` hardened as an optional Qwen/Anthropic comparison path: Qwen/OpenRouter audio+visual runs now use streaming Omni request shape, local/process env key loading, `--provider qwen --require-audio-video` fail-closed mode, transcript forwarding from `run_gate.py`, extraction-error reporting, and explicit Anthropic frame+narration fallback metadata. Sonnet remains the default Anthropic oracle fallback; Haiku is available for lower-cost smoke tests only.
 - Done: preflight cost estimation added through `POST /v1/qc/estimate`, CLI `uploadcheck estimate`, and MCP `qc_estimate_cost`, so agents can check effective/removed gates before sending media to Render.
 - Done: public cost-basis access added through MCP `qc_get_cost_basis` and CLI `uploadcheck cost-basis --json`, so agents can fetch cost/minute and the `$99 / 5,000` stress-plan warning before pricing or model-backed review decisions.
 - Done: global Codex MCP entry is installed locally through the `uploadcheck` server and was smoke-tested with a live hosted report.
@@ -316,11 +322,13 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: completed jobs now record usage and cost snapshots at completion time, so margin telemetry does not depend on a later report fetch; unknown-duration no-run fallbacks no longer invent a 19-minute charge.
 - Done: public plan AI-review budgets are set to `0`; the sold unit is deterministic QC minutes, while model-backed review is treated as an internal engine-improvement path.
 - Done: abuse limits added for file size, declared duration, and active job concurrency. Job/upload requests now fail fast with `duration_limit_exceeded`, `upload_size_limit_exceeded`, or `active_job_limit_exceeded` before QC compute or storage spend.
+- Partial: the customer boundary is defined: local NTO can call the repo MCP directly, while hosted external Claude Code, Codex, Cursor, and MCP usage must be tied to plan minutes, top-up credits, and API-key enforcement before public package install is offered.
 - Done: job observability added for duration, stage timing, provider-usage count, engine mode, and fallback failure reasons. Job responses and reports now preserve `startedAt`, `completedAt`, `processingDurationMs`, `observability.stages`, and `failureReason`.
 - Done: queued worker execution added. `POST /v1/qc/jobs` can accept `process_async=true`, leaving the job queued, and `POST /v1/qc/jobs/drain` processes queued jobs for Render cron/workflow execution.
 - Done: queued worker sidecar URLs added. Async jobs can now persist HTTPS `manifest_url`, `transcript_url`, `watchlist_url`, `expected_script_url`, and `chunk_sidecars_url`; `POST /v1/qc/jobs/drain` fetches them into temporary storage for the gate run while public job/report responses expose only sanitized `sidecarIngress`.
 - Done: launch pricing is updated to `Creator $99 / 2,400 minutes`, `Studio $299 / 10,000 minutes`, and `Network $799 / 36,000 minutes`; public cost-basis and hosted cost-basis verifiers now pass against live Render.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or an UploadCheck Lemon Squeezy product with Creator/Studio/Network monthly variant IDs configured on Render before launch. `npm run launch:checkout-discover` verifies whether those variants exist and currently reports all three UploadCheck plan variants missing from the configured Lemon Squeezy store.
 - Next: create the UploadCheck Lemon Squeezy subscription product with monthly Creator `$99`, Studio `$299`, and Network `$799` variants, then apply the resulting checkout env to Render and run `UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout`.
+- Next: publish `@uploadcheck/mcp` and `@uploadcheck/cli`, redeploy the agent-install/docs artifacts, and verify external Claude Code, Codex, Cursor, and MCP clients can call deterministic QC only with an active UploadCheck API key tied to subscription minutes or top-up credits.
 - Next: decide whether to keep legacy immutable Render slugs (`qcgenie-web`, `qcgenie-api`) behind the verified UploadCheck custom domains or recreate services for `uploadcheck-*` Render subdomains.
 - Partial: Product Hunt launch page, public report examples, bundled demo clip, custom domains, mounted persistence/storage envs, and hosted secret encryption are live enough for readiness; final launch still needs live checkout proof.

@@ -31,7 +31,7 @@ const store = new JsonStore(process.env.UPLOADCHECK_STORE_PATH || process.env.QC
 });
 const apiKey = process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
 const apiKeyHash = process.env.UPLOADCHECK_API_KEY_SHA256 || process.env.QCGENIE_API_KEY_SHA256;
-const apiScopes = new Set((process.env.UPLOADCHECK_API_SCOPES || process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write").split(","));
+const apiScopes = new Set((process.env.UPLOADCHECK_API_SCOPES || process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write,api_keys:write,api_keys:read").split(","));
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -76,6 +76,8 @@ createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/v1/qc/jobs") return listJobs(req, res);
     if (req.method === "GET" && url.pathname === "/v1/usage") return getUsage(req, res);
     if (req.method === "GET" && url.pathname === "/v1/usage/margins") return getUsageMargins(req, res);
+    if (req.method === "POST" && url.pathname === "/v1/api-keys") return createApiKey(req, res);
+    if (req.method === "GET" && url.pathname === "/v1/api-keys") return listApiKeys(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks") return createWebhook(req, res);
     if (req.method === "GET" && url.pathname === "/v1/webhooks/deliveries") return listWebhookDeliveries(req, res);
     if (req.method === "POST" && url.pathname === "/v1/webhooks/deliveries/drain") return drainWebhookDeliveries(req, res);
@@ -160,6 +162,7 @@ async function createJob(req, res) {
   const auth = requireScope(req, "jobs:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
+  applyAuthenticatedApiKeyDefaults(body, auth.apiKeyRecord);
   const remoteSidecars = collectRemoteSidecarUrls(body);
   if (remoteSidecars.error) return sendJson(res, 400, remoteSidecars.error);
   if (remoteSidecars.urls) body.sidecar_urls = remoteSidecars.urls;
@@ -248,6 +251,7 @@ async function createJob(req, res) {
       expectedScriptPath: inlineExpectedScript?.filePath || remoteSidecarFiles?.expectedScriptPath,
       sidecarDir: inlineChunkSidecars?.dirPath || remoteSidecarFiles?.sidecarDir
     });
+    await maybeAlertOwnerForSpend(completed || job);
     store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
     return sendJson(res, 202, withCostEstimate(completed || job));
   } finally {
@@ -282,6 +286,7 @@ async function drainQueuedJobs(req, res) {
         sidecarDir: remoteSidecarFiles?.sidecarDir
       });
       if (completed) store.createWebhookDeliveriesForJob(job.jobId, "job.completed");
+      if (completed) await maybeAlertOwnerForSpend(completed);
       results.push(withCostEstimate(completed || job));
     } finally {
       await cleanupRemoteSidecars(remoteSidecarFiles);
@@ -291,6 +296,26 @@ async function drainQueuedJobs(req, res) {
   return sendJson(res, 200, {
     processed: results.length,
     jobs: results
+  });
+}
+
+async function createApiKey(req, res) {
+  const auth = requireScope(req, "api_keys:write");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  const body = await readJson(req);
+  const created = store.createApiKey(body);
+  return sendJson(res, 201, {
+    apiKey: created.apiKey,
+    key: created.record,
+    warning: "The apiKey is shown once. Store it privately; future API responses only show tokenPrefix."
+  });
+}
+
+function listApiKeys(req, url, res) {
+  const auth = requireScope(req, "api_keys:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  return sendJson(res, 200, {
+    keys: store.listApiKeys({ workspaceId: url.searchParams.get("workspace_id") || url.searchParams.get("workspaceId") })
   });
 }
 
@@ -1071,6 +1096,93 @@ function checkUsageLimit(body = {}) {
   };
 }
 
+function applyAuthenticatedApiKeyDefaults(body, apiKeyRecord = null) {
+  if (!apiKeyRecord) return body;
+  body.workspace_id = body.workspace_id || body.workspaceId || apiKeyRecord.workspaceId;
+  body.owner_email = body.owner_email || body.ownerEmail || apiKeyRecord.ownerEmail;
+  body.api_key_id = body.api_key_id || body.apiKeyId || apiKeyRecord.keyId;
+  body.plan_id = body.plan_id || body.planId || apiKeyRecord.planId;
+  body.included_minutes = body.included_minutes ?? body.includedMinutes ?? apiKeyRecord.includedMinutes;
+  body.plan_price_cents = body.plan_price_cents ?? body.planPriceCents ?? apiKeyRecord.planPriceCents;
+  return body;
+}
+
+async function maybeAlertOwnerForSpend(job) {
+  if (!job?.jobId || !job.planId || !job.planPriceCents || !job.includedMinutes) return null;
+  const ownerEmail = job.ownerEmail || process.env.UPLOADCHECK_OWNER_ALERT_EMAIL || process.env.RESEND_OWNER_ALERT_EMAIL || null;
+  if (!ownerEmail) return null;
+  const usage = store.summarizePlanUsage({
+    planId: job.planId,
+    includedMinutes: job.includedMinutes
+  });
+  if (!usage.includedMinutes || usage.minutesUsed <= usage.includedMinutes) return null;
+  const overageMinutes = usage.minutesUsed - usage.includedMinutes;
+  const cogsPerMinuteCents = Number(job.costSnapshot?.deterministicCogsCentsPerMinute ?? 0.0833);
+  const overageCostCents = overageMinutes * cogsPerMinuteCents;
+  const costEstimate = estimateCostForJob(job, job.minutesMetered || 0);
+  const observedTotalCogsCents = Number(costEstimate.observedTotalCogsCents || costEstimate.estimatedCogsCents || 0);
+  const shouldAlert = overageCostCents >= job.planPriceCents || observedTotalCogsCents >= job.planPriceCents;
+  if (!shouldAlert) return null;
+
+  const alert = store.recordSpendAlert({
+    type: "overage_spend_exceeded_subscription",
+    workspaceId: job.workspaceId,
+    ownerEmail,
+    planId: job.planId,
+    billingPeriod: usage.billingPeriod,
+    minutesUsed: usage.minutesUsed,
+    includedMinutes: usage.includedMinutes,
+    planPriceCents: job.planPriceCents,
+    observedTotalCogsCents,
+    overageCostCents,
+    status: "pending"
+  });
+  if (alert.idempotentReplay) return alert;
+
+  const sent = await sendOwnerSpendAlert({ alert, job, usage });
+  alert.status = sent.ok ? "sent" : "failed";
+  alert.provider = sent.provider || "resend";
+  alert.providerMessageId = sent.id || null;
+  alert.error = sent.error || null;
+  store.persist();
+  return alert;
+}
+
+async function sendOwnerSpendAlert({ alert, job, usage }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.UPLOADCHECK_ALERT_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || "UploadCheck <alerts@uploadcheck.app>";
+  if (!apiKey) return { ok: false, provider: "resend", error: "RESEND_API_KEY missing" };
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        from,
+        to: [alert.ownerEmail],
+        subject: `UploadCheck overage spend alert: ${alert.planId}`,
+        text: [
+          `Workspace ${alert.workspaceId || "default"} exceeded the overage spend threshold for ${alert.billingPeriod}.`,
+          `Plan: ${alert.planId}`,
+          `Included minutes: ${usage.includedMinutes}`,
+          `Minutes used: ${usage.minutesUsed}`,
+          `Plan price: ${(alert.planPriceCents / 100).toFixed(2)} USD`,
+          `Estimated overage COGS: ${(alert.overageCostCents / 100).toFixed(4)} USD`,
+          `Observed total COGS: ${(alert.observedTotalCogsCents / 100).toFixed(4)} USD`,
+          `Trigger job: ${job.jobId}`
+        ].join("\n")
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) return { ok: false, provider: "resend", error: JSON.stringify(payload).slice(0, 300) };
+    return { ok: true, provider: "resend", id: payload.id || null };
+  } catch (error) {
+    return { ok: false, provider: "resend", error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 function estimateRequestedMinutes(body = {}) {
   const explicit = Number(body.minutes_metered ?? body.minutesMetered ?? body.minutes);
   if (Number.isFinite(explicit) && explicit > 0) return Math.ceil(explicit);
@@ -1093,13 +1205,15 @@ function requireScope(req, requiredScope) {
 }
 
 function requireScopeFromHeaders(headers, requiredScope) {
-  if (!apiKey && !apiKeyHash) return { ok: true };
   const authorization = headers?.authorization;
+  if (!apiKey && !apiKeyHash && !store.state.apiKeys?.length) return { ok: true };
   if (!authorization?.startsWith("Bearer ")) return { ok: false, status: 401, error: "missing_api_key" };
   const token = authorization.slice("Bearer ".length).trim();
   const validPlaintext = apiKey ? token === apiKey : false;
   const validHash = apiKeyHash ? createHash("sha256").update(token).digest("hex") === apiKeyHash : false;
-  if (!validPlaintext && !validHash) return { ok: false, status: 401, error: "invalid_api_key" };
-  if (!apiScopes.has(requiredScope)) return { ok: false, status: 403, error: "insufficient_scope" };
-  return { ok: true };
+  const storedKey = (!validPlaintext && !validHash) ? store.findApiKeyByToken(token) : null;
+  if (!validPlaintext && !validHash && !storedKey) return { ok: false, status: 401, error: "invalid_api_key" };
+  const scopes = storedKey ? new Set(storedKey.scopes || []) : apiScopes;
+  if (!scopes.has(requiredScope)) return { ok: false, status: 403, error: "insufficient_scope" };
+  return { ok: true, apiKeyRecord: storedKey || null };
 }

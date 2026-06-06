@@ -70,8 +70,14 @@ describe("public sample reports", () => {
     expect(manifest.sample_reports_url).toBe("https://api.uploadcheck.app/sample-reports/index.json");
     expect(llms).toContain("https://api.uploadcheck.app/sample-reports/index.json");
     expect(llms).toContain("Checked minutes are deterministic publish-readiness QC minutes");
-    expect(llms).toContain("Deep model review stays internal");
-    expect(llms).toContain("deterministic capture-rate measurement");
+    expect(llms).toContain("Checked minutes are not bundled AI review minutes");
+    expect(llms).toContain("Internal AI helps improve the QC engine");
+    expect(llms).toContain("report feeds back to the user's LLM");
+    expect(llms).toContain("UploadCheck is the SaaS QC authority");
+    expect(llms).toContain("No broad rewrite, no taste-based refactor");
+    expect(llms).toContain("stops before unapproved overage");
+    expect(llms).toContain("Veo 3 Standard video+audio at $0.40/second");
+    expect(llms).toContain("Higgsfield uses credits that vary by model");
     expect(llms).not.toContain("unlimited full-video AI review is not included");
   });
 });

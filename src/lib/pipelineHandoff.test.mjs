@@ -28,6 +28,7 @@ describe("UploadCheck production pipeline handoff", () => {
       "qc_get_cost_basis",
       "qc_estimate_cost",
       "qc_run_local_file",
+      "qc_run_gemini_backtest",
       "qc_run_video",
       "qc_create_upload_url",
       "qc_get_job",
@@ -45,6 +46,7 @@ describe("UploadCheck production pipeline handoff", () => {
     expect(handoff.margin_rules.target_gross_margin_pct).toBe(95);
     expect(handoff.margin_rules.stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute).toBe(0.0157);
     expect(handoff.margin_rules.stress_99_5000_verdict).toContain("too generous");
+    expect(handoff.margin_rules.internal_capture_rate_oracle).toContain("qc_run_gemini_backtest");
     expect(handoff.repair_loop_contract.user_prompt).toBe("Show all QC flags and ask: Fix now?");
     expect(handoff.private_moat_rule).toContain("exact thresholds");
   });

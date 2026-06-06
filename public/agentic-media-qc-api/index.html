@@ -22,14 +22,14 @@
     <main class="page">
       <nav class="nav">
         <a class="brand" href="/"><span>U</span>UploadCheck.app</a>
-        <div class="navLinks"><a href="/pricing/">Pricing</a><a href="/sample-report/">Sample report</a><a href="/agent-workflow">Agent workflow</a></div>
+        <div class="navLinks"><a href="/pricing/">Pricing</a><a href="/sample-report/">Sample report</a><a href="/agent-install/">Install</a><a href="/agent-workflow">Agent workflow</a></div>
       </nav>
       <section class="hero">
         <div class="heroCopy">
           <h1>Agentic Media QC API and MCP Server</h1>
           <p class="tagline">Quality check videos, podcasts, and clips before you upload.</p>
           <p>UploadCheck gives Claude Code, Codex, and other creator agents a `/check` workflow for media they cannot inspect from source files alone.</p>
-          <div class="ctaRow"><a class="button" href="/agent-manifest.json">View agent manifest</a><a class="button secondary" href="/openapi.json">OpenAPI</a></div>
+          <div class="ctaRow"><a class="button" href="/agent-install/">Install for agents</a><a class="button secondary" href="/agent-manifest.json">View agent manifest</a><a class="button secondary" href="/openapi.json">OpenAPI</a></div>
         </div>
         <aside class="panel">
           <h2>Agent setup names</h2>
@@ -40,6 +40,13 @@
             <li>Slash-command concept: <code>/check</code></li>
           </ul>
         </aside>
+      </section>
+      <section class="section">
+        <h2>Install for agent-to-agent runs</h2>
+        <div class="twoGrid">
+          <article class="answer"><h2>Current install path</h2><p>Clone <code>https://github.com/ajantoniou/uploadcheck</code> and point Claude Code, Codex, Cursor, or another MCP client at <code>/absolute/path/to/uploadcheck/mcp-server/index.mjs</code>. The npm package names are reserved in product copy, but the public npm packages are not published yet.</p></article>
+          <article class="answer"><h2>Agent handoff sequence</h2><p>Start with <code>qc_get_cost_basis</code>, run <code>qc_run_local_file</code>, then fetch <code>qc_get_report</code> and <code>qc_get_marker_csv</code> so the receiving agent gets timestamped evidence.</p></article>
+        </div>
       </section>
       <section class="section">
         <h2>What agents get back</h2>

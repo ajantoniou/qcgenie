@@ -51,6 +51,7 @@ describe("UploadCheck package metadata", () => {
       }
     });
     expect(pkg.files).toEqual(["index.mjs", "request-builder.mjs"]);
+    expect(pkg.publishConfig).toEqual({ access: "public" });
     expect(packFiles("cli")).toEqual(["index.mjs", "package.json", "request-builder.mjs"]);
   });
 
@@ -63,6 +64,7 @@ describe("UploadCheck package metadata", () => {
     expect(pkg.name).toBe("@uploadcheck/mcp");
     expect(pkg.private).toBeUndefined();
     expect(pkg.bin).toEqual({ "uploadcheck-mcp": "./index.mjs" });
+    expect(pkg.publishConfig).toEqual({ access: "public" });
     expect(lock.packages[""]).toMatchObject({
       name: pkg.name,
       version: pkg.version,
@@ -139,6 +141,9 @@ qc_get_pipeline_recipes
 qc_get_cost_basis
 qc_estimate_cost
 qc_run_local_file
+uploadcheck check
+qc_run_gemini_backtest
+uploadcheck gemini-backtest
 qc_get_marker_csv
 watchlist JSON
 At \`$99 / 5,000\` minutes
