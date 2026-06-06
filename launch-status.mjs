@@ -46,6 +46,7 @@ export function buildLaunchStatus(readiness, {
       "npm run render:validate-env",
       "npm run render:audit",
       "npm run render:apply",
+      "npm run launch-status:generate",
       "npm run codex:verify-install",
       "npm run cost-basis:verify",
       "npm run roadmap:verify",

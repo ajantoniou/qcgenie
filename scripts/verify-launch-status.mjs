@@ -49,6 +49,7 @@ assert(status.operator_commands.includes("npm run launch:storage"), "launch-stat
 assert(status.operator_commands.includes("npm run --silent render:bootstrap-env > /tmp/uploadcheck-render-launch.env"), "launch-status operator commands must include render:bootstrap-env");
 assert(status.operator_commands.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "launch-status operator commands must include render:validate-env-file");
 assert(status.operator_commands.includes("npm run render:validate-env"), "launch-status operator commands must include render:validate-env");
+assert(status.operator_commands.includes("npm run launch-status:generate"), "launch-status operator commands must include launch-status:generate");
 assert(status.operator_commands.includes("npm run codex:verify-install"), "launch-status operator commands must include codex:verify-install");
 assert(status.operator_commands.includes("npm run cost-basis:verify"), "launch-status operator commands must include cost-basis:verify");
 assert(status.operator_commands.includes("npm run roadmap:verify"), "launch-status operator commands must include roadmap:verify");
@@ -79,6 +80,7 @@ assert(launchKit.current_state_snapshot?.product_hunt_ready === status.product_h
 assert(JSON.stringify(launchKit.current_state_snapshot?.remaining_blockers) === JSON.stringify(status.remaining_blockers.map((blocker) => blocker.id)), "Product Hunt launch kit current snapshot blockers must match static launch status");
 assert(String(launchKit.current_state_snapshot?.note || "").includes("Static snapshot"), "Product Hunt launch kit current snapshot must warn that live status is authoritative");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:doctor"), "Product Hunt launch kit must require launch:doctor");
+assert(launchKit.ready_when?.required_commands?.includes("npm run launch-status:generate"), "Product Hunt launch kit must require launch-status:generate");
 assert(launchKit.ready_when?.required_commands?.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "Product Hunt launch kit must require render:validate-env-file");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:dns"), "Product Hunt launch kit must require launch:dns");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch:checkout"), "Product Hunt launch kit must require launch:checkout");

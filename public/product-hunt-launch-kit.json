@@ -75,6 +75,7 @@
       "npm run codex:verify-install",
       "npm run cost-basis:verify",
       "npm run roadmap:verify",
+      "npm run launch-status:generate",
       "npm run launch-status:verify",
       "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
       "npm run launch:dns",

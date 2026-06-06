@@ -31,6 +31,7 @@ describe("Product Hunt launch kit", () => {
     expect(kit.current_state_snapshot.note).toContain("Static snapshot only");
     expect(kit.ready_when.source_of_truth).toBe(status.public_artifacts.live_launch_status);
     expect(kit.ready_when.required_commands).toContain("npm run launch:doctor");
+    expect(kit.ready_when.required_commands).toContain("npm run launch-status:generate");
     expect(kit.ready_when.required_commands).toContain("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env");
     expect(kit.ready_when.required_commands).toContain("npm run launch:dns");
     expect(kit.ready_when.required_commands).toContain("npm run launch:checkout");
@@ -47,6 +48,7 @@ describe("Product Hunt launch kit", () => {
     const doctorCommands = new Set(launchDoctorCommandStrings());
     const standaloneCommands = new Set([
       "npm run launch:doctor",
+      "npm run launch-status:generate",
       "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"
     ]);
 
