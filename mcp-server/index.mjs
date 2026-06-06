@@ -48,6 +48,11 @@ server.tool(
     expected_script_base64: z.string().optional(),
     expected_script_filename: z.string().optional(),
     checks: z.string().optional(),
+    plan_id: z.string().optional(),
+    plan_price_cents: z.number().optional(),
+    included_minutes: z.number().optional(),
+    ai_review_seconds: z.number().optional(),
+    cost_guardrail: z.enum(["downgrade", "block", "off"]).optional(),
     callback_url: z.string().optional(),
     idempotency_key: z.string().optional()
   },

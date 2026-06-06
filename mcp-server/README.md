@@ -44,6 +44,8 @@ For customer-specific terms, pass `watchlist_json` with `checks: "pronunciation_
 
 When a project has a locked narration script and final transcript, pass `expected_script_text` or `expected_script_json` plus transcript text with `checks: "script_faithfulness"`. UploadCheck compares word error rate model-free, so agents can catch narration drift without paying for full multimodal review.
 
+Use `plan_id`, `ai_review_seconds`, and `cost_guardrail` when an agent is asking for paid AI review beyond deterministic checks. The default guardrail is `downgrade`: margin-breaking AI review is removed and the job runs deterministic checks. Use `block` to reject unsafe requests, or `off` only for internal experiments/deep-review add-ons.
+
 ## Tools
 
 - `qc_run_video`

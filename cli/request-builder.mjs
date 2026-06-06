@@ -55,6 +55,7 @@ export function buildJobRequest(target, options = {}) {
   attachExpectedScript(payload, options);
   if (options.callbackUrl) payload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) payload.idempotency_key = options.idempotencyKey;
+  attachCostOptions(payload, options);
 
   return {
     apiBaseUrl,
@@ -78,6 +79,7 @@ export function buildSignedUploadPlan(target, options = {}, fileStat = null) {
   attachExpectedScript(jobPayload, options);
   if (options.callbackUrl) jobPayload.callback_url = options.callbackUrl;
   if (options.idempotencyKey) jobPayload.idempotency_key = options.idempotencyKey;
+  attachCostOptions(jobPayload, options);
 
   return {
     apiBaseUrl,
@@ -132,6 +134,18 @@ export function parseArgs(argv) {
       options.callbackUrl = requireValue(arg, args.shift());
     } else if (arg === "--idempotency-key") {
       options.idempotencyKey = requireValue(arg, args.shift());
+    } else if (arg === "--plan") {
+      options.planId = requireValue(arg, args.shift());
+    } else if (arg === "--plan-price-cents") {
+      options.planPriceCents = requireValue(arg, args.shift());
+    } else if (arg === "--included-minutes") {
+      options.includedMinutes = requireValue(arg, args.shift());
+    } else if (arg === "--ai-review-seconds") {
+      options.aiReviewSeconds = requireValue(arg, args.shift());
+    } else if (arg === "--cost-guardrail") {
+      const mode = requireValue(arg, args.shift());
+      if (!["downgrade", "block", "off"].includes(mode)) throw new Error("--cost-guardrail must be downgrade, block, or off");
+      options.costGuardrail = mode;
     } else if (arg === "--max-inline-mb") {
       options.maxInlineMb = requireValue(arg, args.shift());
     } else if (arg === "--upload-mode") {
@@ -215,6 +229,14 @@ function attachExpectedScript(payload, options) {
     payload.expected_script_text = text;
   }
   payload.expected_script_filename = basename(options.expectedScriptPath);
+}
+
+function attachCostOptions(payload, options) {
+  if (options.planId) payload.plan_id = options.planId;
+  if (options.planPriceCents) payload.plan_price_cents = Number(options.planPriceCents);
+  if (options.includedMinutes) payload.included_minutes = Number(options.includedMinutes);
+  if (options.aiReviewSeconds) payload.ai_review_seconds = Number(options.aiReviewSeconds);
+  if (options.costGuardrail) payload.cost_guardrail = options.costGuardrail;
 }
 
 function formatMb(bytes) {

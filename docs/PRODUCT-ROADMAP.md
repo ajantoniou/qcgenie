@@ -56,7 +56,7 @@ Cost-per-minute target: at `$99 / 5,000`, the COGS ceiling is `$0.00099` per min
 1. Keep deterministic ffmpeg/Python checks as the default path for every minute.
 2. Cap full Omni/video review to sampled windows, flagged windows, and paid escalations.
 3. Add a per-job `cost_estimate` object with deterministic compute, AI input, AI output, storage, and bandwidth fields.
-4. Add an account-level cost guardrail that blocks or downgrades Omni when COGS exceeds the plan budget.
+4. Add an account-level cost guardrail that blocks or downgrades Omni when COGS exceeds the plan budget. Implemented first for caller-declared `ai_review_seconds` with `downgrade`, `block`, and `off` modes.
 5. Add an `ai_review_budget_seconds` field per plan.
 6. Add a `deterministic_minutes` vs `ai_review_seconds` usage split.
 7. Add a “margin mode” default: deterministic scan all, Omni only suspicious windows.
@@ -181,11 +181,13 @@ Private moat note: competitors can copy the public idea of upload QC, but our st
 - Done: NTO-derived `spoken_leaks` deterministic transcript-side gate added to `scripts/qc-engine/check_spoken_leaks.py` and included in `run_gate.py`.
 - Done: NTO-derived `script_faithfulness` deterministic transcript-side WER gate added to `scripts/qc-engine/check_script_faithfulness.py`, plus REST/CLI/MCP expected-script sidecar support.
 - Done: manifest upload/inline payloads are exposed through API, CLI, and MCP for NTO storybook timelines and final-master reuse checks.
+- Done: plan-aware cost guardrail added for declared AI-review seconds. API/CLI/MCP callers can pass `plan_id`, `ai_review_seconds`, and `cost_guardrail`; unsafe requests can be downgraded to deterministic checks or blocked.
 - Done: global Codex MCP entry is installed locally through the `uploadcheck` server and was smoke-tested with a live hosted report.
 - Done: authenticated hosted inline-media execution is verified on Render with a blocking `twins` report.
 - Done: checkout route plumbing exists at `/checkout/creator`, `/checkout/studio`, and `/checkout/network`, with env-driven Lemon Squeezy redirects.
 - Partial: launch pricing is updated to `Creator $99 / 1,200 minutes`, `Studio $299 / 5,000 minutes`, and `Network $799 / 18,000 minutes`; final pricing still needs live cost telemetry.
 - Partial: billing checkout still needs real `UPLOADCHECK_*_CHECKOUT_URL` values or Lemon Squeezy store slug + variant IDs configured on Render before launch.
 - Next: add durable object storage or direct-to-bucket upload for production-scale retention beyond Render temp storage.
+- Next: add per-check model-call accounting for vision gates such as `twins`, `cheap_broll`, `narration_match`, and `omni_watch`.
 - Next: cut over `uploadcheck.app` DNS/custom domains and decide whether to keep legacy Render slugs or recreate services for `uploadcheck-*` subdomains.
 - Partial: Product Hunt launch page and public report examples exist; final launch still needs custom-domain cutover, live checkout proof, and a polished public demo clip.

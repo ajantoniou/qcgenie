@@ -9,7 +9,10 @@ describe("UploadCheck CLI request builder", () => {
     const request = buildJobRequest("https://youtu.be/example", {
       apiBaseUrl: "https://api.example.test/",
       checks: "garble,twins",
-      idempotencyKey: "idem-1"
+      idempotencyKey: "idem-1",
+      planId: "creator",
+      aiReviewSeconds: 30,
+      costGuardrail: "downgrade"
     });
 
     expect(request.apiBaseUrl).toBe("https://api.example.test");
@@ -17,7 +20,10 @@ describe("UploadCheck CLI request builder", () => {
     expect(request.payload).toEqual({
       youtube_url: "https://youtu.be/example",
       checks: "garble,twins",
-      idempotency_key: "idem-1"
+      idempotency_key: "idem-1",
+      plan_id: "creator",
+      ai_review_seconds: 30,
+      cost_guardrail: "downgrade"
     });
   });
 
@@ -43,7 +49,9 @@ describe("UploadCheck CLI request builder", () => {
       apiBaseUrl: "http://127.0.0.1:10002",
       maxInlineMb: 0.001,
       checks: "canvas_fill,text_safe_area",
-      idempotencyKey: "large-1"
+      idempotencyKey: "large-1",
+      planPriceCents: 29900,
+      includedMinutes: 5000
     });
 
     expect(request.kind).toBe("signed_upload");
@@ -57,7 +65,9 @@ describe("UploadCheck CLI request builder", () => {
     });
     expect(request.createJob.payload).toEqual({
       checks: "canvas_fill,text_safe_area",
-      idempotency_key: "large-1"
+      idempotency_key: "large-1",
+      plan_price_cents: 29900,
+      included_minutes: 5000
     });
   });
 
@@ -170,6 +180,12 @@ describe("UploadCheck CLI request builder", () => {
       "watchlist.json",
       "--expected-script",
       "locked-script.txt",
+      "--plan",
+      "studio",
+      "--ai-review-seconds",
+      "45",
+      "--cost-guardrail",
+      "block",
       "--json"
     ]);
 
@@ -182,6 +198,9 @@ describe("UploadCheck CLI request builder", () => {
       transcriptPath: "transcript.txt",
       watchlistPath: "watchlist.json",
       expectedScriptPath: "locked-script.txt",
+      planId: "studio",
+      aiReviewSeconds: "45",
+      costGuardrail: "block",
       json: true
     });
   });

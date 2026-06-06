@@ -8,7 +8,7 @@ import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { JsonStore } from "./server-store.mjs";
 import { cleanupInlineMedia, materializeInlineMedia } from "./inline-media.mjs";
-import { estimateJobCost } from "./cost-model.mjs";
+import { applyCostGuardrail, estimateJobCost } from "./cost-model.mjs";
 import { buildCheckoutUrl, normalizePlanId } from "./checkout-links.mjs";
 
 const port = Number(process.env.PORT || 10000);
@@ -75,6 +75,21 @@ async function createJob(req, res) {
   const inlineWatchlist = await materializeInlineWatchlist(body);
   const inlineExpectedScript = await materializeInlineExpectedScript(body);
   try {
+    const guardrail = applyCostGuardrail(body);
+    if (!guardrail.ok) {
+      return sendJson(res, 402, {
+        error: "cost_guardrail_blocked",
+        message: guardrail.reason,
+        costGuardrail: guardrail.costGuardrail,
+        costEstimate: guardrail.estimate
+      });
+    }
+    body.ai_review_seconds = guardrail.aiReviewSeconds;
+    body.requested_ai_review_seconds = guardrail.requestedAiReviewSeconds;
+    body.cost_guardrail = guardrail.costGuardrail;
+    body.cost_guardrail_action = guardrail.action;
+    body.cost_guardrail_reason = guardrail.reason || null;
+
     if (inlineMedia) {
       body.source = inlineMedia.filePath;
       body.source_type = "upload";
@@ -250,7 +265,7 @@ function getReport(req, url, res) {
     jobId,
     verdict: job.verdict || "WATCH",
     usage,
-    costEstimate: estimateJobCost({ minutesMetered: roundedMinutes }),
+    costEstimate: estimateCostForJob(job, roundedMinutes),
     flags: flags.length ? flags : (realJob ? [] : [defaultFlag(jobId)]),
     artifacts: artifacts.length ? artifacts : (realJob ? [] : defaultArtifacts(jobId))
   });
@@ -525,8 +540,18 @@ function withCostEstimate(job) {
   if (!job) return job;
   return {
     ...job,
-    costEstimate: estimateJobCost({ minutesMetered: job.minutesMetered || 0 })
+    costEstimate: estimateCostForJob(job, job.minutesMetered || 0)
   };
+}
+
+function estimateCostForJob(job, minutesMetered) {
+  return estimateJobCost({
+    minutesMetered,
+    aiReviewSeconds: job.aiReviewSeconds || 0,
+    planId: job.planId,
+    planPriceCents: job.planPriceCents,
+    includedMinutes: job.includedMinutes
+  });
 }
 
 function requireScope(req, requiredScope) {

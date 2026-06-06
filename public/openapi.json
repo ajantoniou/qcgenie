@@ -127,6 +127,27 @@
                     "type": "string"
                   },
                   "expected_script_filename": { "type": "string" },
+                  "plan_id": {
+                    "description": "Optional plan preset for cost estimates and margin guardrails: creator, studio, network, or stress_99_5000.",
+                    "type": "string"
+                  },
+                  "plan_price_cents": {
+                    "description": "Optional custom monthly plan price in cents for cost guardrail calculations.",
+                    "type": "integer"
+                  },
+                  "included_minutes": {
+                    "description": "Optional included monthly checked minutes for cost guardrail calculations.",
+                    "type": "integer"
+                  },
+                  "ai_review_seconds": {
+                    "description": "Declared paid AI-review seconds requested for the job. Deterministic checks do not require this.",
+                    "type": "number"
+                  },
+                  "cost_guardrail": {
+                    "description": "Margin guardrail behavior when requested AI review would break the >95% gross-margin target.",
+                    "type": "string",
+                    "enum": ["downgrade", "block", "off"]
+                  },
                   "checks": { "type": "string" }
                 }
               }

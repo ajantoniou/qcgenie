@@ -134,3 +134,22 @@ Agent repair loop:
 ## Cost Guard
 
 Job responses include `costEstimate`. The current roadmap verdict is that `$99 / 5000 minutes` is not margin-safe for every creator account if every minute receives full multimodal AI review. It is viable only when deterministic scan minutes are the billable baseline and expensive model calls are sampled or reserved for flagged regions.
+
+Cost guardrail controls:
+
+- Default behavior is `cost_guardrail: "downgrade"`: if a caller declares `ai_review_seconds` that would break the >95% gross-margin budget for the selected plan, UploadCheck records the requested amount but downgrades the job to deterministic checks.
+- Use `cost_guardrail: "block"` to reject margin-breaking AI-review requests with `402 cost_guardrail_blocked`.
+- Use `cost_guardrail: "off"` only for internal experiments or paid deep-review add-ons.
+- Pass `plan_id: "creator" | "studio" | "network" | "stress_99_5000"` or custom `plan_price_cents` and `included_minutes` so the cost estimate matches the customer contract.
+
+CLI example:
+
+```bash
+UPLOADCHECK_API_KEY="<workspace_api_key>" \
+node "/Applications/DrAntoniou Projects/QCGenie/cli/index.mjs" check "/path/to/master.mp4" \
+  --checks canvas_fill,loop_freeze,text_contrast \
+  --plan creator \
+  --ai-review-seconds 120 \
+  --cost-guardrail downgrade \
+  --json
+```

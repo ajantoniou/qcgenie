@@ -47,6 +47,14 @@ export class JsonStore {
       uploadId: input.upload_id || input.uploadId || null,
       idempotencyKey: input.idempotency_key || null,
       callbackUrl: input.callback_url || null,
+      planId: input.plan_id || input.planId || null,
+      planPriceCents: numberOrNull(input.plan_price_cents ?? input.planPriceCents),
+      includedMinutes: numberOrNull(input.included_minutes ?? input.includedMinutes),
+      aiReviewSeconds: Math.max(0, Number(input.ai_review_seconds ?? input.aiReviewSeconds ?? 0) || 0),
+      requestedAiReviewSeconds: Math.max(0, Number(input.requested_ai_review_seconds ?? input.requestedAiReviewSeconds ?? input.ai_review_seconds ?? input.aiReviewSeconds ?? 0) || 0),
+      costGuardrail: input.cost_guardrail || input.costGuardrail || "downgrade",
+      costGuardrailAction: input.cost_guardrail_action || input.costGuardrailAction || "none",
+      costGuardrailReason: input.cost_guardrail_reason || input.costGuardrailReason || null,
       statusUrl: `/v1/qc/jobs/${jobId}`,
       reportUrl: `/v1/qc/jobs/${jobId}/report`,
       createdAt: now,
@@ -484,6 +492,11 @@ function randomId() {
 
 function currentBillingPeriod() {
   return new Date().toISOString().slice(0, 7);
+}
+
+function numberOrNull(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
 }
 
 function retryDelayMs(attemptCount) {
