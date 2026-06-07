@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="canonical" href="https://uploadcheck.app/docs/mcp/" />
+    <link rel="stylesheet" href="/seo-pages.css" />
+    <meta name="description" content="Complete UploadCheck MCP tool reference: all 20 tools with inputs and outputs for Claude Code, Codex, Cursor, and MCP-capable agents." />
+    <title>UploadCheck MCP Tool Reference | UploadCheck.app</title>
+    <style>
+      .docNav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+      .docNav a {
+        text-decoration: none; font-weight: 800; font-size: 14px;
+        padding: 9px 14px; border-radius: 8px; border: 1px solid #cfd8e3;
+        background: #ffffff; color: #101827; min-height: 40px;
+        display: inline-flex; align-items: center;
+      }
+      .docNav a.current { background: #0f766e; color: #ffffff; border-color: #0f766e; }
+      .refList { display: grid; gap: 12px; margin-top: 16px; }
+      .refItem { background: #ffffff; border: 1px solid #dce3ec; border-radius: 10px; padding: 18px; }
+      .refItem h3 {
+        margin: 0; font-size: 16px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        color: #0f766e; overflow-wrap: anywhere;
+      }
+      .refItem p { margin: 8px 0 0; color: #475569; line-height: 1.55; }
+      .refMeta { display: grid; gap: 6px; margin-top: 12px; }
+      .refMeta code {
+        display: block; background: #0f1623; color: #c7f9ee; border-radius: 8px;
+        padding: 9px 11px; font-size: 13px; overflow-wrap: anywhere;
+      }
+      .refMeta span { color: #64748b; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+      .method {
+        display: inline-block; font-size: 11px; font-weight: 900; border-radius: 6px;
+        padding: 3px 7px; margin-right: 8px; vertical-align: middle;
+      }
+      .method.get { background: #d1fae5; color: #047857; }
+      .method.post { background: #dbeafe; color: #1d4ed8; }
+      .method.put { background: #fef3c7; color: #b45309; }
+      .method.delete { background: #fee2e2; color: #b91c1c; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <nav class="nav">
+        <a class="brand" href="/"><span>U</span>UploadCheck.app</a>
+        <div class="navLinks"><a href="/pricing/">Pricing</a><a href="/sample-report/">Sample report</a><a href="/agent-install/">Install</a><a href="/docs/">Docs</a></div>
+      </nav>
+      <section class="hero">
+        <div class="heroCopy">
+          <h1>MCP tool reference</h1>
+          <p class="tagline">All 20 UploadCheck MCP tools.</p>
+          <p>The <code>uploadcheck</code> MCP server exposes these tools to Claude Code, Codex, Cursor, and any MCP-capable agent. A typical run is <code>qc_get_cost_basis &rarr; qc_run_local_file &rarr; qc_get_report &rarr; qc_get_marker_csv</code>.</p>
+          <nav class="docNav" aria-label="Docs navigation"><a href="/docs/">Overview</a><a href="/docs/mcp/" class="current" aria-current="page">MCP reference</a><a href="/docs/api/">API reference</a><a href="/agent-install/">Install guide</a></nav>
+        </div>
+        <aside class="panel">
+          <h2>Connect the server</h2>
+          <ul>
+            <li>npm: <code>npx -y uploadcheck-mcp</code></li>
+            <li>Server name: <code>uploadcheck</code></li>
+            <li>Auth: <code>UPLOADCHECK_API_KEY</code></li>
+            <li>Base URL: <code>UPLOADCHECK_API_BASE_URL</code></li>
+          </ul>
+        </aside>
+      </section>
+      <section class="section">
+        <h2>Tools</h2>
+        <div class="refList">
+        <article class="refItem">
+          <h3>qc_get_launch_status</h3>
+          <p>Fetch live UploadCheck launch readiness, current blockers, and operator commands for agent planning.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>none</code>
+            <span>Outputs</span>
+            <code>product_hunt_ready, status, remaining_blockers, operator_commands</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_launch_handoff</h3>
+          <p>Fetch live UploadCheck launch blockers, required actions, proof commands, and no-launch rule for agent/operator handoff.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>none</code>
+            <span>Outputs</span>
+            <code>productHuntReady, remainingBlockers, requiredActions, blockerProofCommands, launchDoctorCommands, operatorCommandSequence, rule</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_launch_doctor</h3>
+          <p>Fetch live UploadCheck launch blocker fix plan for Product Hunt readiness.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>none</code>
+            <span>Outputs</span>
+            <code>productHuntReady, remainingBlockers, blockerFixPlan, blockerProofCommands, launchDoctorCommands, operatorCommandSequence, rule</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_launch_evidence</h3>
+          <p>Fetch redacted UploadCheck launch evidence derived from the live launch doctor for agent-safe Product Hunt verification.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>none</code>
+            <span>Outputs</span>
+            <code>productHuntReady, status, blockers, commandCoverage, fixPhases, redaction</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_pipeline_handoff</h3>
+          <p>Fetch the production pipeline handoff runbook for NTO/NPO and creator workflows.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>none</code>
+            <span>Outputs</span>
+            <code>source_artifacts, profiles, call_sequence, media_ingress, margin_rules, repair_loop_contract</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_npo_pipeline_handoff</h3>
+          <p>Fetch the focused NPO podcast/audio production handoff for cost preflight, sidecars, media ingress, marker CSV, and repair-loop workflows.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>none</code>
+            <span>Outputs</span>
+            <code>profile_id, cost_preflight, media_ingress, required_sidecars, mcp_sequence, repair_loop_contract</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_pipeline_recipes</h3>
+          <p>Fetch machine-readable UploadCheck pipeline profiles and repair-loop contracts for NTO/NPO and creator workflows.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>none</code>
+            <span>Outputs</span>
+            <code>launch_preflight, cost_preflight, profiles, repair_loop_contract, nto_replacement_qc</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_cost_basis</h3>
+          <p>Fetch public cost-per-minute, plan economics, and 95% gross-margin assumptions before pricing or launch decisions.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>none</code>
+            <span>Outputs</span>
+            <code>target_gross_margin_pct, cost_assumptions, plans, verdict, model_backed_checks</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_estimate_cost</h3>
+          <p>Preflight cost, margin safety, and effective/removed gates before an agent uploads or runs media.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>minutes, duration_seconds, checks, plan_id, ai_review_seconds, cost_guardrail</code>
+            <span>Outputs</span>
+            <code>margin_safe, effective_checks, removed_checks, cost_estimate, action</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_run_video</h3>
+          <p>Start a full-timeline UploadCheck run from Claude, Codex, or another agent workspace.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>youtube_url, upload_id, signed_url, video_base64, audio_base64, data_url, manifest_url, transcript_url, watchlist_url, expected_script_url, chunk_sidecars_url, callback_url</code>
+            <span>Outputs</span>
+            <code>job_id, verdict, status_url, report_url, minutes_metered, media_ingress, sidecar_ingress, cost_estimate</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_run_local_file</h3>
+          <p>Read a local media file from an agent workspace and send it through Render inline or signed upload.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>file_path, checks, manifest_path, transcript_path, watchlist_path, expected_script_path, sidecar_dir, plan_id, cost_guardrail</code>
+            <span>Outputs</span>
+            <code>job_id, verdict, status_url, report_url, minutes_metered, media_ingress, cost_estimate</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_job</h3>
+          <p>Poll status, stage, progress, current verdict, and minutes for an active job.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>job_id</code>
+            <span>Outputs</span>
+            <code>status, stage, progress_pct, verdict, minutes_metered, media_ingress</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_report</h3>
+          <p>Retrieve a finished UploadCheck report with evidence-grounded timestamp flags.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>job_id</code>
+            <span>Outputs</span>
+            <code>verdict, flags, timestamps, transcript_evidence, share_url</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_events</h3>
+          <p>Retrieve lifecycle events so an agent can cite exactly which QC stages ran.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>job_id</code>
+            <span>Outputs</span>
+            <code>events, event_type, created_at</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_artifacts</h3>
+          <p>List report artifacts and editor handoff files for a QC run.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>job_id</code>
+            <span>Outputs</span>
+            <code>artifacts, artifact_type, url</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_marker_csv</h3>
+          <p>Download the CSV marker export for an editor handoff.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>job_id</code>
+            <span>Outputs</span>
+            <code>csv</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_submit_gate_verdict</h3>
+          <p>Import an external full-video QC gate result into the hosted report and webhook flow.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>job_id, verdict</code>
+            <span>Outputs</span>
+            <code>verdict, blocked, skipped, imported_flags, report_url</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_list_recent_jobs</h3>
+          <p>Let an agent inspect recent jobs before re-running duplicate QC work.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>workspace_id, limit</code>
+            <span>Outputs</span>
+            <code>jobs, verdicts, created_at, minutes_metered</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_get_margin_telemetry</h3>
+          <p>Summarize usage COGS and gross-margin safety for pricing and launch decisions.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>billing_period, limit</code>
+            <span>Outputs</span>
+            <code>minutes, estimated_cogs_cents, estimated_cost_per_minute_cents, estimated_gross_margin_pct, margin_safe</code>
+          </div>
+        </article>
+        <article class="refItem">
+          <h3>qc_create_upload_url</h3>
+          <p>Create a signed upload URL so agents can send local files without handling QC storage directly.</p>
+          <div class="refMeta">
+            <span>Inputs</span>
+            <code>filename, content_type, size_bytes</code>
+            <span>Outputs</span>
+            <code>upload_id, signed_put_url, expires_at, put_then_run_qc_with_upload_id</code>
+          </div>
+        </article>
+        </div>
+      </section>
+      <footer class="footer">UploadCheck is the QC authority. Agents repair only the flagged spans they can reach, then rerun before upload. Checked minutes are deterministic publish-readiness QC minutes.</footer>
+    </main>
+  </body>
+</html>

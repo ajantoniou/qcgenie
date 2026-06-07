@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="canonical" href="https://uploadcheck.app/docs/" />
+    <link rel="stylesheet" href="/seo-pages.css" />
+    <meta name="description" content="UploadCheck developer docs: the MCP tool reference, REST API reference, and agent install guide for Claude Code, Codex, Cursor, and MCP-capable agents." />
+    <title>UploadCheck Docs | MCP, API, and Agent Install</title>
+    <style>
+      .docNav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+      .docNav a {
+        text-decoration: none; font-weight: 800; font-size: 14px;
+        padding: 9px 14px; border-radius: 8px; border: 1px solid #cfd8e3;
+        background: #ffffff; color: #101827; min-height: 40px;
+        display: inline-flex; align-items: center;
+      }
+      .docNav a.current { background: #0f766e; color: #ffffff; border-color: #0f766e; }
+      .refList { display: grid; gap: 12px; margin-top: 16px; }
+      .refItem { background: #ffffff; border: 1px solid #dce3ec; border-radius: 10px; padding: 18px; }
+      .refItem h3 {
+        margin: 0; font-size: 16px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        color: #0f766e; overflow-wrap: anywhere;
+      }
+      .refItem p { margin: 8px 0 0; color: #475569; line-height: 1.55; }
+      .refMeta { display: grid; gap: 6px; margin-top: 12px; }
+      .refMeta code {
+        display: block; background: #0f1623; color: #c7f9ee; border-radius: 8px;
+        padding: 9px 11px; font-size: 13px; overflow-wrap: anywhere;
+      }
+      .refMeta span { color: #64748b; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+      .method {
+        display: inline-block; font-size: 11px; font-weight: 900; border-radius: 6px;
+        padding: 3px 7px; margin-right: 8px; vertical-align: middle;
+      }
+      .method.get { background: #d1fae5; color: #047857; }
+      .method.post { background: #dbeafe; color: #1d4ed8; }
+      .method.put { background: #fef3c7; color: #b45309; }
+      .method.delete { background: #fee2e2; color: #b91c1c; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <nav class="nav">
+        <a class="brand" href="/"><span>U</span>UploadCheck.app</a>
+        <div class="navLinks"><a href="/pricing/">Pricing</a><a href="/sample-report/">Sample report</a><a href="/agent-install/">Install</a><a href="/docs/">Docs</a></div>
+      </nav>
+      <section class="hero">
+        <div class="heroCopy">
+          <h1>UploadCheck developer docs</h1>
+          <p class="tagline">Everything an agent needs to run video QC before upload.</p>
+          <p>UploadCheck exposes 20 MCP tools and 27 REST endpoints. Start with the install guide, then use the MCP or API reference to wire the QC loop into Claude Code, Codex, Cursor, or your own agent.</p>
+          <nav class="docNav" aria-label="Docs navigation"><a href="/docs/" class="current" aria-current="page">Overview</a><a href="/docs/mcp/">MCP reference</a><a href="/docs/api/">API reference</a><a href="/agent-install/">Install guide</a></nav>
+        </div>
+        <aside class="panel">
+          <h2>Quick start</h2>
+          <ul>
+            <li>Install: <code>npx -y uploadcheck-mcp</code></li>
+            <li>Auth: <code>UPLOADCHECK_API_KEY=uck_...</code></li>
+            <li>Run: <code>/check ./final-upload.mp4</code></li>
+            <li>Handoff: <code>qc_get_cost_basis &rarr; qc_run_local_file &rarr; qc_get_report &rarr; qc_get_marker_csv</code></li>
+          </ul>
+        </aside>
+      </section>
+      <section class="section">
+        <h2>Reference</h2>
+        <div class="grid">
+          <a class="card" href="/docs/mcp/" style="text-decoration:none"><h2>MCP reference</h2><p>All 20 UploadCheck MCP tools with inputs and outputs for Claude Code, Codex, and Cursor.</p></a>
+          <a class="card" href="/docs/api/" style="text-decoration:none"><h2>API reference</h2><p>All 27 REST endpoints for jobs, reports, artifacts, uploads, and workspace keys.</p></a>
+          <a class="card" href="/agent-install/" style="text-decoration:none"><h2>Install guide</h2><p>Per-client setup for Claude Code, Codex, Cursor, npm, and a local GitHub checkout.</p></a>
+        </div>
+      </section>
+      <section class="section">
+        <h2>Authentication</h2>
+        <div class="twoGrid">
+          <article class="answer"><h2>Workspace API key</h2><p>Every MCP or REST caller sends <code>Authorization: Bearer &lt;workspace_api_key&gt;</code>. Keys are tied to included plan minutes or an operator-created account. There is no public self-serve extra-minute or credit purchase flow yet.</p></article>
+          <article class="answer"><h2>Machine-readable specs</h2><p>Pull the full OpenAPI document at <code>/openapi.json</code>, the agent manifest at <code>/agent-manifest.json</code>, and the discovery file at <code>/llms.txt</code>.</p></article>
+        </div>
+      </section>
+      <footer class="footer">UploadCheck is the QC authority. Agents repair only the flagged spans they can reach, then rerun before upload. Checked minutes are deterministic publish-readiness QC minutes.</footer>
+    </main>
+  </body>
+</html>
