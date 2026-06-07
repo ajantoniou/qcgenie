@@ -123,13 +123,12 @@ npm run anthropic-directory:verify
 npm run product-agent:verify
 ```
 
-## Not Yet Public Self-Serve
+## Remaining Directory And Hosted Proof Gates
 
-Do not publish broad install copy or submit Anthropic Directory until:
+Do not submit Anthropic Directory or claim hosted production MCP completeness until:
 
-- `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp` are published to npm.
-- `npm run npm-publish:preflight` shows the current package versions are publishable and identifies npm auth state before founder publish.
+- `npm run npm-publish:preflight` shows the current package versions are published and registry-installable.
 - Hosted `/mcp-install.json`, launch doctor, and launch evidence are redeployed and pass their live verifiers.
-- Registry install proof confirms clean `npx`/package installs after publish.
+- Registry install proof confirms clean `npx`/package installs.
 - A paid or beta workspace key can create a hosted QC job and fetch the report.
-- Public GitHub MCP evidence from Claude Code, Codex, and Cursor is captured in `docs/private-mcp-beta-evidence-template.json`.
+- Public npm MCP evidence from Claude Code, Codex, and Cursor is captured in `docs/private-mcp-beta-evidence-template.json`.

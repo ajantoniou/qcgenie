@@ -41,7 +41,7 @@ requireIncludes(files.beta, beta, [
   "Use `docs/private-mcp-beta-evidence-template.json` to capture proof for Claude Code, Codex, and Cursor.",
   "Run `npm run private-mcp-beta:evidence` before treating the proof contract as valid.",
   "npm run private-mcp-beta:capture -- /path/to/sanitized-client-proof.json",
-  "Do not publish broad install copy or submit Anthropic Directory until:"
+  "Do not submit Anthropic Directory or claim hosted production MCP completeness until:"
 ]);
 
 requireIncludes(files.directory, directory, [
@@ -120,7 +120,7 @@ for (const tool of ["gemini_watch", "omni_watch", "qwen", "anthropic_fallback_or
 }
 
 requireIncludes(files.roadmap, roadmap, [
-  "public GitHub MCP install handoff added at `docs/PRIVATE-MCP-BETA.md`",
+  "public npm MCP install handoff added at `docs/PRIVATE-MCP-BETA.md`",
   "Anthropic Directory draft artifact added at `docs/anthropic-directory-draft.json`",
   "external Claude Code, Codex, Cursor, and MCP usage must be tied to created workspace API keys"
 ]);

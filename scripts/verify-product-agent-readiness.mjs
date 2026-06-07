@@ -60,11 +60,11 @@ const engineReference = read(files.engineReference);
 const pipelineIntegration = read(files.pipelineIntegration);
 
 requireIncludes(files.beta, beta, [
-  "UploadCheck is currently a public GitHub MCP install.",
+  "UploadCheck is currently a public npm MCP install with public GitHub/local checkout fallback.",
   "External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key",
   "Local NTO production can keep using the local repo path directly.",
   "Paid oracle checks such as `twins`, `omni_watch`, `gemini_watch`, `narration_match`, `cheap_broll`, and `garble` require explicit `--checks`.",
-  "Do not publish broad install copy or submit Anthropic Directory until:"
+  "Do not submit Anthropic Directory or claim hosted production MCP completeness until:"
 ]);
 
 requireIncludes(files.directory, directory, [
@@ -170,7 +170,7 @@ const npmProof = JSON.parse(execFileSync("npm", ["run", "--silent", "npm-publish
 const publicBlockers = [];
 if (!npmProof.registryInstallProofReady) publicBlockers.push("registry install proof is not captured");
 if (!evidenceCaptured) {
-  publicBlockers.push("external public GitHub MCP evidence is not captured");
+  publicBlockers.push("external public npm MCP evidence is not captured");
 }
 
 console.log(JSON.stringify({
@@ -180,8 +180,8 @@ console.log(JSON.stringify({
     "Use npx -y @drantoniou/uploadcheck-mcp as the current public MCP install path.",
     "Keep public GitHub clone and local checkout installs as supported fallback paths.",
     evidenceCaptured
-      ? "External Claude Code, Codex, and Cursor public GitHub MCP proof is captured."
-      : "Collect external Claude Code, Codex, and Cursor public GitHub MCP proof with workspace API keys.",
+      ? "External Claude Code, Codex, and Cursor public npm MCP proof is captured."
+      : "Collect external Claude Code, Codex, and Cursor public npm MCP proof with workspace API keys.",
     "Prepare Anthropic Directory after paid workspace proof; defer OpenAI connector/app."
   ],
   currentUsableModes: [

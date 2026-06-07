@@ -55,24 +55,24 @@ const requiredEvidenceCommands = [
 
 const requiredSubmissionEvidence = [
   "Registry proof that @drantoniou/uploadcheck and @drantoniou/uploadcheck-mcp are published.",
-  "Read-only npm publish preflight proof from npm run npm-publish:preflight before founder publish.",
+  "Read-only npm publish preflight proof from npm run npm-publish:preflight.",
   "Hosted /mcp-install.json proof from npm run live-mcp-install:verify after Render redeploy.",
   "Paid workspace API-key proof from hosted QC job creation through report fetch.",
   "Checkout proof from configured Lemon Squeezy checkout URLs or Creator, Studio, and Network variants.",
   "Webhook proof that X-Signature HMAC-SHA256 is verified with UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET before API-key provisioning.",
   "Abuse-limit proof that over-limit usage blocks before QC compute and records operator-reviewable abuse events.",
   "Spend-alert proof that GET /v1/spend-alerts returns a Resend-backed alert after billable extra-minute spend crosses subscription value, with COGS retained as audit context.",
-  "Public GitHub MCP client evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
+  "Public npm MCP client evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
   "No-public-oracle proof that package files, MCP manifests, README copy, and Directory copy do not expose gemini_watch, omni_watch, qwen, anthropic_fallback_oracle, or deep_ai_review as customer tools."
 ];
 
 const errors = [];
 
-if (draft.status !== "public_github_mcp_not_ready_for_directory") {
+if (draft.status !== "public_npm_mcp_not_ready_for_directory") {
   errors.push({ key: "status", reason: "must_not_claim_directory_ready" });
 }
 if (draft.mcp_server_name !== "uploadcheck") errors.push({ key: "mcp_server_name", reason: "expected_uploadcheck" });
-if (draft.distribution?.future_package !== "@drantoniou/uploadcheck-mcp") errors.push({ key: "distribution.future_package", reason: "expected_mcp_package" });
+if (draft.distribution?.package !== "@drantoniou/uploadcheck-mcp") errors.push({ key: "distribution.package", reason: "expected_mcp_package" });
 if (draft.distribution?.requires_workspace_api_key !== true) errors.push({ key: "distribution.requires_workspace_api_key", reason: "must_require_workspace_api_key" });
 if (draft.distribution?.requires_included_minutes_workspace !== true) errors.push({ key: "distribution.requires_included_minutes_workspace", reason: "must_require_included_minutes_workspace" });
 if (JSON.stringify(draft.public_tools) !== JSON.stringify(expectedTools)) {
@@ -151,7 +151,7 @@ for (const command of requiredEvidenceCommands) {
 for (const evidence of [
   "GET /v1/spend-alerts",
   "billable extra-minute spend",
-  "Public GitHub MCP proof from Claude Code, Codex, and Cursor using workspace API keys and the public MCP tool surface only, captured in `docs/private-mcp-beta-evidence-template.json`",
+  "Public npm MCP proof from Claude Code, Codex, and Cursor using workspace API keys and the public MCP tool surface only, captured in `docs/private-mcp-beta-evidence-template.json`",
   "Do not apply for a broad connector or ChatGPT app yet.",
   "Hosted HTTPS MCP endpoint"
 ]) {
