@@ -32,8 +32,8 @@ describe("live MCP install verifier", () => {
       expect(JSON.parse(result.stdout)).toMatchObject({
         ok: true,
         package: "@uploadcheck/mcp",
-        distributionStatus: "private_mcp_beta_not_public_self_serve",
-        currentInstall: "local_checkout_or_private_clone"
+        distributionStatus: "public_github_mcp_not_npm_self_serve",
+        currentInstall: "public_github_clone_or_local_checkout"
       });
     } finally {
       server.close();
@@ -58,7 +58,7 @@ describe("live MCP install verifier", () => {
     }
   });
 
-  it("blocks when the hosted MCP install artifact omits private-beta status", async () => {
+  it("blocks when the hosted MCP install artifact omits public GitHub distribution status", async () => {
     const install = JSON.parse(readFileSync("public/mcp-install.json", "utf8"));
     delete install.distribution_status;
     const { server, baseUrl } = await listen((_req, res) => {
@@ -71,7 +71,7 @@ describe("live MCP install verifier", () => {
         cwd: process.cwd(),
         env: { ...process.env, UPLOADCHECK_LIVE_MCP_INSTALL_BASE_URL: baseUrl }
       })).rejects.toMatchObject({
-        stderr: expect.stringContaining("missing_private_beta_status")
+        stderr: expect.stringContaining("missing_public_github_status")
       });
     } finally {
       server.close();

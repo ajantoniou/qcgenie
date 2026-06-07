@@ -34,10 +34,10 @@
         <aside class="panel">
           <h2>Current distribution status</h2>
           <ul>
-            <li>Current install path: private clone or local checkout.</li>
+            <li>Current install path: public GitHub clone or local checkout.</li>
             <li>NPM package install: use <code>npx -y @uploadcheck/mcp</code> only after <code>@uploadcheck/cli</code> and <code>@uploadcheck/mcp</code> are published.</li>
             <li>Required secret: <code>UPLOADCHECK_API_KEY</code>.</li>
-            <li>Private beta users need a workspace API key tied to plan minutes or beta credits.</li>
+            <li>Users need a workspace API key tied to included plan minutes.</li>
           </ul>
         </aside>
       </section>
@@ -45,8 +45,9 @@
         <h2>1. Prepare the MCP package</h2>
         <div class="twoGrid">
           <article class="answer">
-            <h2>Current private-beta install</h2>
-            <pre><code>cd /absolute/path/to/uploadcheck/mcp-server
+            <h2>Current GitHub install</h2>
+            <pre><code>git clone https://github.com/ajantoniou/uploadcheck.git /absolute/path/to/uploadcheck
+cd /absolute/path/to/uploadcheck/mcp-server
 npm install</code></pre>
           </article>
           <article class="answer">
@@ -112,7 +113,7 @@ UPLOADCHECK_API_KEY = "&lt;workspace_api_key&gt;"</code></pre>
           <article class="answer"><h2>Repair loop</h2><p>The first agent shows all BLOCK and WATCH flags, asks whether to fix now, applies reachable caption or source-file fixes, and reruns UploadCheck before claiming the media is upload-ready.</p></article>
         </div>
       </section>
-      <footer class="footer">Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists. Use the private-clone/local MCP path above for current agent installs.</footer>
+      <footer class="footer">Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists. Use the public GitHub/local MCP path above for current agent installs.</footer>
     </main>
   </body>
 </html>

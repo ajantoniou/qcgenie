@@ -13,16 +13,16 @@ The beachhead is YouTube videos: creators import a URL, upload a cut, or run `/c
 
 ## Agentic Surface
 
-UploadCheck.app supports web users and programmatic agent workflows. The current agent distribution state is private MCP beta, not public self-serve npm download.
+UploadCheck.app supports web users and programmatic agent workflows. The current agent distribution state is public GitHub/local MCP install, not public npm self-serve yet.
 
 - Web users paste a YouTube URL or upload a cut.
 - Agent users run `/check` against a media file, upload id, signed URL, or YouTube URL.
-- Claude, Codex, Cursor, and other agent workspaces call the same REST API through the UploadCheck MCP server or direct API calls. External users need a workspace API key tied to plan minutes, top-up credits, or an operator-created beta account. Do not prioritize a ChatGPT app/connector until the paid MCP/API path is live.
+- Claude, Codex, Cursor, and other agent workspaces call the same REST API through the UploadCheck MCP server or direct API calls. External users need a workspace API key tied to included plan minutes or an operator-created account. Do not prioritize a ChatGPT app/connector until the paid MCP/API path is live.
 - MCP tools call the hosted API; `qc_run_local_file` only reads/encodes local media before sending it to Render.
 - Customer-facing tools do not expose internal model/provider rails.
 - MCP server name: `uploadcheck`.
-- CLI/package options after npm publish: `@uploadcheck/cli` and `@uploadcheck/mcp`. Until then, use a local checkout or private clone.
-- Private MCP beta handoff: `docs/PRIVATE-MCP-BETA.md`.
+- CLI/package options after npm publish: `@uploadcheck/cli` and `@uploadcheck/mcp`. Until then, use the public GitHub repo or a local checkout.
+- Public GitHub MCP install handoff: `docs/PRIVATE-MCP-BETA.md`.
 
 Current API/MCP tools:
 
@@ -66,8 +66,8 @@ Public API:
 - Render Blueprint verifier: `npm run render:verify`
 - Render API launch helper: `npm run render:bootstrap-env`, `npm run render:env-template`, `npm run render:plan`, `npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env`, `npm run render:validate-env`, `npm run render:audit`, `npm run render:apply`
 - Package publish verifier: `npm run packages:verify` checks `@uploadcheck/cli` and `@uploadcheck/mcp` identity, bins, lock metadata, and `npm pack --dry-run` contents.
-- Private MCP beta verifier: `npm run private-mcp-beta:verify` checks the beta handoff, install manifest, package scripts, Directory prep, workspace-key rule, and no-public-self-serve claims.
-- Product-agent readiness verifier: `npm run product-agent:verify` checks whether Claude Code, Codex, Cursor, and MCP clients are private-beta usable without claiming public npm/download readiness.
+- Public GitHub MCP verifier: `npm run private-mcp-beta:verify` checks the install handoff, install manifest, package scripts, Directory prep, workspace-key rule, and no-public-npm/self-serve claims.
+- Product-agent readiness verifier: `npm run product-agent:verify` checks whether Claude Code, Codex, Cursor, and MCP clients are usable through public GitHub/local install without claiming public npm/download readiness.
 - Checkout launch handoff verifier: `npm run checkout-launch:verify` checks checkout/webhook docs, Render env template, OpenAPI, and readiness actions for the exact remaining launch inputs.
 - MCP install artifact verifier: `npm run mcp-install:verify` checks public `/mcp-install.json` against the package manifest and agent/OpenAPI links.
 - Live MCP install verifier: `npm run live-mcp-install:verify` checks hosted `/mcp-install.json` after Render deploy.
@@ -84,8 +84,8 @@ Persistence state:
 - Webhook delivery previews use HMAC-SHA256 signatures in the `X-UploadCheck-Signature` format. Legacy `X-QCGenie-Signature` aliases are still sent during migration.
 - New webhook signing secrets are returned once on creation and encrypted at rest when a strong `UPLOADCHECK_SECRET_ENCRYPTION_KEY` is configured; legacy plaintext records remain readable for migration. Generate a key with `npm run --silent secret:generate`, then set this env var on Render before treating hosted webhook secrets as encrypted.
 - Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
-- Workspace API keys are stored hashed, returned once, scoped, and honored on upload/webhook/job creation for owner email, workspace, plan, included minutes, subscription price, and approved overage-cap metadata. Stored customer keys force their server-side workspace, owner, plan, and cap metadata over client-supplied fields; they can only create/read uploads, register/review/drain webhooks, read, report, cancel, import gate verdicts for, drain queued jobs, list, and meter jobs in their own workspace. If granted API-key review/provisioning scopes, stored keys are still pinned to their own workspace and plan economics, while operator/admin bearer keys keep broader review access.
-- The dashboard API-key form calls `POST /v1/api-keys` with a provisioning bearer; in private MCP beta this is an operator/admin bearer. Operators can review redacted key records from the dashboard or `GET /v1/api-keys?workspace_id=` with `api_keys:read`; responses show token prefixes and plan metadata, never token hashes or bearer secrets. Paid checkout/account flows can call `POST /v1/checkout/provision-api-key`, which applies plan limits server-side and returns the bearer only on first provisioning.
+- Workspace API keys are stored hashed, returned once, scoped, and honored on upload/webhook/job creation for owner email, workspace, plan, included minutes, subscription price, and operator-approved account-limit metadata. Stored customer keys force their server-side workspace, owner, plan, and cap metadata over client-supplied fields; they can only create/read uploads, register/review/drain webhooks, read, report, cancel, import gate verdicts for, drain queued jobs, list, and meter jobs in their own workspace. If granted API-key review/provisioning scopes, stored keys are still pinned to their own workspace and plan economics, while operator/admin bearer keys keep broader review access.
+- The dashboard API-key form calls `POST /v1/api-keys` with a provisioning bearer; for operator-created accounts this is an operator/admin bearer. Operators can review redacted key records from the dashboard or `GET /v1/api-keys?workspace_id=` with `api_keys:read`; responses show token prefixes and plan metadata, never token hashes or bearer secrets. Paid checkout/account flows can call `POST /v1/checkout/provision-api-key`, which applies plan limits server-side and returns the bearer only on first provisioning.
 - Lemon Squeezy can call `POST /v1/webhooks/lemonsqueezy`; UploadCheck verifies `X-Signature` with `UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET`, then provisions paid subscription/order events into idempotent workspace API keys for MCP/API clients.
 - Owner spend alerts are recorded and sent through Resend when a workspace's billable extra-minute spend crosses 100% of its subscription value; COGS remains recorded as audit context. `UPLOADCHECK_RESEND_API_URL` can point tests at a mock endpoint while production defaults to Resend.
 - Spend-alert attempts can be reviewed from the dashboard or with `GET /v1/spend-alerts?workspace_id=&limit=` by a bearer token with `api_keys:read`.
@@ -93,7 +93,7 @@ Persistence state:
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
 - Render cron can run `node scripts/drain-webhooks.mjs` with `UPLOADCHECK_API_KEY`, `UPLOADCHECK_API_BASE_URL`, and `UPLOADCHECK_DRAIN_LIMIT` to process due deliveries on a schedule.
 - Report reads append rounded-minute usage ledger entries.
-- Usage metering is idempotent per job, workspace, plan, and billing period; declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they would exceed that workspace's included deterministic QC minutes plus approved `overage_cap_cents`. A zero or omitted cap blocks at included minutes.
+- Usage metering is idempotent per job, workspace, plan, and billing period; declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they would exceed that workspace's included deterministic QC minutes plus operator-approved `overage_cap_cents`. A zero or omitted cap blocks at included minutes.
 - Abuse limits fail fast before QC compute: `duration_limit_exceeded`, `upload_size_limit_exceeded`, and `active_job_limit_exceeded`. Defaults are 240 minutes, 2048 MB, and 25 active jobs, configurable with `UPLOADCHECK_MAX_DURATION_MINUTES`, `UPLOADCHECK_MAX_UPLOAD_MB`, and `UPLOADCHECK_MAX_ACTIVE_JOBS`; stored workspace API keys apply the active-job limit within that workspace so one customer cannot consume another workspace's queue allowance.
 - Fail-fast abuse-limit and usage-limit events are persisted and can be reviewed from the dashboard or with `GET /v1/abuse-events?workspace_id=&limit=` by a bearer token with `api_keys:read`.
 - `uploadcheck usage` reads `/v1/usage/margins` and prints current estimated COGS, cost/minute, and gross margin.

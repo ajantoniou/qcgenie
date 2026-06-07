@@ -125,7 +125,4 @@ Machine-readable install snippets for Codex, Claude Desktop, Cursor, and generic
 stdio MCP clients are published in `mcp-install.json`. Keep this file aligned
 with the package name `@uploadcheck/mcp`, binary `uploadcheck-mcp`, current
 hosted API base URL, and first-call sequence for NPO/NTO production pipelines.
-The current private beta install path is a local checkout or private clone with
-a workspace API key tied to plan minutes, top-up credits, or an operator-created
-beta account. The `npx -y @uploadcheck/mcp` snippets in `mcp-install.json` are
-future-package snippets for after `@uploadcheck/mcp` is published to npm.
+The current MCP install path is a public GitHub clone or local checkout with a workspace API key tied to included plan minutes or an operator-created account. The `npx -y @uploadcheck/mcp` snippets in `mcp-install.json` are future-package snippets for after `@uploadcheck/mcp` is published to npm.

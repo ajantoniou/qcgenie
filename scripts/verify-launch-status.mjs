@@ -133,9 +133,9 @@ assert(llms.includes(status.public_artifacts.product_hunt_launch_kit), "llms.txt
 assert(llms.includes("npm run launch:handoff -- --text"), "llms.txt must mention the local launch handoff command");
 assert(JSON.stringify(launchKit) === JSON.stringify(buildProductHuntLaunchKit(status)), "Product Hunt launch kit does not match product-hunt-launch-kit.mjs builder");
 assert(launchKit.ready_when?.source_of_truth === status.public_artifacts.live_launch_status, "Product Hunt launch kit must use live launch status as source of truth");
-assert(launchKit.launch_copy?.proof_points?.some((point) => point.includes("Private MCP beta install uses a local checkout or private clone")), "Product Hunt launch kit must not imply public npm install is current");
-assert(launchKit.distribution_position?.current_status === "private_mcp_beta_not_public_self_serve", "Product Hunt launch kit must publish private MCP beta distribution status");
-assert(launchKit.distribution_position?.required_secret?.includes("workspace API key tied to plan minutes"), "Product Hunt launch kit must require credit-gated workspace API keys");
+assert(launchKit.launch_copy?.proof_points?.some((point) => point.includes("Public GitHub MCP install uses a local checkout")), "Product Hunt launch kit must publish the current public GitHub install path");
+assert(launchKit.distribution_position?.current_status === "public_github_mcp_not_npm_self_serve", "Product Hunt launch kit must publish public GitHub / not npm distribution status");
+assert(launchKit.distribution_position?.required_secret?.includes("workspace API key tied to included plan minutes"), "Product Hunt launch kit must require included-minute workspace API keys");
 assert(String(launchKit.distribution_position?.openai_connector || "").includes("defer"), "Product Hunt launch kit must defer OpenAI connector/app positioning");
 assert(launchKit.current_state_snapshot?.source === status.public_artifacts.launch_status, "Product Hunt launch kit current snapshot must link static launch status");
 assert(launchKit.current_state_snapshot?.product_hunt_ready === status.product_hunt_ready, "Product Hunt launch kit current snapshot readiness must match static launch status");

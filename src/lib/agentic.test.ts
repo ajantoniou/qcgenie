@@ -124,22 +124,22 @@ describe("agentic integration contract", () => {
     expect(manifest.response_fields.launch_handoff.hosted_media_ingress_command).toBe("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
   });
 
-  it("publishes private beta distribution and workspace-key boundaries for agents", () => {
+  it("publishes public GitHub distribution and workspace-key boundaries for agents", () => {
     const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
 
     expect(manifest.distribution).toMatchObject({
-      status: "private_mcp_beta_not_public_self_serve",
-      current_install: "local_checkout_or_private_clone",
-      public_download_ready: false,
+      status: "public_github_mcp_not_npm_self_serve",
+      current_install: "public_github_clone_or_local_checkout",
+      public_download_ready: true,
       anthropic_directory_ready: false
     });
     expect(manifest.distribution.future_npm_install).toContain("after @uploadcheck/mcp is published");
     expect(manifest.distribution.openai_connector).toContain("defer");
     expect(manifest.workspace_key_contract).toMatchObject({
-      private_beta_required: true,
+      private_beta_required: false,
       local_nto_can_use_repo_without_hosted_key: true
     });
-    expect(manifest.workspace_key_contract.external_users_need).toContain("workspace API key tied to plan minutes");
+    expect(manifest.workspace_key_contract.external_users_need).toContain("workspace API key tied to included plan minutes");
     expect(manifest.workspace_key_contract.stored_key_behavior.join("\n")).toContain("Forces server-side workspace, owner, plan");
     expect(manifest.workspace_key_contract.stored_key_behavior.join("\n")).toContain("Can only read, report, cancel");
     expect(manifest.workspace_key_contract.stored_key_behavior.join("\n")).toContain("API-key review or provisioning scopes");

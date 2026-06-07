@@ -23,7 +23,7 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getAllByText("/check final-upload.mp4").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("link", { name: "Start Creator - $99/mo" })).toHaveAttribute("href", "/checkout/creator");
     expect(screen.getByRole("link", { name: "View sample report" })).toHaveAttribute("href", "/sample-report/");
-    expect(screen.getByText("$0.12/min approved overage.")).toBeInTheDocument();
+    expect(screen.getByText("Upgrade when volume grows.")).toBeInTheDocument();
     expect(screen.getByText("Frozen frames")).toBeInTheDocument();
     expect(screen.getByText("Caption safe-area")).toBeInTheDocument();
     expect(screen.getByText("Media checks before upload")).toBeInTheDocument();
@@ -40,8 +40,8 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getByText("@uploadcheck/cli")).toBeInTheDocument();
     expect(screen.getByText("@uploadcheck/mcp")).toBeInTheDocument();
     expect(screen.getAllByText("uploadcheck").length).toBeGreaterThan(0);
-    expect(screen.getByText("Current install: private clone or local checkout")).toBeInTheDocument();
-    expect(screen.getByText(/Use the private-clone\/local install path until the npm packages are published/)).toBeInTheDocument();
+    expect(screen.getByText("Current install: public GitHub clone or local checkout")).toBeInTheDocument();
+    expect(screen.getByText(/Use the public GitHub\/local install path until the npm packages are published/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open install guide" })).toHaveAttribute("href", "/agent-install/");
     expect(screen.getByText(/qc_get_cost_basis -> qc_run_local_file -> qc_get_report -> qc_get_marker_csv/)).toBeInTheDocument();
   });
@@ -249,7 +249,7 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getByText("Variable credit burn")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Publish-readiness checks priced by media minutes, not seats." })).toBeInTheDocument();
     expect(screen.getByText("Secure monthly checkout")).toBeInTheDocument();
-    expect(screen.getByText("Set a monthly cap before overage")).toBeInTheDocument();
+    expect(screen.getByText("Upgrade when volume grows")).toBeInTheDocument();
     expect(screen.getByText("Best for most creators")).toBeInTheDocument();
     expect(screen.getAllByText("$99/mo").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/2,400 checked minutes\/month/).length).toBeGreaterThanOrEqual(1);

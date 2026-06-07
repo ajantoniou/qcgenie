@@ -1,22 +1,22 @@
-# UploadCheck Private MCP Beta
+# UploadCheck Public GitHub MCP Install
 
-UploadCheck is currently a private MCP beta. External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key tied to plan minutes, top-up credits, or an operator-created beta account. Local NTO production can keep using the local repo path directly.
+UploadCheck is currently a public GitHub MCP install. External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key tied to included plan minutes or an operator-created account. Local NTO production can keep using the local repo path directly.
 
-## Beta Readiness Contract
+## Install Readiness Contract
 
 - Customer-facing MCP/API runs use deterministic publish-readiness QC minutes.
 - Internal Gemini, Qwen, Anthropic, or Omni oracle checks are for capture-rate backtests and roadmap discovery, not included customer minutes.
 - `--fast` is not a spend guardrail. It only shortens expensive watchers when those watchers are explicitly requested.
 - Local gate smoke tests and operator reruns should use `--deterministic-only` with any hand-built `--checks` list. `VERDICT.json` records `requested_checks`, `effective_checks`, `paid_oracle_checks_requested`, and `paid_oracle_checks_removed` so credit-safety is auditable.
 - Paid oracle checks such as `twins`, `omni_watch`, `gemini_watch`, `narration_match`, `cheap_broll`, and `garble` require explicit `--checks`.
-- Workspace API keys are returned once, stored hashed, scoped, and honored on job creation for workspace, owner email, plan, included minutes, subscription price, and approved overage-cap metadata. Stored customer keys force these server-side values over client-supplied workspace, plan, or cap fields.
+- Workspace API keys are returned once, stored hashed, scoped, and honored on job creation for workspace, owner email, plan, included minutes, subscription price, and operator-approved account-limit metadata. Stored customer keys force these server-side values over client-supplied workspace, plan, or cap fields.
 - Stored customer keys can only create/read uploads, register/review/drain webhooks, read, report, cancel, import gate verdicts for, drain queued jobs, list, and meter jobs in their own workspace. Active-job concurrency limits are also evaluated within the stored key's workspace. If a stored key has API-key review/provisioning scopes, those routes are still pinned to the stored key's own workspace, owner, plan economics, and overage cap, including checkout provisioning. Operator/admin bearer keys keep broader provisioning and review access.
 - Redacted workspace API keys must be reviewable through the dashboard or `GET /v1/api-keys` with `api_keys:read`, without exposing token hashes or bearer secrets.
 - Abuse events must be visible through the dashboard or `GET /v1/abuse-events`.
 - Extra deterministic minutes require approved `overage_cap_cents`; a zero or omitted cap blocks at included minutes and records `usage_limit_exceeded`.
 - Owner spend alerts must record, email through Resend, and remain reviewable through the dashboard or `GET /v1/spend-alerts` when billable extra-minute spend crosses 100% of subscription value. COGS stays visible as audit context, but the trigger follows customer overage spend.
 
-## Provision A Beta Workspace Key
+## Provision A Workspace Key
 
 Use the dashboard API-key form or call the API with an operator bearer that has `api_keys:write`.
 
@@ -36,10 +36,10 @@ curl https://api.uploadcheck.app/v1/api-keys \
 
 Store the returned `apiKey` privately as `UPLOADCHECK_API_KEY`. It will not be returned again.
 
-## Codex Private Beta Install
+## Codex Public GitHub / Local Install
 
-Before the npm package is published, point Codex at the local checkout or private clone.
-The machine-readable install artifact at `/mcp-install.json` keeps the current local/private-clone snippets separate from future `npx -y @uploadcheck/mcp` snippets.
+Before the npm package is published, point Codex at the public GitHub clone or local checkout.
+The machine-readable install artifact at `/mcp-install.json` keeps the current public GitHub/local snippets separate from future `npx -y @uploadcheck/mcp` snippets.
 
 ```toml
 [mcp_servers.uploadcheck]
@@ -52,7 +52,7 @@ UPLOADCHECK_API_BASE_URL = "https://api.uploadcheck.app"
 UPLOADCHECK_API_KEY = "<workspace_api_key>"
 ```
 
-## Claude Code / Claude Desktop Private Beta Install
+## Claude Code / Claude Desktop Public GitHub / Local Install
 
 ```json
 {
@@ -69,11 +69,11 @@ UPLOADCHECK_API_KEY = "<workspace_api_key>"
 }
 ```
 
-## Cursor Private Beta Install
+## Cursor Public GitHub / Local Install
 
 Use the same JSON shape in `.cursor/mcp.json`.
 
-## First Beta Smoke
+## First Install Smoke
 
 1. Call `qc_get_cost_basis`.
 2. Call `qc_estimate_cost` with the exact deterministic checks the workspace plans to use.
@@ -90,7 +90,7 @@ Use `docs/private-mcp-beta-evidence-template.json` to capture proof for Claude C
 Each captured client proof must include:
 
 - client name: `claude_code`, `codex`, or `cursor`
-- workspace id tied to plan minutes, top-up credits, or an operator-created beta account
+- workspace id tied to included plan minutes or an operator-created account
 - install path and API base URL
 - public MCP/API tools called
 - deterministic checks requested
@@ -133,4 +133,4 @@ Do not publish broad install copy or submit Anthropic Directory until:
 - Hosted `/mcp-install.json`, launch doctor, and launch evidence are redeployed and pass their live verifiers.
 - Registry install proof confirms clean `npx`/package installs after publish.
 - A paid or beta workspace key can create a hosted QC job and fetch the report.
-- Private beta evidence from Claude Code, Codex, and Cursor is captured in `docs/private-mcp-beta-evidence-template.json`.
+- Public GitHub MCP evidence from Claude Code, Codex, and Cursor is captured in `docs/private-mcp-beta-evidence-template.json`.

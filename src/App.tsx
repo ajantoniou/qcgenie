@@ -84,8 +84,8 @@ const packageOptions = [
 
 const installTargets = [
   {
-    name: "1. Use a private clone or local checkout",
-    code: "cd /absolute/path/to/uploadcheck"
+    name: "1. Clone the public GitHub repo",
+    code: "git clone https://github.com/ajantoniou/uploadcheck.git /absolute/path/to/uploadcheck"
   },
   {
     name: "2. Codex config",
@@ -103,7 +103,6 @@ const pricingTiers = [
     label: "Best for most creators",
     price: "$99/mo",
     minutes: "2,400",
-    overage: "$0.12/min",
     checkoutHref: "/checkout/creator",
     detail: "Built for creators who publish weekly, batch clips, and want every final export checked before upload."
   },
@@ -112,7 +111,6 @@ const pricingTiers = [
     label: "Best value for teams",
     price: "$299/mo",
     minutes: "10,000",
-    overage: "$0.09/min",
     checkoutHref: "/checkout/studio",
     detail: "For editors, agencies, and teams checking multiple shows, clients, or channels."
   },
@@ -121,7 +119,6 @@ const pricingTiers = [
     label: "High-volume",
     price: "$899/mo",
     minutes: "36,000",
-    overage: "$0.06/min",
     checkoutHref: "/checkout/network",
     detail: "For high-volume teams running daily uploads, large clip batches, or multi-channel operations."
   }
@@ -136,7 +133,7 @@ const usageProfiles = [
 const paymentOptions = [
   "Secure monthly checkout",
   "Creator, Studio, and Network plans",
-  "Set a monthly cap before overage"
+  "Upgrade when volume grows"
 ] as const;
 
 const generationCostComparisons = [
@@ -245,7 +242,7 @@ const faqItems = [
   {
     question: "Do re-checks count against included minutes?",
     answer:
-      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. Extra checked minutes are metered by tier after approval, and teams can set a monthly cap so UploadCheck stops before unapproved overage."
+      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. There is no public self-serve extra-minute or credit purchase flow yet, so jobs stop at the included-minute limit unless the account upgrades or an operator adjusts the workspace."
   },
   {
     question: "What can UploadCheck fix automatically?",
@@ -343,7 +340,7 @@ function LandingView() {
           <div className="heroPriceStrip" aria-label="Creator plan summary">
             <strong>2,400 checked minutes/month</strong>
             <span>Most creators use 300-1,800.</span>
-            <span>$0.12/min approved overage.</span>
+            <span>Upgrade when volume grows.</span>
           </div>
           <div className="issueChecklist" aria-label="UploadCheck catches">
             {issueChecks.map((check) => (
@@ -446,7 +443,7 @@ function LandingView() {
               <p>
                 {tier.minutes} checked minutes/month. {tier.detail}
               </p>
-              <small>{tier.overage} approved overage after included minutes</small>
+              <small>No public self-serve extra-minute purchase yet</small>
               <a className="priceCta" href={tier.checkoutHref}>Start {tier.name}</a>
             </article>
           ))}
@@ -1057,14 +1054,14 @@ function AgentView() {
             <h2>Install for agent-to-agent runs</h2>
           </div>
           <div className="commandBlock">
-            <code>Current install: private clone or local checkout</code>
+            <code>Current install: public GitHub clone or local checkout</code>
             <code>Set UPLOADCHECK_API_BASE_URL=https://api.uploadcheck.app</code>
             <code>Set UPLOADCHECK_API_KEY as the agent client secret</code>
             <code>/check ./final-upload.mp4</code>
           </div>
           <p>
             Claude Code, Codex, Cursor, and another MCP-capable agent can all run the same <code>uploadcheck</code> server.
-            Use the private-clone/local install path until the npm packages are published.
+            Use the public GitHub/local install path until the npm packages are published.
           </p>
           <p>{"agent-to-agent handoff: qc_get_cost_basis -> qc_run_local_file -> qc_get_report -> qc_get_marker_csv"}</p>
           <a className="inlineDocLink" href="/agent-install/">Open install guide</a>

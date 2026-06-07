@@ -62,19 +62,19 @@ const requiredSubmissionEvidence = [
   "Webhook proof that X-Signature HMAC-SHA256 is verified with UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET before API-key provisioning.",
   "Abuse-limit proof that over-limit usage blocks before QC compute and records operator-reviewable abuse events.",
   "Spend-alert proof that GET /v1/spend-alerts returns a Resend-backed alert after billable extra-minute spend crosses subscription value, with COGS retained as audit context.",
-  "Private beta evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
+  "Public GitHub MCP client evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
   "No-public-oracle proof that package files, MCP manifests, README copy, and Directory copy do not expose gemini_watch, omni_watch, qwen, anthropic_fallback_oracle, or deep_ai_review as customer tools."
 ];
 
 const errors = [];
 
-if (draft.status !== "private_mcp_beta_not_ready_for_submission") {
+if (draft.status !== "public_github_mcp_not_ready_for_directory") {
   errors.push({ key: "status", reason: "must_not_claim_directory_ready" });
 }
 if (draft.mcp_server_name !== "uploadcheck") errors.push({ key: "mcp_server_name", reason: "expected_uploadcheck" });
 if (draft.distribution?.future_package !== "@uploadcheck/mcp") errors.push({ key: "distribution.future_package", reason: "expected_mcp_package" });
 if (draft.distribution?.requires_workspace_api_key !== true) errors.push({ key: "distribution.requires_workspace_api_key", reason: "must_require_workspace_api_key" });
-if (draft.distribution?.requires_credit_gated_workspace !== true) errors.push({ key: "distribution.requires_credit_gated_workspace", reason: "must_require_credit_gated_workspace" });
+if (draft.distribution?.requires_included_minutes_workspace !== true) errors.push({ key: "distribution.requires_included_minutes_workspace", reason: "must_require_included_minutes_workspace" });
 if (JSON.stringify(draft.public_tools) !== JSON.stringify(expectedTools)) {
   errors.push({ key: "public_tools", reason: "unexpected_public_tool_scope", expected: expectedTools, actual: draft.public_tools });
 }
@@ -115,7 +115,7 @@ if (draft.connector_decision?.chatgpt_or_openai_connector !== "defer") {
 if (!draft.connector_decision?.reason?.includes("hosted HTTPS MCP")) {
   errors.push({ key: "connector_decision.reason", reason: "missing_hosted_https_mcp_connector_gate" });
 }
-if (draft.connector_decision?.next_channel !== "Anthropic Directory after private MCP beta and npm package proof") {
+if (draft.connector_decision?.next_channel !== "Anthropic Directory after public GitHub MCP install and npm package proof") {
   errors.push({ key: "connector_decision.next_channel", reason: "unexpected_next_channel" });
 }
 
@@ -134,7 +134,7 @@ for (const tool of expectedTools) {
   if (!prep.includes(`- \`${tool}\``)) errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_tool_in_prep_doc", tool });
 }
 
-if (!prep.includes("UploadCheck is currently a private MCP beta, not an Anthropic Directory-ready public listing.")) {
+if (!prep.includes("UploadCheck is currently a public GitHub MCP install, not an Anthropic Directory-ready public listing.")) {
   errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_not_ready_warning" });
 }
 if (!prep.includes("docs/PRIVATE-MCP-BETA.md")) {
@@ -151,7 +151,7 @@ for (const command of requiredEvidenceCommands) {
 for (const evidence of [
   "GET /v1/spend-alerts",
   "billable extra-minute spend",
-  "Private beta proof from Claude Code, Codex, and Cursor using workspace API keys and the public MCP tool surface only, captured in `docs/private-mcp-beta-evidence-template.json`",
+  "Public GitHub MCP proof from Claude Code, Codex, and Cursor using workspace API keys and the public MCP tool surface only, captured in `docs/private-mcp-beta-evidence-template.json`",
   "Do not apply for a broad connector or ChatGPT app yet.",
   "Hosted HTTPS MCP endpoint"
 ]) {
@@ -181,14 +181,14 @@ for (const forbidden of ["gemini_watch", "omni_watch", "qwen", "anthropic_fallba
     errors.push({ key: "docs/private-mcp-beta-evidence-template.json", reason: "missing_forbidden_tool", forbidden });
   }
 }
-if (install.distribution_status !== "private_mcp_beta_not_public_self_serve") {
-  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_private_beta_distribution_status" });
+if (install.distribution_status !== "public_github_mcp_not_npm_self_serve") {
+  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_public_github_distribution_status" });
 }
-if (install.current_install !== "local_checkout_or_private_clone") {
-  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_local_private_clone_current_install" });
+if (install.current_install !== "public_github_clone_or_local_checkout") {
+  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_public_github_current_install" });
 }
-if (!install.notes?.some((note) => note.includes("workspace API key tied to plan minutes"))) {
-  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_credit_gated_workspace_key_note" });
+if (!install.notes?.some((note) => note.includes("workspace API key tied to included plan minutes"))) {
+  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_included_minutes_workspace_key_note" });
 }
 if (!install.codex_local?.toml?.includes('UPLOADCHECK_API_KEY = "<workspace_api_key>"')) {
   errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_codex_api_key_placeholder" });

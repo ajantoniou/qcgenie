@@ -160,7 +160,7 @@ function verifiedControls() {
     {
       id: "hosted_mcp_install",
       status: "done",
-      evidence: "npm run live-mcp-install:verify checks hosted /mcp-install.json for private-beta install status, local clone snippets, future npm guard, and workspace API-key placeholders."
+      evidence: "npm run live-mcp-install:verify checks hosted /mcp-install.json for public GitHub/local install status, future npm guard, and workspace API-key placeholders."
     },
     {
       id: "npo_pipeline_handoff",

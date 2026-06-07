@@ -8,12 +8,13 @@
     "@uploadcheck/mcp"
   ],
   "distribution": {
-    "status": "private_mcp_beta_not_public_self_serve",
-    "current_install": "local_checkout_or_private_clone",
-    "future_npm_install": "npx -y @uploadcheck/mcp after @uploadcheck/mcp is published",
-    "public_download_ready": false,
+    "status": "public_github_mcp_not_npm_self_serve",
+    "current_install": "public_github_clone_or_local_checkout",
+    "future_npm_install": "npx -y @uploadcheck/mcp after @uploadcheck/mcp is published to npm",
+    "public_download_ready": true,
     "anthropic_directory_ready": false,
-    "openai_connector": "defer until hosted HTTPS MCP, account binding, report UX, and abuse/cost controls are proven in production"
+    "openai_connector": "defer until hosted HTTPS MCP, account binding, report UX, and abuse/cost controls are proven in production",
+    "github_repo": "https://github.com/ajantoniou/uploadcheck"
   },
   "api_base_url": "https://api.uploadcheck.app/v1",
   "openapi_url": "https://api.uploadcheck.app/openapi.json",
@@ -37,22 +38,19 @@
       "plan": "Creator",
       "price_usd_monthly": 99,
       "included_checked_minutes": 2400,
-      "positioning": "Best for most creators",
-      "overage_usd_per_minute": 0.12
+      "positioning": "Best for most creators"
     },
     {
       "plan": "Studio",
       "price_usd_monthly": 299,
       "included_checked_minutes": 10000,
-      "positioning": "Best value for teams",
-      "overage_usd_per_minute": 0.09
+      "positioning": "Best value for teams"
     },
     {
       "plan": "Network",
       "price_usd_monthly": 899,
       "included_checked_minutes": 36000,
-      "positioning": "High-volume",
-      "overage_usd_per_minute": 0.06
+      "positioning": "High-volume"
     }
   ],
   "pricing_guardrail_note": {
@@ -60,7 +58,8 @@
     "model_backed_deep_review": "preflighted, downgraded, blocked, or sold separately when it would break the 95% gross-margin target",
     "stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute": 0.0157,
     "stress_99_5000_verdict": "$99 / 5,000 is too generous for full-model review; public pricing stays deterministic QC minutes.",
-    "deep_model_review_position": "Internal engine backtesting and deterministic capture-rate measurement, not a public minute allowance."
+    "deep_model_review_position": "Internal engine backtesting and deterministic capture-rate measurement, not a public minute allowance.",
+    "extra_minutes": "No public self-serve extra-minute or credit purchase flow yet; users upgrade plans or contact the operator when included minutes are exhausted."
   },
   "answer_engine_topics": [
     "Video quality checker before YouTube upload",
@@ -101,8 +100,8 @@
     "format": "Bearer <workspace_api_key>"
   },
   "workspace_key_contract": {
-    "private_beta_required": true,
-    "external_users_need": "workspace API key tied to plan minutes, top-up credits, or an operator-created beta account",
+    "private_beta_required": false,
+    "external_users_need": "workspace API key tied to included plan minutes or an operator-created account",
     "local_nto_can_use_repo_without_hosted_key": true,
     "stored_key_behavior": [
       "Returned once, stored hashed, and shown later only as a token prefix.",

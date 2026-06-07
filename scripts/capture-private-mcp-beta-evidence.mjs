@@ -39,7 +39,7 @@ evidence.client_proofs[index] = {
   report_url: proof.report_url || null,
   verdict: proof.verdict,
   sanitized_evidence_timestamp: proof.sanitized_evidence_timestamp,
-  notes: proof.notes || "Sanitized external private beta evidence captured."
+  notes: proof.notes || "Sanitized external public GitHub MCP evidence captured."
 };
 
 const capturedClients = evidence.client_proofs.filter((item) => item.status === "captured").map((item) => item.client);
@@ -77,7 +77,7 @@ function validateProof(proof, evidence) {
   if (!proof.report_id && !proof.report_url) errors.push({ field: "report_id_or_report_url", reason: "required" });
   if (!evidence.required_clients?.includes(proof.client)) errors.push({ field: "client", reason: "must_be_required_client" });
   if (proof.api_base_url !== "https://api.uploadcheck.app") errors.push({ field: "api_base_url", reason: "must_use_hosted_api" });
-  if (!["local_checkout_or_private_clone", "published_npm_package"].includes(proof.install_path)) {
+  if (!["public_github_clone_or_local_checkout", "published_npm_package"].includes(proof.install_path)) {
     errors.push({ field: "install_path", reason: "unexpected_install_path" });
   }
   if (!["PASS", "WATCH", "BLOCK", "NEEDS_REVIEW"].includes(proof.verdict)) {

@@ -1,17 +1,17 @@
 {
-  "status": "private_mcp_beta_not_ready_for_submission",
+  "status": "public_github_mcp_not_ready_for_directory",
   "name": "UploadCheck.app",
   "category": "Media quality control",
   "short_description": "Quality check videos, podcasts, and clips before upload.",
   "long_description": "UploadCheck gives Claude Code, Codex, Cursor, and MCP-capable creator agents a deterministic pre-upload QC loop. Agents can run a media check, fetch timestamped flags, repair only reachable issues, and rerun before claiming an export is upload-ready.",
   "mcp_server_name": "uploadcheck",
   "distribution": {
-    "private_beta": true,
-    "current_install": "local checkout or private clone",
+    "private_beta": false,
+    "current_install": "public GitHub clone or local checkout",
     "future_package": "@uploadcheck/mcp",
     "hosted_api_base_url": "https://api.uploadcheck.app",
     "requires_workspace_api_key": true,
-    "requires_credit_gated_workspace": true
+    "requires_included_minutes_workspace": true
   },
   "public_tools": [
     "qc_get_cost_basis",
@@ -67,13 +67,13 @@
     "Webhook proof that X-Signature HMAC-SHA256 is verified with UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET before API-key provisioning.",
     "Abuse-limit proof that over-limit usage blocks before QC compute and records operator-reviewable abuse events.",
     "Spend-alert proof that GET /v1/spend-alerts returns a Resend-backed alert after billable extra-minute spend crosses subscription value, with COGS retained as audit context.",
-    "Private beta evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
+    "Public GitHub MCP client evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
     "No-public-oracle proof that package files, MCP manifests, README copy, and Directory copy do not expose gemini_watch, omni_watch, qwen, anthropic_fallback_oracle, or deep_ai_review as customer tools."
   ],
   "connector_decision": {
     "chatgpt_or_openai_connector": "defer",
     "reason": "MCP/API distribution is the current product-agent channel; connector review waits for hosted HTTPS MCP, account binding, report UX, abuse controls, and production cost evidence.",
-    "next_channel": "Anthropic Directory after private MCP beta and npm package proof"
+    "next_channel": "Anthropic Directory after public GitHub MCP install and npm package proof"
   },
   "not_public_tools": [
     "gemini_watch",
@@ -88,6 +88,6 @@
     "Configure UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET on Render.",
     "Pass npm run saas-basics:verify against the current checkout, usage-limit, API-key, and Resend spend-alert code.",
     "Capture paid workspace API-key proof from hosted QC job creation through report fetch.",
-    "Capture private beta evidence from Claude Code, Codex, and Cursor in docs/private-mcp-beta-evidence-template.json."
+    "Capture public GitHub MCP client evidence from Claude Code, Codex, and Cursor in docs/private-mcp-beta-evidence-template.json."
   ]
 }

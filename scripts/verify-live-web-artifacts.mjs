@@ -43,7 +43,7 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
   ]);
   requiredText(errors, "agent_install", agentInstall, [
     "Install UploadCheck for Agents",
-    "private clone or local checkout",
+    "public GitHub clone or local checkout",
     "/absolute/path/to/uploadcheck/mcp-server/index.mjs",
     "~/.codex/config.toml",
     ".cursor/mcp.json",
@@ -67,7 +67,7 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
     "https://api.uploadcheck.app/v1/launch-evidence",
     "Checked minutes are deterministic publish-readiness QC minutes",
     "report feeds back to the user's LLM",
-    "stops before unapproved overage"
+    "no public self-serve extra-minute or credit purchase flow yet"
   ]);
   if (!demo?.ok) {
     errors.push(error("demo_clip", "missing_demo_clip", "Demo clip must return HTTP 200."));

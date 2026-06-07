@@ -58,7 +58,7 @@ const engineReference = read(files.engineReference);
 const pipelineIntegration = read(files.pipelineIntegration);
 
 requireIncludes(files.beta, beta, [
-  "UploadCheck is currently a private MCP beta.",
+  "UploadCheck is currently a public GitHub MCP install.",
   "External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key",
   "Local NTO production can keep using the local repo path directly.",
   "Paid oracle checks such as `twins`, `omni_watch`, `gemini_watch`, `narration_match`, `cheap_broll`, and `garble` require explicit `--checks`.",
@@ -80,16 +80,16 @@ requireIncludes(files.publish, publish, [
 ]);
 
 requireIncludes(files.install, install, [
-  "Private beta users need a workspace API key tied to plan minutes or beta credits.",
-  "private clone or local checkout",
+  "Users need a workspace API key tied to included plan minutes.",
+  "public GitHub clone or local checkout",
   "Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists"
 ]);
 
-if (mcpInstall.distribution_status !== "private_mcp_beta_not_public_self_serve") {
-  errors.push({ file: files.mcpInstall, reason: "must_not_claim_public_self_serve" });
+if (mcpInstall.distribution_status !== "public_github_mcp_not_npm_self_serve") {
+  errors.push({ file: files.mcpInstall, reason: "must_claim_public_github_not_npm" });
 }
-if (mcpInstall.current_install !== "local_checkout_or_private_clone") {
-  errors.push({ file: files.mcpInstall, reason: "current_install_must_be_local_or_private_clone" });
+if (mcpInstall.current_install !== "public_github_clone_or_local_checkout") {
+  errors.push({ file: files.mcpInstall, reason: "current_install_must_be_public_github_or_local" });
 }
 if (!String(mcpInstall.future_npm_install || "").includes("after @uploadcheck/mcp is published")) {
   errors.push({ file: files.mcpInstall, reason: "missing_future_npm_guard" });
@@ -145,8 +145,7 @@ requireIncludes(files.runGate, runGate, [
 const forbiddenReadyClaims = [
   "public self-serve is ready",
   "Use npx -y @uploadcheck/mcp today",
-  "OpenAI connector is the next step",
-  "git clone https://github.com/ajantoniou/uploadcheck.git"
+  "OpenAI connector is the next step"
 ];
 for (const [file, text] of Object.entries({ [files.beta]: beta, [files.directory]: directory, [files.install]: install })) {
   for (const claim of forbiddenReadyClaims) {
@@ -161,21 +160,21 @@ if (errors.length) {
 
 console.log(JSON.stringify({
   ok: true,
-  verdict: "private_mcp_beta_ready_public_download_not_ready",
+  verdict: "public_github_mcp_ready_public_npm_not_ready",
   recommendedDistributionPath: [
-    "Keep private MCP beta as the current channel.",
+    "Keep public GitHub MCP install as the current channel.",
     "Publish @uploadcheck/mcp and @uploadcheck/cli after founder npm login/org confirmation.",
-    "Collect external Claude Code, Codex, and Cursor beta proof with workspace API keys.",
+    "Collect external Claude Code, Codex, and Cursor public GitHub MCP proof with workspace API keys.",
     "Prepare Anthropic Directory after paid workspace proof; defer OpenAI connector/app."
   ],
   currentUsableModes: [
     "Local NTO production via local repo path.",
-    "Private external Claude Code/Codex/Cursor installs via local checkout or private clone plus workspace API key."
+    "External Claude Code/Codex/Cursor installs via public GitHub clone or local checkout plus workspace API key."
   ],
   publicBlockers: [
     "npm packages are not published",
     "registry install proof is not captured",
-    "external beta evidence is not captured"
+    "external public GitHub MCP evidence is not captured"
   ],
   commandResults
 }, null, 2));

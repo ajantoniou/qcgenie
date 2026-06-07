@@ -12,8 +12,8 @@ function runCapture(evidencePath, proofPath) {
   });
 }
 
-describe("private MCP beta evidence capture", () => {
-  it("captures a sanitized client proof without marking all beta evidence complete", () => {
+describe("public GitHub MCP evidence capture", () => {
+  it("captures a sanitized client proof without marking all client evidence complete", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-beta-evidence-"));
     try {
       const evidencePath = join(dir, "evidence.json");
@@ -22,7 +22,7 @@ describe("private MCP beta evidence capture", () => {
       writeFileSync(proofPath, JSON.stringify({
         client: "codex",
         workspace_id: "ws_beta_codex",
-        install_path: "local_checkout_or_private_clone",
+        install_path: "public_github_clone_or_local_checkout",
         api_base_url: "https://api.uploadcheck.app",
         package_or_command: "/Applications/DrAntoniou Projects/UploadCheck/mcp-server/run-uploadcheck-mcp.sh",
         tools_called: ["qc_get_cost_basis", "qc_estimate_cost", "qc_run_local_file", "qc_get_job", "qc_get_report", "qc_get_marker_csv"],
@@ -60,7 +60,7 @@ describe("private MCP beta evidence capture", () => {
       writeFileSync(proofPath, JSON.stringify({
         client: "codex",
         workspace_id: "ws_beta_codex",
-        install_path: "local_checkout_or_private_clone",
+        install_path: "public_github_clone_or_local_checkout",
         api_base_url: "https://api.uploadcheck.app",
         package_or_command: "/Applications/DrAntoniou Projects/UploadCheck/mcp-server/run-uploadcheck-mcp.sh",
         tools_called: ["qc_get_cost_basis", "qc_run_local_file", "qc_get_report"],

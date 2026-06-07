@@ -113,13 +113,13 @@ function verifyMcpInstallManifest(manifest) {
   if (manifest.name !== "uploadcheck") throw new Error("MCP install manifest must name the uploadcheck server.");
   if (manifest.package !== "@uploadcheck/mcp") throw new Error("MCP install manifest must reference @uploadcheck/mcp.");
   if (manifest.binary !== "uploadcheck-mcp") throw new Error("MCP install manifest must reference uploadcheck-mcp.");
-  if (manifest.distribution_status !== "private_mcp_beta_not_public_self_serve") throw new Error("MCP install manifest must declare private beta distribution status.");
-  if (manifest.current_install !== "local_checkout_or_private_clone") throw new Error("MCP install manifest must keep local/private clone as the current install path.");
+  if (manifest.distribution_status !== "public_github_mcp_not_npm_self_serve") throw new Error("MCP install manifest must declare public GitHub / not npm distribution status.");
+  if (manifest.current_install !== "public_github_clone_or_local_checkout") throw new Error("MCP install manifest must keep public GitHub/local checkout as the current install path.");
   if (!String(manifest.future_npm_install || "").includes("after @uploadcheck/mcp is published")) throw new Error("MCP install manifest must guard npx snippets until npm publish.");
   if (manifest.hosted_api_base_url !== "https://api.uploadcheck.app") throw new Error("MCP install manifest must use the UploadCheck custom API base URL.");
   if (!manifest.codex_local?.toml?.includes("[mcp_servers.uploadcheck]")) throw new Error("MCP install manifest must include Codex TOML.");
   if (!manifest.codex_local?.toml?.includes('UPLOADCHECK_API_KEY = "<workspace_api_key>"')) {
-    throw new Error("MCP install manifest Codex TOML must include UPLOADCHECK_API_KEY placeholder for private beta installs.");
+    throw new Error("MCP install manifest Codex TOML must include UPLOADCHECK_API_KEY placeholder for public GitHub installs.");
   }
   for (const client of ["claude_desktop", "cursor"]) {
     const server = manifest[client]?.json?.mcpServers?.uploadcheck;
@@ -132,14 +132,14 @@ function verifyMcpInstallManifest(manifest) {
     if (!server) throw new Error(`MCP install manifest missing ${client} uploadcheck server.`);
     assertDeepEqual(`${client} command`, server.command, "node");
     if (!server.args?.[0]?.includes("/absolute/path/to/uploadcheck/mcp-server/index.mjs")) {
-      throw new Error(`MCP install manifest ${client} must use the local private-beta checkout path.`);
+      throw new Error(`MCP install manifest ${client} must use the public GitHub/local checkout path.`);
     }
     if (server.env?.UPLOADCHECK_API_KEY !== "<workspace_api_key>") {
       throw new Error(`MCP install manifest ${client} must include UPLOADCHECK_API_KEY placeholder.`);
     }
   }
-  if (!manifest.notes?.some((note) => note.includes("workspace API key tied to plan minutes"))) {
-    throw new Error("MCP install manifest must state external beta users need credit-gated workspace API keys.");
+  if (!manifest.notes?.some((note) => note.includes("workspace API key tied to included plan minutes"))) {
+    throw new Error("MCP install manifest must state public GitHub/local users need workspace API keys tied to included plan minutes.");
   }
   if (!manifest.recommended_first_calls?.includes("qc_get_npo_pipeline_handoff")) {
     throw new Error("MCP install manifest must recommend the NPO pipeline handoff tool.");

@@ -108,15 +108,15 @@ describe("UploadCheck package metadata", () => {
       name: "uploadcheck",
       package: "@uploadcheck/mcp",
       binary: "uploadcheck-mcp",
-      distribution_status: "private_mcp_beta_not_public_self_serve",
-      current_install: "local_checkout_or_private_clone",
+      distribution_status: "public_github_mcp_not_npm_self_serve",
+      current_install: "public_github_clone_or_local_checkout",
       hosted_api_base_url: "https://api.uploadcheck.app"
     });
     expect(install.future_npm_install).toContain("after @uploadcheck/mcp is published");
     expect(install.claude_desktop_local.json.mcpServers.uploadcheck.command).toBe("node");
     expect(install.claude_desktop_local.json.mcpServers.uploadcheck.args[0]).toContain("/absolute/path/to/uploadcheck/mcp-server/index.mjs");
     expect(install.cursor_local.json.mcpServers.uploadcheck.command).toBe("node");
-    expect(install.notes.join("\n")).toContain("workspace API key tied to plan minutes");
+    expect(install.notes.join("\n")).toContain("workspace API key tied to included plan minutes");
     expect(install.claude_desktop.json.mcpServers.uploadcheck.args).toEqual(["-y", "@uploadcheck/mcp"]);
     expect(install.cursor.json.mcpServers.uploadcheck.args).toEqual(["-y", "@uploadcheck/mcp"]);
     expect(install.codex_local.toml).toContain("[mcp_servers.uploadcheck]");

@@ -182,9 +182,9 @@ export function validateLlmsArtifact(text) {
     "UploadCheck.app",
     "Quality check videos, podcasts, and clips before you upload.",
     "MCP server name: uploadcheck.",
-    "Current distribution state: private MCP beta.",
-    "Current install path: local checkout or private clone.",
-    "Use @uploadcheck/cli and @uploadcheck/mcp only after the npm packages are published.",
+    "Current distribution state: public GitHub MCP install, not public npm self-serve yet.",
+    "Current install path: public GitHub clone or local checkout.",
+    "Use @uploadcheck/cli and @uploadcheck/mcp only after the npm packages are published to npm.",
     "https://api.uploadcheck.app/product-hunt-launch-kit.json",
     "https://api.uploadcheck.app/mcp-install.json",
     "https://api.uploadcheck.app/sample-reports/index.json",
@@ -192,7 +192,7 @@ export function validateLlmsArtifact(text) {
     "Checked minutes are deterministic publish-readiness QC minutes",
     "Internal AI helps improve the QC engine",
     "report feeds back to the user's LLM",
-    "stops before unapproved overage",
+    "no public self-serve extra-minute or credit purchase flow yet",
     "NTO/NPO pipeline profiles"
   ];
   for (const value of required) {
@@ -211,11 +211,11 @@ export function validateMcpInstallArtifact(payload) {
   if (payload?.package !== "@uploadcheck/mcp" || payload?.binary !== "uploadcheck-mcp") {
     errors.push(error("mcp_install.package", "wrong_package", "MCP install artifact must expose @uploadcheck/mcp and uploadcheck-mcp."));
   }
-  if (payload?.distribution_status !== "private_mcp_beta_not_public_self_serve") {
-    errors.push(error("mcp_install.distribution_status", "missing_private_beta_status", "MCP install artifact must identify the current private beta status."));
+  if (payload?.distribution_status !== "public_github_mcp_not_npm_self_serve") {
+    errors.push(error("mcp_install.distribution_status", "missing_public_github_status", "MCP install artifact must identify the current public GitHub / not npm status."));
   }
-  if (payload?.current_install !== "local_checkout_or_private_clone") {
-    errors.push(error("mcp_install.current_install", "missing_current_local_install", "MCP install artifact must keep local checkout/private clone as the current install path."));
+  if (payload?.current_install !== "public_github_clone_or_local_checkout") {
+    errors.push(error("mcp_install.current_install", "missing_current_public_github_install", "MCP install artifact must keep public GitHub/local checkout as the current install path."));
   }
   if (!String(payload?.future_npm_install || "").includes("after @uploadcheck/mcp is published")) {
     errors.push(error("mcp_install.future_npm_install", "missing_future_npm_guard", "MCP install artifact must guard npx snippets until npm publish."));
@@ -230,10 +230,10 @@ export function validateMcpInstallArtifact(payload) {
     errors.push(error("mcp_install.codex_local.toml", "missing_codex_workspace_key_placeholder", "Codex install snippet must include the workspace API-key placeholder."));
   }
   if (payload?.claude_desktop_local?.json?.mcpServers?.uploadcheck?.command !== "node") {
-    errors.push(error("mcp_install.claude_desktop_local", "missing_claude_local_node_install", "Claude private-beta snippet must use a local checkout path."));
+    errors.push(error("mcp_install.claude_desktop_local", "missing_claude_local_node_install", "Claude local snippet must use a public GitHub/local checkout path."));
   }
   if (payload?.cursor_local?.json?.mcpServers?.uploadcheck?.command !== "node") {
-    errors.push(error("mcp_install.cursor_local", "missing_cursor_local_node_install", "Cursor private-beta snippet must use a local checkout path."));
+    errors.push(error("mcp_install.cursor_local", "missing_cursor_local_node_install", "Cursor local snippet must use a public GitHub/local checkout path."));
   }
   if (payload?.claude_desktop?.json?.mcpServers?.uploadcheck?.env?.UPLOADCHECK_API_KEY !== "<workspace_api_key>") {
     errors.push(error("mcp_install.claude_desktop", "missing_claude_workspace_key_placeholder", "Claude install snippet must include the workspace API-key placeholder."));
@@ -241,11 +241,8 @@ export function validateMcpInstallArtifact(payload) {
   if (payload?.cursor?.json?.mcpServers?.uploadcheck?.env?.UPLOADCHECK_API_KEY !== "<workspace_api_key>") {
     errors.push(error("mcp_install.cursor", "missing_cursor_workspace_key_placeholder", "Cursor install snippet must include the workspace API-key placeholder."));
   }
-  if (!payload?.notes?.some((note) => String(note).includes("Do not claim Product Hunt launch readiness"))) {
-    errors.push(error("mcp_install.notes", "missing_no_launch_rule", "MCP install artifact must preserve the no-launch readiness rule."));
-  }
-  if (!payload?.notes?.some((note) => String(note).includes("workspace API key tied to plan minutes"))) {
-    errors.push(error("mcp_install.notes", "missing_credit_gated_workspace_key_note", "MCP install artifact must state external beta users need credit-gated workspace keys."));
+  if (!payload?.notes?.some((note) => String(note).includes("workspace API key tied to included plan minutes"))) {
+    errors.push(error("mcp_install.notes", "missing_included_minutes_workspace_key_note", "MCP install artifact must state public GitHub/local users need workspace keys tied to included plan minutes."));
   }
   return errors;
 }

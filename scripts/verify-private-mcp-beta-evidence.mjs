@@ -43,7 +43,7 @@ for (const client of requiredClients) {
     continue;
   }
   if (proof.api_base_url !== "https://api.uploadcheck.app") errors.push({ client, field: "api_base_url", reason: "wrong_api_base_url" });
-  if (proof.install_path !== "local_checkout_or_private_clone" && proof.install_path !== "published_npm_package") {
+  if (proof.install_path !== "public_github_clone_or_local_checkout" && proof.install_path !== "published_npm_package") {
     errors.push({ client, field: "install_path", reason: "unexpected_install_path" });
   }
 }

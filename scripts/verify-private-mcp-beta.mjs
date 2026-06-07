@@ -27,9 +27,9 @@ const roadmap = read(files.roadmap);
 const errors = [];
 
 requireIncludes(files.beta, beta, [
-  "UploadCheck is currently a private MCP beta.",
+  "UploadCheck is currently a public GitHub MCP install.",
   "External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key",
-  "plan minutes, top-up credits, or an operator-created beta account",
+  "included plan minutes or an operator-created account",
   "Local NTO production can keep using the local repo path directly.",
   "Customer-facing MCP/API runs use deterministic publish-readiness QC minutes.",
   "`--fast` is not a spend guardrail.",
@@ -44,22 +44,22 @@ requireIncludes(files.beta, beta, [
 ]);
 
 requireIncludes(files.directory, directory, [
-  "UploadCheck is currently a private MCP beta, not an Anthropic Directory-ready public listing.",
-  "Beta handoff: `docs/PRIVATE-MCP-BETA.md`",
+  "UploadCheck is currently a public GitHub MCP install, not an Anthropic Directory-ready public listing.",
+  "Install handoff: `docs/PRIVATE-MCP-BETA.md`",
   "Verifier: `npm run anthropic-directory:verify`"
 ]);
 
 requireIncludes(files.installPage, installPage, [
-  "Private beta users need a workspace API key tied to plan minutes or beta credits.",
+  "Users need a workspace API key tied to included plan minutes.",
   "Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists",
-  "private clone or local checkout",
+  "public GitHub clone or local checkout",
   "/mcp-install.json"
 ]);
 
 requireIncludes(files.apiPage, apiPage, [
-  "UploadCheck is a private MCP beta.",
+  "UploadCheck is a public GitHub MCP install.",
   "Authorization: Bearer &lt;workspace_api_key&gt;",
-  "Workspace keys are tied to plan minutes, top-up credits, or an operator-created beta account.",
+  "Workspace keys are tied to included plan minutes or an operator-created account.",
   "curl https://api.uploadcheck.app/v1/qc/jobs",
   "Checked minutes are deterministic publish-readiness QC minutes."
 ]);
@@ -119,7 +119,7 @@ for (const tool of ["gemini_watch", "omni_watch", "qwen", "anthropic_fallback_or
 }
 
 requireIncludes(files.roadmap, roadmap, [
-  "private MCP beta handoff added at `docs/PRIVATE-MCP-BETA.md`",
+  "public GitHub MCP install handoff added at `docs/PRIVATE-MCP-BETA.md`",
   "Anthropic Directory draft artifact added at `docs/anthropic-directory-draft.json`",
   "external Claude Code, Codex, Cursor, and MCP usage must be tied to created workspace API keys"
 ]);
@@ -143,7 +143,7 @@ if (errors.length) {
 
 console.log(JSON.stringify({
   ok: true,
-  status: "private_mcp_beta_ready_for_operator_handoff_not_public_self_serve",
+  status: "public_github_mcp_ready_not_npm_self_serve",
   handoff: files.beta,
   requiredRuntimeProof: [
     "npm run packages:verify",
@@ -158,7 +158,7 @@ console.log(JSON.stringify({
   ],
   remainingExternalLaunchBlockers: [
     "npm publish and registry install proof",
-    "external Claude/Codex/Cursor beta evidence with workspace API keys"
+    "external Claude/Codex/Cursor public GitHub MCP evidence with workspace API keys"
   ]
 }, null, 2));
 

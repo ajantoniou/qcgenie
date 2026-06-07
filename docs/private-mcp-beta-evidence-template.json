@@ -1,9 +1,9 @@
 {
   "status": "template_not_captured",
-  "purpose": "Capture private MCP beta proof before public npm/download or Anthropic Directory submission.",
+  "purpose": "Capture public GitHub MCP install proof before public npm/download or Anthropic Directory submission.",
   "rules": [
     "Do not store raw workspace API keys, token hashes, media files, checkout URL paths, or customer private media in this artifact.",
-    "Each client proof must use a workspace API key tied to plan minutes, top-up credits, or an operator-created beta account.",
+    "Each client proof must use a workspace API key tied to included plan minutes or an operator-created account.",
     "Each client proof must use the public MCP/API tool surface only; internal Gemini, Omni, Qwen, Anthropic fallback, or deep AI review tools must not appear.",
     "Each run must execute deterministic publish-readiness QC and fetch a timestamped report.",
     "A proof is captured only when job_id, report_id or report_url, workspace_id, client name, install path, checks, verdict, and sanitized evidence timestamp are filled."
@@ -48,7 +48,7 @@
       "client": "claude_code",
       "status": "not_captured",
       "workspace_id": null,
-      "install_path": "local_checkout_or_private_clone",
+      "install_path": "public_github_clone_or_local_checkout",
       "api_base_url": "https://api.uploadcheck.app",
       "package_or_command": "node /absolute/path/to/uploadcheck/mcp-server/index.mjs",
       "tools_called": [],
@@ -64,7 +64,7 @@
       "client": "codex",
       "status": "not_captured",
       "workspace_id": null,
-      "install_path": "local_checkout_or_private_clone",
+      "install_path": "public_github_clone_or_local_checkout",
       "api_base_url": "https://api.uploadcheck.app",
       "package_or_command": "/absolute/path/to/uploadcheck/mcp-server/run-uploadcheck-mcp.sh",
       "tools_called": [],
@@ -80,7 +80,7 @@
       "client": "cursor",
       "status": "not_captured",
       "workspace_id": null,
-      "install_path": "local_checkout_or_private_clone",
+      "install_path": "public_github_clone_or_local_checkout",
       "api_base_url": "https://api.uploadcheck.app",
       "package_or_command": "node /absolute/path/to/uploadcheck/mcp-server/index.mjs",
       "tools_called": [],
