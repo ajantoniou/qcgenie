@@ -37,6 +37,7 @@ Internal product-testing oracles such as `scripts/qc-engine/gemini_watch.py` are
 - `npm run product-agent:verify`
 - `npm run private-mcp-beta:verify`
 - `npm run private-mcp-beta:evidence`
+- `npm run private-mcp-beta:capture -- /path/to/sanitized-client-proof.json`
 - `npm run checkout-launch:verify`
 - `npm run saas-basics:verify`
 - `npm run codex:verify-install`
