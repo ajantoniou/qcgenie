@@ -28,6 +28,7 @@ export function validateLaunchStatusArtifact(payload) {
     "npm run saas-basics:verify",
     "npm run mcp-install:verify",
     "npm run private-mcp-beta:verify",
+    "npm run private-mcp-beta:evidence",
     "npm run anthropic-directory:verify",
       "npm run product-agent:verify",
     "npm run live-public-artifacts:verify",
@@ -79,7 +80,7 @@ export function validateProductHuntLaunchKitArtifact(payload) {
     errors.push(error("product_hunt_launch_kit.pricing_position.stress_plan_verdict", "missing_stress_verdict", "Product Hunt kit must preserve the $99 / 5,000 warning."));
   }
   const requiredCommands = payload?.ready_when?.required_commands || [];
-  for (const command of ["npm run launch:doctor", "npm run saas-basics:verify", "npm run mcp-install:verify", "npm run private-mcp-beta:verify", "npm run anthropic-directory:verify",
+  for (const command of ["npm run launch:doctor", "npm run saas-basics:verify", "npm run mcp-install:verify", "npm run private-mcp-beta:verify", "npm run private-mcp-beta:evidence", "npm run anthropic-directory:verify",
       "npm run product-agent:verify", "npm run live-public-artifacts:verify", "npm run live-launch-evidence:verify", "npm run launch:check"]) {
     if (!requiredCommands.includes(command)) {
       errors.push(error("product_hunt_launch_kit.ready_when.required_commands", "missing_required_command", `Missing required command: ${command}`));

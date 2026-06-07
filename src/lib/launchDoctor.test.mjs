@@ -131,6 +131,7 @@ describe("launch doctor", () => {
       "npm run saas-basics:verify",
       "npm run mcp-install:verify",
       "npm run private-mcp-beta:verify",
+      "npm run private-mcp-beta:evidence",
       "npm run anthropic-directory:verify",
       "npm run product-agent:verify",
       "npm run codex:verify-install",

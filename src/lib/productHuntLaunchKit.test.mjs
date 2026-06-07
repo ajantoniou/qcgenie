@@ -58,6 +58,7 @@ describe("Product Hunt launch kit", () => {
     expect(kit.ready_when.required_commands).toContain("npm run mcp-install:verify");
     expect(kit.ready_when.required_commands).toContain("npm run saas-basics:verify");
     expect(kit.ready_when.required_commands).toContain("npm run private-mcp-beta:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run private-mcp-beta:evidence");
     expect(kit.ready_when.required_commands).toContain("npm run anthropic-directory:verify");
     expect(kit.ready_when.required_commands).toContain("npm run product-agent:verify");
     expect(kit.ready_when.required_commands).toContain("UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify");

@@ -41,7 +41,7 @@ The hosted manifests must reflect the new "call UploadCheck first -> fix flags -
   `npm run live-mcp-install:verify`, `npm run live-public-artifacts:verify`, `npm run live-agent-manifest:verify`,
   `npm run live-pipeline-recipes:verify`, `npm run live-npo-pipeline-handoff:verify`.
   These now fail if hosted launch doctor/evidence omit `saas-basics:verify`,
-  `mcp-install:verify`, `private-mcp-beta:verify`, or `anthropic-directory:verify`, or if
+  `mcp-install:verify`, `private-mcp-beta:verify`, `private-mcp-beta:evidence`, or `anthropic-directory:verify`, or if
   hosted `/mcp-install.json` is missing.
   (These are [AGENT-OK] to RUN as read-only checks against the live URL once you've deployed.)
 

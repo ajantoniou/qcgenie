@@ -33,6 +33,7 @@ export const LAUNCH_DOCTOR_STEPS = [
   { id: "saas-basics", label: "Verify SaaS API-key, abuse, and spend-alert basics", command: ["npm", "run", "--silent", "saas-basics:verify"] },
   { id: "mcp-install", label: "Verify MCP install artifact", command: ["npm", "run", "--silent", "mcp-install:verify"] },
   { id: "private-mcp-beta", label: "Verify private MCP beta handoff", command: ["npm", "run", "--silent", "private-mcp-beta:verify"] },
+  { id: "private-mcp-beta-evidence", label: "Verify private MCP beta evidence contract", command: ["npm", "run", "--silent", "private-mcp-beta:evidence"] },
   { id: "anthropic-directory", label: "Verify Anthropic Directory draft gate", command: ["npm", "run", "--silent", "anthropic-directory:verify"] },
   { id: "product-agent", label: "Verify product-agent distribution readiness", command: ["npm", "run", "--silent", "product-agent:verify"] },
   { id: "codex-install", label: "Verify Codex MCP install", command: ["npm", "run", "--silent", "codex:verify-install"] },

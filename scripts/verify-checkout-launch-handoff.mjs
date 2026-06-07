@@ -61,7 +61,7 @@ requireIncludes(files.deployment, docs.deployment, [
   "signed checkout events can provision MCP/API keys",
   "render:validate-env-file -- /tmp/uploadcheck-render-launch.env",
   "`render:apply` refuses to run when validation fails",
-  "hosted launch doctor/evidence verifiers also require `saas-basics:verify`, `mcp-install:verify`, `private-mcp-beta:verify`, `anthropic-directory:verify`, and `product-agent:verify`",
+  "hosted launch doctor/evidence verifiers also require `saas-basics:verify`, `mcp-install:verify`, `private-mcp-beta:verify`, `private-mcp-beta:evidence`, `anthropic-directory:verify`, and `product-agent:verify`",
   "npm run live-mcp-install:verify",
   "npm run live-public-artifacts:verify",
   "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",

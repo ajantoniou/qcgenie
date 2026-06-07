@@ -16,7 +16,7 @@ describe("deployment cutover docs", () => {
     const text = readFileSync(resolve("docs/DEPLOYMENT-CUTOVER.md"), "utf8");
     const checklist = readFileSync(resolve("PUBLISH-CHECKLIST.md"), "utf8");
 
-    expect(text).toContain("hosted launch doctor/evidence verifiers also require `saas-basics:verify`, `mcp-install:verify`, `private-mcp-beta:verify`, `anthropic-directory:verify`, and `product-agent:verify`");
+    expect(text).toContain("hosted launch doctor/evidence verifiers also require `saas-basics:verify`, `mcp-install:verify`, `private-mcp-beta:verify`, `private-mcp-beta:evidence`, `anthropic-directory:verify`, and `product-agent:verify`");
     expect(text).toContain("npm run live-mcp-install:verify");
     expect(text).toContain("hosted `/mcp-install.json`");
     expect(checklist).toContain("launch-status.json, product-hunt-launch-kit.json, mcp-install.json");
