@@ -7,25 +7,32 @@ afterEach(() => {
 });
 
 describe("UploadCheck conversion UI", () => {
-  test("leads with UploadCheck.app branding, final-export insurance, and sample proof", () => {
+  test("leads with agent-native video QC, MCP install, and sample proof", () => {
     render(<App />);
 
     expect(screen.getByText("UploadCheck.app")).toBeInTheDocument();
-    expect(screen.getByText(/final-export insurance for creators/)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Catch broken exports before your audience or client does." })).toBeInTheDocument();
-    expect(screen.getByText(/Run deterministic publish-readiness QC on videos, podcasts, and clips/)).toBeInTheDocument();
-    expect(screen.getByText(/report is fed back to your LLM/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Video QC for AI agents before upload" })).toBeInTheDocument();
+    expect(screen.getByText(/Claude Code, Codex, Cursor, and MCP-capable agents/)).toBeInTheDocument();
+    expect(screen.getAllByText(/They still need a QC loop/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Built for Claude Code")).toBeInTheDocument();
+    expect(screen.getByText("Built for Codex")).toBeInTheDocument();
+    expect(screen.getByText("Built for Cursor")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Install MCP server" })).toHaveAttribute("href", "/docs/mcp/");
+    expect(screen.getAllByText("npx -y @drantoniou/uploadcheck-mcp").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("LLM repair loop")).toBeInTheDocument();
     expect(screen.getByText("UploadCheck decides. Agents repair.")).toBeInTheDocument();
     expect(screen.getByText(/UploadCheck is the SaaS QC authority/)).toBeInTheDocument();
     expect(screen.getByText(/no broad rewrite, no taste-based refactor/i)).toBeInTheDocument();
     expect(screen.getByText(/I will only patch the flagged caption span/)).toBeInTheDocument();
     expect(screen.getAllByText("/check final-upload.mp4").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByRole("link", { name: "Start Creator - $99/mo" })).toHaveAttribute("href", "/checkout/creator");
-    expect(screen.getByRole("link", { name: "View sample report" })).toHaveAttribute("href", "/sample-report/");
+    expect(screen.getAllByRole("link", { name: "Run a sample check" })[0]).toHaveAttribute("href", "/sample-report/");
+    expect(screen.getByRole("link", { name: "Start Creator" })).toHaveAttribute("href", "/checkout/creator");
+    expect(screen.getByText("YouTube")).toBeInTheDocument();
+    expect(screen.getByText("Agencies")).toBeInTheDocument();
+    expect(screen.getByText("Product launch videos")).toBeInTheDocument();
     expect(screen.getByText("Upgrade when volume grows.")).toBeInTheDocument();
-    expect(screen.getByText("Frozen frames")).toBeInTheDocument();
-    expect(screen.getByText("Caption safe-area")).toBeInTheDocument();
+    expect(screen.getAllByText("Frozen frames").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Caption safe-area").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Media checks before upload")).toBeInTheDocument();
   });
 
@@ -36,12 +43,15 @@ describe("UploadCheck conversion UI", () => {
 
     expect(screen.getByRole("heading", { name: "Run video QC inside your agent workspace" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Install for agent-to-agent runs" })).toBeInTheDocument();
+    expect(screen.getAllByText("npx -y @drantoniou/uploadcheck-mcp").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("/check ./final-upload.mp4")).toBeInTheDocument();
-    expect(screen.getAllByText("uploadcheck").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("uploadcheck-mcp").length).toBeGreaterThan(0);
-    expect(screen.getByText("Current install: public npm or GitHub checkout")).toBeInTheDocument();
-    expect(screen.getByText(/Use npx, the public GitHub clone, or a local checkout/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open install guide" })).toHaveAttribute("href", "/agent-install/");
+    expect(screen.getAllByText("@drantoniou/uploadcheck").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("@drantoniou/uploadcheck-mcp").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Public users need plan credits/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open MCP docs" })).toHaveAttribute("href", "/docs/mcp/");
+    expect(screen.getByRole("link", { name: "Docs overview" })).toHaveAttribute("href", "/docs/");
+    expect(screen.getByRole("heading", { name: "Representative MCP tools" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Representative REST endpoints" })).toBeInTheDocument();
     expect(screen.getByText(/qc_get_cost_basis -> qc_run_local_file -> qc_get_report -> qc_get_marker_csv/)).toBeInTheDocument();
   });
 
@@ -324,7 +334,7 @@ describe("UploadCheck conversion UI", () => {
   test("exposes pricing and sample report as public conversion links", () => {
     render(<App />);
 
-    expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "/pricing/");
+    expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "#pricing");
     expect(screen.getByRole("link", { name: "Sample report" })).toHaveAttribute("href", "/sample-report/");
   });
 });

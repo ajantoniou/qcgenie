@@ -1,0 +1,150 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const agenticPath = path.join(repoRoot, "src/lib/agentic.ts");
+const docsRoot = path.join(repoRoot, "public/docs");
+const installCommand = "npx -y @drantoniou/uploadcheck-mcp";
+
+function extractArray(source, exportName) {
+  const marker = `export const ${exportName}`;
+  const start = source.indexOf(marker);
+  if (start === -1) throw new Error(`Missing ${exportName}`);
+  const assignmentStart = source.indexOf("=", start);
+  if (assignmentStart === -1) throw new Error(`Missing assignment for ${exportName}`);
+  const arrayStart = source.indexOf("[", assignmentStart);
+  if (arrayStart === -1) throw new Error(`Missing array start for ${exportName}`);
+  let depth = 0;
+  for (let index = arrayStart; index < source.length; index += 1) {
+    const char = source[index];
+    if (char === "[") depth += 1;
+    if (char === "]") depth -= 1;
+    if (depth === 0) {
+      return source.slice(arrayStart, index + 1);
+    }
+  }
+  throw new Error(`Missing array end for ${exportName}`);
+}
+
+function parseExportedArray(source, exportName) {
+  const literal = extractArray(source, exportName);
+  return Function(`"use strict"; return (${literal});`)();
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function page(title, body) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeHtml(title)} | UploadCheck Docs</title>
+  <meta name="description" content="UploadCheck MCP and API documentation for agentic pre-upload media QC.">
+  <style>
+    :root { color: #18212f; background: #fbfcff; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    header, main { margin: 0 auto; max-width: 1120px; padding: 24px; }
+    header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid #dfe7f1; }
+    a { color: #0f766e; font-weight: 800; text-decoration: none; }
+    nav { display: flex; flex-wrap: wrap; gap: 12px; }
+    h1 { font-size: clamp(32px, 5vw, 56px); line-height: 1.05; margin: 28px 0 12px; letter-spacing: 0; }
+    h2 { font-size: 24px; margin: 28px 0 12px; letter-spacing: 0; }
+    p { color: #64748b; line-height: 1.55; margin: 0 0 14px; }
+    code { background: #101827; border-radius: 8px; color: #a7f3d0; display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow-x: auto; padding: 10px 12px; max-width: 100%; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+    article { background: #ffffff; border: 1px solid #dce3ec; border-radius: 8px; padding: 16px; }
+    article strong { display: block; overflow-wrap: anywhere; }
+    article span { color: #64748b; display: block; font-size: 13px; font-weight: 850; margin-top: 9px; text-transform: uppercase; }
+    ul { color: #64748b; line-height: 1.55; margin: 10px 0 0; padding-left: 18px; }
+    .method { color: #0f766e; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    @media (max-width: 760px) { header, main { padding: 18px; } .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/">UploadCheck.app</a>
+    <nav aria-label="Docs navigation">
+      <a href="/docs/">Overview</a>
+      <a href="/docs/mcp/">MCP</a>
+      <a href="/docs/api/">API</a>
+      <a href="/sample-report/">Sample report</a>
+    </nav>
+  </header>
+  <main>${body}</main>
+</body>
+</html>
+`;
+}
+
+function toolCard(tool) {
+  return `<article>
+    <strong>${escapeHtml(tool.name)}</strong>
+    <p>${escapeHtml(tool.purpose)}</p>
+    <span>Inputs</span>
+    <p>${escapeHtml(tool.inputs.length ? tool.inputs.join(", ") : "none")}</p>
+    <span>Outputs</span>
+    <p>${escapeHtml(tool.outputs.join(", "))}</p>
+  </article>`;
+}
+
+function endpointCard(endpoint) {
+  const [method, ...routeParts] = endpoint.methodPath.split(" ");
+  return `<article>
+    <strong><span class="method">${escapeHtml(method)}</span> ${escapeHtml(routeParts.join(" "))}</strong>
+    <p>${escapeHtml(endpoint.purpose)}</p>
+  </article>`;
+}
+
+const source = await readFile(agenticPath, "utf8");
+const tools = parseExportedArray(source, "MCP_TOOLS");
+const endpoints = parseExportedArray(source, "AGENT_API_ENDPOINTS");
+
+await mkdir(path.join(docsRoot, "mcp"), { recursive: true });
+await mkdir(path.join(docsRoot, "api"), { recursive: true });
+
+await writeFile(
+  path.join(docsRoot, "index.html"),
+  page(
+    "Agentic Video QC",
+    `<h1>UploadCheck docs</h1>
+    <p>UploadCheck is deterministic pre-upload QC for AI agents. Agents call UploadCheck, receive timestamped PASS, WATCH, or BLOCK evidence, repair only flagged spans, then rerun the gate before upload.</p>
+    <p><code>${installCommand}</code></p>
+    <section class="grid">
+      <article><strong>MCP server</strong><p>Install the published MCP package for Claude Code, Codex, Cursor, and MCP-capable workspaces.</p><a href="/docs/mcp/">View ${tools.length} MCP tools</a></article>
+      <article><strong>REST API</strong><p>Create jobs, poll status, fetch reports, manage uploads, and provision workspace API keys.</p><a href="/docs/api/">View ${endpoints.length} endpoints</a></article>
+    </section>`
+  )
+);
+
+await writeFile(
+  path.join(docsRoot, "mcp/index.html"),
+  page(
+    "MCP Reference",
+    `<h1>MCP reference</h1>
+    <p>Install command for public agent workspaces:</p>
+    <p><code>${installCommand}</code></p>
+    <p>Set <code>UPLOADCHECK_API_BASE_URL=https://api.uploadcheck.app</code> and <code>UPLOADCHECK_API_KEY=&lt;workspace_api_key&gt;</code>.</p>
+    <section class="grid">${tools.map(toolCard).join("\n")}</section>`
+  )
+);
+
+await writeFile(
+  path.join(docsRoot, "api/index.html"),
+  page(
+    "API Reference",
+    `<h1>API reference</h1>
+    <p>Base URL: <code>https://api.uploadcheck.app</code></p>
+    <section class="grid">${endpoints.map(endpointCard).join("\n")}</section>`
+  )
+);
+
+console.log(JSON.stringify({ ok: true, docsRoot, mcpTools: tools.length, apiEndpoints: endpoints.length }));

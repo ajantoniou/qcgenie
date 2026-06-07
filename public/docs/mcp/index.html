@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MCP Reference | UploadCheck Docs</title>
+  <meta name="description" content="UploadCheck MCP and API documentation for agentic pre-upload media QC.">
+  <style>
+    :root { color: #18212f; background: #fbfcff; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    header, main { margin: 0 auto; max-width: 1120px; padding: 24px; }
+    header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid #dfe7f1; }
+    a { color: #0f766e; font-weight: 800; text-decoration: none; }
+    nav { display: flex; flex-wrap: wrap; gap: 12px; }
+    h1 { font-size: clamp(32px, 5vw, 56px); line-height: 1.05; margin: 28px 0 12px; letter-spacing: 0; }
+    h2 { font-size: 24px; margin: 28px 0 12px; letter-spacing: 0; }
+    p { color: #64748b; line-height: 1.55; margin: 0 0 14px; }
+    code { background: #101827; border-radius: 8px; color: #a7f3d0; display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; overflow-x: auto; padding: 10px 12px; max-width: 100%; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+    article { background: #ffffff; border: 1px solid #dce3ec; border-radius: 8px; padding: 16px; }
+    article strong { display: block; overflow-wrap: anywhere; }
+    article span { color: #64748b; display: block; font-size: 13px; font-weight: 850; margin-top: 9px; text-transform: uppercase; }
+    ul { color: #64748b; line-height: 1.55; margin: 10px 0 0; padding-left: 18px; }
+    .method { color: #0f766e; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    @media (max-width: 760px) { header, main { padding: 18px; } .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/">UploadCheck.app</a>
+    <nav aria-label="Docs navigation">
+      <a href="/docs/">Overview</a>
+      <a href="/docs/mcp/">MCP</a>
+      <a href="/docs/api/">API</a>
+      <a href="/sample-report/">Sample report</a>
+    </nav>
+  </header>
+  <main><h1>MCP reference</h1>
+    <p>Install command for public agent workspaces:</p>
+    <p><code>npx -y @drantoniou/uploadcheck-mcp</code></p>
+    <p>Set <code>UPLOADCHECK_API_BASE_URL=https://api.uploadcheck.app</code> and <code>UPLOADCHECK_API_KEY=&lt;workspace_api_key&gt;</code>.</p>
+    <section class="grid"><article>
+    <strong>qc_get_launch_status</strong>
+    <p>Fetch live UploadCheck launch readiness, current blockers, and operator commands for agent planning.</p>
+    <span>Inputs</span>
+    <p>none</p>
+    <span>Outputs</span>
+    <p>product_hunt_ready, status, remaining_blockers, operator_commands</p>
+  </article>
+<article>
+    <strong>qc_get_launch_handoff</strong>
+    <p>Fetch live UploadCheck launch blockers, required actions, proof commands, and no-launch rule for agent/operator handoff.</p>
+    <span>Inputs</span>
+    <p>none</p>
+    <span>Outputs</span>
+    <p>productHuntReady, remainingBlockers, requiredActions, blockerProofCommands, launchDoctorCommands, operatorCommandSequence, rule</p>
+  </article>
+<article>
+    <strong>qc_get_launch_doctor</strong>
+    <p>Fetch live UploadCheck launch blocker fix plan for Product Hunt readiness.</p>
+    <span>Inputs</span>
+    <p>none</p>
+    <span>Outputs</span>
+    <p>productHuntReady, remainingBlockers, blockerFixPlan, blockerProofCommands, launchDoctorCommands, operatorCommandSequence, rule</p>
+  </article>
+<article>
+    <strong>qc_get_launch_evidence</strong>
+    <p>Fetch redacted UploadCheck launch evidence derived from the live launch doctor for agent-safe Product Hunt verification.</p>
+    <span>Inputs</span>
+    <p>none</p>
+    <span>Outputs</span>
+    <p>productHuntReady, status, blockers, commandCoverage, fixPhases, redaction</p>
+  </article>
+<article>
+    <strong>qc_get_pipeline_handoff</strong>
+    <p>Fetch the production pipeline handoff runbook for NTO/NPO and creator workflows.</p>
+    <span>Inputs</span>
+    <p>none</p>
+    <span>Outputs</span>
+    <p>source_artifacts, profiles, call_sequence, media_ingress, margin_rules, repair_loop_contract</p>
+  </article>
+<article>
+    <strong>qc_get_npo_pipeline_handoff</strong>
+    <p>Fetch the focused NPO podcast/audio production handoff for cost preflight, sidecars, media ingress, marker CSV, and repair-loop workflows.</p>
+    <span>Inputs</span>
+    <p>none</p>
+    <span>Outputs</span>
+    <p>profile_id, cost_preflight, media_ingress, required_sidecars, mcp_sequence, repair_loop_contract</p>
+  </article>
+<article>
+    <strong>qc_get_pipeline_recipes</strong>
+    <p>Fetch machine-readable UploadCheck pipeline profiles and repair-loop contracts for NTO/NPO and creator workflows.</p>
+    <span>Inputs</span>
+    <p>none</p>
+    <span>Outputs</span>
+    <p>launch_preflight, cost_preflight, profiles, repair_loop_contract, nto_replacement_qc</p>
+  </article>
+<article>
+    <strong>qc_get_cost_basis</strong>
+    <p>Fetch public cost-per-minute, plan economics, and 95% gross-margin assumptions before pricing or launch decisions.</p>
+    <span>Inputs</span>
+    <p>none</p>
+    <span>Outputs</span>
+    <p>target_gross_margin_pct, cost_assumptions, plans, verdict, model_backed_checks</p>
+  </article>
+<article>
+    <strong>qc_estimate_cost</strong>
+    <p>Preflight cost, margin safety, and effective/removed gates before an agent uploads or runs media.</p>
+    <span>Inputs</span>
+    <p>minutes, duration_seconds, checks, plan_id, ai_review_seconds, cost_guardrail</p>
+    <span>Outputs</span>
+    <p>margin_safe, effective_checks, removed_checks, cost_estimate, action</p>
+  </article>
+<article>
+    <strong>qc_run_video</strong>
+    <p>Start a full-timeline UploadCheck run from Claude, Codex, or another agent workspace.</p>
+    <span>Inputs</span>
+    <p>youtube_url, upload_id, signed_url, video_base64, audio_base64, data_url, manifest_url, transcript_url, watchlist_url, expected_script_url, chunk_sidecars_url, callback_url</p>
+    <span>Outputs</span>
+    <p>job_id, verdict, status_url, report_url, minutes_metered, media_ingress, sidecar_ingress, cost_estimate</p>
+  </article>
+<article>
+    <strong>qc_run_local_file</strong>
+    <p>Read a local media file from an agent workspace and send it through Render inline or signed upload.</p>
+    <span>Inputs</span>
+    <p>file_path, checks, manifest_path, transcript_path, watchlist_path, expected_script_path, sidecar_dir, plan_id, cost_guardrail</p>
+    <span>Outputs</span>
+    <p>job_id, verdict, status_url, report_url, minutes_metered, media_ingress, cost_estimate</p>
+  </article>
+<article>
+    <strong>qc_get_job</strong>
+    <p>Poll status, stage, progress, current verdict, and minutes for an active job.</p>
+    <span>Inputs</span>
+    <p>job_id</p>
+    <span>Outputs</span>
+    <p>status, stage, progress_pct, verdict, minutes_metered, media_ingress</p>
+  </article>
+<article>
+    <strong>qc_get_report</strong>
+    <p>Retrieve a finished UploadCheck report with evidence-grounded timestamp flags.</p>
+    <span>Inputs</span>
+    <p>job_id</p>
+    <span>Outputs</span>
+    <p>verdict, flags, timestamps, transcript_evidence, share_url</p>
+  </article>
+<article>
+    <strong>qc_get_events</strong>
+    <p>Retrieve lifecycle events so an agent can cite exactly which QC stages ran.</p>
+    <span>Inputs</span>
+    <p>job_id</p>
+    <span>Outputs</span>
+    <p>events, event_type, created_at</p>
+  </article>
+<article>
+    <strong>qc_get_artifacts</strong>
+    <p>List report artifacts and editor handoff files for a QC run.</p>
+    <span>Inputs</span>
+    <p>job_id</p>
+    <span>Outputs</span>
+    <p>artifacts, artifact_type, url</p>
+  </article>
+<article>
+    <strong>qc_get_marker_csv</strong>
+    <p>Download the CSV marker export for an editor handoff.</p>
+    <span>Inputs</span>
+    <p>job_id</p>
+    <span>Outputs</span>
+    <p>csv</p>
+  </article>
+<article>
+    <strong>qc_submit_gate_verdict</strong>
+    <p>Import an external full-video QC gate result into the hosted report and webhook flow.</p>
+    <span>Inputs</span>
+    <p>job_id, verdict</p>
+    <span>Outputs</span>
+    <p>verdict, blocked, skipped, imported_flags, report_url</p>
+  </article>
+<article>
+    <strong>qc_list_recent_jobs</strong>
+    <p>Let an agent inspect recent jobs before re-running duplicate QC work.</p>
+    <span>Inputs</span>
+    <p>workspace_id, limit</p>
+    <span>Outputs</span>
+    <p>jobs, verdicts, created_at, minutes_metered</p>
+  </article>
+<article>
+    <strong>qc_get_margin_telemetry</strong>
+    <p>Summarize usage COGS and gross-margin safety for pricing and launch decisions.</p>
+    <span>Inputs</span>
+    <p>billing_period, limit</p>
+    <span>Outputs</span>
+    <p>minutes, estimated_cogs_cents, estimated_cost_per_minute_cents, estimated_gross_margin_pct, margin_safe</p>
+  </article>
+<article>
+    <strong>qc_create_upload_url</strong>
+    <p>Create a signed upload URL so agents can send local files without handling QC storage directly.</p>
+    <span>Inputs</span>
+    <p>filename, content_type, size_bytes</p>
+    <span>Outputs</span>
+    <p>upload_id, signed_put_url, expires_at, put_then_run_qc_with_upload_id</p>
+  </article></section></main>
+</body>
+</html>
