@@ -8,6 +8,7 @@ const files = {
   installPage: "public/agent-install/index.html",
   apiPage: "public/agentic-media-qc-api/index.html",
   mcpInstall: "mcp-server/mcp-install.json",
+  betaEvidence: "docs/private-mcp-beta-evidence-template.json",
   packageJson: "package.json",
   pipeline: "docs/PIPELINE-INTEGRATION.md",
   roadmap: "docs/PRODUCT-ROADMAP.md"
@@ -18,6 +19,7 @@ const directory = read(files.directory);
 const installPage = read(files.installPage);
 const apiPage = read(files.apiPage);
 const mcpInstall = JSON.parse(read(files.mcpInstall));
+const betaEvidence = JSON.parse(read(files.betaEvidence));
 const packageJson = JSON.parse(read(files.packageJson));
 const pipeline = read(files.pipeline);
 const roadmap = read(files.roadmap);
@@ -35,6 +37,8 @@ requireIncludes(files.beta, beta, [
   "Workspace API keys are returned once, stored hashed, scoped, and honored on job creation",
   "Abuse events must be visible through the dashboard or `GET /v1/abuse-events`.",
   "Owner spend alerts must record, email through Resend, and remain reviewable",
+  "Use `docs/private-mcp-beta-evidence-template.json` to capture proof for Claude Code, Codex, and Cursor.",
+  "Run `npm run private-mcp-beta:evidence` before treating the proof contract as valid.",
   "Do not publish broad install copy or submit Anthropic Directory until:"
 ]);
 
@@ -86,12 +90,30 @@ for (const script of [
   "packages:install-smoke",
   "npm-publish:preflight",
   "saas-basics:verify",
+  "private-mcp-beta:evidence",
   "codex:verify-install",
   "anthropic-directory:verify",
   "mcp-install:verify",
   "readiness:check"
 ]) {
   if (!packageJson.scripts?.[script]) errors.push({ file: files.packageJson, reason: "missing_script", script });
+}
+
+for (const client of ["claude_code", "codex", "cursor"]) {
+  if (!betaEvidence.required_clients?.includes(client)) {
+    errors.push({ file: files.betaEvidence, reason: "missing_required_client", client });
+  }
+  if (!betaEvidence.client_proofs?.some((proof) => proof.client === client)) {
+    errors.push({ file: files.betaEvidence, reason: "missing_client_proof", client });
+  }
+}
+for (const tool of ["gemini_watch", "omni_watch", "qwen", "anthropic_fallback_oracle", "deep_ai_review"]) {
+  if (!betaEvidence.forbidden_customer_tools?.includes(tool)) {
+    errors.push({ file: files.betaEvidence, reason: "missing_forbidden_customer_tool", tool });
+  }
+  if (betaEvidence.allowed_tools?.includes(tool)) {
+    errors.push({ file: files.betaEvidence, reason: "forbidden_customer_tool_allowed", tool });
+  }
 }
 
 requireIncludes(files.roadmap, roadmap, [
@@ -126,6 +148,7 @@ console.log(JSON.stringify({
     "npm run packages:install-smoke",
     "npm run npm-publish:preflight",
     "npm run saas-basics:verify",
+    "npm run private-mcp-beta:evidence",
     "npm run codex:verify-install",
     "npm run anthropic-directory:verify",
     "npm run mcp-install:verify",

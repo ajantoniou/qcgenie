@@ -83,10 +83,29 @@ Use the same JSON shape in `.cursor/mcp.json`.
 6. Confirm any abuse-limit run is persisted and visible in the dashboard abuse panel.
 7. Confirm any overage-spend alert is persisted and visible in the dashboard spend-alert panel.
 
+## Evidence Capture Contract
+
+Use `docs/private-mcp-beta-evidence-template.json` to capture proof for Claude Code, Codex, and Cursor. Keep it sanitized: no raw workspace API keys, token hashes, private media, checkout URL paths, or customer secrets.
+
+Each captured client proof must include:
+
+- client name: `claude_code`, `codex`, or `cursor`
+- workspace id tied to plan minutes, top-up credits, or an operator-created beta account
+- install path and API base URL
+- public MCP/API tools called
+- deterministic checks requested
+- job id
+- report id or report URL
+- final verdict
+- sanitized evidence timestamp
+
+Run `npm run private-mcp-beta:evidence` before treating the proof contract as valid. The verifier allows the template to remain `template_not_captured`, but Directory/public submission cannot move forward until all three client proofs are captured.
+
 Before handing the beta instructions to another workspace, run:
 
 ```bash
 npm run private-mcp-beta:verify
+npm run private-mcp-beta:evidence
 npm run packages:verify
 npm run packages:install-smoke
 npm run npm-publish:preflight
@@ -105,4 +124,4 @@ Do not publish broad install copy or submit Anthropic Directory until:
 - Hosted `/mcp-install.json`, launch doctor, and launch evidence are redeployed and pass their live verifiers.
 - Registry install proof confirms clean `npx`/package installs after publish.
 - A paid or beta workspace key can create a hosted QC job and fetch the report.
-- Private beta evidence from Claude Code, Codex, and Cursor is captured.
+- Private beta evidence from Claude Code, Codex, and Cursor is captured in `docs/private-mcp-beta-evidence-template.json`.

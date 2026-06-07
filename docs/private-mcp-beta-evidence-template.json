@@ -1,0 +1,96 @@
+{
+  "status": "template_not_captured",
+  "purpose": "Capture private MCP beta proof before public npm/download or Anthropic Directory submission.",
+  "rules": [
+    "Do not store raw workspace API keys, token hashes, media files, checkout URL paths, or customer private media in this artifact.",
+    "Each client proof must use a workspace API key tied to plan minutes, top-up credits, or an operator-created beta account.",
+    "Each client proof must use the public MCP/API tool surface only; internal Gemini, Omni, Qwen, Anthropic fallback, or deep AI review tools must not appear.",
+    "Each run must execute deterministic publish-readiness QC and fetch a timestamped report.",
+    "A proof is captured only when job_id, report_id or report_url, workspace_id, client name, install path, checks, verdict, and sanitized evidence timestamp are filled."
+  ],
+  "required_clients": [
+    "claude_code",
+    "codex",
+    "cursor"
+  ],
+  "allowed_tools": [
+    "qc_get_cost_basis",
+    "qc_estimate_cost",
+    "qc_run_video",
+    "qc_run_local_file",
+    "qc_get_job",
+    "qc_get_report",
+    "qc_get_events",
+    "qc_get_artifacts",
+    "qc_get_marker_csv",
+    "qc_create_upload_url"
+  ],
+  "forbidden_customer_tools": [
+    "gemini_watch",
+    "omni_watch",
+    "qwen",
+    "anthropic_fallback_oracle",
+    "deep_ai_review"
+  ],
+  "required_checks": [
+    "workspace_api_key_used",
+    "credit_gated_workspace",
+    "deterministic_publish_readiness_qc",
+    "cost_basis_or_estimate_checked",
+    "job_created",
+    "report_fetched",
+    "timestamped_flags_or_pass_evidence_returned",
+    "no_secret_leakage",
+    "no_internal_oracle_tools"
+  ],
+  "client_proofs": [
+    {
+      "client": "claude_code",
+      "status": "not_captured",
+      "workspace_id": null,
+      "install_path": "local_checkout_or_private_clone",
+      "api_base_url": "https://api.uploadcheck.app",
+      "package_or_command": "node /absolute/path/to/uploadcheck/mcp-server/index.mjs",
+      "tools_called": [],
+      "checks": [],
+      "job_id": null,
+      "report_id": null,
+      "report_url": null,
+      "verdict": null,
+      "sanitized_evidence_timestamp": null,
+      "notes": "Fill after a real Claude Code MCP run with a workspace API key."
+    },
+    {
+      "client": "codex",
+      "status": "not_captured",
+      "workspace_id": null,
+      "install_path": "local_checkout_or_private_clone",
+      "api_base_url": "https://api.uploadcheck.app",
+      "package_or_command": "/absolute/path/to/uploadcheck/mcp-server/run-uploadcheck-mcp.sh",
+      "tools_called": [],
+      "checks": [],
+      "job_id": null,
+      "report_id": null,
+      "report_url": null,
+      "verdict": null,
+      "sanitized_evidence_timestamp": null,
+      "notes": "Fill after a real Codex MCP run with a workspace API key."
+    },
+    {
+      "client": "cursor",
+      "status": "not_captured",
+      "workspace_id": null,
+      "install_path": "local_checkout_or_private_clone",
+      "api_base_url": "https://api.uploadcheck.app",
+      "package_or_command": "node /absolute/path/to/uploadcheck/mcp-server/index.mjs",
+      "tools_called": [],
+      "checks": [],
+      "job_id": null,
+      "report_id": null,
+      "report_url": null,
+      "verdict": null,
+      "sanitized_evidence_timestamp": null,
+      "notes": "Fill after a real Cursor MCP run with a workspace API key."
+    }
+  ]
+}

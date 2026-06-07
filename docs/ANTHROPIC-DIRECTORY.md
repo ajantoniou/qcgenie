@@ -36,6 +36,7 @@ Internal product-testing oracles such as `scripts/qc-engine/gemini_watch.py` are
 - `npm run mcp-install:verify`
 - `npm run product-agent:verify`
 - `npm run private-mcp-beta:verify`
+- `npm run private-mcp-beta:evidence`
 - `npm run checkout-launch:verify`
 - `npm run saas-basics:verify`
 - `npm run codex:verify-install`
@@ -47,7 +48,7 @@ Internal product-testing oracles such as `scripts/qc-engine/gemini_watch.py` are
 - The dashboard or checkout provisioning path can create a workspace API key only with authenticated provisioning authority, applies plan economics server-side, and never exposes the stored hash or future copies of the bearer
 - Lemon Squeezy checkout webhooks are verified with `X-Signature` HMAC-SHA256 and `UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET` before they can provision an MCP/API key
 - A job that crosses the subscription-value threshold on billable extra-minute spend records a spend alert, sends the owner email through Resend, and remains reviewable through `GET /v1/spend-alerts` with COGS retained as audit context
-- Private beta proof from Claude Code, Codex, and Cursor using workspace API keys and the public MCP tool surface only
+- Private beta proof from Claude Code, Codex, and Cursor using workspace API keys and the public MCP tool surface only, captured in `docs/private-mcp-beta-evidence-template.json`
 - No public MCP manifest, package file list, Directory draft, or README path exposes `gemini_watch`, `omni_watch`, `qwen`, `anthropic_fallback_oracle`, or `deep_ai_review` as a customer tool
 
 ## Listing Positioning
@@ -64,7 +65,7 @@ Commercial boundary: Deterministic publish-readiness minutes are the included un
 
 - Machine-readable draft: `docs/anthropic-directory-draft.json`
 - Verifier: `npm run anthropic-directory:verify`
-- Rule: the draft must remain `private_mcp_beta_not_ready_for_submission` until package publish, hosted MCP install proof, paid workspace-key proof, and private beta evidence are complete.
+- Rule: the draft must remain `private_mcp_beta_not_ready_for_submission` until package publish, hosted MCP install proof, paid workspace-key proof, and private beta evidence are complete in `docs/private-mcp-beta-evidence-template.json`.
 
 ## Connector Decision
 

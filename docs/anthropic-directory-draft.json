@@ -49,6 +49,7 @@
     "npm run mcp-install:verify",
     "npm run product-agent:verify",
     "npm run private-mcp-beta:verify",
+    "npm run private-mcp-beta:evidence",
     "npm run checkout-launch:verify",
     "npm run saas-basics:verify",
     "npm run codex:verify-install",
@@ -65,7 +66,7 @@
     "Webhook proof that X-Signature HMAC-SHA256 is verified with UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET before API-key provisioning.",
     "Abuse-limit proof that over-limit usage blocks before QC compute and records operator-reviewable abuse events.",
     "Spend-alert proof that GET /v1/spend-alerts returns a Resend-backed alert after billable extra-minute spend crosses subscription value, with COGS retained as audit context.",
-    "Private beta evidence from Claude Code, Codex, and Cursor using workspace API keys.",
+    "Private beta evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
     "No-public-oracle proof that package files, MCP manifests, README copy, and Directory copy do not expose gemini_watch, omni_watch, qwen, anthropic_fallback_oracle, or deep_ai_review as customer tools."
   ],
   "connector_decision": {
@@ -86,6 +87,6 @@
     "Configure UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET on Render.",
     "Pass npm run saas-basics:verify against the current checkout, usage-limit, API-key, and Resend spend-alert code.",
     "Capture paid workspace API-key proof from hosted QC job creation through report fetch.",
-    "Capture private beta evidence from Claude Code, Codex, and Cursor."
+    "Capture private beta evidence from Claude Code, Codex, and Cursor in docs/private-mcp-beta-evidence-template.json."
   ]
 }
