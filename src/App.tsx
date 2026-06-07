@@ -192,24 +192,25 @@ const paymentOptions = [
   "Upgrade when volume grows"
 ] as const;
 
+// QC cost = $99 Creator plan / 2,400 included minutes = $0.041 per checked minute.
+// Multiples are exact: 9 / 0.041 = 220x, 24 / 0.041 = 585x.
+const QC_MINUTE_COST = "$0.04";
 const generationCostComparisons = [
   {
-    label: "Veo 3 Fast video + audio",
-    generation: "$9.00 generated minute",
-    qc: "$0.041 Creator included QC minute",
-    ratio: "QC is about 0.46% of generation cost."
+    label: "Veo 3 Fast",
+    sublabel: "video + audio, per generated minute",
+    generation: "$9.00",
+    multiple: "220×",
+    percent: "0.46%",
+    barPct: 0.46
   },
   {
-    label: "Veo 3 Standard video + audio",
-    generation: "$24.00 generated minute",
-    qc: "$0.041 Creator included QC minute",
-    ratio: "QC is about 0.17% of generation cost."
-  },
-  {
-    label: "Higgsfield premium workflows",
-    generation: "Variable credit burn",
-    qc: "Fixed checked-minute plans",
-    ratio: "Check the final file before another paid generation or edit pass."
+    label: "Veo 3 Standard",
+    sublabel: "video + audio, per generated minute",
+    generation: "$24.00",
+    multiple: "585×",
+    percent: "0.17%",
+    barPct: 0.17
   }
 ] as const;
 
@@ -641,25 +642,36 @@ function LandingView({ setView }: { setView: (view: View) => void }) {
 
       <section className="costComparison" aria-labelledby="costHeading">
         <div className="bandIntro">
-          <h2 id="costHeading">QC is tiny compared with generating the video.</h2>
+          <h2 id="costHeading">Checking the file costs almost nothing.</h2>
           <p>
-            AI video minutes are expensive. Checking the finished file is the cheap step that protects the generation,
-            editing, client, and upload work that came before it.
+            You already paid to generate and edit the video. Catching a broken export before it ships costs a rounding
+            error on top — a Creator checked minute is <strong>{QC_MINUTE_COST}</strong>.
           </p>
         </div>
-        <div className="comparisonCards">
+        <div className="ratioList">
           {generationCostComparisons.map((item) => (
-            <article key={item.label}>
-              <span>{item.label}</span>
-              <strong>{item.generation}</strong>
-              <p>{item.qc}</p>
-              <small>{item.ratio}</small>
+            <article className="ratioRow" key={item.label}>
+              <div className="ratioHead">
+                <span className="ratioModel">{item.label}</span>
+                <span className="ratioSub">{item.sublabel}</span>
+              </div>
+              <div className="ratioBar" aria-hidden="true">
+                <span className="ratioBarFill" style={{ width: `${Math.max(item.barPct, 1.5)}%` }} />
+                <span className="ratioBarLabel make">{item.generation} to make</span>
+                <span className="ratioBarLabel check">{QC_MINUTE_COST} to check</span>
+              </div>
+              <div className="ratioPunch">
+                <strong>{item.multiple}</strong>
+                <span>cheaper to check than to make</span>
+                <small>QC is {item.percent} of generation cost</small>
+              </div>
             </article>
           ))}
         </div>
         <p className="sourceNote">
-          Google lists Veo 3 video+audio generation at $0.15-$0.40 per second. Higgsfield uses credits that vary by
-          model, clip length, resolution, and premium apps, so compare UploadCheck against your actual credit burn.
+          Generation prices from Google's listed Veo 3 video+audio rate of $0.15–$0.40 per second; QC at $0.04 is the
+          $99 Creator plan across its 2,400 included minutes. Higgsfield and other tools burn variable credits per
+          clip — the gap only gets wider against premium generations.
         </p>
       </section>
 

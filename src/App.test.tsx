@@ -283,13 +283,13 @@ describe("UploadCheck conversion UI", () => {
   test("positions the metered pricing model around the $99 creator plan", () => {
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: "QC is tiny compared with generating the video." })).toBeInTheDocument();
-    expect(screen.getByText("Veo 3 Fast video + audio")).toBeInTheDocument();
-    expect(screen.getByText("$9.00 generated minute")).toBeInTheDocument();
-    expect(screen.getByText("Veo 3 Standard video + audio")).toBeInTheDocument();
-    expect(screen.getByText("$24.00 generated minute")).toBeInTheDocument();
-    expect(screen.getByText("Higgsfield premium workflows")).toBeInTheDocument();
-    expect(screen.getByText("Variable credit burn")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Checking the file costs almost nothing." })).toBeInTheDocument();
+    expect(screen.getByText("Veo 3 Fast")).toBeInTheDocument();
+    expect(screen.getByText("220×")).toBeInTheDocument();
+    expect(screen.getByText("Veo 3 Standard")).toBeInTheDocument();
+    expect(screen.getByText("585×")).toBeInTheDocument();
+    expect(screen.getAllByText(/cheaper to check than to make/).length).toBe(2);
+    expect(screen.getByText("QC is 0.46% of generation cost")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Publish-readiness checks priced by media minutes, not seats." })).toBeInTheDocument();
     expect(screen.getByText("Secure monthly checkout")).toBeInTheDocument();
     expect(screen.getByText("Upgrade when volume grows")).toBeInTheDocument();

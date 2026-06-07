@@ -1203,50 +1203,123 @@ p {
   gap: 22px;
 }
 
-.comparisonCards {
+.ratioList {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
-.comparisonCards article {
+.ratioRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  grid-template-areas:
+    "head punch"
+    "bar  punch";
+  gap: 8px 28px;
+  align-items: center;
   background: var(--surface-raised);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 22px;
+  border-radius: 14px;
+  padding: 22px 24px;
 }
 
-.comparisonCards span {
-  color: var(--muted-soft);
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.ratioHead {
+  grid-area: head;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
 }
 
-.comparisonCards strong {
+.ratioModel {
   color: var(--ink);
-  display: block;
-  font-size: 24px;
-  line-height: 1.1;
-  margin-top: 12px;
-  letter-spacing: -0.01em;
+  font-size: 16px;
+  font-weight: 850;
 }
 
-.comparisonCards p {
-  color: var(--ink-soft);
-  font-weight: 700;
-  margin-top: 10px;
-  font-size: 14px;
+.ratioSub {
+  color: var(--muted-soft);
+  font-size: 13px;
 }
 
-.comparisonCards small {
-  color: var(--teal);
-  display: block;
+/* The bar is the disproportion made visible: the full track is the generation
+   cost; the teal fill is the (tiny) QC cost. */
+.ratioBar {
+  grid-area: bar;
+  position: relative;
+  height: 44px;
+  border-radius: 10px;
+  background: repeating-linear-gradient(
+      -45deg,
+      rgba(148, 163, 184, 0.16),
+      rgba(148, 163, 184, 0.16) 8px,
+      rgba(148, 163, 184, 0.09) 8px,
+      rgba(148, 163, 184, 0.09) 16px
+    ),
+    var(--surface);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.ratioBarFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(180deg, #14b8a6, var(--teal));
+  border-radius: 9px 0 0 9px;
+  min-width: 6px;
+}
+
+.ratioBarLabel {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 13px;
   font-weight: 800;
-  line-height: 1.45;
-  margin-top: 12px;
+  white-space: nowrap;
+}
+
+/* The fill is a sliver, so the "to check" label sits on the track just past it,
+   in teal (readable on the light hatch) with a small chip for separation. */
+.ratioBarLabel.check {
+  left: 12px;
+  color: var(--teal-ink);
+  background: rgba(255, 255, 255, 0.88);
+  padding: 3px 8px;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.ratioBarLabel.make {
+  right: 14px;
+  color: var(--muted);
+}
+
+.ratioPunch {
+  grid-area: punch;
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  align-content: center;
+  border-left: 1px solid var(--line);
+  padding-left: 28px;
+}
+
+.ratioPunch strong {
+  color: var(--teal);
+  font-size: clamp(2.4rem, 4vw, 3.1rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-weight: 850;
+}
+
+.ratioPunch span {
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.ratioPunch small {
+  color: var(--muted-soft);
+  font-size: 12.5px;
 }
 
 .sourceNote {
@@ -2230,7 +2303,6 @@ select:focus-visible {
   .proofCards,
   .authorityCards,
   .useCaseGrid,
-  .comparisonCards,
   .priceCards,
   .usageModel,
   .seoTopicGrid,
@@ -2287,7 +2359,6 @@ select:focus-visible {
   .proofCards,
   .authorityCards,
   .useCaseGrid,
-  .comparisonCards,
   .priceCards,
   .usageModel,
   .seoTopicGrid,
@@ -2295,6 +2366,24 @@ select:focus-visible {
   .intentGrid,
   .a2aFlow {
     grid-template-columns: 1fr;
+  }
+
+  /* Stack the ratio row: model, then the bar, then the big multiplier. */
+  .ratioRow {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "head"
+      "bar"
+      "punch";
+    gap: 14px;
+  }
+
+  .ratioPunch {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-left: 0;
+    padding-top: 14px;
+    justify-items: start;
   }
 
   .a2aStage {
