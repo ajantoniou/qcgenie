@@ -134,7 +134,7 @@
   },
   "verdict": {
     "stress_99_5000": "$99 for 5,000 checked minutes is too generous for full-model review. Public pricing stays deterministic QC minutes while model-backed review is used for internal backtesting and deterministic capture-rate measurement.",
-    "launch_shape": "Use Creator $99 / 2,400, Studio $299 / 10,000, Network $799 / 36,000, with checked minutes sold as deterministic publish-readiness QC."
+    "launch_shape": "Use Creator $99 / 2,400, Studio $299 / 10,000, Network $899 / 36,000, with checked minutes sold as deterministic publish-readiness QC."
   },
   "plans": [
     {
@@ -181,17 +181,17 @@
     },
     {
       "plan_id": "network",
-      "price_cents": 79900,
+      "price_cents": 89900,
       "included_minutes": 36000,
       "ai_review_budget_seconds": 0,
-      "max_ai_review_seconds_at_95_margin_after_deterministic_full_allowance": 277493,
-      "revenue_per_minute_cents": 2.2194,
-      "max_cogs_cents_at_95_margin": 3995,
-      "max_cost_per_minute_cents_at_95_margin": 0.111,
+      "max_ai_review_seconds_at_95_margin_after_deterministic_full_allowance": 416768,
+      "revenue_per_minute_cents": 2.4972,
+      "max_cogs_cents_at_95_margin": 4495,
+      "max_cost_per_minute_cents_at_95_margin": 0.1249,
       "deterministic_full_allowance_cogs_cents": 2998.8,
-      "remaining_cogs_after_deterministic_full_allowance_cents": 996.2,
-      "remaining_cost_per_minute_after_deterministic_full_allowance_cents": 0.0277,
-      "deterministic_full_allowance_gross_margin_pct": 96.2468,
+      "remaining_cogs_after_deterministic_full_allowance_cents": 1496.2,
+      "remaining_cost_per_minute_after_deterministic_full_allowance_cents": 0.0416,
+      "deterministic_full_allowance_gross_margin_pct": 96.6643,
       "full_gemini_flash_lite_video_audio_input_cogs_cents": 7754.4,
       "full_gemini_flash_video_audio_input_cogs_cents": 11977.2,
       "full_gemini_flash_batch_video_audio_input_cogs_cents": 5990.4,

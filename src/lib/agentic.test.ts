@@ -25,7 +25,10 @@ describe("agentic integration contract", () => {
       "PUT /v1/uploads/{upload_id}/content",
       "GET /v1/uploads/{upload_id}",
       "GET /v1/qc/jobs?limit=&status=&source_url=",
+      "GET /v1/usage",
       "GET /v1/usage/margins?billing_period=&limit=",
+      "GET /v1/abuse-events?workspace_id=&limit=",
+      "GET /v1/spend-alerts?workspace_id=&limit=",
       "POST /v1/api-keys",
       "POST /v1/checkout/provision-api-key",
       "GET /v1/api-keys?workspace_id="
@@ -107,6 +110,7 @@ describe("agentic integration contract", () => {
     const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
 
     expect(manifest.launch_handoff_command).toBe("npm run launch:handoff -- --text");
+    expect(manifest.mcp_install_url).toBe("https://api.uploadcheck.app/mcp-install.json");
     expect(manifest.response_fields.qc_job).toEqual(expect.arrayContaining([
       "startedAt",
       "completedAt",
@@ -118,6 +122,44 @@ describe("agentic integration contract", () => {
     expect(manifest.response_fields.observability.safe_to_show).toContain("stages");
     expect(manifest.response_fields.launch_handoff.safe_to_show).toContain("launchDoctorCommands");
     expect(manifest.response_fields.launch_handoff.hosted_media_ingress_command).toBe("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
+  });
+
+  it("publishes private beta distribution and workspace-key boundaries for agents", () => {
+    const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
+
+    expect(manifest.distribution).toMatchObject({
+      status: "private_mcp_beta_not_public_self_serve",
+      current_install: "local_checkout_or_private_clone",
+      public_download_ready: false,
+      anthropic_directory_ready: false
+    });
+    expect(manifest.distribution.future_npm_install).toContain("after @uploadcheck/mcp is published");
+    expect(manifest.distribution.openai_connector).toContain("defer");
+    expect(manifest.workspace_key_contract).toMatchObject({
+      private_beta_required: true,
+      local_nto_can_use_repo_without_hosted_key: true
+    });
+    expect(manifest.workspace_key_contract.external_users_need).toContain("workspace API key tied to plan minutes");
+    expect(manifest.workspace_key_contract.stored_key_behavior.join("\n")).toContain("Forces server-side workspace, owner, plan");
+    expect(manifest.workspace_key_contract.stored_key_behavior.join("\n")).toContain("Can only read, report, cancel");
+    expect(manifest.workspace_key_contract.stored_key_behavior.join("\n")).toContain("API-key review or provisioning scopes");
+    expect(manifest.workspace_key_contract.operator_review_endpoints).toEqual([
+      "GET /v1/api-keys?workspace_id=",
+      "GET /v1/abuse-events?workspace_id=&limit=",
+      "GET /v1/spend-alerts?workspace_id=&limit="
+    ]);
+    expect(manifest.workspace_key_contract.checkout_provisioning_endpoints).toEqual([
+      "POST /v1/checkout/provision-api-key",
+      "POST /v1/webhooks/lemonsqueezy"
+    ]);
+    expect(manifest.primary_endpoints).toEqual(expect.arrayContaining([
+      "GET /v1/abuse-events?workspace_id=&limit=",
+      "GET /v1/spend-alerts?workspace_id=&limit=",
+      "POST /v1/api-keys",
+      "GET /v1/api-keys?workspace_id=",
+      "POST /v1/checkout/provision-api-key",
+      "POST /v1/webhooks/lemonsqueezy"
+    ]));
   });
 
   it("defines a real async job lifecycle", () => {

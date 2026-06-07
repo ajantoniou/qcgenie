@@ -39,6 +39,20 @@ describe("UploadCheck package metadata", () => {
     ]);
   });
 
+  it("exposes a read-only npm publish preflight command", () => {
+    const script = readFileSync("scripts/verify-npm-publish-preflight.mjs", "utf8");
+    const packageJson = readJson("package.json");
+
+    expect(packageJson.scripts["npm-publish:preflight"]).toBe("node scripts/verify-npm-publish-preflight.mjs");
+    expect(script).toContain('execFileSync("npm", ["view", packageSpecifier');
+    expect(script).toContain('execFileSync("npm", ["whoami"]');
+    expect(script).toContain("publishableVersion");
+    expect(script).toContain("founderActionRequired");
+    expect(script).toContain("already exists on npm; bump version before publish");
+    expect(script).not.toContain('["publish"');
+    expect(script).not.toContain('["publish",');
+  });
+
   it("keeps CLI package install metadata aligned with public naming", () => {
     const pkg = readJson("cli/package.json");
 
@@ -94,11 +108,19 @@ describe("UploadCheck package metadata", () => {
       name: "uploadcheck",
       package: "@uploadcheck/mcp",
       binary: "uploadcheck-mcp",
+      distribution_status: "private_mcp_beta_not_public_self_serve",
+      current_install: "local_checkout_or_private_clone",
       hosted_api_base_url: "https://api.uploadcheck.app"
     });
+    expect(install.future_npm_install).toContain("after @uploadcheck/mcp is published");
+    expect(install.claude_desktop_local.json.mcpServers.uploadcheck.command).toBe("node");
+    expect(install.claude_desktop_local.json.mcpServers.uploadcheck.args[0]).toContain("/absolute/path/to/uploadcheck/mcp-server/index.mjs");
+    expect(install.cursor_local.json.mcpServers.uploadcheck.command).toBe("node");
+    expect(install.notes.join("\n")).toContain("workspace API key tied to plan minutes");
     expect(install.claude_desktop.json.mcpServers.uploadcheck.args).toEqual(["-y", "@uploadcheck/mcp"]);
     expect(install.cursor.json.mcpServers.uploadcheck.args).toEqual(["-y", "@uploadcheck/mcp"]);
     expect(install.codex_local.toml).toContain("[mcp_servers.uploadcheck]");
+    expect(install.codex_local.toml).toContain('UPLOADCHECK_API_KEY = "<workspace_api_key>"');
     expect(install.recommended_first_calls).toContain("qc_get_npo_pipeline_handoff");
   });
 

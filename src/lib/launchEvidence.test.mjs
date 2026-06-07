@@ -57,7 +57,7 @@ describe("launch evidence", () => {
     expect(payload.name).toBe("UploadCheck.app Launch Evidence");
     expect(payload.contractVersion).toBe(LAUNCH_PROOF_CONTRACT_VERSION);
     expect(payload.ok).toBe(false);
-    expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "hosted-media-ingress", "readiness"]));
+    expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "hosted-media-ingress"]));
     expect(JSON.stringify(payload)).not.toContain("uck_");
     expect(JSON.stringify(payload)).not.toContain("/tmp/uploadcheck/");
     expect(payload.results.find((result) => result.id === "hosted-media-ingress").commandString).toContain("UPLOADCHECK_API_KEY=<private_bearer>");

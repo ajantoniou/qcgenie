@@ -1,0 +1,113 @@
+{
+  "name": "uploadcheck",
+  "description": "Quality check videos, podcasts, and clips before you upload.",
+  "package": "@uploadcheck/mcp",
+  "binary": "uploadcheck-mcp",
+  "distribution_status": "private_mcp_beta_not_public_self_serve",
+  "current_install": "local_checkout_or_private_clone",
+  "future_npm_install": "npx -y @uploadcheck/mcp after @uploadcheck/mcp is published",
+  "hosted_api_base_url": "https://api.uploadcheck.app",
+  "legacy_render_api_base_url": "https://qcgenie-api.onrender.com",
+  "environment": {
+    "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
+    "UPLOADCHECK_API_KEY": "<workspace_api_key>"
+  },
+  "codex_local": {
+    "config_file": "~/.codex/config.toml",
+    "toml": "[mcp_servers.uploadcheck]\ncommand = \"/absolute/path/to/uploadcheck/mcp-server/run-uploadcheck-mcp.sh\"\nargs = []\nstartup_timeout_sec = 60\n\n[mcp_servers.uploadcheck.env]\nUPLOADCHECK_API_BASE_URL = \"https://api.uploadcheck.app\"\nUPLOADCHECK_API_KEY = \"<workspace_api_key>\""
+  },
+  "claude_desktop_local": {
+    "config_file": "claude_desktop_config.json",
+    "json": {
+      "mcpServers": {
+        "uploadcheck": {
+          "command": "node",
+          "args": ["/absolute/path/to/uploadcheck/mcp-server/index.mjs"],
+          "env": {
+            "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
+            "UPLOADCHECK_API_KEY": "<workspace_api_key>"
+          }
+        }
+      }
+    }
+  },
+  "cursor_local": {
+    "config_file": ".cursor/mcp.json",
+    "json": {
+      "mcpServers": {
+        "uploadcheck": {
+          "command": "node",
+          "args": ["/absolute/path/to/uploadcheck/mcp-server/index.mjs"],
+          "env": {
+            "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
+            "UPLOADCHECK_API_KEY": "<workspace_api_key>"
+          }
+        }
+      }
+    }
+  },
+  "claude_desktop": {
+    "config_file": "claude_desktop_config.json",
+    "json": {
+      "mcpServers": {
+        "uploadcheck": {
+          "command": "npx",
+          "args": [
+            "-y",
+            "@uploadcheck/mcp"
+          ],
+          "env": {
+            "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
+            "UPLOADCHECK_API_KEY": "<workspace_api_key>"
+          }
+        }
+      }
+    }
+  },
+  "cursor": {
+    "config_file": ".cursor/mcp.json",
+    "json": {
+      "mcpServers": {
+        "uploadcheck": {
+          "command": "npx",
+          "args": [
+            "-y",
+            "@uploadcheck/mcp"
+          ],
+          "env": {
+            "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
+            "UPLOADCHECK_API_KEY": "<workspace_api_key>"
+          }
+        }
+      }
+    }
+  },
+  "generic_stdio": {
+    "command": "npx",
+    "args": [
+      "-y",
+      "@uploadcheck/mcp"
+    ],
+    "env": {
+      "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
+      "UPLOADCHECK_API_KEY": "<workspace_api_key>"
+    }
+  },
+  "recommended_first_calls": [
+    "qc_get_launch_status",
+    "qc_get_cost_basis",
+    "qc_get_npo_pipeline_handoff",
+    "qc_estimate_cost",
+    "qc_run_local_file",
+    "qc_run_video"
+  ],
+  "notes": [
+    "Current private beta install uses a local checkout or private clone; npx snippets are for after @uploadcheck/mcp is published.",
+    "External beta users need a workspace API key tied to plan minutes, top-up credits, or an operator-created beta account.",
+    "Use qc_run_local_file for reachable local videos, podcasts, clips, stills, and NPO audio files.",
+    "Small local files are encoded inline and evaluated through Render temp storage.",
+    "Large local files use signed upload automatically in upload_mode auto.",
+    "Run qc_get_cost_basis before internal model-backed checks.",
+    "Do not claim Product Hunt launch readiness until qc_get_launch_status reports product_hunt_ready true and no remaining blockers."
+  ]
+}

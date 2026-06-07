@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
 """
 VIDEO QC GATE — runs all checks and emits one ship/block verdict.
-Checks: canvas_fill + loop_freeze + repeat_fatigue + speaker_visual_binding + static_head_dominance + literal_subject_match + first_three_seconds + end_screen_tease + rehook_cadence + contact_sheet_evidence + opening_footer_text_presence + text_crop_jitter + thumbnail_text_readability + hallucinated_plate_text + clean_segment_source_scrub + asset_triage_reuse_manifest + chunk_sidecar_failures + spoken_leaks + pronunciation_watchlist + script_faithfulness + sentence_boundary + dialogue_in_music_short + dead_air + cheap_broll + text_contrast + text_safe_area + garble (deterministic-ish), twins + narration_match + omni_watch + gemini_watch
-(vision). Deterministic checks are authoritative; vision checks supplement. Requested mandatory
-firewall checks such as twins must not skip clean when their runtime dependency is missing.
+Checks include deterministic customer-safe gates plus opt-in paid/model-backed gates.
+The default check set excludes cheap_broll, garble, twins, narration_match,
+omni_watch, and gemini_watch. Use --deterministic-only when rerunning any
+hand-built --checks list; --fast only shortens requested expensive checks and is
+not a spend guardrail. Requested mandatory firewall checks such as twins must not
+skip clean when their runtime dependency is missing.
 Usage:
   run_gate.py VIDEO [--checks canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,end_screen_tease,rehook_cadence,contact_sheet_evidence,opening_footer_text_presence,text_crop_jitter,thumbnail_text_readability,hallucinated_plate_text,clean_segment_source_scrub,asset_triage_reuse_manifest,chunk_sidecar_failures,spoken_leaks,pronunciation_watchlist,script_faithfulness,sentence_boundary,dialogue_in_music_short,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch,gemini_watch]
-              [--lang eng] [--out DIR] [--manifest storybook.json] [--transcript transcript.txt] [--watchlist watchlist.json] [--expected-script script.txt] [--sidecar-dir _dialogue-chunks] [--fast]
+              [--deterministic-only] [--lang eng] [--out DIR] [--manifest storybook.json] [--transcript transcript.txt] [--watchlist watchlist.json] [--expected-script script.txt] [--sidecar-dir _dialogue-chunks] [--fast]
 Exit 0 only if every RUN check PASSES.
 """
 import sys, os, json, subprocess, argparse, time
 
 HERE=os.path.dirname(os.path.abspath(__file__))
 ALL=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","opening_footer_text_presence","text_crop_jitter","thumbnail_text_readability","hallucinated_plate_text","clean_segment_source_scrub","asset_triage_reuse_manifest","chunk_sidecar_failures","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dialogue_in_music_short","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch","gemini_watch","shorts_format"]
-DEFAULT=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch"]
+DEFAULT=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","opening_footer_text_presence","text_crop_jitter","thumbnail_text_readability","hallucinated_plate_text","clean_segment_source_scrub","asset_triage_reuse_manifest","chunk_sidecar_failures","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dialogue_in_music_short","dead_air","text_contrast","text_safe_area","shorts_format"]
+PAID_ORACLE_CHECKS={"cheap_broll","garble","twins","narration_match","omni_watch","gemini_watch"}
 SCRIPT={c:f"check_{c}.py" for c in ALL}; SCRIPT["omni_watch"]="omni_watch.py"; SCRIPT["gemini_watch"]="gemini_watch.py"
 MANDATORY_NO_SKIP={"twins"}
 
@@ -69,11 +73,17 @@ def provider_usage_for(check,result):
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("video"); ap.add_argument("--checks",default=",".join(DEFAULT))
-    ap.add_argument("--lang",default="eng"); ap.add_argument("--out",default=None); ap.add_argument("--manifest",default=None); ap.add_argument("--transcript",default=None); ap.add_argument("--watchlist",default=None); ap.add_argument("--expected-script",default=None); ap.add_argument("--sidecar-dir",default=None); ap.add_argument("--fast",action="store_true")
+    ap.add_argument("--lang",default="eng"); ap.add_argument("--out",default=None); ap.add_argument("--manifest",default=None); ap.add_argument("--transcript",default=None); ap.add_argument("--watchlist",default=None); ap.add_argument("--expected-script",default=None); ap.add_argument("--sidecar-dir",default=None); ap.add_argument("--fast",action="store_true"); ap.add_argument("--deterministic-only",action="store_true")
     a=ap.parse_args()
     if not os.path.exists(a.video): sys.exit(f"no such file: {a.video}")
     outdir=a.out or (os.path.splitext(a.video)[0]+"_qcgate"); os.makedirs(outdir,exist_ok=True)
-    checks=[c.strip() for c in a.checks.split(",") if c.strip() in ALL]
+    requested_checks=[c.strip() for c in a.checks.split(",") if c.strip() in ALL]
+    removed_paid_oracles=[c for c in requested_checks if c in PAID_ORACLE_CHECKS]
+    checks=[c for c in requested_checks if not (a.deterministic_only and c in PAID_ORACLE_CHECKS)]
+    if a.fast and removed_paid_oracles and not a.deterministic_only:
+        print("[ gate ] warning: --fast does not disable paid oracle checks; requested paid checks: "+",".join(removed_paid_oracles), file=sys.stderr, flush=True)
+    if a.deterministic_only and removed_paid_oracles:
+        print("[ gate ] deterministic-only removed paid oracle checks: "+",".join(removed_paid_oracles), flush=True)
     results={}
     for c in checks:
         print(f"[ gate ] running {c} ...",flush=True)
@@ -98,6 +108,9 @@ def main():
     for c,r in results.items():
         provider_usage.extend(provider_usage_for(c,r))
     summary={"video":a.video,"verdict":"SHIP-OK" if not blocked else "BLOCK","blocked":blocked,"skipped":skipped,
+             "requested_checks":requested_checks,"effective_checks":checks,"deterministic_only":bool(a.deterministic_only),
+             "paid_oracle_checks_requested":removed_paid_oracles,
+             "paid_oracle_checks_removed":removed_paid_oracles if a.deterministic_only else [],
              "per_check":{c:{"pass":r.get("pass"),
                 "findings":(r.get("findings") or r.get("divergences_over_threshold") or r.get("cheap_runs") or r.get("low_contrast_runs") or r.get("unsafe_text_runs") or r.get("flags") or [])[:8],
                 "freezes":r.get("freezes"),

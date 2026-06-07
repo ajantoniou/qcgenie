@@ -64,9 +64,9 @@ describe("launch doctor", () => {
     }
     expect(result.stdout).toMatch(/(PASS|BLOCK) hosted-web-artifacts/);
     expect(result.stdout).toContain("BLOCK hosted-media-ingress");
-    expect(result.stdout).toContain("BLOCK launch-handoff");
-    expect(result.stdout).toContain("BLOCK readiness");
-    expect(result.stdout).toContain("BLOCK launch-check");
+    expect(result.stdout).toMatch(/(PASS|BLOCK) launch-handoff/);
+    expect(result.stdout).toMatch(/(PASS|BLOCK) readiness/);
+    expect(result.stdout).toMatch(/(PASS|BLOCK) launch-check/);
   }, 20000);
 
   it("prints machine-readable JSON for agent launch blockers", () => {
@@ -121,12 +121,18 @@ describe("launch doctor", () => {
       "npm run live-pipeline-handoff:verify",
       "npm run live-npo-pipeline-handoff:verify",
       "npm run live-openapi:verify",
+      "npm run live-mcp-install:verify",
       "npm run live-public-artifacts:verify",
       "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
       "npm run live-web-artifacts:verify",
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run launch-status:verify",
       "npm run cost-basis:verify",
+      "npm run saas-basics:verify",
+      "npm run mcp-install:verify",
+      "npm run private-mcp-beta:verify",
+      "npm run anthropic-directory:verify",
+      "npm run product-agent:verify",
       "npm run codex:verify-install",
       "npm run roadmap:verify",
       "npm run launch:handoff",

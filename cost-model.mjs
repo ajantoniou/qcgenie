@@ -94,7 +94,7 @@ const MODEL_CHECK_CALLS_PER_MINUTE = {
 const PLAN_PRESETS = {
   creator: { planPriceCents: 9900, includedMinutes: 2400, aiReviewBudgetSeconds: 0 },
   studio: { planPriceCents: 29900, includedMinutes: 10000, aiReviewBudgetSeconds: 0 },
-  network: { planPriceCents: 79900, includedMinutes: 36000, aiReviewBudgetSeconds: 0 },
+  network: { planPriceCents: 89900, includedMinutes: 36000, aiReviewBudgetSeconds: 0 },
   stress_99_5000: { planPriceCents: 9900, includedMinutes: 5000, aiReviewBudgetSeconds: 0 }
 };
 

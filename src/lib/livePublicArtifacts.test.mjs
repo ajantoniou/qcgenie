@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   validateLlmsArtifact,
+  validateMcpInstallArtifact,
   validatePublicArtifacts,
   validateSampleReportDetailsArtifact
 } from "../../scripts/verify-live-public-artifacts.mjs";
@@ -18,6 +19,7 @@ describe("live public artifacts verifier", () => {
       productHuntLaunchKit: readJson("public/product-hunt-launch-kit.json"),
       sampleReports: readJson("public/sample-reports/index.json"),
       sampleReportDetails: readSampleReportDetails(),
+      mcpInstall: readJson("public/mcp-install.json"),
       llms: readFileSync(resolve("public/llms.txt"), "utf8")
     })).toEqual([]);
   });
@@ -27,6 +29,7 @@ describe("live public artifacts verifier", () => {
     const productHuntLaunchKit = readJson("public/product-hunt-launch-kit.json");
     const sampleReports = readJson("public/sample-reports/index.json");
     const sampleReportDetails = readSampleReportDetails();
+    const mcpInstall = readJson("public/mcp-install.json");
     const llms = readFileSync(resolve("public/llms.txt"), "utf8");
 
     launchStatus.operator_commands = launchStatus.operator_commands.filter((command) => command !== "npm run live-public-artifacts:verify");
@@ -39,6 +42,7 @@ describe("live public artifacts verifier", () => {
       productHuntLaunchKit,
       sampleReports,
       sampleReportDetails,
+      mcpInstall,
       llms
     }).map((error) => error.reason)).toEqual(expect.arrayContaining([
       "missing_command",
@@ -64,6 +68,17 @@ describe("live public artifacts verifier", () => {
     const llms = readFileSync(resolve("public/llms.txt"), "utf8").replace("Internal AI helps improve the QC engine", "unlimited AI review");
 
     expect(validateLlmsArtifact(llms).map((error) => error.reason)).toContain("missing_text");
+  });
+
+  it("rejects MCP install artifacts that omit workspace API-key placeholders", () => {
+    const install = readJson("public/mcp-install.json");
+    install.environment.UPLOADCHECK_API_KEY = "";
+    install.claude_desktop.json.mcpServers.uploadcheck.env.UPLOADCHECK_API_KEY = "";
+
+    expect(validateMcpInstallArtifact(install).map((error) => error.reason)).toEqual(expect.arrayContaining([
+      "missing_workspace_key_placeholder",
+      "missing_claude_workspace_key_placeholder"
+    ]));
   });
 });
 

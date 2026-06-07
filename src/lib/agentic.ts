@@ -65,7 +65,10 @@ export const AGENT_API_ENDPOINTS: ApiEndpoint[] = [
   { methodPath: "PUT /v1/uploads/{upload_id}/content", purpose: "Send local media bytes to the signed upload URL before creating an upload_id QC job." },
   { methodPath: "GET /v1/uploads/{upload_id}", purpose: "Check upload processing and metadata probe status." },
   { methodPath: "GET /v1/qc/jobs?limit=&status=&source_url=", purpose: "List recent jobs and avoid duplicate agent runs." },
+  { methodPath: "GET /v1/usage", purpose: "List recent usage ledger entries; stored workspace API keys are pinned to their own workspace." },
   { methodPath: "GET /v1/usage/margins?billing_period=&limit=", purpose: "Summarize usage COGS, allocated revenue, cost per minute, and gross margin." },
+  { methodPath: "GET /v1/abuse-events?workspace_id=&limit=", purpose: "List persisted fail-fast abuse-limit events for operator review." },
+  { methodPath: "GET /v1/spend-alerts?workspace_id=&limit=", purpose: "List persisted Resend overage-spend alert attempts for operator review." },
   { methodPath: "POST /v1/api-keys", purpose: "Create a hashed workspace API key for paid Claude Code, Codex, Cursor, and MCP clients." },
   { methodPath: "POST /v1/checkout/provision-api-key", purpose: "Provision a paid checkout customer into an idempotent workspace API key for MCP/API clients." },
   { methodPath: "GET /v1/api-keys?workspace_id=", purpose: "List redacted API-key records without returning bearer secrets." }

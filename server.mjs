@@ -78,6 +78,8 @@ createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/v1/qc/jobs") return listJobs(req, res);
     if (req.method === "GET" && url.pathname === "/v1/usage") return getUsage(req, res);
     if (req.method === "GET" && url.pathname === "/v1/usage/margins") return getUsageMargins(req, res);
+    if (req.method === "GET" && url.pathname === "/v1/abuse-events") return listAbuseEvents(req, url, res);
+    if (req.method === "GET" && url.pathname === "/v1/spend-alerts") return listSpendAlerts(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/api-keys") return createApiKey(req, res);
     if (req.method === "GET" && url.pathname === "/v1/api-keys") return listApiKeys(req, url, res);
     if (req.method === "POST" && url.pathname === "/v1/checkout/provision-api-key") return provisionCheckoutApiKey(req, res);
@@ -167,6 +169,11 @@ async function createJob(req, res) {
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
   applyAuthenticatedApiKeyDefaults(body, auth.apiKeyRecord);
+  const uploadId = body.upload_id || body.uploadId || null;
+  if (uploadId) {
+    const access = authorizeUploadAccess(auth, uploadId);
+    if (!access.ok) return sendJson(res, access.status, { error: access.error });
+  }
   const remoteSidecars = collectRemoteSidecarUrls(body);
   if (remoteSidecars.error) return sendJson(res, 400, remoteSidecars.error);
   if (remoteSidecars.urls) body.sidecar_urls = remoteSidecars.urls;
@@ -180,7 +187,10 @@ async function createJob(req, res) {
   try {
     const declaredMinutes = estimateRequestedMinutes(body);
     const abuseLimit = checkJobAbuseLimits(body, { declaredMinutes });
-    if (!abuseLimit.ok) return sendJson(res, abuseLimit.status, abuseLimit.payload);
+    if (!abuseLimit.ok) {
+      recordAbuseEventForRequest(abuseLimit, body, auth.apiKeyRecord);
+      return sendJson(res, abuseLimit.status, abuseLimit.payload);
+    }
     const guardrail = applyCostGuardrail(declaredMinutes ? { ...body, minutes: declaredMinutes } : body);
     if (!guardrail.ok) {
       return sendJson(res, 402, {
@@ -202,6 +212,7 @@ async function createJob(req, res) {
 
     const usageLimit = checkUsageLimit(body);
     if (!usageLimit.ok) {
+      recordAbuseEventForUsageLimit(usageLimit, body, auth.apiKeyRecord);
       return sendJson(res, 402, {
         error: "usage_limit_exceeded",
         message: usageLimit.reason,
@@ -214,7 +225,10 @@ async function createJob(req, res) {
         aiReviewBudgetSeconds: usageLimit.aiReviewBudgetSeconds,
         aiReviewSecondsUsed: usageLimit.aiReviewSecondsUsed,
         requestedAiReviewSeconds: usageLimit.requestedAiReviewSeconds,
-        aiReviewSecondsRemaining: usageLimit.aiReviewSecondsRemaining
+        aiReviewSecondsRemaining: usageLimit.aiReviewSecondsRemaining,
+        overageCapCents: usageLimit.overageCapCents,
+        projectedOverageRevenueCents: usageLimit.projectedOverageRevenueCents,
+        overageRateCentsPerMinute: usageLimit.overageRateCentsPerMinute
       });
     }
 
@@ -274,7 +288,10 @@ async function drainQueuedJobs(req, res) {
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
   const limit = Math.min(Math.max(Number(body.limit || 5) || 5, 1), 25);
-  const queued = store.listQueuedJobs({ limit });
+  const queued = store.listQueuedJobs({
+    limit,
+    workspaceId: auth.apiKeyRecord?.workspaceId || null
+  });
   const results = [];
 
   for (const job of queued) {
@@ -307,6 +324,7 @@ async function createApiKey(req, res) {
   const auth = requireScope(req, "api_keys:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
+  applyApiKeyProvisioningScope(body, auth.apiKeyRecord);
   const created = store.createApiKey(body);
   return sendJson(res, 201, {
     apiKey: created.apiKey,
@@ -319,7 +337,7 @@ function listApiKeys(req, url, res) {
   const auth = requireScope(req, "api_keys:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   return sendJson(res, 200, {
-    keys: store.listApiKeys({ workspaceId: url.searchParams.get("workspace_id") || url.searchParams.get("workspaceId") })
+    keys: store.listApiKeys({ workspaceId: workspaceFilterForAuth(auth, url) })
   });
 }
 
@@ -327,6 +345,7 @@ async function provisionCheckoutApiKey(req, res) {
   const auth = requireScope(req, "api_keys:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
+  applyApiKeyProvisioningScope(body, auth.apiKeyRecord);
   const planId = normalizePlanId(body.plan_id || body.planId);
   if (!planId) return sendJson(res, 400, { error: "invalid_plan_id", allowedPlans: ["creator", "studio", "network"] });
   const ownerEmail = String(body.owner_email || body.ownerEmail || body.email || "").trim();
@@ -349,6 +368,7 @@ async function provisionCheckoutApiKey(req, res) {
     included_minutes: plan.includedMinutes,
     plan_price_cents: plan.planPriceCents,
     ai_review_budget_seconds: plan.aiReviewBudgetSeconds,
+    overage_cap_cents: body.overage_cap_cents ?? body.overageCapCents ?? null,
     scopes: ["jobs:write", "jobs:read", "reports:read", "uploads:write"]
   });
   return sendJson(res, created.idempotentReplay ? 200 : 201, {
@@ -411,6 +431,7 @@ async function receiveLemonSqueezyWebhook(req, res) {
     included_minutes: plan.includedMinutes,
     plan_price_cents: plan.planPriceCents,
     ai_review_budget_seconds: plan.aiReviewBudgetSeconds,
+    overage_cap_cents: provisioning.overage_cap_cents ?? null,
     scopes: ["jobs:write", "jobs:read", "reports:read", "uploads:write"]
   });
 
@@ -708,6 +729,8 @@ function getJob(req, url, res) {
   const auth = requireScope(req, "jobs:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-1);
+  const access = authorizeJobAccess(auth, jobId);
+  if (!access.ok) return sendJson(res, access.status, { error: access.error });
   return sendJson(res, 200, withCostEstimate(store.getJob(jobId) || completedJob(jobId)));
 }
 
@@ -715,6 +738,8 @@ function getReport(req, url, res) {
   const auth = requireScope(req, "reports:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-2);
+  const access = authorizeJobAccess(auth, jobId);
+  if (!access.ok) return sendJson(res, access.status, { error: access.error });
   const realJob = store.getJob(jobId);
   const job = realJob || completedJob(jobId);
   const fallbackMinutes = Math.max(1, Math.ceil(job.minutesMetered || 19));
@@ -739,6 +764,8 @@ function getJobEvents(req, url, res) {
   const auth = requireScope(req, "jobs:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-2);
+  const access = authorizeJobAccess(auth, jobId);
+  if (!access.ok) return sendJson(res, access.status, { error: access.error });
   return sendJson(res, 200, { events: store.listJobEvents(jobId) });
 }
 
@@ -746,6 +773,8 @@ function getJobArtifacts(req, url, res) {
   const auth = requireScope(req, "reports:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-2);
+  const access = authorizeJobAccess(auth, jobId);
+  if (!access.ok) return sendJson(res, access.status, { error: access.error });
   const artifacts = store.listArtifacts(jobId);
   return sendJson(res, 200, { artifacts: artifacts.length ? artifacts : defaultArtifacts(jobId) });
 }
@@ -754,6 +783,8 @@ function getMarkerExport(req, url, res) {
   const auth = requireScope(req, "reports:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-3);
+  const access = authorizeJobAccess(auth, jobId);
+  if (!access.ok) return sendJson(res, access.status, { error: access.error });
   const csv = store.buildMarkerCsv(jobId);
   res.writeHead(200, {
     "Content-Type": "text/csv; charset=utf-8",
@@ -762,10 +793,34 @@ function getMarkerExport(req, url, res) {
   res.end(csv);
 }
 
+function listAbuseEvents(req, url, res) {
+  const auth = requireScope(req, "api_keys:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  return sendJson(res, 200, {
+    abuseEvents: store.listAbuseEvents({
+      workspaceId: workspaceFilterForAuth(auth, url),
+      limit: url.searchParams.get("limit")
+    })
+  });
+}
+
+function listSpendAlerts(req, url, res) {
+  const auth = requireScope(req, "api_keys:read");
+  if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+  return sendJson(res, 200, {
+    spendAlerts: store.listSpendAlerts({
+      workspaceId: workspaceFilterForAuth(auth, url),
+      limit: url.searchParams.get("limit")
+    })
+  });
+}
+
 async function ingestGateVerdict(req, url, res) {
   const auth = requireScope(req, "jobs:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-2);
+  const access = authorizeJobAccess(auth, jobId);
+  if (!access.ok) return sendJson(res, access.status, { error: access.error });
   const body = await readJson(req);
   const result = store.ingestGateVerdict(jobId, body);
   if (!result) return sendJson(res, 404, { error: "job_not_found" });
@@ -785,6 +840,8 @@ function cancelJob(req, url, res) {
   const auth = requireScope(req, "jobs:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const jobId = url.pathname.split("/").at(-2);
+  const access = authorizeJobAccess(auth, jobId);
+  if (!access.ok) return sendJson(res, access.status, { error: access.error });
   const job = store.cancelJob(jobId) || { ...completedJob(jobId), status: "cancelled" };
   return sendJson(res, 200, job);
 }
@@ -793,14 +850,17 @@ async function createUpload(req, res) {
   const auth = requireScope(req, "uploads:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
+  applyAuthenticatedApiKeyDefaults(body, auth.apiKeyRecord);
   const sizeBytes = Number(body.size_bytes ?? body.sizeBytes ?? 0);
   if (Number.isFinite(sizeBytes) && sizeBytes > maxUploadMb * 1024 * 1024) {
-    return sendJson(res, 413, {
+    const payload = {
       error: "upload_size_limit_exceeded",
       message: `Upload reservation exceeds ${maxUploadMb} MB limit.`,
       maxUploadMb,
       requestedBytes: sizeBytes
-    });
+    };
+    recordAbuseEventForRequest({ status: 413, payload }, body, auth.apiKeyRecord);
+    return sendJson(res, 413, payload);
   }
   return sendJson(res, 201, store.createUpload(body, { baseUrl: requestBaseUrl(req) }));
 }
@@ -816,12 +876,14 @@ async function putUploadContent(req, url, res) {
   const contentLength = Number(req.headers["content-length"] || 0);
   if (expected && contentLength && contentLength > expected) return sendJson(res, 413, { error: "upload_too_large" });
   if (contentLength && contentLength > maxUploadMb * 1024 * 1024) {
-    return sendJson(res, 413, {
+    const payload = {
       error: "upload_size_limit_exceeded",
       message: `Upload content exceeds ${maxUploadMb} MB limit.`,
       maxUploadMb,
       requestedBytes: contentLength
-    });
+    };
+    recordAbuseEventForRequest({ status: 413, payload }, { upload_id: uploadId, size_bytes: contentLength }, null);
+    return sendJson(res, 413, payload);
   }
 
   mkdirSync(uploadStorageDir, { recursive: true });
@@ -868,9 +930,9 @@ function getUpload(req, url, res) {
   const auth = requireScope(req, "uploads:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const uploadId = url.pathname.split("/").at(-1);
-  const upload = store.getUpload(uploadId);
-  if (!upload) return sendJson(res, 404, { error: "upload_not_found" });
-  return sendJson(res, 200, upload);
+  const access = authorizeUploadAccess(auth, uploadId);
+  if (!access.ok) return sendJson(res, access.status, { error: access.error });
+  return sendJson(res, 200, access.upload);
 }
 
 function requestBaseUrl(req) {
@@ -888,14 +950,16 @@ function listJobs(req, res) {
       limit: url.searchParams.get("limit") || 20,
       status: url.searchParams.get("status"),
       sourceUrl: url.searchParams.get("source_url")
-    }).map((job) => publicJob(job))
+    })
+      .filter((job) => canAccessJob(auth, job))
+      .map((job) => publicJob(job))
   });
 }
 
 function getUsage(req, res) {
   const auth = requireScope(req, "jobs:read");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
-  return sendJson(res, 200, { usageLedger: store.state.usageLedger.slice(-50).reverse() });
+  return sendJson(res, 200, { usageLedger: filterUsageLedgerForAuth(store.state.usageLedger, auth).slice(-50).reverse() });
 }
 
 function getUsageMargins(req, res) {
@@ -904,7 +968,7 @@ function getUsageMargins(req, res) {
   const url = new URL(req.url || "/", `http://${req.headers.host}`);
   const billingPeriod = url.searchParams.get("billing_period") || url.searchParams.get("billingPeriod") || null;
   const limit = Math.min(Math.max(Number(url.searchParams.get("limit") || 500) || 500, 1), 5000);
-  const entries = store.state.usageLedger
+  const entries = filterUsageLedgerForAuth(store.state.usageLedger, auth)
     .filter((entry) => !billingPeriod || entry.billingPeriod === billingPeriod)
     .slice(-limit);
   return sendJson(res, 200, {
@@ -947,7 +1011,10 @@ function checkJobAbuseLimits(body = {}, { declaredMinutes = 0 } = {}) {
       }
     };
   }
-  const activeJobs = store.listJobs({ limit: 100 }).filter((job) => ["queued", "ingesting", "metadata_probe", "deterministic_qc", "agent_review", "reporting"].includes(job.status)).length;
+  const workspaceId = body.workspace_id || body.workspaceId || null;
+  const activeJobs = store.listJobs({ limit: 100 })
+    .filter((job) => !workspaceId || job.workspaceId === workspaceId)
+    .filter((job) => ["queued", "ingesting", "metadata_probe", "deterministic_qc", "agent_review", "reporting"].includes(job.status)).length;
   if (activeJobs >= maxActiveJobs) {
     return {
       ok: false,
@@ -963,10 +1030,56 @@ function checkJobAbuseLimits(body = {}, { declaredMinutes = 0 } = {}) {
   return { ok: true };
 }
 
+function recordAbuseEventForRequest(result, body = {}, apiKeyRecord = null) {
+  const payload = result?.payload || {};
+  store.recordAbuseEvent({
+    type: payload.error,
+    error: payload.error,
+    status: result?.status,
+    workspaceId: body.workspace_id || body.workspaceId || apiKeyRecord?.workspaceId || null,
+    ownerEmail: body.owner_email || body.ownerEmail || apiKeyRecord?.ownerEmail || null,
+    apiKeyId: body.api_key_id || body.apiKeyId || apiKeyRecord?.keyId || null,
+    source: body.source || body.youtube_url || body.signed_url || body.upload_id || body.uploadId || null,
+    sourceType: body.source_type || body.sourceType || null,
+    requestedMinutes: payload.requestedMinutes,
+    requestedBytes: payload.requestedBytes,
+    maxDurationMinutes: payload.maxDurationMinutes,
+    maxUploadMb: payload.maxUploadMb,
+    maxActiveJobs: payload.maxActiveJobs,
+    activeJobs: payload.activeJobs
+  });
+}
+
+function recordAbuseEventForUsageLimit(result, body = {}, apiKeyRecord = null) {
+  store.recordAbuseEvent({
+    type: "usage_limit_exceeded",
+    error: "usage_limit_exceeded",
+    status: 402,
+    workspaceId: body.workspace_id || body.workspaceId || apiKeyRecord?.workspaceId || null,
+    ownerEmail: body.owner_email || body.ownerEmail || apiKeyRecord?.ownerEmail || null,
+    apiKeyId: body.api_key_id || body.apiKeyId || apiKeyRecord?.keyId || null,
+    source: body.source || body.youtube_url || body.signed_url || body.upload_id || body.uploadId || null,
+    sourceType: body.source_type || body.sourceType || null,
+    planId: result.planId || body.plan_id || body.planId || null,
+    billingPeriod: result.billingPeriod || null,
+    includedMinutes: result.includedMinutes,
+    minutesUsed: result.minutesUsed,
+    requestedMinutes: result.requestedMinutes,
+    minutesRemaining: result.minutesRemaining,
+    requestedAiReviewSeconds: result.requestedAiReviewSeconds,
+    aiReviewSecondsUsed: result.aiReviewSecondsUsed,
+    aiReviewSecondsRemaining: result.aiReviewSecondsRemaining,
+    overageCapCents: result.overageCapCents,
+    projectedOverageRevenueCents: result.projectedOverageRevenueCents,
+    overageRateCentsPerMinute: result.overageRateCentsPerMinute
+  });
+}
+
 async function createWebhook(req, res) {
   const auth = requireScope(req, "webhooks:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
+  applyAuthenticatedApiKeyDefaults(body, auth.apiKeyRecord);
   return sendJson(res, 201, store.createWebhook(body));
 }
 
@@ -974,7 +1087,8 @@ function previewWebhookDelivery(req, url, res) {
   const auth = requireScope(req, "webhooks:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const webhookId = url.pathname.split("/").at(-2);
-  if (!store.getWebhook(webhookId)) return sendJson(res, 404, { error: "webhook_not_found" });
+  const access = authorizeWebhookAccess(auth, webhookId);
+  if (!access.ok) return sendJson(res, access.status, { error: access.error });
   return sendJson(res, 200, store.createWebhookDelivery(webhookId, "job.completed", "job_demo"));
 }
 
@@ -986,7 +1100,8 @@ function listWebhookDeliveries(req, res) {
     deliveries: store.listWebhookDeliveries({
       limit: url.searchParams.get("limit") || 20,
       status: url.searchParams.get("status"),
-      webhookId: url.searchParams.get("webhook_id")
+      webhookId: url.searchParams.get("webhook_id"),
+      workspaceId: auth.apiKeyRecord?.workspaceId || null
     })
   });
 }
@@ -995,8 +1110,9 @@ async function retryWebhookDelivery(req, url, res) {
   const auth = requireScope(req, "webhooks:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const deliveryId = url.pathname.split("/").at(-2);
-  const delivery = store.getWebhookDelivery(deliveryId);
-  if (!delivery) return sendJson(res, 404, { error: "delivery_not_found" });
+  const access = authorizeWebhookDeliveryAccess(auth, deliveryId);
+  if (!access.ok) return sendJson(res, access.status, { error: access.error });
+  const delivery = access.delivery;
   const result = await sendWebhookDelivery(delivery);
   return sendJson(res, 200, store.markWebhookDeliveryAttempt(deliveryId, result));
 }
@@ -1005,7 +1121,10 @@ async function drainWebhookDeliveries(req, res) {
   const auth = requireScope(req, "webhooks:write");
   if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
   const body = await readJson(req);
-  const deliveries = store.listDueWebhookDeliveries({ limit: body.limit || 10 });
+  const deliveries = store.listDueWebhookDeliveries({
+    limit: body.limit || 10,
+    workspaceId: auth.apiKeyRecord?.workspaceId || null
+  });
   const results = [];
 
   for (const delivery of deliveries) {
@@ -1163,13 +1282,15 @@ function checkoutProvisioningFromLemonPayload(payload = {}) {
     || workspaceIdFromCheckout({ checkoutCustomerId, checkoutSubscriptionId, ownerEmail });
   const provisioningId = stringOrNull(custom.provisioning_id || custom.provisioningId)
     || ["lemonsqueezy", planId || "unknown", checkoutSubscriptionId || checkoutCustomerId || workspaceId].join(":");
+  const overageCapCents = numberOrNull(custom.overage_cap_cents ?? custom.overageCapCents);
   return {
     plan_id: planId,
     owner_email: ownerEmail,
     workspace_id: workspaceId,
     provisioning_id: provisioningId,
     checkout_customer_id: checkoutCustomerId,
-    checkout_subscription_id: checkoutSubscriptionId
+    checkout_subscription_id: checkoutSubscriptionId,
+    overage_cap_cents: overageCapCents
   };
 }
 
@@ -1243,11 +1364,20 @@ function checkUsageLimit(body = {}) {
   if (!plan.includedMinutes && !plan.aiReviewBudgetSeconds) return { ok: true };
   const usage = store.summarizePlanUsage({
     planId,
+    workspaceId: body.workspace_id || body.workspaceId || null,
     billingPeriod: body.billing_period || body.billingPeriod,
     includedMinutes: plan.includedMinutes
   });
   const requestedAiReviewSeconds = Math.max(0, Number(body.ai_review_seconds ?? body.aiReviewSeconds ?? 0) || 0);
-  const minuteLimitOk = !requestedMinutes || !plan.includedMinutes || usage.minutesUsed + requestedMinutes <= plan.includedMinutes;
+  const overageRateCentsPerMinute = overageRateForPlan(planId);
+  const overageCapCents = Math.max(0, Number(body.overage_cap_cents ?? body.overageCapCents ?? 0) || 0);
+  const projectedMinutesUsed = usage.minutesUsed + requestedMinutes;
+  const projectedOverageMinutes = Math.max(0, projectedMinutesUsed - plan.includedMinutes);
+  const projectedOverageRevenueCents = projectedOverageMinutes * overageRateCentsPerMinute;
+  const minuteLimitOk = !requestedMinutes
+    || !plan.includedMinutes
+    || projectedMinutesUsed <= plan.includedMinutes
+    || (overageCapCents > 0 && projectedOverageRevenueCents <= overageCapCents);
   const aiLimitOk = !requestedAiReviewSeconds || usage.aiReviewSecondsUsed + requestedAiReviewSeconds <= plan.aiReviewBudgetSeconds;
   if (minuteLimitOk && aiLimitOk) {
     return {
@@ -1258,6 +1388,9 @@ function checkUsageLimit(body = {}) {
       minutesUsed: usage.minutesUsed,
       requestedMinutes,
       minutesRemaining: plan.includedMinutes ? plan.includedMinutes - usage.minutesUsed : null,
+      overageCapCents,
+      projectedOverageRevenueCents,
+      overageRateCentsPerMinute,
       aiReviewBudgetSeconds: plan.aiReviewBudgetSeconds,
       aiReviewSecondsUsed: usage.aiReviewSecondsUsed,
       requestedAiReviewSeconds,
@@ -1277,6 +1410,9 @@ function checkUsageLimit(body = {}) {
       aiReviewSecondsUsed: usage.aiReviewSecondsUsed,
       requestedAiReviewSeconds,
       aiReviewSecondsRemaining: Math.max(0, plan.aiReviewBudgetSeconds - usage.aiReviewSecondsUsed),
+      overageCapCents,
+      projectedOverageRevenueCents,
+      overageRateCentsPerMinute,
       reason: `Plan ${planId} has ${usage.aiReviewSecondsUsed}/${plan.aiReviewBudgetSeconds} AI-review seconds used for ${usage.billingPeriod}; this ${requestedAiReviewSeconds} second request exceeds the included AI-review allowance.`
     };
   }
@@ -1288,23 +1424,128 @@ function checkUsageLimit(body = {}) {
     minutesUsed: usage.minutesUsed,
     requestedMinutes,
     minutesRemaining: Math.max(0, plan.includedMinutes - usage.minutesUsed),
+    overageCapCents,
+    projectedOverageRevenueCents,
+    overageRateCentsPerMinute,
     aiReviewBudgetSeconds: plan.aiReviewBudgetSeconds,
     aiReviewSecondsUsed: usage.aiReviewSecondsUsed,
     requestedAiReviewSeconds,
     aiReviewSecondsRemaining: Math.max(0, plan.aiReviewBudgetSeconds - usage.aiReviewSecondsUsed),
-    reason: `Plan ${planId} has ${usage.minutesUsed}/${plan.includedMinutes} minutes used for ${usage.billingPeriod}; this ${requestedMinutes} minute job exceeds the included allowance.`
+    reason: overageCapCents > 0
+      ? `Plan ${planId} has ${usage.minutesUsed}/${plan.includedMinutes} minutes used for ${usage.billingPeriod}; this ${requestedMinutes} minute job would exceed the approved overage cap of ${(overageCapCents / 100).toFixed(2)} USD.`
+      : `Plan ${planId} has ${usage.minutesUsed}/${plan.includedMinutes} minutes used for ${usage.billingPeriod}; this ${requestedMinutes} minute job exceeds the included allowance and no overage cap is approved.`
   };
 }
 
 function applyAuthenticatedApiKeyDefaults(body, apiKeyRecord = null) {
   if (!apiKeyRecord) return body;
-  body.workspace_id = body.workspace_id || body.workspaceId || apiKeyRecord.workspaceId;
-  body.owner_email = body.owner_email || body.ownerEmail || apiKeyRecord.ownerEmail;
-  body.api_key_id = body.api_key_id || body.apiKeyId || apiKeyRecord.keyId;
-  body.plan_id = body.plan_id || body.planId || apiKeyRecord.planId;
-  body.included_minutes = body.included_minutes ?? body.includedMinutes ?? apiKeyRecord.includedMinutes;
-  body.plan_price_cents = body.plan_price_cents ?? body.planPriceCents ?? apiKeyRecord.planPriceCents;
+  body.workspace_id = apiKeyRecord.workspaceId;
+  body.workspaceId = apiKeyRecord.workspaceId;
+  body.owner_email = apiKeyRecord.ownerEmail;
+  body.ownerEmail = apiKeyRecord.ownerEmail;
+  body.api_key_id = apiKeyRecord.keyId;
+  body.apiKeyId = apiKeyRecord.keyId;
+  body.plan_id = apiKeyRecord.planId;
+  body.planId = apiKeyRecord.planId;
+  body.included_minutes = apiKeyRecord.includedMinutes;
+  body.includedMinutes = apiKeyRecord.includedMinutes;
+  body.plan_price_cents = apiKeyRecord.planPriceCents;
+  body.planPriceCents = apiKeyRecord.planPriceCents;
+  body.overage_cap_cents = apiKeyRecord.overageCapCents;
+  body.overageCapCents = apiKeyRecord.overageCapCents;
+  body.checkout_customer_id = apiKeyRecord.checkoutCustomerId;
+  body.checkoutCustomerId = apiKeyRecord.checkoutCustomerId;
+  body.checkout_subscription_id = apiKeyRecord.checkoutSubscriptionId;
+  body.checkoutSubscriptionId = apiKeyRecord.checkoutSubscriptionId;
   return body;
+}
+
+function applyApiKeyProvisioningScope(body, apiKeyRecord = null) {
+  if (!apiKeyRecord) return body;
+  body.workspace_id = apiKeyRecord.workspaceId;
+  body.workspaceId = apiKeyRecord.workspaceId;
+  body.owner_email = apiKeyRecord.ownerEmail;
+  body.ownerEmail = apiKeyRecord.ownerEmail;
+  body.plan_id = apiKeyRecord.planId;
+  body.planId = apiKeyRecord.planId;
+  body.included_minutes = apiKeyRecord.includedMinutes;
+  body.includedMinutes = apiKeyRecord.includedMinutes;
+  body.plan_price_cents = apiKeyRecord.planPriceCents;
+  body.planPriceCents = apiKeyRecord.planPriceCents;
+  body.overage_cap_cents = apiKeyRecord.overageCapCents;
+  body.overageCapCents = apiKeyRecord.overageCapCents;
+  return body;
+}
+
+function authorizeJobAccess(auth, jobId) {
+  if (!auth.apiKeyRecord) return { ok: true };
+  const job = store.getJob(jobId);
+  if (!job) return { ok: false, status: 404, error: "job_not_found" };
+  if (!canAccessJob(auth, job)) return { ok: false, status: 404, error: "job_not_found" };
+  return { ok: true };
+}
+
+function canAccessJob(auth, job) {
+  if (!auth.apiKeyRecord) return true;
+  return job?.workspaceId && job.workspaceId === auth.apiKeyRecord.workspaceId;
+}
+
+function authorizeUploadAccess(auth, uploadId) {
+  if (!auth.apiKeyRecord) {
+    const upload = store.getUpload(uploadId);
+    return upload ? { ok: true, upload } : { ok: false, status: 404, error: "upload_not_found" };
+  }
+  const upload = store.getUpload(uploadId);
+  if (!upload) return { ok: false, status: 404, error: "upload_not_found" };
+  if (!canAccessUpload(auth, upload)) return { ok: false, status: 404, error: "upload_not_found" };
+  return { ok: true, upload };
+}
+
+function canAccessUpload(auth, upload) {
+  if (!auth.apiKeyRecord) return true;
+  return upload?.workspaceId && upload.workspaceId === auth.apiKeyRecord.workspaceId;
+}
+
+function authorizeWebhookAccess(auth, webhookId) {
+  if (!auth.apiKeyRecord) {
+    const webhook = store.getWebhook(webhookId);
+    return webhook ? { ok: true, webhook } : { ok: false, status: 404, error: "webhook_not_found" };
+  }
+  const webhook = store.getWebhook(webhookId);
+  if (!webhook) return { ok: false, status: 404, error: "webhook_not_found" };
+  if (!canAccessWebhook(auth, webhook)) return { ok: false, status: 404, error: "webhook_not_found" };
+  return { ok: true, webhook };
+}
+
+function canAccessWebhook(auth, webhook) {
+  if (!auth.apiKeyRecord) return true;
+  return webhook?.workspaceId && webhook.workspaceId === auth.apiKeyRecord.workspaceId;
+}
+
+function authorizeWebhookDeliveryAccess(auth, deliveryId) {
+  if (!auth.apiKeyRecord) {
+    const delivery = store.getWebhookDelivery(deliveryId);
+    return delivery ? { ok: true, delivery } : { ok: false, status: 404, error: "delivery_not_found" };
+  }
+  const delivery = store.getWebhookDelivery(deliveryId);
+  if (!delivery) return { ok: false, status: 404, error: "delivery_not_found" };
+  if (!canAccessWebhookDelivery(auth, delivery)) return { ok: false, status: 404, error: "delivery_not_found" };
+  return { ok: true, delivery };
+}
+
+function canAccessWebhookDelivery(auth, delivery) {
+  if (!auth.apiKeyRecord) return true;
+  return delivery?.workspaceId && delivery.workspaceId === auth.apiKeyRecord.workspaceId;
+}
+
+function filterUsageLedgerForAuth(entries, auth) {
+  if (!auth.apiKeyRecord) return entries;
+  return entries.filter((entry) => entry.workspaceId === auth.apiKeyRecord.workspaceId);
+}
+
+function workspaceFilterForAuth(auth, url) {
+  if (auth.apiKeyRecord) return auth.apiKeyRecord.workspaceId;
+  return url.searchParams.get("workspace_id") || url.searchParams.get("workspaceId");
 }
 
 async function maybeAlertOwnerForSpend(job) {
@@ -1313,15 +1554,18 @@ async function maybeAlertOwnerForSpend(job) {
   if (!ownerEmail) return null;
   const usage = store.summarizePlanUsage({
     planId: job.planId,
+    workspaceId: job.workspaceId || null,
     includedMinutes: job.includedMinutes
   });
   if (!usage.includedMinutes || usage.minutesUsed <= usage.includedMinutes) return null;
   const overageMinutes = usage.minutesUsed - usage.includedMinutes;
   const cogsPerMinuteCents = Number(job.costSnapshot?.deterministicCogsCentsPerMinute ?? 0.0833);
   const overageCostCents = overageMinutes * cogsPerMinuteCents;
+  const overageRateCentsPerMinute = overageRateForPlan(job.planId);
+  const overageRevenueCents = overageMinutes * overageRateCentsPerMinute;
   const costEstimate = estimateCostForJob(job, job.minutesMetered || 0);
   const observedTotalCogsCents = Number(costEstimate.observedTotalCogsCents || costEstimate.estimatedCogsCents || 0);
-  const shouldAlert = overageCostCents >= job.planPriceCents || observedTotalCogsCents >= job.planPriceCents;
+  const shouldAlert = overageRevenueCents >= job.planPriceCents;
   if (!shouldAlert) return null;
 
   const alert = store.recordSpendAlert({
@@ -1335,6 +1579,8 @@ async function maybeAlertOwnerForSpend(job) {
     planPriceCents: job.planPriceCents,
     observedTotalCogsCents,
     overageCostCents,
+    overageRevenueCents,
+    overageRateCentsPerMinute,
     status: "pending"
   });
   if (alert.idempotentReplay) return alert;
@@ -1370,6 +1616,8 @@ async function sendOwnerSpendAlert({ alert, job, usage }) {
           `Included minutes: ${usage.includedMinutes}`,
           `Minutes used: ${usage.minutesUsed}`,
           `Plan price: ${(alert.planPriceCents / 100).toFixed(2)} USD`,
+          `Billable extra-minute spend: ${(alert.overageRevenueCents / 100).toFixed(2)} USD`,
+          `Overage rate: ${(alert.overageRateCentsPerMinute / 100).toFixed(2)} USD/min`,
           `Estimated overage COGS: ${(alert.overageCostCents / 100).toFixed(4)} USD`,
           `Observed total COGS: ${(alert.observedTotalCogsCents / 100).toFixed(4)} USD`,
           `Trigger job: ${job.jobId}`
@@ -1384,6 +1632,15 @@ async function sendOwnerSpendAlert({ alert, job, usage }) {
   }
 }
 
+function overageRateForPlan(planId) {
+  const rates = {
+    creator: 12,
+    studio: 9,
+    network: 6
+  };
+  return rates[String(planId || "").toLowerCase()] || 12;
+}
+
 function estimateRequestedMinutes(body = {}) {
   const explicit = Number(body.minutes_metered ?? body.minutesMetered ?? body.minutes);
   if (Number.isFinite(explicit) && explicit > 0) return Math.ceil(explicit);
@@ -1395,6 +1652,12 @@ function estimateRequestedMinutes(body = {}) {
 function stringOrNull(value) {
   const text = String(value || "").trim();
   return text ? text : null;
+}
+
+function numberOrNull(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
 }
 
 function workspaceIdFromCheckout({ checkoutCustomerId, checkoutSubscriptionId, ownerEmail }) {

@@ -45,8 +45,14 @@ describe("readiness action mapping", () => {
     expect(actions[0].commands).toContain("UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage");
     expect(actions[0].commands).toContain("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify");
     expect(actions[1].env).toContain("UPLOADCHECK_CREATOR_CHECKOUT_URL");
+    expect(actions[1].env).toContain("LEMONSQUEEZY_API_KEY + LEMONSQUEEZY_STORE_ID for npm run launch:checkout-discover");
     expect(actions[1].command).toBe("UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout");
+    expect(actions[1].commands).toEqual([
+      "npm run launch:checkout-discover",
+      "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout"
+    ]);
     expect(actions.find((action) => action.id === "checkout-webhook").env).toEqual(["UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET"]);
+    expect(actions.find((action) => action.id === "checkout-webhook").command).toBe("npm run render:validate-env");
     expect(actions.find((action) => action.id === "secret-encryption").command).toBe("npm run --silent render:bootstrap-env");
     expect(actions.find((action) => action.id === "persistence").env).toEqual(["UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"]);
     expect(actions.find((action) => action.id === "persistence").detail).toContain("Supabase env alone is not launch-ready");

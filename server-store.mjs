@@ -18,6 +18,7 @@ export class JsonStore {
       usageLedger: [],
       webhookDeliveries: [],
       apiKeys: [],
+      abuseEvents: [],
       spendAlerts: []
     };
     this.load();
@@ -109,6 +110,7 @@ export class JsonStore {
       planId: input.plan_id || input.planId || null,
       planPriceCents: numberOrNull(input.plan_price_cents ?? input.planPriceCents),
       includedMinutes: numberOrNull(input.included_minutes ?? input.includedMinutes),
+      overageCapCents: numberOrNull(input.overage_cap_cents ?? input.overageCapCents),
       workspaceId: input.workspace_id || input.workspaceId || null,
       ownerEmail: input.owner_email || input.ownerEmail || null,
       apiKeyId: input.api_key_id || input.apiKeyId || null,
@@ -154,8 +156,10 @@ export class JsonStore {
 
   listQueuedJobs(options = {}) {
     const limit = Math.min(Math.max(Number(options.limit || 10) || 10, 1), 100);
+    const workspaceId = options.workspaceId || options.workspace_id || null;
     return this.state.jobs
       .filter((job) => job.status === "queued")
+      .filter((job) => !workspaceId || job.workspaceId === workspaceId)
       .slice(0, limit);
   }
 
@@ -430,6 +434,9 @@ export class JsonStore {
       filename,
       contentType: input.content_type || input.contentType || "application/octet-stream",
       sizeBytes: input.size_bytes || input.sizeBytes || 0,
+      workspaceId: input.workspace_id || input.workspaceId || null,
+      ownerEmail: input.owner_email || input.ownerEmail || null,
+      apiKeyId: input.api_key_id || input.apiKeyId || null,
       status: "created",
       uploadToken,
       signedPutUrl: `${baseUrl}/v1/uploads/${uploadId}/content?token=${encodeURIComponent(uploadToken)}`,
@@ -468,6 +475,9 @@ export class JsonStore {
       webhookId,
       url: input.url,
       eventTypes: input.event_types || input.eventTypes || ["job.completed", "job.failed"],
+      workspaceId: input.workspace_id || input.workspaceId || null,
+      ownerEmail: input.owner_email || input.ownerEmail || null,
+      apiKeyId: input.api_key_id || input.apiKeyId || null,
       signingSecret: encryptedSigningSecret ? undefined : signingSecret,
       encryptedSigningSecret,
       signingSecretPreview: `${signingSecret.slice(0, 14)}...`,
@@ -503,6 +513,9 @@ export class JsonStore {
       webhookId,
       eventType,
       jobId,
+      workspaceId: endpoint.workspaceId || null,
+      ownerEmail: endpoint.ownerEmail || null,
+      apiKeyId: endpoint.apiKeyId || null,
       status: "pending",
       url: endpoint.url,
       attemptCount: 0,
@@ -528,7 +541,10 @@ export class JsonStore {
   }
 
   createWebhookDeliveriesForJob(jobId, eventType = "job.completed") {
-    const endpoints = this.state.webhooks.filter((endpoint) => endpoint.eventTypes.includes(eventType));
+    const job = this.getJob(jobId);
+    const endpoints = this.state.webhooks
+      .filter((endpoint) => endpoint.eventTypes.includes(eventType))
+      .filter((endpoint) => !endpoint.workspaceId || !job?.workspaceId || endpoint.workspaceId === job.workspaceId);
     return endpoints.map((endpoint) => this.createWebhookDelivery(endpoint.webhookId, eventType, jobId));
   }
 
@@ -540,9 +556,11 @@ export class JsonStore {
     const limit = Number(options.limit || 20);
     const status = options.status || null;
     const webhookId = options.webhookId || options.webhook_id || null;
+    const workspaceId = options.workspaceId || options.workspace_id || null;
     return this.state.webhookDeliveries
       .filter((delivery) => !status || delivery.status === status)
       .filter((delivery) => !webhookId || delivery.webhookId === webhookId)
+      .filter((delivery) => !workspaceId || delivery.workspaceId === workspaceId)
       .slice(-Math.min(Math.max(limit || 20, 1), 100))
       .reverse();
   }
@@ -550,8 +568,10 @@ export class JsonStore {
   listDueWebhookDeliveries(options = {}) {
     const limit = Number(options.limit || 10);
     const nowMs = options.now ? new Date(options.now).getTime() : Date.now();
+    const workspaceId = options.workspaceId || options.workspace_id || null;
     return this.state.webhookDeliveries
       .filter((delivery) => delivery.status === "pending")
+      .filter((delivery) => !workspaceId || delivery.workspaceId === workspaceId)
       .filter((delivery) => !delivery.nextAttemptAt || new Date(delivery.nextAttemptAt).getTime() <= nowMs)
       .sort((a, b) => new Date(a.nextAttemptAt || a.createdAt).getTime() - new Date(b.nextAttemptAt || b.createdAt).getTime())
       .slice(0, Math.min(Math.max(limit || 10, 1), 25));
@@ -634,11 +654,13 @@ export class JsonStore {
     return usage;
   }
 
-  summarizePlanUsage({ planId, billingPeriod = currentBillingPeriod(), includedMinutes = null } = {}) {
+  summarizePlanUsage({ planId, workspaceId = null, billingPeriod = currentBillingPeriod(), includedMinutes = null } = {}) {
     const normalizedPlanId = String(planId || "").toLowerCase();
+    const normalizedWorkspaceId = workspaceId ? String(workspaceId) : null;
     const period = billingPeriod || currentBillingPeriod();
     const entries = this.state.usageLedger.filter((entry) => {
       if (entry.billingPeriod !== period) return false;
+      if (normalizedWorkspaceId && String(entry.workspaceId || entry.costSnapshot?.workspaceId || "") !== normalizedWorkspaceId) return false;
       if (!normalizedPlanId) return true;
       return String(entry.planId || entry.costSnapshot?.planId || "").toLowerCase() === normalizedPlanId;
     });
@@ -648,6 +670,7 @@ export class JsonStore {
     const aiBudget = entries.find((entry) => Number(entry.aiReviewBudgetSeconds) > 0)?.aiReviewBudgetSeconds || null;
     return {
       planId: normalizedPlanId || null,
+      workspaceId: normalizedWorkspaceId,
       billingPeriod: period,
       includedMinutes: limit,
       minutesUsed,
@@ -681,6 +704,8 @@ export class JsonStore {
       planPriceCents: numberOrNull(input.planPriceCents),
       observedTotalCogsCents: Number(input.observedTotalCogsCents || 0),
       overageCostCents: Number(input.overageCostCents || 0),
+      overageRevenueCents: Number(input.overageRevenueCents || 0),
+      overageRateCentsPerMinute: Number(input.overageRateCentsPerMinute || 0),
       status: input.status || "pending",
       provider: input.provider || null,
       providerMessageId: input.providerMessageId || null,
@@ -690,6 +715,56 @@ export class JsonStore {
     this.state.spendAlerts.push(alert);
     this.persist();
     return alert;
+  }
+
+  listSpendAlerts(options = {}) {
+    const limit = Math.min(Math.max(Number(options.limit || 50) || 50, 1), 200);
+    const workspaceId = options.workspace_id || options.workspaceId || null;
+    return this.state.spendAlerts
+      .filter((alert) => !workspaceId || alert.workspaceId === workspaceId)
+      .slice(-limit)
+      .reverse();
+  }
+
+  recordAbuseEvent(input = {}) {
+    const event = {
+      abuseEventId: `abuse_${randomId()}`,
+      type: input.type || input.error || "abuse_limit",
+      error: input.error || input.type || "abuse_limit",
+      workspaceId: input.workspaceId || null,
+      ownerEmail: input.ownerEmail || null,
+      apiKeyId: input.apiKeyId || null,
+      source: input.source || null,
+      sourceType: input.sourceType || null,
+      status: Number(input.status || 0) || null,
+      requestedMinutes: numberOrNull(input.requestedMinutes),
+      requestedBytes: numberOrNull(input.requestedBytes),
+      planId: input.planId || null,
+      billingPeriod: input.billingPeriod || null,
+      includedMinutes: numberOrNull(input.includedMinutes),
+      minutesUsed: numberOrNull(input.minutesUsed),
+      minutesRemaining: numberOrNull(input.minutesRemaining),
+      requestedAiReviewSeconds: numberOrNull(input.requestedAiReviewSeconds),
+      aiReviewSecondsUsed: numberOrNull(input.aiReviewSecondsUsed),
+      aiReviewSecondsRemaining: numberOrNull(input.aiReviewSecondsRemaining),
+      maxDurationMinutes: numberOrNull(input.maxDurationMinutes),
+      maxUploadMb: numberOrNull(input.maxUploadMb),
+      maxActiveJobs: numberOrNull(input.maxActiveJobs),
+      activeJobs: numberOrNull(input.activeJobs),
+      createdAt: new Date().toISOString()
+    };
+    this.state.abuseEvents.push(event);
+    this.persist();
+    return event;
+  }
+
+  listAbuseEvents(options = {}) {
+    const limit = Math.min(Math.max(Number(options.limit || 50) || 50, 1), 200);
+    const workspaceId = options.workspace_id || options.workspaceId || null;
+    return this.state.abuseEvents
+      .filter((event) => !workspaceId || event.workspaceId === workspaceId)
+      .slice(-limit)
+      .reverse();
   }
 
   load() {

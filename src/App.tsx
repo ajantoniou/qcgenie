@@ -84,8 +84,8 @@ const packageOptions = [
 
 const installTargets = [
   {
-    name: "1. Clone the current installable package",
-    code: "git clone https://github.com/ajantoniou/uploadcheck.git /absolute/path/to/uploadcheck"
+    name: "1. Use a private clone or local checkout",
+    code: "cd /absolute/path/to/uploadcheck"
   },
   {
     name: "2. Codex config",
@@ -119,7 +119,7 @@ const pricingTiers = [
   {
     name: "Network",
     label: "High-volume",
-    price: "$799/mo",
+    price: "$899/mo",
     minutes: "36,000",
     overage: "$0.06/min",
     checkoutHref: "/checkout/network",
@@ -552,8 +552,17 @@ function AgentTranscript() {
 
 function DashboardView() {
   const [apiKeyResult, setApiKeyResult] = useState<{ apiKey: string; tokenPrefix: string } | null>(null);
+  const [apiKeys, setApiKeys] = useState<Array<{ keyId: string; name?: string; tokenPrefix?: string; workspaceId?: string; ownerEmail?: string; planId?: string; includedMinutes?: number; active?: boolean; createdAt?: string; lastUsedAt?: string | null }>>([]);
   const [apiKeyStatus, setApiKeyStatus] = useState("Ready");
   const [apiKeyError, setApiKeyError] = useState("");
+  const [apiKeysStatus, setApiKeysStatus] = useState("Ready");
+  const [apiKeysError, setApiKeysError] = useState("");
+  const [abuseEvents, setAbuseEvents] = useState<Array<{ abuseEventId: string; error: string; workspaceId?: string; planId?: string; requestedMinutes?: number; requestedBytes?: number; minutesUsed?: number; includedMinutes?: number; createdAt?: string }>>([]);
+  const [abuseStatus, setAbuseStatus] = useState("Ready");
+  const [abuseError, setAbuseError] = useState("");
+  const [spendAlerts, setSpendAlerts] = useState<Array<{ alertId: string; status: string; workspaceId?: string; ownerEmail?: string; planId?: string; minutesUsed?: number; includedMinutes?: number; overageRevenueCents?: number; overageRateCentsPerMinute?: number; overageCostCents?: number; provider?: string; error?: string; createdAt?: string }>>([]);
+  const [spendStatus, setSpendStatus] = useState("Ready");
+  const [spendError, setSpendError] = useState("");
 
   async function createDashboardApiKey(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -581,6 +590,7 @@ function DashboardView() {
           plan_id: form.get("plan_id"),
           included_minutes: Number(form.get("included_minutes")),
           plan_price_cents: Number(form.get("plan_price_cents")),
+          overage_cap_cents: Number(form.get("overage_cap_cents") || 0),
           scopes: ["jobs:write", "jobs:read", "reports:read", "uploads:write"]
         })
       });
@@ -591,6 +601,94 @@ function DashboardView() {
     } catch (error) {
       setApiKeyStatus("Failed");
       setApiKeyError(error instanceof Error ? error.message : "API key creation failed");
+    }
+  }
+
+  async function loadAbuseEvents(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const provisioningToken = String(form.get("abuse_token") || "").trim();
+    const workspaceId = String(form.get("abuse_workspace_id") || "").trim();
+    setAbuseStatus("Loading");
+    setAbuseError("");
+    setAbuseEvents([]);
+    if (!provisioningToken) {
+      setAbuseStatus("Ready");
+      setAbuseError("Provisioning bearer token required");
+      return;
+    }
+    try {
+      const params = new URLSearchParams({ limit: "10" });
+      if (workspaceId) params.set("workspace_id", workspaceId);
+      const response = await fetch(`${apiBaseUrl}/v1/abuse-events?${params.toString()}`, {
+        headers: { authorization: `Bearer ${provisioningToken}` }
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "abuse_events_load_failed");
+      setAbuseEvents(payload.abuseEvents || []);
+      setAbuseStatus("Loaded");
+    } catch (error) {
+      setAbuseStatus("Failed");
+      setAbuseError(error instanceof Error ? error.message : "Abuse events load failed");
+    }
+  }
+
+  async function loadApiKeys(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const provisioningToken = String(form.get("keys_token") || "").trim();
+    const workspaceId = String(form.get("keys_workspace_id") || "").trim();
+    setApiKeysStatus("Loading");
+    setApiKeysError("");
+    setApiKeys([]);
+    if (!provisioningToken) {
+      setApiKeysStatus("Ready");
+      setApiKeysError("Provisioning bearer token required");
+      return;
+    }
+    try {
+      const params = new URLSearchParams();
+      if (workspaceId) params.set("workspace_id", workspaceId);
+      const query = params.toString();
+      const response = await fetch(`${apiBaseUrl}/v1/api-keys${query ? `?${query}` : ""}`, {
+        headers: { authorization: `Bearer ${provisioningToken}` }
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "api_keys_load_failed");
+      setApiKeys(payload.keys || []);
+      setApiKeysStatus("Loaded");
+    } catch (error) {
+      setApiKeysStatus("Failed");
+      setApiKeysError(error instanceof Error ? error.message : "API keys load failed");
+    }
+  }
+
+  async function loadSpendAlerts(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const provisioningToken = String(form.get("spend_token") || "").trim();
+    const workspaceId = String(form.get("spend_workspace_id") || "").trim();
+    setSpendStatus("Loading");
+    setSpendError("");
+    setSpendAlerts([]);
+    if (!provisioningToken) {
+      setSpendStatus("Ready");
+      setSpendError("Provisioning bearer token required");
+      return;
+    }
+    try {
+      const params = new URLSearchParams({ limit: "10" });
+      if (workspaceId) params.set("workspace_id", workspaceId);
+      const response = await fetch(`${apiBaseUrl}/v1/spend-alerts?${params.toString()}`, {
+        headers: { authorization: `Bearer ${provisioningToken}` }
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "spend_alerts_load_failed");
+      setSpendAlerts(payload.spendAlerts || []);
+      setSpendStatus("Loaded");
+    } catch (error) {
+      setSpendStatus("Failed");
+      setSpendError(error instanceof Error ? error.message : "Spend alerts load failed");
     }
   }
 
@@ -669,6 +767,10 @@ function DashboardView() {
                 Plan price cents
                 <input name="plan_price_cents" type="number" defaultValue={9900} min={1} />
               </label>
+              <label>
+                Overage cap cents
+                <input name="overage_cap_cents" type="number" defaultValue={0} min={0} />
+              </label>
               <button type="submit">
                 <KeyRound size={17} />
                 Create API key
@@ -683,6 +785,111 @@ function DashboardView() {
               </div>
             )}
             {apiKeyError && <p className="apiKeyError" role="alert">{apiKeyError}</p>}
+          </section>
+          <section className="apiKeyPanel">
+            <div className="sectionTitle">
+              <KeyRound size={19} />
+              <h2>Review API keys</h2>
+            </div>
+            <form className="apiKeyForm" onSubmit={loadApiKeys}>
+              <label>
+                Workspace filter
+                <input name="keys_workspace_id" defaultValue="creator-workspace" />
+              </label>
+              <label>
+                Provisioning bearer
+                <input name="keys_token" type="password" autoComplete="off" />
+              </label>
+              <button type="submit">
+                <KeyRound size={17} />
+                Load API keys
+              </button>
+            </form>
+            <p className="apiKeyStatus">API key status: {apiKeysStatus}</p>
+            {apiKeys.length > 0 && (
+              <div className="abuseEventList" role="status">
+                {apiKeys.map((key) => (
+                  <article key={key.keyId}>
+                    <strong>{key.name || key.keyId}</strong>
+                    <span>{key.workspaceId || "workspace unknown"}{key.ownerEmail ? ` -> ${key.ownerEmail}` : ""}</span>
+                    <small>{key.planId && key.includedMinutes != null ? `${key.planId}: ${key.includedMinutes} included minutes` : key.createdAt || "API key"}</small>
+                    <small>{key.tokenPrefix ? `Prefix: ${key.tokenPrefix}` : "Token prefix unavailable"}{key.active === false ? " inactive" : " active"}</small>
+                    {key.lastUsedAt && <small>Last used: {key.lastUsedAt}</small>}
+                  </article>
+                ))}
+              </div>
+            )}
+            {apiKeysError && <p className="apiKeyError" role="alert">{apiKeysError}</p>}
+          </section>
+          <section className="apiKeyPanel">
+            <div className="sectionTitle">
+              <AlertTriangle size={19} />
+              <h2>Review abuse events</h2>
+            </div>
+            <form className="apiKeyForm" onSubmit={loadAbuseEvents}>
+              <label>
+                Workspace filter
+                <input name="abuse_workspace_id" defaultValue="creator-workspace" />
+              </label>
+              <label>
+                Provisioning bearer
+                <input name="abuse_token" type="password" autoComplete="off" />
+              </label>
+              <button type="submit">
+                <AlertTriangle size={17} />
+                Load abuse events
+              </button>
+            </form>
+            <p className="apiKeyStatus">Abuse status: {abuseStatus}</p>
+            {abuseEvents.length > 0 && (
+              <div className="abuseEventList" role="status">
+                {abuseEvents.map((event) => (
+                  <article key={event.abuseEventId}>
+                    <strong>{event.error}</strong>
+                    <span>{event.workspaceId || "workspace unknown"}</span>
+                    <small>{event.planId && event.minutesUsed != null && event.includedMinutes != null ? `${event.planId}: ${event.minutesUsed}/${event.includedMinutes} used` : event.requestedMinutes ? `${event.requestedMinutes} requested minutes` : event.requestedBytes ? `${event.requestedBytes} requested bytes` : event.createdAt || "limit event"}</small>
+                  </article>
+                ))}
+              </div>
+            )}
+            {abuseError && <p className="apiKeyError" role="alert">{abuseError}</p>}
+          </section>
+          <section className="apiKeyPanel">
+            <div className="sectionTitle">
+              <Gauge size={19} />
+              <h2>Review spend alerts</h2>
+            </div>
+            <form className="apiKeyForm" onSubmit={loadSpendAlerts}>
+              <label>
+                Workspace filter
+                <input name="spend_workspace_id" defaultValue="creator-workspace" />
+              </label>
+              <label>
+                Provisioning bearer
+                <input name="spend_token" type="password" autoComplete="off" />
+              </label>
+              <button type="submit">
+                <Gauge size={17} />
+                Load spend alerts
+              </button>
+            </form>
+            <p className="apiKeyStatus">Spend status: {spendStatus}</p>
+            {spendAlerts.length > 0 && (
+              <div className="abuseEventList" role="status">
+                {spendAlerts.map((alert) => (
+                  <article key={alert.alertId}>
+                    <strong>{alert.status}</strong>
+                    <span>{alert.workspaceId || "workspace unknown"}{alert.ownerEmail ? ` -> ${alert.ownerEmail}` : ""}</span>
+                    <small>{alert.planId && alert.minutesUsed != null && alert.includedMinutes != null ? `${alert.planId}: ${alert.minutesUsed}/${alert.includedMinutes} used` : alert.provider ? `${alert.provider} alert` : alert.createdAt || "spend alert"}</small>
+                    {alert.overageRevenueCents != null && <small>{(alert.overageRevenueCents / 100).toFixed(2)} USD billable extra-minute spend</small>}
+                    {alert.overageRateCentsPerMinute != null && <small>{(alert.overageRateCentsPerMinute / 100).toFixed(2)} USD/min overage rate</small>}
+                    {alert.overageCostCents != null && <small>{(alert.overageCostCents / 100).toFixed(4)} USD estimated overage COGS</small>}
+                    {alert.error && <small>{alert.error}</small>}
+                  </article>
+                ))}
+              </div>
+            )}
+            {spendError && <p className="apiKeyError" role="alert">{spendError}</p>}
           </section>
         </div>
 
@@ -713,7 +920,7 @@ function DashboardView() {
           <section className="proofCard">
             <AlertTriangle size={20} />
             <strong>Spend guard</strong>
-            <p>UploadCheck records overage-spend alerts and emails the owner through Resend when extra-minute spend crosses the subscription value.</p>
+            <p>UploadCheck records overage-spend alerts and emails the owner through Resend when billable extra-minute spend crosses the subscription value.</p>
           </section>
 
           <section className="proofCard">
@@ -850,14 +1057,14 @@ function AgentView() {
             <h2>Install for agent-to-agent runs</h2>
           </div>
           <div className="commandBlock">
-            <code>Current install: GitHub clone or local checkout</code>
+            <code>Current install: private clone or local checkout</code>
             <code>Set UPLOADCHECK_API_BASE_URL=https://api.uploadcheck.app</code>
             <code>Set UPLOADCHECK_API_KEY as the agent client secret</code>
             <code>/check ./final-upload.mp4</code>
           </div>
           <p>
             Claude Code, Codex, Cursor, and another MCP-capable agent can all run the same <code>uploadcheck</code> server.
-            Use the GitHub/local install path until the npm packages are published.
+            Use the private-clone/local install path until the npm packages are published.
           </p>
           <p>{"agent-to-agent handoff: qc_get_cost_basis -> qc_run_local_file -> qc_get_report -> qc_get_marker_csv"}</p>
           <a className="inlineDocLink" href="/agent-install/">Open install guide</a>

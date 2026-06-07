@@ -87,4 +87,32 @@ print(json.dumps({"flags": parsed["flags"], "usage": usage}))
 
     expect(script).toContain('if check=="omni_watch" and transcript: cmd+=["--transcript",transcript]');
   });
+
+  it("keeps paid oracle checks out of the run_gate.py default", () => {
+    const script = readFileSync(resolve("scripts/qc-engine/run_gate.py"), "utf8");
+    const match = script.match(/DEFAULT=\[(.*?)\]/s);
+    const paidMatch = script.match(/PAID_ORACLE_CHECKS=\{(.*?)\}/s);
+    expect(match).toBeTruthy();
+    expect(paidMatch).toBeTruthy();
+    const defaults = Array.from(match[1].matchAll(/"([^"]+)"/g)).map((item) => item[1]);
+    const paidChecks = Array.from(paidMatch[1].matchAll(/"([^"]+)"/g)).map((item) => item[1]).sort();
+
+    expect(paidChecks).toEqual(["cheap_broll", "garble", "gemini_watch", "narration_match", "omni_watch", "twins"]);
+    for (const paidCheck of paidChecks) {
+      expect(defaults).not.toContain(paidCheck);
+    }
+    expect(defaults).toContain("loop_freeze");
+    expect(defaults).toContain("repeat_fatigue");
+    expect(defaults).toContain("text_safe_area");
+  });
+
+  it("exposes deterministic-only as the local spend guardrail", () => {
+    const script = readFileSync(resolve("scripts/qc-engine/run_gate.py"), "utf8");
+
+    expect(script).toContain("PAID_ORACLE_CHECKS={");
+    expect(script).toContain('ap.add_argument("--deterministic-only",action="store_true")');
+    expect(script).toContain('"paid_oracle_checks_requested":removed_paid_oracles');
+    expect(script).toContain('"paid_oracle_checks_removed":removed_paid_oracles if a.deterministic_only else []');
+    expect(script).toContain("warning: --fast does not disable paid oracle checks");
+  });
 });

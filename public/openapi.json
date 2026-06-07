@@ -129,6 +129,48 @@
           "lastUsedAt": { "type": ["string", "null"], "format": "date-time" }
         }
       },
+      "AbuseEvent": {
+        "type": "object",
+        "properties": {
+          "eventId": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "error": { "type": "string" },
+          "message": { "type": ["string", "null"] },
+          "status": { "type": "integer" },
+          "workspaceId": { "type": ["string", "null"] },
+          "ownerEmail": { "type": ["string", "null"] },
+          "planId": { "type": ["string", "null"] },
+          "includedMinutes": { "type": ["integer", "null"] },
+          "minutesUsed": { "type": ["integer", "null"] },
+          "requestedMinutes": { "type": ["integer", "null"] },
+          "minutesRemaining": { "type": ["integer", "null"] },
+          "maxDurationMinutes": { "type": ["integer", "null"] },
+          "maxUploadMb": { "type": ["integer", "null"] },
+          "maxActiveJobs": { "type": ["integer", "null"] }
+        }
+      },
+      "SpendAlert": {
+        "type": "object",
+        "properties": {
+          "alertId": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "workspaceId": { "type": ["string", "null"] },
+          "ownerEmail": { "type": ["string", "null"] },
+          "planId": { "type": ["string", "null"] },
+          "billingPeriod": { "type": ["string", "null"] },
+          "minutesUsed": { "type": ["integer", "null"] },
+          "includedMinutes": { "type": ["integer", "null"] },
+          "planPriceCents": { "type": ["integer", "null"] },
+          "overageRevenueCents": { "type": ["integer", "null"], "description": "Billable extra-minute spend at the plan overage rate; this is the alert trigger value." },
+          "overageRateCentsPerMinute": { "type": ["number", "null"], "description": "Customer overage price in cents per minute for the plan." },
+          "overageCostCents": { "type": ["number", "null"], "description": "Estimated overage COGS retained as audit context, not the trigger value." },
+          "observedTotalCogsCents": { "type": ["number", "null"] },
+          "status": { "type": "string", "enum": ["sent", "failed", "skipped"] },
+          "provider": { "type": ["string", "null"] },
+          "providerMessageId": { "type": ["string", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      },
       "Upload": {
         "type": "object",
         "properties": {
@@ -136,6 +178,9 @@
           "filename": { "type": "string" },
           "contentType": { "type": "string" },
           "sizeBytes": { "type": "integer" },
+          "workspaceId": { "type": ["string", "null"], "description": "Workspace that owns this upload reservation. Stored workspace API keys are pinned to this value." },
+          "ownerEmail": { "type": ["string", "null"] },
+          "apiKeyId": { "type": ["string", "null"] },
           "status": { "type": "string", "enum": ["created", "uploaded"] },
           "signedPutUrl": { "type": "string" },
           "expiresAt": { "type": "string", "format": "date-time" },
@@ -163,6 +208,9 @@
           "webhookId": { "type": "string" },
           "url": { "type": "string" },
           "eventTypes": { "type": "array", "items": { "type": "string" } },
+          "workspaceId": { "type": ["string", "null"], "description": "Workspace that owns this webhook endpoint. Stored workspace API keys are pinned to this value." },
+          "ownerEmail": { "type": ["string", "null"] },
+          "apiKeyId": { "type": ["string", "null"] },
           "signingSecretPreview": { "type": "string" },
           "signingSecret": { "type": "string", "description": "Returned once on creation." },
           "signingSecretStorage": { "type": "string", "enum": ["encrypted", "plaintext"] }
@@ -175,6 +223,9 @@
           "webhookId": { "type": "string" },
           "eventType": { "type": "string" },
           "jobId": { "type": "string" },
+          "workspaceId": { "type": ["string", "null"], "description": "Workspace that owns this delivery. Stored workspace API keys can only list, retry, or drain their own deliveries." },
+          "ownerEmail": { "type": ["string", "null"] },
+          "apiKeyId": { "type": ["string", "null"] },
           "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
           "url": { "type": "string" },
           "attemptCount": { "type": "integer" },
@@ -297,6 +348,20 @@
         "responses": {
           "200": {
             "description": "Machine-readable agent manifest for MCP, CLI, API, pricing, and launch metadata.",
+            "content": {
+              "application/json": { "schema": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
+    "/mcp-install.json": {
+      "get": {
+        "summary": "UploadCheck MCP install manifest",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Machine-readable install snippets for Codex, Claude Desktop, Cursor, and generic MCP clients.",
             "content": {
               "application/json": { "schema": { "type": "object" } }
             }
@@ -622,6 +687,7 @@
     "/v1/qc/jobs/drain": {
       "post": {
         "summary": "Drain queued async QC jobs",
+        "description": "Processes queued async QC jobs. Stored workspace API keys drain only jobs owned by their own workspace; operator/admin bearer keys can drain globally.",
         "security": [{ "bearerApiKey": [] }],
         "requestBody": {
           "required": false,
@@ -724,6 +790,7 @@
     "/v1/usage": {
       "get": {
         "summary": "List recent usage ledger entries",
+        "description": "Operator/admin bearer keys can review recent usage globally. Stored workspace API keys are pinned to their own workspace usage ledger.",
         "responses": {
           "200": { "description": "Usage ledger entries" }
         }
@@ -732,6 +799,7 @@
     "/v1/usage/margins": {
       "get": {
         "summary": "Summarize usage cost and gross-margin telemetry",
+        "description": "Operator/admin bearer keys can review global usage margins. Stored workspace API keys are pinned to their own workspace usage ledger before margin summary.",
         "parameters": [
           { "name": "billing_period", "in": "query", "required": false, "schema": { "type": "string" } },
           { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer" } }
@@ -741,10 +809,70 @@
         }
       }
     },
+    "/v1/abuse-events": {
+      "get": {
+        "summary": "List persisted abuse-limit events",
+        "description": "Returns fail-fast duration, upload-size, active-job, and usage-limit events for operator dashboard review. Stored workspace API keys are pinned to their own workspace even if a different workspace_id query parameter is supplied.",
+        "parameters": [
+          { "name": "workspace_id", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "maximum": 200 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted abuse-limit events, including usage_limit_exceeded plan/minute context when applicable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "abuseEvents": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/AbuseEvent" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid API key" },
+          "403": { "description": "API key lacks api_keys:read scope" }
+        }
+      }
+    },
+    "/v1/spend-alerts": {
+      "get": {
+        "summary": "List persisted overage spend alerts",
+        "description": "Returns Resend owner alert attempts for workspaces whose billable extra-minute spend crossed 100% of subscription value. Responses include billable overage spend and overage COGS audit context. Stored workspace API keys are pinned to their own workspace even if a different workspace_id query parameter is supplied.",
+        "parameters": [
+          { "name": "workspace_id", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "maximum": 200 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted spend alerts with status, provider, owner email, minutes, billable overage spend, overage rate, and COGS audit context",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "spendAlerts": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/SpendAlert" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid API key" },
+          "403": { "description": "API key lacks api_keys:read scope" }
+        }
+      }
+    },
     "/v1/api-keys": {
       "post": {
         "summary": "Create a workspace API key",
-        "description": "Creates a bearer key for agent clients. The raw apiKey is returned once; persisted records store only a SHA-256 hash and token prefix.",
+        "description": "Creates a bearer key for agent clients. The raw apiKey is returned once; persisted records store only a SHA-256 hash and token prefix. Operator/admin bearer keys can provision any workspace; stored workspace API keys with api_keys:write are pinned to their own workspace, owner, plan economics, and overage cap even if another workspace, owner, plan, or cap is supplied.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -757,6 +885,7 @@
                   "plan_id": { "type": "string" },
                   "included_minutes": { "type": "integer" },
                   "plan_price_cents": { "type": "integer" },
+                  "overage_cap_cents": { "type": "integer", "description": "Approved extra-minute spend cap in cents after included deterministic minutes are exhausted. Zero or omitted means block at included minutes." },
                   "scopes": { "type": "array", "items": { "type": "string" } }
                 }
               }
@@ -785,6 +914,7 @@
       },
       "get": {
         "summary": "List workspace API keys",
+        "description": "Operator/admin bearer keys can review redacted API keys globally or by workspace_id. Stored workspace API keys with api_keys:read are pinned to their own workspace even if a different workspace_id query parameter is supplied.",
         "parameters": [
           { "name": "workspace_id", "in": "query", "required": false, "schema": { "type": "string" } }
         ],
@@ -804,14 +934,16 @@
                 }
               }
             }
-          }
+          },
+          "401": { "description": "Missing or invalid API key" },
+          "403": { "description": "API key lacks api_keys:read scope" }
         }
       }
     },
     "/v1/checkout/provision-api-key": {
       "post": {
         "summary": "Provision a checkout customer API key",
-        "description": "Authenticated provisioning endpoint for checkout/webhook/account flows. It applies UploadCheck plan economics server-side and returns the raw apiKey only on the first successful provisioning call. Idempotent retries return the redacted key record without the bearer secret.",
+        "description": "Authenticated provisioning endpoint for checkout/webhook/account flows. It applies UploadCheck plan economics server-side and returns the raw apiKey only on the first successful provisioning call. Optional overage_cap_cents approves extra-minute spend after included deterministic minutes; zero or omitted blocks at included minutes. Stored workspace API keys with api_keys:write are pinned to their own workspace, owner, plan economics, and overage cap before checkout provisioning. Idempotent retries return the redacted key record without the bearer secret.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -824,6 +956,7 @@
                   "workspace_id": { "type": "string" },
                   "checkout_customer_id": { "type": "string" },
                   "checkout_subscription_id": { "type": "string" },
+                  "overage_cap_cents": { "type": "integer" },
                   "provisioning_id": { "type": "string", "description": "Optional idempotency key. Defaults to checkout:<plan>:<subscription/customer/workspace>." }
                 }
               }
@@ -889,6 +1022,7 @@
     "/v1/uploads": {
       "post": {
         "summary": "Create a signed upload target",
+        "description": "Creates a signed upload reservation. Stored workspace API keys force server-side workspace, owner, and key metadata onto the upload, ignoring client-supplied workspace fields.",
         "requestBody": {
           "required": true,
           "content": {
@@ -921,6 +1055,7 @@
     "/v1/uploads/{upload_id}": {
       "get": {
         "summary": "Get upload metadata and processing status",
+        "description": "Returns upload status. Stored workspace API keys can only read upload reservations owned by their own workspace.",
         "parameters": [{ "name": "upload_id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": {
@@ -970,6 +1105,7 @@
     "/v1/webhooks": {
       "post": {
         "summary": "Register a workspace webhook endpoint",
+        "description": "Registers a signed webhook endpoint. Stored workspace API keys force server-side workspace, owner, and key metadata onto the endpoint, ignoring client-supplied workspace fields.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1003,6 +1139,7 @@
     "/v1/webhooks/{webhook_id}/delivery-preview": {
       "get": {
         "summary": "Preview signed webhook delivery metadata",
+        "description": "Creates a signed preview delivery. Stored workspace API keys can preview only webhook endpoints owned by their own workspace.",
         "parameters": [{ "name": "webhook_id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": {
@@ -1020,6 +1157,7 @@
     "/v1/webhooks/deliveries": {
       "get": {
         "summary": "List recent webhook deliveries",
+        "description": "Lists webhook delivery attempts. Stored workspace API keys are pinned to their own workspace delivery log even if another webhook_id is supplied.",
         "parameters": [
           { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 100 } },
           { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["pending", "sent", "failed"] } },
@@ -1040,6 +1178,7 @@
     "/v1/webhooks/deliveries/{delivery_id}/retry": {
       "post": {
         "summary": "Retry a pending or failed webhook delivery",
+        "description": "Retries a delivery. Stored workspace API keys can retry only deliveries owned by their own workspace.",
         "parameters": [{ "name": "delivery_id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": {
@@ -1057,6 +1196,7 @@
     "/v1/webhooks/deliveries/drain": {
       "post": {
         "summary": "Process due pending webhook deliveries",
+        "description": "Processes due deliveries. Stored workspace API keys drain only pending deliveries owned by their own workspace; operator/admin bearer keys can drain globally.",
         "requestBody": {
           "required": false,
           "content": {

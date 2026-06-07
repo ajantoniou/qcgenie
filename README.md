@@ -2,7 +2,7 @@
 
 Quality check videos, podcasts, and clips before you upload.
 
-The beachhead is YouTube videos: creators import a URL, upload a cut, or run `/check` from Claude Code/Codex; UploadCheck.app runs deterministic gates across the full timeline, then adds grounded multimodal review notes.
+The beachhead is YouTube videos: creators import a URL, upload a cut, or run `/check` from Claude Code/Codex; UploadCheck.app runs deterministic gates across the full timeline, with internal multimodal oracles reserved for capture-rate testing and roadmap hardening.
 
 ## Product Rules
 
@@ -13,20 +13,21 @@ The beachhead is YouTube videos: creators import a URL, upload a cut, or run `/c
 
 ## Agentic Surface
 
-UploadCheck.app supports self-serve users and programmatic agent workflows.
+UploadCheck.app supports web users and programmatic agent workflows. The current agent distribution state is private MCP beta, not public self-serve npm download.
 
 - Web users paste a YouTube URL or upload a cut.
 - Agent users run `/check` against a media file, upload id, signed URL, or YouTube URL.
-- Claude, Codex, Cursor, and other agent workspaces call the same REST API through the UploadCheck MCP server or direct API calls. Do not prioritize a ChatGPT app/connector until the paid MCP/API path is live.
+- Claude, Codex, Cursor, and other agent workspaces call the same REST API through the UploadCheck MCP server or direct API calls. External users need a workspace API key tied to plan minutes, top-up credits, or an operator-created beta account. Do not prioritize a ChatGPT app/connector until the paid MCP/API path is live.
 - MCP tools call the hosted API; `qc_run_local_file` only reads/encodes local media before sending it to Render.
 - Customer-facing tools do not expose internal model/provider rails.
 - MCP server name: `uploadcheck`.
-- CLI/package options: `@uploadcheck/cli` and `@uploadcheck/mcp`.
+- CLI/package options after npm publish: `@uploadcheck/cli` and `@uploadcheck/mcp`. Until then, use a local checkout or private clone.
+- Private MCP beta handoff: `docs/PRIVATE-MCP-BETA.md`.
 
 Current API/MCP tools:
 
 - MCP server: `uploadcheck`
-- CLI/package: `@uploadcheck/cli` or `@uploadcheck/mcp`
+- CLI/package after publish: `@uploadcheck/cli` or `@uploadcheck/mcp`
 - Installed Codex skill: `uploadcheck` at `/Users/drantoniou/.codex/skills/uploadcheck`
 
 - `qc_estimate_cost`
@@ -58,13 +59,19 @@ Public API:
 - Launch doctor: `npm run launch:doctor`
 - Product Hunt launch checker: `npm run launch:check`
 - DNS cutover helper: `npm run launch:dns`
-- Checkout config helper: `npm run launch:checkout`
+- Checkout config helpers: `npm run launch:checkout-discover` for Lemon Squeezy variant discovery, then `npm run launch:checkout` for redacted checkout validation.
 - Persistence/storage config helper: `npm run launch:storage`
 - Launch status verifier: `npm run launch-status:verify`
 - Product Hunt readiness CLI: `npm run readiness:check`
 - Render Blueprint verifier: `npm run render:verify`
 - Render API launch helper: `npm run render:bootstrap-env`, `npm run render:env-template`, `npm run render:plan`, `npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env`, `npm run render:validate-env`, `npm run render:audit`, `npm run render:apply`
 - Package publish verifier: `npm run packages:verify` checks `@uploadcheck/cli` and `@uploadcheck/mcp` identity, bins, lock metadata, and `npm pack --dry-run` contents.
+- Private MCP beta verifier: `npm run private-mcp-beta:verify` checks the beta handoff, install manifest, package scripts, Directory prep, workspace-key rule, and no-public-self-serve claims.
+- Product-agent readiness verifier: `npm run product-agent:verify` checks whether Claude Code, Codex, Cursor, and MCP clients are private-beta usable without claiming public npm/download readiness.
+- Checkout launch handoff verifier: `npm run checkout-launch:verify` checks checkout/webhook docs, Render env template, OpenAPI, and readiness actions for the exact remaining launch inputs.
+- MCP install artifact verifier: `npm run mcp-install:verify` checks public `/mcp-install.json` against the package manifest and agent/OpenAPI links.
+- Live MCP install verifier: `npm run live-mcp-install:verify` checks hosted `/mcp-install.json` after Render deploy.
+- SaaS basics verifier: `npm run saas-basics:verify` checks workspace API-key creation/honoring, checkout provisioning, usage-limit abuse events, and Resend spend alerts.
 - Codex install verifier: `npm run codex:verify-install` checks the global `uploadcheck` MCP server entry, hosted API base URL, executable MCP wrapper, and installed UploadCheck skill.
 - Cost-basis verifier: `npm run cost-basis:verify` checks public cost-per-minute and 95% gross-margin assumptions against `cost-model.mjs`.
 - Roadmap verifier: `npm run roadmap:verify` checks the 50-point plan, expert-panel coverage, NTO replacement addendum, and execution-status markers.
@@ -77,16 +84,18 @@ Persistence state:
 - Webhook delivery previews use HMAC-SHA256 signatures in the `X-UploadCheck-Signature` format. Legacy `X-QCGenie-Signature` aliases are still sent during migration.
 - New webhook signing secrets are returned once on creation and encrypted at rest when a strong `UPLOADCHECK_SECRET_ENCRYPTION_KEY` is configured; legacy plaintext records remain readable for migration. Generate a key with `npm run --silent secret:generate`, then set this env var on Render before treating hosted webhook secrets as encrypted.
 - Completed jobs enqueue signed webhook delivery records for registered `job.completed` endpoints.
-- Workspace API keys are stored hashed, returned once, scoped, and honored on job creation for owner email, workspace, plan, included minutes, and subscription price metadata.
-- The dashboard API-key form calls `POST /v1/api-keys` with a provisioning bearer; in private MCP beta this is an operator/admin bearer. Paid checkout/account flows can call `POST /v1/checkout/provision-api-key`, which applies plan limits server-side and returns the bearer only on first provisioning.
+- Workspace API keys are stored hashed, returned once, scoped, and honored on upload/webhook/job creation for owner email, workspace, plan, included minutes, subscription price, and approved overage-cap metadata. Stored customer keys force their server-side workspace, owner, plan, and cap metadata over client-supplied fields; they can only create/read uploads, register/review/drain webhooks, read, report, cancel, import gate verdicts for, drain queued jobs, list, and meter jobs in their own workspace. If granted API-key review/provisioning scopes, stored keys are still pinned to their own workspace and plan economics, while operator/admin bearer keys keep broader review access.
+- The dashboard API-key form calls `POST /v1/api-keys` with a provisioning bearer; in private MCP beta this is an operator/admin bearer. Operators can review redacted key records from the dashboard or `GET /v1/api-keys?workspace_id=` with `api_keys:read`; responses show token prefixes and plan metadata, never token hashes or bearer secrets. Paid checkout/account flows can call `POST /v1/checkout/provision-api-key`, which applies plan limits server-side and returns the bearer only on first provisioning.
 - Lemon Squeezy can call `POST /v1/webhooks/lemonsqueezy`; UploadCheck verifies `X-Signature` with `UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET`, then provisions paid subscription/order events into idempotent workspace API keys for MCP/API clients.
-- Owner spend alerts are recorded and sent through Resend when extra-minute spend crosses 100% of the subscription value; `UPLOADCHECK_RESEND_API_URL` can point tests at a mock endpoint while production defaults to Resend.
+- Owner spend alerts are recorded and sent through Resend when a workspace's billable extra-minute spend crosses 100% of its subscription value; COGS remains recorded as audit context. `UPLOADCHECK_RESEND_API_URL` can point tests at a mock endpoint while production defaults to Resend.
+- Spend-alert attempts can be reviewed from the dashboard or with `GET /v1/spend-alerts?workspace_id=&limit=` by a bearer token with `api_keys:read`.
 - Webhook delivery logs are available at `/v1/webhooks/deliveries`; manual retry execution is available at `/v1/webhooks/deliveries/{delivery_id}/retry`.
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
 - Render cron can run `node scripts/drain-webhooks.mjs` with `UPLOADCHECK_API_KEY`, `UPLOADCHECK_API_BASE_URL`, and `UPLOADCHECK_DRAIN_LIMIT` to process due deliveries on a schedule.
 - Report reads append rounded-minute usage ledger entries.
-- Usage metering is idempotent per job and billing period; declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they would exceed included deterministic QC minutes.
-- Abuse limits fail fast before QC compute: `duration_limit_exceeded`, `upload_size_limit_exceeded`, and `active_job_limit_exceeded`. Defaults are 240 minutes, 2048 MB, and 25 active jobs, configurable with `UPLOADCHECK_MAX_DURATION_MINUTES`, `UPLOADCHECK_MAX_UPLOAD_MB`, and `UPLOADCHECK_MAX_ACTIVE_JOBS`.
+- Usage metering is idempotent per job, workspace, plan, and billing period; declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they would exceed that workspace's included deterministic QC minutes plus approved `overage_cap_cents`. A zero or omitted cap blocks at included minutes.
+- Abuse limits fail fast before QC compute: `duration_limit_exceeded`, `upload_size_limit_exceeded`, and `active_job_limit_exceeded`. Defaults are 240 minutes, 2048 MB, and 25 active jobs, configurable with `UPLOADCHECK_MAX_DURATION_MINUTES`, `UPLOADCHECK_MAX_UPLOAD_MB`, and `UPLOADCHECK_MAX_ACTIVE_JOBS`; stored workspace API keys apply the active-job limit within that workspace so one customer cannot consume another workspace's queue allowance.
+- Fail-fast abuse-limit and usage-limit events are persisted and can be reviewed from the dashboard or with `GET /v1/abuse-events?workspace_id=&limit=` by a bearer token with `api_keys:read`.
 - `uploadcheck usage` reads `/v1/usage/margins` and prints current estimated COGS, cost/minute, and gross margin.
 - Job creation currently runs deterministic v0 QC processing immediately and stores lifecycle events, one warning flag, and report artifact records.
 - Jobs persist observability telemetry: `startedAt`, `completedAt`, `processingDurationMs`, stage elapsed times, provider-usage entry counts, and fallback `failureReason`.
@@ -103,7 +112,7 @@ Persistence state:
 - `/v1/readiness` exposes no-secret booleans for checkout, custom domain, API auth, encryption, persistence, storage, demo clip, and Product Hunt readiness.
 - `/v1/launch-status` derives a live machine-readable launch go/no-go summary from readiness, including current blockers and operator commands.
 - `/launch-status.json` publishes machine-readable completed controls, current blockers, operator commands, and Product Hunt go/no-go rules; `npm run launch-status:generate` rebuilds it with the Product Hunt kit, and `npm run launch-status:verify` keeps it aligned with readiness and public agent metadata.
-- `npm run live-public-artifacts:verify` checks hosted `/launch-status.json`, `/product-hunt-launch-kit.json`, `/sample-reports/index.json`, the individual PASS/WATCH/BLOCK sample report JSON files, and `/llms.txt` before Product Hunt readiness can pass.
+- `npm run live-mcp-install:verify` checks hosted `/mcp-install.json`; `npm run live-public-artifacts:verify` checks hosted `/launch-status.json`, `/product-hunt-launch-kit.json`, `/mcp-install.json`, `/sample-reports/index.json`, the individual PASS/WATCH/BLOCK sample report JSON files, and `/llms.txt` before Product Hunt readiness can pass.
 - `npm run live-web-artifacts:verify` checks hosted Product Hunt, pricing, sample-report, agentic API, sitemap, `llms.txt`, and demo MP4 content before Product Hunt readiness can pass.
 - `/npo-pipeline-handoff.json` publishes the focused NPO podcast/audio MCP sequence, sidecar contract, Render media-ingress rules, marker CSV handoff, and "Fix now?" rerun loop; `npm run live-npo-pipeline-handoff:verify` blocks stale hosted copies.
 - `/cost-basis.json` publishes the plan-level revenue/minute, max COGS/minute, and full-review margin safety answer; `npm run cost-basis:verify` keeps it aligned with the cost model.
@@ -113,7 +122,7 @@ Persistence state:
 - `npm run roadmap:verify` keeps `docs/PRODUCT-ROADMAP.md` honest about the exact 50-point plan, expert-panel inputs, NTO-derived product tasks, and execution markers.
 - `npm run launch:doctor` runs the local launch helpers, explicit checkout/storage probes, public metadata verifiers, and live readiness/DNS checks in one ordered report.
 - `npm run launch:dns` prints copy-paste DNS records and verification commands from `public/launch-targets.json`.
-- `npm run launch:checkout` prints the configured checkout source, host, and redacted URL for Creator, Studio, and Network without exposing checkout path secrets or Lemon Squeezy variant IDs.
+- `npm run launch:checkout-discover` uses a local Lemon Squeezy API key and store id to find published monthly UploadCheck Creator/Studio/Network variants; `npm run launch:checkout` prints the configured checkout source, host, and redacted URL for each plan without exposing checkout path secrets or Lemon Squeezy variant IDs.
 - `npm run launch:storage` prints mounted JSON-store, durable upload path, and object-storage completeness without exposing access keys or secret keys.
 - `npm run launch:check` combines live readiness, live launch status, DNS, and HTTP checks for `uploadcheck.app`, `www.uploadcheck.app`, and `api.uploadcheck.app`.
 - `npm run readiness:check` fetches live readiness and prints the exact remaining Render/DNS/checkout actions.
@@ -142,4 +151,5 @@ npm run dev
 npm test
 npm run build
 npm run packages:verify
+npm run saas-basics:verify
 ```

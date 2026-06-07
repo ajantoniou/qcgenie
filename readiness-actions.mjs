@@ -29,14 +29,19 @@ export function buildReadinessActions(report) {
     actions.push({
       id: "checkout",
       title: "Configure checkout URLs",
-      detail: `Set HTTPS checkout env for ${missingPlans.join(", ") || "all plans"}, or use Lemon Squeezy store slug plus plan variant IDs.`,
+      detail: `Set HTTPS checkout env for ${missingPlans.join(", ") || "all plans"}, or use Lemon Squeezy store slug plus plan variant IDs. If Lemon Squeezy API access is available, discover matching UploadCheck variants first.`,
       env: [
+        "LEMONSQUEEZY_API_KEY + LEMONSQUEEZY_STORE_ID for npm run launch:checkout-discover",
         "UPLOADCHECK_CREATOR_CHECKOUT_URL",
         "UPLOADCHECK_STUDIO_CHECKOUT_URL",
         "UPLOADCHECK_NETWORK_CHECKOUT_URL",
-        "or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG plus UPLOADCHECK_<PLAN>_VARIANT_ID"
+        "or UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG plus UPLOADCHECK_CREATOR_VARIANT_ID, UPLOADCHECK_STUDIO_VARIANT_ID, UPLOADCHECK_NETWORK_VARIANT_ID"
       ],
-      command: "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout"
+      command: "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
+      commands: [
+        "npm run launch:checkout-discover",
+        "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout"
+      ]
     });
   }
 
@@ -56,6 +61,7 @@ export function buildReadinessActions(report) {
       title: "Set Lemon Squeezy webhook signing secret",
       detail: "Configure the Lemon Squeezy webhook signing secret so signed checkout events can provision paid MCP/API keys.",
       env: ["UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET"],
+      command: "npm run render:validate-env",
       docs: "docs/DEPLOYMENT-CUTOVER.md"
     });
   }

@@ -15,11 +15,19 @@ export function buildProductHuntLaunchKit(status) {
       short_description: "Run /check from an agent workspace or call the API before publishing. UploadCheck returns verdicts, timestamped flags, source-hash proof, marker exports, cost estimates, and repair-loop instructions.",
       proof_points: [
         "Global Codex MCP server: uploadcheck",
-        "CLI/package names: @uploadcheck/cli and @uploadcheck/mcp",
+        "Private MCP beta install uses a local checkout or private clone with a workspace API key; @uploadcheck/cli and @uploadcheck/mcp are future npm packages after publish proof",
         "Live Render API with inline media, signed upload, queued worker, and report endpoints",
         "Public PASS, WATCH, and BLOCK sample reports",
         "Cost guardrails that downgrade or block model-backed checks when they would break the 95% gross-margin target"
       ]
+    },
+    distribution_position: {
+      current_status: "private_mcp_beta_not_public_self_serve",
+      current_install: "local checkout or private clone",
+      required_secret: "workspace API key tied to plan minutes, top-up credits, or an operator-created beta account",
+      public_npm_install: "after @uploadcheck/cli and @uploadcheck/mcp are published",
+      directory_submission: "after paid workspace proof, checkout/webhook proof, spend-alert proof, hosted MCP install proof, and external Claude Code/Codex/Cursor beta evidence",
+      openai_connector: "defer until hosted HTTPS MCP, account binding, report UX, and abuse/cost controls are proven in production"
     },
     demo_flow: [
       {
@@ -52,6 +60,7 @@ export function buildProductHuntLaunchKit(status) {
       pipeline_handoff: artifacts.pipeline_handoff,
       pipeline_recipes: artifacts.pipeline_recipes,
       npo_pipeline_handoff: artifacts.npo_pipeline_handoff,
+      mcp_install: artifacts.mcp_install,
       agent_manifest: artifacts.agent_manifest,
       openapi: artifacts.openapi,
       launch_status: artifacts.launch_status,
@@ -62,7 +71,7 @@ export function buildProductHuntLaunchKit(status) {
     pricing_position: {
       creator: "$99/mo for 2,400 checked minutes",
       studio: "$299/mo for 10,000 checked minutes",
-      network: "$799/mo for 36,000 checked minutes",
+      network: "$899/mo for 36,000 checked minutes",
       margin_rule: "Included minutes cover deterministic publish-readiness QC. Deep model review stays internal for engine backtesting, roadmap generation, and deterministic capture-rate measurement so public plans preserve the 95% gross-margin target.",
       stress_plan_verdict: "$99 for 5,000 checked minutes is too generous for full-model review; public pricing stays deterministic QC minutes."
     },
@@ -77,12 +86,18 @@ export function buildProductHuntLaunchKit(status) {
         "npm run live-launch-evidence:verify",
         "npm run codex:verify-install",
         "npm run cost-basis:verify",
+        "npm run saas-basics:verify",
+        "npm run mcp-install:verify",
+        "npm run private-mcp-beta:verify",
+        "npm run anthropic-directory:verify",
+        "npm run product-agent:verify",
         "npm run live-cost-basis:verify",
         "npm run live-agent-manifest:verify",
         "npm run live-pipeline-recipes:verify",
         "npm run live-pipeline-handoff:verify",
         "npm run live-npo-pipeline-handoff:verify",
         "npm run live-openapi:verify",
+        "npm run live-mcp-install:verify",
         "npm run live-public-artifacts:verify",
         "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
         "npm run live-web-artifacts:verify",

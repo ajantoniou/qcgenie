@@ -29,24 +29,24 @@
           <h1>Install UploadCheck for Agents</h1>
           <p class="tagline">Quality check videos, podcasts, and clips before you upload.</p>
           <p>Set up the <code>uploadcheck</code> MCP server so Claude Code, Codex, Cursor, or another agent can call UploadCheck, hand evidence to a second agent, and rerun after fixes.</p>
-          <div class="ctaRow"><a class="button" href="/agentic-media-qc-api/">Agent API</a><a class="button secondary" href="/agent-manifest.json">Agent manifest</a></div>
+          <div class="ctaRow"><a class="button" href="/agentic-media-qc-api/">Agent API</a><a class="button secondary" href="/mcp-install.json">MCP install JSON</a><a class="button secondary" href="/llms.txt">Agent notes</a></div>
         </div>
         <aside class="panel">
           <h2>Current distribution status</h2>
           <ul>
-            <li>Current install path: GitHub clone or local checkout.</li>
-            <li>NPM package install: after <code>@uploadcheck/cli</code> and <code>@uploadcheck/mcp</code> are published.</li>
+            <li>Current install path: private clone or local checkout.</li>
+            <li>NPM package install: use <code>npx -y @uploadcheck/mcp</code> only after <code>@uploadcheck/cli</code> and <code>@uploadcheck/mcp</code> are published.</li>
             <li>Required secret: <code>UPLOADCHECK_API_KEY</code>.</li>
+            <li>Private beta users need a workspace API key tied to plan minutes or beta credits.</li>
           </ul>
         </aside>
       </section>
       <section class="section">
-        <h2>1. Clone the MCP package</h2>
+        <h2>1. Prepare the MCP package</h2>
         <div class="twoGrid">
           <article class="answer">
-            <h2>Current GitHub install</h2>
-            <pre><code>git clone https://github.com/ajantoniou/uploadcheck.git /absolute/path/to/uploadcheck
-cd /absolute/path/to/uploadcheck/mcp-server
+            <h2>Current private-beta install</h2>
+            <pre><code>cd /absolute/path/to/uploadcheck/mcp-server
 npm install</code></pre>
           </article>
           <article class="answer">
@@ -112,7 +112,7 @@ UPLOADCHECK_API_KEY = "&lt;workspace_api_key&gt;"</code></pre>
           <article class="answer"><h2>Repair loop</h2><p>The first agent shows all BLOCK and WATCH flags, asks whether to fix now, applies reachable caption or source-file fixes, and reruns UploadCheck before claiming the media is upload-ready.</p></article>
         </div>
       </section>
-      <footer class="footer">Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists. Use the GitHub/local MCP path above for current agent installs.</footer>
+      <footer class="footer">Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists. Use the private-clone/local MCP path above for current agent installs.</footer>
     </main>
   </body>
 </html>

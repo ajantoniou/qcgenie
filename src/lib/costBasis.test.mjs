@@ -96,10 +96,10 @@ describe("public cost basis", () => {
       deterministic_full_allowance_gross_margin_pct: 97.214
     });
     expect(basis.plans.find((plan) => plan.plan_id === "network")).toMatchObject({
-      price_cents: 79900,
+      price_cents: 89900,
       included_minutes: 36000,
       ai_review_budget_seconds: 0,
-      deterministic_full_allowance_gross_margin_pct: 96.2468
+      deterministic_full_allowance_gross_margin_pct: 96.6643
     });
     expect(basis.verdict.launch_shape).toContain("Creator $99 / 2,400");
   });

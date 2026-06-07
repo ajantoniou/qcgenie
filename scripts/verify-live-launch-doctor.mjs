@@ -4,6 +4,13 @@ const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_LAUNCH_DOCTOR_BAS
 const expectedContractVersion = "2026-06-06.render-web-proof";
 const expectedHostedCommand = "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify";
 const expectedRenderWebCommand = "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify";
+const requiredLocalProofCommands = [
+  "npm run saas-basics:verify",
+  "npm run mcp-install:verify",
+  "npm run private-mcp-beta:verify",
+  "npm run anthropic-directory:verify",
+  "npm run product-agent:verify"
+];
 const url = `${baseUrl}/v1/launch-doctor`;
 
 try {
@@ -37,6 +44,10 @@ try {
   if (!Array.isArray(commands) || !commands.includes(expectedRenderWebCommand)) {
     fail(`UploadCheck live launch doctor: NOT READY\nMissing Render static web-artifacts command in launchDoctorCommands.`);
   }
+  const missingProofCommands = requiredLocalProofCommands.filter((command) => !commands.includes(command));
+  if (missingProofCommands.length) {
+    fail(`UploadCheck live launch doctor: NOT READY\nMissing SaaS/MCP/Directory proof commands in launchDoctorCommands: ${missingProofCommands.join(", ")}`);
+  }
   if (!payload.blockerFixPlan || !Array.isArray(payload.blockerFixPlan.phases)) {
     fail(`UploadCheck live launch doctor: NOT READY\nMissing blockerFixPlan.phases.`);
   }
@@ -50,7 +61,8 @@ try {
     remainingBlockers: (payload.remainingBlockers || []).map((blocker) => blocker.id).filter(Boolean),
     launchDoctorCommandCount: commands.length,
     hostedMediaIngressCommandPresent: true,
-    renderWebArtifactsCommandPresent: true
+    renderWebArtifactsCommandPresent: true,
+    requiredLocalProofCommandsPresent: true
   }, null, 2));
 } catch (error) {
   fail(`UploadCheck live launch doctor: NOT READY\n${error.message}`);

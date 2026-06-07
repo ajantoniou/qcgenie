@@ -25,6 +25,11 @@ export function validateLaunchStatusArtifact(payload) {
   const commands = payload?.operator_commands || [];
   for (const command of [
     "npm run launch:doctor",
+    "npm run saas-basics:verify",
+    "npm run mcp-install:verify",
+    "npm run private-mcp-beta:verify",
+    "npm run anthropic-directory:verify",
+      "npm run product-agent:verify",
     "npm run live-public-artifacts:verify",
     "npm run live-launch-evidence:verify",
     "npm run live-cost-basis:verify",
@@ -36,7 +41,7 @@ export function validateLaunchStatusArtifact(payload) {
     }
   }
   const artifacts = payload?.public_artifacts || {};
-  for (const key of ["launch_status", "product_hunt_launch_kit", "sample_reports", "cost_basis", "agent_manifest", "openapi", "npo_pipeline_handoff", "live_launch_evidence"]) {
+  for (const key of ["launch_status", "product_hunt_launch_kit", "sample_reports", "cost_basis", "agent_manifest", "openapi", "npo_pipeline_handoff", "mcp_install", "live_launch_evidence"]) {
     if (!String(artifacts[key] || "").startsWith(DEFAULT_BASE_URL)) {
       errors.push(error(`launch_status.public_artifacts.${key}`, "missing_artifact_url", `Missing public artifact URL for ${key}.`));
     }
@@ -62,7 +67,7 @@ export function validateProductHuntLaunchKitArtifact(payload) {
     }
   }
   const links = payload?.public_links || {};
-  for (const key of ["sample_reports_index", "block_sample_report", "cost_basis", "pipeline_handoff", "pipeline_recipes", "npo_pipeline_handoff", "agent_manifest", "openapi", "launch_status", "live_launch_status", "live_launch_doctor", "live_launch_evidence"]) {
+  for (const key of ["sample_reports_index", "block_sample_report", "cost_basis", "pipeline_handoff", "pipeline_recipes", "npo_pipeline_handoff", "mcp_install", "agent_manifest", "openapi", "launch_status", "live_launch_status", "live_launch_doctor", "live_launch_evidence"]) {
     if (!String(links[key] || "").startsWith(DEFAULT_BASE_URL)) {
       errors.push(error(`product_hunt_launch_kit.public_links.${key}`, "missing_public_link", `Missing public link for ${key}.`));
     }
@@ -74,7 +79,8 @@ export function validateProductHuntLaunchKitArtifact(payload) {
     errors.push(error("product_hunt_launch_kit.pricing_position.stress_plan_verdict", "missing_stress_verdict", "Product Hunt kit must preserve the $99 / 5,000 warning."));
   }
   const requiredCommands = payload?.ready_when?.required_commands || [];
-  for (const command of ["npm run launch:doctor", "npm run live-public-artifacts:verify", "npm run live-launch-evidence:verify", "npm run launch:check"]) {
+  for (const command of ["npm run launch:doctor", "npm run saas-basics:verify", "npm run mcp-install:verify", "npm run private-mcp-beta:verify", "npm run anthropic-directory:verify",
+      "npm run product-agent:verify", "npm run live-public-artifacts:verify", "npm run live-launch-evidence:verify", "npm run launch:check"]) {
     if (!requiredCommands.includes(command)) {
       errors.push(error("product_hunt_launch_kit.ready_when.required_commands", "missing_required_command", `Missing required command: ${command}`));
     }
@@ -175,8 +181,11 @@ export function validateLlmsArtifact(text) {
     "UploadCheck.app",
     "Quality check videos, podcasts, and clips before you upload.",
     "MCP server name: uploadcheck.",
-    "CLI/package options: @uploadcheck/cli and @uploadcheck/mcp.",
+    "Current distribution state: private MCP beta.",
+    "Current install path: local checkout or private clone.",
+    "Use @uploadcheck/cli and @uploadcheck/mcp only after the npm packages are published.",
     "https://api.uploadcheck.app/product-hunt-launch-kit.json",
+    "https://api.uploadcheck.app/mcp-install.json",
     "https://api.uploadcheck.app/sample-reports/index.json",
     "https://api.uploadcheck.app/v1/launch-evidence",
     "Checked minutes are deterministic publish-readiness QC minutes",
@@ -193,12 +202,60 @@ export function validateLlmsArtifact(text) {
   return errors;
 }
 
-export function validatePublicArtifacts({ launchStatus, productHuntLaunchKit, sampleReports, sampleReportDetails = {}, llms }) {
+export function validateMcpInstallArtifact(payload) {
+  const errors = [];
+  if (payload?.name !== "uploadcheck") {
+    errors.push(error("mcp_install.name", "wrong_server_name", "MCP install artifact must identify the uploadcheck server."));
+  }
+  if (payload?.package !== "@uploadcheck/mcp" || payload?.binary !== "uploadcheck-mcp") {
+    errors.push(error("mcp_install.package", "wrong_package", "MCP install artifact must expose @uploadcheck/mcp and uploadcheck-mcp."));
+  }
+  if (payload?.distribution_status !== "private_mcp_beta_not_public_self_serve") {
+    errors.push(error("mcp_install.distribution_status", "missing_private_beta_status", "MCP install artifact must identify the current private beta status."));
+  }
+  if (payload?.current_install !== "local_checkout_or_private_clone") {
+    errors.push(error("mcp_install.current_install", "missing_current_local_install", "MCP install artifact must keep local checkout/private clone as the current install path."));
+  }
+  if (!String(payload?.future_npm_install || "").includes("after @uploadcheck/mcp is published")) {
+    errors.push(error("mcp_install.future_npm_install", "missing_future_npm_guard", "MCP install artifact must guard npx snippets until npm publish."));
+  }
+  if (payload?.environment?.UPLOADCHECK_API_BASE_URL !== DEFAULT_BASE_URL) {
+    errors.push(error("mcp_install.environment.UPLOADCHECK_API_BASE_URL", "wrong_api_base", "MCP install artifact must default to the hosted API."));
+  }
+  if (payload?.environment?.UPLOADCHECK_API_KEY !== "<workspace_api_key>") {
+    errors.push(error("mcp_install.environment.UPLOADCHECK_API_KEY", "missing_workspace_key_placeholder", "MCP install artifact must require a workspace API key."));
+  }
+  if (!payload?.codex_local?.toml?.includes('UPLOADCHECK_API_KEY = "<workspace_api_key>"')) {
+    errors.push(error("mcp_install.codex_local.toml", "missing_codex_workspace_key_placeholder", "Codex install snippet must include the workspace API-key placeholder."));
+  }
+  if (payload?.claude_desktop_local?.json?.mcpServers?.uploadcheck?.command !== "node") {
+    errors.push(error("mcp_install.claude_desktop_local", "missing_claude_local_node_install", "Claude private-beta snippet must use a local checkout path."));
+  }
+  if (payload?.cursor_local?.json?.mcpServers?.uploadcheck?.command !== "node") {
+    errors.push(error("mcp_install.cursor_local", "missing_cursor_local_node_install", "Cursor private-beta snippet must use a local checkout path."));
+  }
+  if (payload?.claude_desktop?.json?.mcpServers?.uploadcheck?.env?.UPLOADCHECK_API_KEY !== "<workspace_api_key>") {
+    errors.push(error("mcp_install.claude_desktop", "missing_claude_workspace_key_placeholder", "Claude install snippet must include the workspace API-key placeholder."));
+  }
+  if (payload?.cursor?.json?.mcpServers?.uploadcheck?.env?.UPLOADCHECK_API_KEY !== "<workspace_api_key>") {
+    errors.push(error("mcp_install.cursor", "missing_cursor_workspace_key_placeholder", "Cursor install snippet must include the workspace API-key placeholder."));
+  }
+  if (!payload?.notes?.some((note) => String(note).includes("Do not claim Product Hunt launch readiness"))) {
+    errors.push(error("mcp_install.notes", "missing_no_launch_rule", "MCP install artifact must preserve the no-launch readiness rule."));
+  }
+  if (!payload?.notes?.some((note) => String(note).includes("workspace API key tied to plan minutes"))) {
+    errors.push(error("mcp_install.notes", "missing_credit_gated_workspace_key_note", "MCP install artifact must state external beta users need credit-gated workspace keys."));
+  }
+  return errors;
+}
+
+export function validatePublicArtifacts({ launchStatus, productHuntLaunchKit, sampleReports, sampleReportDetails = {}, mcpInstall, llms }) {
   return [
     ...validateLaunchStatusArtifact(launchStatus),
     ...validateProductHuntLaunchKitArtifact(productHuntLaunchKit),
     ...validateSampleReportsArtifact(sampleReports),
     ...validateSampleReportDetailsArtifact(sampleReports, sampleReportDetails),
+    ...validateMcpInstallArtifact(mcpInstall),
     ...validateLlmsArtifact(llms)
   ];
 }
@@ -209,21 +266,23 @@ async function main() {
     launchStatus: `${baseUrl}/launch-status.json`,
     productHuntLaunchKit: `${baseUrl}/product-hunt-launch-kit.json`,
     sampleReports: `${baseUrl}/sample-reports/index.json`,
+    mcpInstall: `${baseUrl}/mcp-install.json`,
     llms: `${baseUrl}/llms.txt`
   };
 
   try {
-    const [launchStatus, productHuntLaunchKit, sampleReports, llms] = await Promise.all([
+    const [launchStatus, productHuntLaunchKit, sampleReports, mcpInstall, llms] = await Promise.all([
       fetchJson(urls.launchStatus, "launch status"),
       fetchJson(urls.productHuntLaunchKit, "Product Hunt launch kit"),
       fetchJson(urls.sampleReports, "sample reports"),
+      fetchJson(urls.mcpInstall, "MCP install"),
       fetchText(urls.llms, "llms.txt")
     ]);
     const sampleReportDetails = {};
     for (const report of sampleReports.reports || []) {
       sampleReportDetails[report.id] = await fetchJson(rewriteReportUrl(report.url, baseUrl), `sample report ${report.id}`);
     }
-    const errors = validatePublicArtifacts({ launchStatus, productHuntLaunchKit, sampleReports, sampleReportDetails, llms });
+    const errors = validatePublicArtifacts({ launchStatus, productHuntLaunchKit, sampleReports, sampleReportDetails, mcpInstall, llms });
     if (errors.length) {
       fail(`UploadCheck live public artifacts: NOT READY\n${JSON.stringify({ urls, sampleReportUrls: Object.fromEntries((sampleReports.reports || []).map((report) => [report.id, rewriteReportUrl(report.url, baseUrl)])), errors }, null, 2)}`);
     }
@@ -234,6 +293,7 @@ async function main() {
       blockerCount: launchStatus.remaining_blockers?.length || 0,
       sampleReportCount: sampleReports.reports?.length || 0,
       sampleReportDetailCount: Object.keys(sampleReportDetails).length,
+      mcpInstallPackage: mcpInstall.package,
       llmsBytes: Buffer.byteLength(llms)
     }, null, 2));
   } catch (err) {

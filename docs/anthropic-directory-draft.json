@@ -1,0 +1,91 @@
+{
+  "status": "private_mcp_beta_not_ready_for_submission",
+  "name": "UploadCheck.app",
+  "category": "Media quality control",
+  "short_description": "Quality check videos, podcasts, and clips before upload.",
+  "long_description": "UploadCheck gives Claude Code, Codex, Cursor, and MCP-capable creator agents a deterministic pre-upload QC loop. Agents can run a media check, fetch timestamped flags, repair only reachable issues, and rerun before claiming an export is upload-ready.",
+  "mcp_server_name": "uploadcheck",
+  "distribution": {
+    "private_beta": true,
+    "current_install": "local checkout or private clone",
+    "future_package": "@uploadcheck/mcp",
+    "hosted_api_base_url": "https://api.uploadcheck.app",
+    "requires_workspace_api_key": true,
+    "requires_credit_gated_workspace": true
+  },
+  "public_tools": [
+    "qc_get_cost_basis",
+    "qc_estimate_cost",
+    "qc_run_video",
+    "qc_run_local_file",
+    "qc_get_job",
+    "qc_get_report",
+    "qc_get_events",
+    "qc_get_artifacts",
+    "qc_get_marker_csv",
+    "qc_create_upload_url"
+  ],
+  "auth": {
+    "type": "bearer_api_key",
+    "environment_variable": "UPLOADCHECK_API_KEY",
+    "format": "Bearer <workspace_api_key>"
+  },
+  "billing_boundary": {
+    "included_unit": "deterministic publish-readiness QC minutes",
+    "model_backed_review": "internal capture-rate testing or separately sold add-on",
+    "public_ai_review_budget_seconds": 0
+  },
+  "privacy_and_safety": [
+    "Local MCP clients read local media only to send it to the hosted UploadCheck API.",
+    "Responses expose sanitized media-ingress metadata and never expose temporary server file paths.",
+    "Workspace API keys are returned once and stored hashed.",
+    "Abuse limits fail fast before QC compute or storage spend.",
+    "Owner spend alerts are recorded and emailed through Resend when billable extra-minute spend crosses the subscription value; COGS remains stored as audit context."
+  ],
+  "required_evidence_commands": [
+    "npm run packages:verify",
+    "npm run packages:install-smoke",
+    "npm run npm-publish:preflight",
+    "npm run mcp-install:verify",
+    "npm run product-agent:verify",
+    "npm run private-mcp-beta:verify",
+    "npm run checkout-launch:verify",
+    "npm run saas-basics:verify",
+    "npm run codex:verify-install",
+    "npm run build",
+    "npm run readiness:check",
+    "npm run live-mcp-install:verify"
+  ],
+  "submission_evidence": [
+    "Registry proof that @uploadcheck/cli and @uploadcheck/mcp are published.",
+    "Read-only npm publish preflight proof from npm run npm-publish:preflight before founder publish.",
+    "Hosted /mcp-install.json proof from npm run live-mcp-install:verify after Render redeploy.",
+    "Paid workspace API-key proof from hosted QC job creation through report fetch.",
+    "Checkout proof from configured Lemon Squeezy checkout URLs or Creator, Studio, and Network variants.",
+    "Webhook proof that X-Signature HMAC-SHA256 is verified with UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET before API-key provisioning.",
+    "Abuse-limit proof that over-limit usage blocks before QC compute and records operator-reviewable abuse events.",
+    "Spend-alert proof that GET /v1/spend-alerts returns a Resend-backed alert after billable extra-minute spend crosses subscription value, with COGS retained as audit context.",
+    "Private beta evidence from Claude Code, Codex, and Cursor using workspace API keys.",
+    "No-public-oracle proof that package files, MCP manifests, README copy, and Directory copy do not expose gemini_watch, omni_watch, qwen, anthropic_fallback_oracle, or deep_ai_review as customer tools."
+  ],
+  "connector_decision": {
+    "chatgpt_or_openai_connector": "defer",
+    "reason": "MCP/API distribution is the current product-agent channel; connector review waits for hosted HTTPS MCP, account binding, report UX, abuse controls, and production cost evidence.",
+    "next_channel": "Anthropic Directory after private MCP beta and npm package proof"
+  },
+  "not_public_tools": [
+    "gemini_watch",
+    "omni_watch",
+    "qwen",
+    "anthropic_fallback_oracle",
+    "deep_ai_review"
+  ],
+  "submission_blockers": [
+    "Publish @uploadcheck/mcp to npm.",
+    "Configure checkout URLs or Lemon Squeezy Creator, Studio, and Network variants.",
+    "Configure UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET on Render.",
+    "Pass npm run saas-basics:verify against the current checkout, usage-limit, API-key, and Resend spend-alert code.",
+    "Capture paid workspace API-key proof from hosted QC job creation through report fetch.",
+    "Capture private beta evidence from Claude Code, Codex, and Cursor."
+  ]
+}

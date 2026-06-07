@@ -78,17 +78,40 @@ describe("static SEO/AEO pages", () => {
     const apiHtml = readFileSync("public/agentic-media-qc-api/index.html", "utf8");
     const pipelineDocs = readFileSync("docs/PIPELINE-INTEGRATION.md", "utf8");
 
-    expect(html).toContain("git clone https://github.com/ajantoniou/uploadcheck.git");
+    expect(html).toContain("private clone or local checkout");
     expect(html).toContain("/absolute/path/to/uploadcheck/mcp-server/index.mjs");
     expect(html).toContain("~/.codex/config.toml");
     expect(html).toContain(".cursor/mcp.json");
     expect(html).toContain("qc_get_cost_basis");
     expect(html).toContain("qc_run_local_file");
+    expect(html).toContain("Private beta users need a workspace API key tied to plan minutes or beta credits.");
+    expect(html).toContain("/mcp-install.json");
     expect(html).toContain("Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists");
     expect(apiHtml).toContain("/agent-install/");
+    expect(apiHtml).toContain("Use a private clone or local checkout");
+    expect(apiHtml).toContain("UploadCheck is a private MCP beta.");
+    expect(apiHtml).toContain("Authorization: Bearer &lt;workspace_api_key&gt;");
+    expect(apiHtml).toContain("Workspace keys are tied to plan minutes, top-up credits, or an operator-created beta account.");
+    expect(apiHtml).toContain("curl https://api.uploadcheck.app/v1/qc/jobs");
+    expect(apiHtml).toContain("Checked minutes are deterministic publish-readiness QC minutes.");
     expect(apiHtml).toContain("The npm package names are reserved in product copy, but the public npm packages are not published yet.");
     expect(pipelineDocs).toContain("Apply fixes only to the exact flagged spans");
     expect(pipelineDocs).toContain("Do not broadly rewrite the video");
     expect(pipelineDocs).toContain("agents are repair agents, not reviewers");
+  });
+
+  it("keeps answer-engine copy aligned with private MCP beta distribution", () => {
+    const llms = readFileSync("public/llms.txt", "utf8");
+    const aiReviewHtml = readFileSync("public/ai-video-review-before-upload/index.html", "utf8");
+    const readme = readFileSync("README.md", "utf8");
+
+    expect(llms).toContain("Current distribution state: private MCP beta.");
+    expect(llms).toContain("Current install path: local checkout or private clone.");
+    expect(llms).toContain("use @uploadcheck/cli and @uploadcheck/mcp only after npm publish");
+    expect(llms).toContain("Yes for private beta/local installs with a workspace API key.");
+    expect(aiReviewHtml).toContain("Today that means a local checkout or private clone with a workspace API key");
+    expect(aiReviewHtml).toContain("@uploadcheck/cli</strong> and <strong>@uploadcheck/mcp</strong> come after npm publish");
+    expect(readme).toContain("The current agent distribution state is private MCP beta, not public self-serve npm download.");
+    expect(readme).toContain("CLI/package options after npm publish");
   });
 });

@@ -4,6 +4,13 @@ const baseUrl = trimTrailingSlash(process.env.UPLOADCHECK_LIVE_LAUNCH_EVIDENCE_B
 const expectedContractVersion = "2026-06-06.render-web-proof";
 const expectedSource = "https://api.uploadcheck.app/v1/launch-doctor";
 const expectedRenderWebCommand = "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify";
+const requiredLocalProofCommands = [
+  "npm run saas-basics:verify",
+  "npm run mcp-install:verify",
+  "npm run private-mcp-beta:verify",
+  "npm run anthropic-directory:verify",
+  "npm run product-agent:verify"
+];
 const url = `${baseUrl}/v1/launch-evidence`;
 
 try {
@@ -40,6 +47,10 @@ try {
   if (!Array.isArray(payload.commandCoverage) || !payload.commandCoverage.includes(expectedRenderWebCommand)) {
     fail("UploadCheck live launch evidence: NOT READY\nMissing Render static web-artifacts command coverage.");
   }
+  const missingProofCommands = requiredLocalProofCommands.filter((command) => !payload.commandCoverage.includes(command));
+  if (missingProofCommands.length) {
+    fail(`UploadCheck live launch evidence: NOT READY\nMissing SaaS/MCP/Directory command coverage: ${missingProofCommands.join(", ")}`);
+  }
   if (serialized.includes("uck_") || /\/tmp\/uploadcheck\/(?!<redacted>)/.test(serialized)) {
     fail("UploadCheck live launch evidence: NOT READY\nPayload leaks a bearer-token or temp-path pattern.");
   }
@@ -55,7 +66,8 @@ try {
     blockers: payload.blockers || [],
     commandCoverageCount: payload.commandCoverage.length,
     redactedHostedMediaIngressCommandPresent: true,
-    renderWebArtifactsCommandPresent: true
+    renderWebArtifactsCommandPresent: true,
+    requiredLocalProofCommandsPresent: true
   }, null, 2));
 } catch (error) {
   fail(`UploadCheck live launch evidence: NOT READY\n${error.message}`);

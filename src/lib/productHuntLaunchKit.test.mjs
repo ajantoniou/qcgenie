@@ -18,10 +18,21 @@ describe("Product Hunt launch kit", () => {
     expect(kit.product.name).toBe("UploadCheck.app");
     expect(kit.product.tagline).toBe("Quality check videos, podcasts, and clips before you upload.");
     expect(kit.launch_copy.headline).toContain("Catch upload mistakes");
+    expect(kit.launch_copy.proof_points.join("\n")).toContain("Private MCP beta install uses a local checkout or private clone");
+    expect(kit.launch_copy.proof_points.join("\n")).toContain("future npm packages after publish proof");
+    expect(kit.distribution_position).toMatchObject({
+      current_status: "private_mcp_beta_not_public_self_serve",
+      current_install: "local checkout or private clone",
+      required_secret: "workspace API key tied to plan minutes, top-up credits, or an operator-created beta account"
+    });
+    expect(kit.distribution_position.public_npm_install).toContain("after @uploadcheck/cli and @uploadcheck/mcp are published");
+    expect(kit.distribution_position.directory_submission).toContain("paid workspace proof");
+    expect(kit.distribution_position.openai_connector).toContain("defer");
     expect(kit.demo_flow).toHaveLength(4);
     expect(kit.demo_flow.map((step) => step.title)).toEqual(["Preflight cost", "Run /check", "Show the block", "Ask to fix now"]);
     expect(kit.public_links.sample_reports_index).toBe(status.public_artifacts.sample_reports);
     expect(kit.public_links.cost_basis).toBe(status.public_artifacts.cost_basis);
+    expect(kit.public_links.mcp_install).toBe(status.public_artifacts.mcp_install);
     expect(kit.public_links.launch_status).toBe(status.public_artifacts.launch_status);
     expect(kit.public_links.live_launch_doctor).toBe(status.public_artifacts.live_launch_doctor);
     expect(kit.current_state_snapshot).toMatchObject({
@@ -42,7 +53,13 @@ describe("Product Hunt launch kit", () => {
     expect(kit.ready_when.required_commands).toContain("npm run live-pipeline-handoff:verify");
     expect(kit.ready_when.required_commands).toContain("npm run live-npo-pipeline-handoff:verify");
     expect(kit.ready_when.required_commands).toContain("npm run live-openapi:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run live-mcp-install:verify");
     expect(kit.ready_when.required_commands).toContain("npm run live-public-artifacts:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run mcp-install:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run saas-basics:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run private-mcp-beta:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run anthropic-directory:verify");
+    expect(kit.ready_when.required_commands).toContain("npm run product-agent:verify");
     expect(kit.ready_when.required_commands).toContain("UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify");
     expect(kit.ready_when.required_commands).toContain("npm run live-web-artifacts:verify");
     expect(kit.ready_when.required_commands).toContain("npm run media-ingress:verify");
@@ -73,7 +90,13 @@ describe("Product Hunt launch kit", () => {
       "npm run live-pipeline-handoff:verify",
       "npm run live-npo-pipeline-handoff:verify",
       "npm run live-openapi:verify",
+      "npm run live-mcp-install:verify",
       "npm run live-public-artifacts:verify",
+      "npm run mcp-install:verify",
+      "npm run saas-basics:verify",
+      "npm run private-mcp-beta:verify",
+      "npm run anthropic-directory:verify",
+      "npm run product-agent:verify",
       "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
       "npm run live-web-artifacts:verify",
       "npm run launch-status:generate",

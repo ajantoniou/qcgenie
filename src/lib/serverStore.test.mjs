@@ -64,6 +64,116 @@ describe("JsonStore", () => {
     }
   });
 
+  it("summarizes plan usage within a workspace when workspaceId is supplied", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const firstJob = store.createJob({ source: "/tmp/a.mp4", plan_id: "creator", workspace_id: "ws_a", included_minutes: 10 });
+      const secondJob = store.createJob({ source: "/tmp/b.mp4", plan_id: "creator", workspace_id: "ws_b", included_minutes: 10 });
+      store.appendUsage(firstJob.jobId, 9, "2026-06", { planId: "creator", workspaceId: "ws_a", includedMinutes: 10 });
+      store.appendUsage(secondJob.jobId, 2, "2026-06", { planId: "creator", workspaceId: "ws_b", includedMinutes: 10 });
+
+      expect(store.summarizePlanUsage({ planId: "creator", billingPeriod: "2026-06", includedMinutes: 10 })).toMatchObject({
+        workspaceId: null,
+        minutesUsed: 11,
+        usageEntryCount: 2
+      });
+      expect(store.summarizePlanUsage({ planId: "creator", workspaceId: "ws_b", billingPeriod: "2026-06", includedMinutes: 10 })).toMatchObject({
+        workspaceId: "ws_b",
+        minutesUsed: 2,
+        minutesRemaining: 8,
+        usageEntryCount: 1
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("records usage-limit attempts with plan and workspace context", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-usage-abuse-"));
+    const path = join(dir, "store.json");
+    try {
+      const store = new JsonStore(path);
+      const event = store.recordAbuseEvent({
+        type: "usage_limit_exceeded",
+        error: "usage_limit_exceeded",
+        status: 402,
+        workspaceId: "ws_limit",
+        ownerEmail: "limit@example.com",
+        planId: "creator",
+        billingPeriod: "2026-06",
+        includedMinutes: 2400,
+        minutesUsed: 2399,
+        requestedMinutes: 2,
+        minutesRemaining: 1
+      });
+
+      expect(event).toMatchObject({
+        error: "usage_limit_exceeded",
+        workspaceId: "ws_limit",
+        ownerEmail: "limit@example.com",
+        planId: "creator",
+        billingPeriod: "2026-06",
+        includedMinutes: 2400,
+        minutesUsed: 2399,
+        requestedMinutes: 2,
+        minutesRemaining: 1
+      });
+      expect(new JsonStore(path).listAbuseEvents({ workspaceId: "ws_limit" })[0]).toMatchObject({
+        error: "usage_limit_exceeded",
+        planId: "creator"
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("lists spend alerts by workspace for operator review", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-spend-alerts-"));
+    const path = join(dir, "store.json");
+    try {
+      const store = new JsonStore(path);
+      store.recordSpendAlert({
+        workspaceId: "ws_a",
+        ownerEmail: "a@example.com",
+        planId: "creator",
+        billingPeriod: "2026-06",
+        minutesUsed: 1301,
+        includedMinutes: 1,
+        planPriceCents: 100,
+        overageRevenueCents: 15600,
+        overageRateCentsPerMinute: 12,
+        overageCostCents: 108.25,
+        status: "sent",
+        provider: "resend"
+      });
+      store.recordSpendAlert({
+        workspaceId: "ws_b",
+        ownerEmail: "b@example.com",
+        planId: "creator",
+        billingPeriod: "2026-06",
+        minutesUsed: 3,
+        includedMinutes: 1,
+        status: "failed",
+        provider: "resend"
+      });
+
+      expect(new JsonStore(path).listSpendAlerts({ workspaceId: "ws_a" })).toHaveLength(1);
+      expect(new JsonStore(path).listSpendAlerts({ workspaceId: "ws_a" })[0]).toMatchObject({
+        workspaceId: "ws_a",
+        ownerEmail: "a@example.com",
+        status: "sent",
+        overageRevenueCents: 15600,
+        overageRateCentsPerMinute: 12,
+        provider: "resend"
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("lists queued jobs in FIFO order for worker drains", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
@@ -82,6 +192,23 @@ describe("JsonStore", () => {
     }
   });
 
+  it("lists queued jobs within a workspace for customer worker drains", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-workspace-queue-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const victim = store.createJob({ source: "https://example.com/victim.mp4", workspace_id: "ws_victim" });
+      const owned = store.createJob({ source: "https://example.com/owned.mp4", workspace_id: "ws_owned" });
+      const secondOwned = store.createJob({ source: "https://example.com/owned-2.mp4", workspace_id: "ws_owned" });
+
+      expect(store.listQueuedJobs({ limit: 10, workspaceId: "ws_owned" }).map((job) => job.jobId)).toEqual([owned.jobId, secondOwned.jobId]);
+      expect(store.listQueuedJobs({ limit: 10, workspaceId: "ws_victim" }).map((job) => job.jobId)).toEqual([victim.jobId]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("marks uploaded content and creates upload jobs from the stored local file", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));
     const path = join(dir, "state.json");
@@ -90,7 +217,14 @@ describe("JsonStore", () => {
     try {
       writeFileSync(mediaPath, "fake-video");
       const store = new JsonStore(path);
-      const upload = store.createUpload({ filename: "master.mp4", content_type: "video/mp4", size_bytes: 10 }, {
+      const upload = store.createUpload({
+        filename: "master.mp4",
+        content_type: "video/mp4",
+        size_bytes: 10,
+        workspace_id: "ws_upload",
+        owner_email: "upload@example.com",
+        api_key_id: "key_upload"
+      }, {
         baseUrl: "http://127.0.0.1:10002"
       });
       const stored = store.markUploadStored(upload.uploadId, {
@@ -102,7 +236,15 @@ describe("JsonStore", () => {
       const job = store.createJob({ upload_id: upload.uploadId });
 
       expect(upload.signedPutUrl).toMatch(new RegExp(`^http://127\\.0\\.0\\.1:10002/v1/uploads/${upload.uploadId}/content\\?token=`));
-      expect(stored).toMatchObject({ status: "uploaded", contentPath: mediaPath, storageMode: "durable_filesystem", bytesReceived: 10 });
+      expect(stored).toMatchObject({
+        status: "uploaded",
+        contentPath: mediaPath,
+        storageMode: "durable_filesystem",
+        bytesReceived: 10,
+        workspaceId: "ws_upload",
+        ownerEmail: "upload@example.com",
+        apiKeyId: "key_upload"
+      });
       expect(job).toMatchObject({
         source: mediaPath,
         sourceType: "upload",
@@ -215,6 +357,43 @@ describe("JsonStore", () => {
       const sent = store.markWebhookDeliveryAttempt(first[0].deliveryId, { ok: true, responseStatus: 200 });
       expect(sent).toMatchObject({ status: "sent", attemptCount: 2, responseStatus: 200 });
       expect(sent.sentAt).toBeTruthy();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("scopes webhook endpoints and deliveries by workspace", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-webhook-workspace-"));
+    const path = join(dir, "state.json");
+
+    try {
+      const store = new JsonStore(path);
+      const victimWebhook = store.createWebhook({
+        url: "https://victim.example.com/qc-callback",
+        event_types: ["job.completed"],
+        workspace_id: "ws_victim",
+        owner_email: "victim@example.com",
+        api_key_id: "key_victim"
+      });
+      const ownedWebhook = store.createWebhook({
+        url: "https://owned.example.com/qc-callback",
+        event_types: ["job.completed"],
+        workspace_id: "ws_owned",
+        owner_email: "owned@example.com",
+        api_key_id: "key_owned"
+      });
+      const ownedJob = store.createJob({ source: "/tmp/owned.mp4", workspace_id: "ws_owned" });
+      const victimJob = store.createJob({ source: "/tmp/victim.mp4", workspace_id: "ws_victim" });
+      const ownedDeliveries = store.createWebhookDeliveriesForJob(ownedJob.jobId, "job.completed");
+      const victimDeliveries = store.createWebhookDeliveriesForJob(victimJob.jobId, "job.completed");
+
+      expect(ownedWebhook).toMatchObject({ workspaceId: "ws_owned", ownerEmail: "owned@example.com", apiKeyId: "key_owned" });
+      expect(ownedDeliveries).toHaveLength(1);
+      expect(ownedDeliveries[0]).toMatchObject({ webhookId: ownedWebhook.webhookId, workspaceId: "ws_owned" });
+      expect(victimDeliveries).toHaveLength(1);
+      expect(victimDeliveries[0]).toMatchObject({ webhookId: victimWebhook.webhookId, workspaceId: "ws_victim" });
+      expect(store.listWebhookDeliveries({ workspaceId: "ws_owned" }).map((delivery) => delivery.deliveryId)).toEqual([ownedDeliveries[0].deliveryId]);
+      expect(store.listDueWebhookDeliveries({ workspaceId: "ws_owned" }).map((delivery) => delivery.deliveryId)).toEqual([ownedDeliveries[0].deliveryId]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

@@ -78,6 +78,11 @@
       "evidence": "npm run live-public-artifacts:verify checks hosted launch-status.json, product-hunt-launch-kit.json, sample-reports/index.json, individual PASS/WATCH/BLOCK report JSON, and llms.txt before Product Hunt readiness."
     },
     {
+      "id": "hosted_mcp_install",
+      "status": "done",
+      "evidence": "npm run live-mcp-install:verify checks hosted /mcp-install.json for private-beta install status, local clone snippets, future npm guard, and workspace API-key placeholders."
+    },
+    {
       "id": "npo_pipeline_handoff",
       "status": "done",
       "evidence": "GET /npo-pipeline-handoff.json and npm run live-npo-pipeline-handoff:verify expose a focused NPO audio pipeline sequence for MCP, CLI, Render media ingress, sidecars, repair loop, and rerun-before-publish-ready."
@@ -121,6 +126,11 @@
       "id": "package_verify",
       "status": "done",
       "evidence": "npm run packages:verify checks @uploadcheck/cli and @uploadcheck/mcp pack contents."
+    },
+    {
+      "id": "mcp_install_artifact",
+      "status": "done",
+      "evidence": "npm run mcp-install:verify checks the hosted MCP install artifact, Codex/Claude/Cursor install shapes, and workspace API-key placeholder."
     },
     {
       "id": "render_env_validation",
@@ -225,12 +235,18 @@
     "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
     "npm run codex:verify-install",
     "npm run cost-basis:verify",
+    "npm run saas-basics:verify",
+    "npm run mcp-install:verify",
+    "npm run private-mcp-beta:verify",
+    "npm run anthropic-directory:verify",
+    "npm run product-agent:verify",
     "npm run live-cost-basis:verify",
     "npm run live-agent-manifest:verify",
     "npm run live-pipeline-recipes:verify",
     "npm run live-pipeline-handoff:verify",
     "npm run live-npo-pipeline-handoff:verify",
     "npm run live-openapi:verify",
+    "npm run live-mcp-install:verify",
     "npm run live-public-artifacts:verify",
     "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
     "npm run live-web-artifacts:verify",
@@ -245,6 +261,7 @@
     "pipeline_handoff": "https://api.uploadcheck.app/pipeline-handoff.json",
     "pipeline_recipes": "https://api.uploadcheck.app/pipeline-recipes.json",
     "npo_pipeline_handoff": "https://api.uploadcheck.app/npo-pipeline-handoff.json",
+    "mcp_install": "https://api.uploadcheck.app/mcp-install.json",
     "launch_targets": "https://api.uploadcheck.app/launch-targets.json",
     "cost_basis": "https://api.uploadcheck.app/cost-basis.json",
     "sample_reports": "https://api.uploadcheck.app/sample-reports/index.json",

@@ -511,15 +511,16 @@ describe("server inline media API", () => {
 
   it("rejects declared jobs that exceed the max duration limit", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-duration-limit-"));
+    const storePath = join(dir, "store.json");
     const port = 19000 + Math.floor(Math.random() * 1000);
-    const apiKey = "uck_test_duration_limit";
+    const adminKey = "uck_test_duration_limit";
     const server = spawn("node", ["server.mjs"], {
       cwd: process.cwd(),
       env: {
         ...process.env,
         PORT: String(port),
-        UPLOADCHECK_API_KEY: apiKey,
-        UPLOADCHECK_STORE_PATH: join(dir, "store.json"),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
         UPLOADCHECK_MAX_DURATION_MINUTES: "2",
         UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
       },
@@ -529,11 +530,30 @@ describe("server inline media API", () => {
 
     try {
       await waitForHealth(port);
+      const createKeyResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Abuse audit customer",
+          workspace_id: "ws_abuse",
+          owner_email: "abuse@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          scopes: ["jobs:write", "jobs:read", "reports:read", "uploads:write", "api_keys:read"]
+        })
+      });
+      const createdKey = await createKeyResponse.json();
+      expect(createKeyResponse.status).toBe(201);
+
       const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${apiKey}`
+          authorization: `Bearer ${createdKey.apiKey}`
         },
         body: JSON.stringify({
           source: "https://example.com/long-final.mp4",
@@ -549,6 +569,28 @@ describe("server inline media API", () => {
         error: "duration_limit_exceeded",
         maxDurationMinutes: 2,
         requestedMinutes: 4
+      });
+
+      const eventsResponse = await fetch(`http://127.0.0.1:${port}/v1/abuse-events?workspace_id=ws_abuse`, {
+        headers: { authorization: `Bearer ${createdKey.apiKey}` }
+      });
+      const events = await eventsResponse.json();
+
+      expect(eventsResponse.status).toBe(200);
+      expect(events.abuseEvents).toHaveLength(1);
+      expect(events.abuseEvents[0]).toMatchObject({
+        error: "duration_limit_exceeded",
+        workspaceId: "ws_abuse",
+        ownerEmail: "abuse@example.com",
+        requestedMinutes: 4,
+        maxDurationMinutes: 2,
+        status: 413
+      });
+
+      const saved = JSON.parse(readFileSync(storePath, "utf8"));
+      expect(saved.abuseEvents[0]).toMatchObject({
+        error: "duration_limit_exceeded",
+        workspaceId: "ws_abuse"
       });
     } finally {
       rmSync(dir, { recursive: true, force: true });
@@ -595,6 +637,224 @@ describe("server inline media API", () => {
         maxUploadMb: 1,
         requestedBytes: 2 * 1024 * 1024
       });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("scopes stored workspace API keys to their own upload reservations", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-upload-workspace-scope-"));
+    const storePath = join(dir, "store.json");
+    const adminKey = "uck_admin_upload_scope";
+    const seedStore = new JsonStore(storePath);
+    const victimUpload = seedStore.createUpload({
+      filename: "victim.mp4",
+      content_type: "video/mp4",
+      size_bytes: 10,
+      workspace_id: "ws_victim",
+      owner_email: "victim@example.com"
+    });
+
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const createKeyResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Owned upload key",
+          workspace_id: "ws_owned",
+          owner_email: "owned@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          scopes: ["jobs:write", "jobs:read", "reports:read", "uploads:write"]
+        })
+      });
+      const createdKey = await createKeyResponse.json();
+      expect(createKeyResponse.status).toBe(201);
+
+      const createUploadResponse = await fetch(`http://127.0.0.1:${port}/v1/uploads`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${createdKey.apiKey}`
+        },
+        body: JSON.stringify({
+          filename: "owned.mp4",
+          content_type: "video/mp4",
+          size_bytes: 10,
+          workspace_id: "ws_victim",
+          owner_email: "spoof@example.com"
+        })
+      });
+      const ownedUpload = await createUploadResponse.json();
+      expect(createUploadResponse.status).toBe(201);
+      expect(ownedUpload).toMatchObject({
+        workspaceId: "ws_owned",
+        ownerEmail: "owned@example.com",
+        apiKeyId: createdKey.key.keyId
+      });
+
+      const victimGet = await fetch(`http://127.0.0.1:${port}/v1/uploads/${victimUpload.uploadId}`, {
+        headers: { authorization: `Bearer ${createdKey.apiKey}` }
+      });
+      expect(victimGet.status).toBe(404);
+
+      const victimJob = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${createdKey.apiKey}`
+        },
+        body: JSON.stringify({
+          upload_id: victimUpload.uploadId,
+          process_async: true,
+          checks: "canvas_fill"
+        })
+      });
+      expect(victimJob.status).toBe(404);
+
+      const ownedGet = await fetch(`http://127.0.0.1:${port}/v1/uploads/${ownedUpload.uploadId}`, {
+        headers: { authorization: `Bearer ${createdKey.apiKey}` }
+      });
+      const ownedStatus = await ownedGet.json();
+      expect(ownedGet.status).toBe(200);
+      expect(ownedStatus).toMatchObject({ uploadId: ownedUpload.uploadId, workspaceId: "ws_owned" });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("scopes stored workspace API keys to their own webhooks and deliveries", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-webhook-workspace-scope-"));
+    const storePath = join(dir, "store.json");
+    const adminKey = "uck_admin_webhook_scope";
+    const seedStore = new JsonStore(storePath);
+    const victimWebhook = seedStore.createWebhook({
+      url: "https://victim.example.com/qc-callback",
+      event_types: ["job.completed"],
+      workspace_id: "ws_victim",
+      owner_email: "victim@example.com"
+    });
+    const victimDelivery = seedStore.createWebhookDelivery(victimWebhook.webhookId, "job.completed", "job_victim");
+
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const createKeyResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Owned webhook key",
+          workspace_id: "ws_owned",
+          owner_email: "owned@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          scopes: ["webhooks:write"]
+        })
+      });
+      const createdKey = await createKeyResponse.json();
+      expect(createKeyResponse.status).toBe(201);
+
+      const createWebhookResponse = await fetch(`http://127.0.0.1:${port}/v1/webhooks`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${createdKey.apiKey}`
+        },
+        body: JSON.stringify({
+          url: "https://owned.example.com/qc-callback",
+          event_types: ["job.completed"],
+          workspace_id: "ws_victim",
+          owner_email: "spoof@example.com"
+        })
+      });
+      const ownedWebhook = await createWebhookResponse.json();
+      expect(createWebhookResponse.status).toBe(201);
+      expect(ownedWebhook).toMatchObject({
+        workspaceId: "ws_owned",
+        ownerEmail: "owned@example.com",
+        apiKeyId: createdKey.key.keyId
+      });
+
+      const victimPreview = await fetch(`http://127.0.0.1:${port}/v1/webhooks/${victimWebhook.webhookId}/delivery-preview`, {
+        headers: { authorization: `Bearer ${createdKey.apiKey}` }
+      });
+      expect(victimPreview.status).toBe(404);
+
+      const ownedPreview = await fetch(`http://127.0.0.1:${port}/v1/webhooks/${ownedWebhook.webhookId}/delivery-preview`, {
+        headers: { authorization: `Bearer ${createdKey.apiKey}` }
+      });
+      const ownedDelivery = await ownedPreview.json();
+      expect(ownedPreview.status).toBe(200);
+      expect(ownedDelivery).toMatchObject({ webhookId: ownedWebhook.webhookId, workspaceId: "ws_owned" });
+
+      const listResponse = await fetch(`http://127.0.0.1:${port}/v1/webhooks/deliveries?webhook_id=${victimWebhook.webhookId}`, {
+        headers: { authorization: `Bearer ${createdKey.apiKey}` }
+      });
+      const list = await listResponse.json();
+      expect(listResponse.status).toBe(200);
+      expect(list.deliveries).toEqual([]);
+
+      const ownedListResponse = await fetch(`http://127.0.0.1:${port}/v1/webhooks/deliveries`, {
+        headers: { authorization: `Bearer ${createdKey.apiKey}` }
+      });
+      const ownedList = await ownedListResponse.json();
+      expect(ownedListResponse.status).toBe(200);
+      expect(ownedList.deliveries.map((delivery) => delivery.webhookId)).toEqual([ownedWebhook.webhookId]);
+
+      const victimRetry = await fetch(`http://127.0.0.1:${port}/v1/webhooks/deliveries/${victimDelivery.deliveryId}/retry`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${createdKey.apiKey}` }
+      });
+      expect(victimRetry.status).toBe(404);
+
+      const drainResponse = await fetch(`http://127.0.0.1:${port}/v1/webhooks/deliveries/drain`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${createdKey.apiKey}`
+        },
+        body: JSON.stringify({ limit: 10 })
+      });
+      const drain = await drainResponse.json();
+      expect(drainResponse.status).toBe(200);
+      expect(drain.processed).toBe(1);
+      expect(drain.results[0]).toMatchObject({ webhookId: ownedWebhook.webhookId, workspaceId: "ws_owned" });
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -649,13 +909,160 @@ describe("server inline media API", () => {
     }
   }, 20000);
 
-  it("rejects declared jobs that exceed included plan minutes", async () => {
+  it("scopes stored workspace API keys to their own queued job drains", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-job-drain-scope-"));
+    const storePath = join(dir, "store.json");
+    const adminKey = "uck_admin_job_drain_scope";
+    const seedStore = new JsonStore(storePath);
+    const victimJob = seedStore.createJob({
+      source: "/tmp/victim-queued.mp4",
+      source_type: "signed_url",
+      workspace_id: "ws_victim"
+    });
+    const ownedJob = seedStore.createJob({
+      source: "/tmp/owned-queued.mp4",
+      source_type: "signed_url",
+      workspace_id: "ws_owned"
+    });
+
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const createKeyResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Owned drain key",
+          workspace_id: "ws_owned",
+          owner_email: "owned@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          scopes: ["jobs:write", "jobs:read", "reports:read"]
+        })
+      });
+      const createdKey = await createKeyResponse.json();
+      expect(createKeyResponse.status).toBe(201);
+
+      const drainResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs/drain`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${createdKey.apiKey}`
+        },
+        body: JSON.stringify({ limit: 10 })
+      });
+      const drain = await drainResponse.json();
+      expect(drainResponse.status).toBe(200);
+      expect(drain.processed).toBe(1);
+      expect(drain.jobs.map((job) => job.jobId)).toEqual([ownedJob.jobId]);
+
+      const saved = JSON.parse(readFileSync(storePath, "utf8"));
+      expect(saved.jobs.find((job) => job.jobId === victimJob.jobId)).toMatchObject({ status: "queued", workspaceId: "ws_victim" });
+      expect(saved.jobs.find((job) => job.jobId === ownedJob.jobId)).toMatchObject({ status: "completed", workspaceId: "ws_owned" });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("checks active job concurrency within the authenticated workspace", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-workspace-active-limit-"));
+    const storePath = join(dir, "store.json");
+    const adminKey = "uck_admin_workspace_active_limit";
+    const seedStore = new JsonStore(storePath);
+    seedStore.createJob({
+      source: "https://example.com/other-running.mp4",
+      workspace_id: "ws_other"
+    });
+
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_MAX_ACTIVE_JOBS: "1",
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const createKeyResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Owned concurrency key",
+          workspace_id: "ws_owned",
+          owner_email: "owned@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          scopes: ["jobs:write", "jobs:read", "reports:read"]
+        })
+      });
+      const createdKey = await createKeyResponse.json();
+      expect(createKeyResponse.status).toBe(201);
+
+      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${createdKey.apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/owned-new-job.mp4",
+          source_type: "signed_url",
+          duration_seconds: 30,
+          checks: "canvas_fill",
+          process_async: true
+        })
+      });
+      const payload = await response.json();
+
+      expect(response.status).toBe(202);
+      expect(payload).toMatchObject({
+        status: "queued",
+        workspaceId: "ws_owned",
+        ownerEmail: "owned@example.com"
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("rejects declared jobs that exceed included plan minutes within the authenticated workspace", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-usage-limit-"));
     const storePath = join(dir, "store.json");
     const apiKey = "uck_test_usage_limit";
     const seedStore = new JsonStore(storePath);
-    const seededJob = seedStore.createJob({ source: "/tmp/previous.mp4", plan_id: "creator", included_minutes: 2400 });
-    seedStore.appendUsage(seededJob.jobId, 2399, currentTestBillingPeriod(), { planId: "creator", includedMinutes: 2400 });
+    const seededOtherWorkspace = seedStore.createJob({ source: "/tmp/other.mp4", plan_id: "creator", workspace_id: "ws_other", included_minutes: 2400 });
+    const seededCustomerWorkspace = seedStore.createJob({ source: "/tmp/previous.mp4", plan_id: "creator", workspace_id: "ws_usage", included_minutes: 2400 });
+    seedStore.appendUsage(seededOtherWorkspace.jobId, 2399, currentTestBillingPeriod(), { planId: "creator", workspaceId: "ws_other", includedMinutes: 2400 });
+    seedStore.appendUsage(seededCustomerWorkspace.jobId, 2399, currentTestBillingPeriod(), { planId: "creator", workspaceId: "ws_usage", includedMinutes: 2400 });
 
     const port = 19000 + Math.floor(Math.random() * 1000);
     const server = spawn("node", ["server.mjs"], {
@@ -673,16 +1080,34 @@ describe("server inline media API", () => {
 
     try {
       await waitForHealth(port);
-      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+      const createKeyResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
           authorization: `Bearer ${apiKey}`
         },
         body: JSON.stringify({
+          name: "Usage limit customer",
+          workspace_id: "ws_usage",
+          owner_email: "usage@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          scopes: ["jobs:write", "jobs:read", "reports:read"]
+        })
+      });
+      const createdKey = await createKeyResponse.json();
+      expect(createKeyResponse.status).toBe(201);
+
+      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${createdKey.apiKey}`
+        },
+        body: JSON.stringify({
           source: "https://example.com/final.mp4",
           source_type: "signed_url",
-          plan_id: "creator",
           duration_seconds: 120,
           checks: "canvas_fill",
           cost_guardrail: "downgrade"
@@ -698,6 +1123,99 @@ describe("server inline media API", () => {
         minutesUsed: 2399,
         requestedMinutes: 2,
         minutesRemaining: 1
+      });
+      expect(payload.message).not.toContain("4800");
+
+      const eventsResponse = await fetch(`http://127.0.0.1:${port}/v1/abuse-events?workspace_id=ws_usage`, {
+        headers: { authorization: `Bearer ${apiKey}` }
+      });
+      const events = await eventsResponse.json();
+      expect(eventsResponse.status).toBe(200);
+      expect(events.abuseEvents).toHaveLength(1);
+      expect(events.abuseEvents[0]).toMatchObject({
+        error: "usage_limit_exceeded",
+        status: 402,
+        workspaceId: "ws_usage",
+        ownerEmail: "usage@example.com",
+        planId: "creator",
+        includedMinutes: 2400,
+        minutesUsed: 2399,
+        requestedMinutes: 2,
+        minutesRemaining: 1
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("allows deterministic overage minutes when the workspace key has approved cap credits", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-usage-overage-cap-"));
+    const storePath = join(dir, "store.json");
+    const apiKey = "uck_test_usage_overage_cap";
+    const seedStore = new JsonStore(storePath);
+    const seededCustomerWorkspace = seedStore.createJob({ source: "/tmp/previous.mp4", plan_id: "creator", workspace_id: "ws_usage_cap", included_minutes: 2400 });
+    seedStore.appendUsage(seededCustomerWorkspace.jobId, 2399, currentTestBillingPeriod(), { planId: "creator", workspaceId: "ws_usage_cap", includedMinutes: 2400 });
+
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: apiKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const createKeyResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          name: "Usage cap customer",
+          workspace_id: "ws_usage_cap",
+          owner_email: "usage-cap@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          overage_cap_cents: 100,
+          scopes: ["jobs:write", "jobs:read", "reports:read"]
+        })
+      });
+      const createdKey = await createKeyResponse.json();
+      expect(createKeyResponse.status).toBe(201);
+
+      const response = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${createdKey.apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/final.mp4",
+          source_type: "signed_url",
+          duration_seconds: 120,
+          checks: "canvas_fill",
+          cost_guardrail: "downgrade",
+          process_async: true
+        })
+      });
+      const payload = await response.json();
+
+      expect(response.status).toBe(202);
+      expect(payload).toMatchObject({
+        status: "queued",
+        workspaceId: "ws_usage_cap",
+        planId: "creator",
+        includedMinutes: 2400,
+        overageCapCents: 100
       });
     } finally {
       rmSync(dir, { recursive: true, force: true });
@@ -781,6 +1299,381 @@ describe("server inline media API", () => {
       const saved = JSON.parse(readFileSync(storePath, "utf8"));
       expect(saved.apiKeys[0].tokenHash).toBe(createHash("sha256").update(created.apiKey).digest("hex"));
       expect(saved.apiKeys[0]).not.toHaveProperty("apiKey");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("forces authenticated workspace API-key metadata over client-supplied plan fields", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-api-key-force-metadata-"));
+    const storePath = join(dir, "store.json");
+    const adminKey = "uck_admin_force_metadata";
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const createResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Creator protected key",
+          workspace_id: "ws_protected",
+          owner_email: "protected@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          scopes: ["jobs:write", "jobs:read", "reports:read"]
+        })
+      });
+      const created = await createResponse.json();
+      expect(createResponse.status).toBe(201);
+
+      const jobResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${created.apiKey}`
+        },
+        body: JSON.stringify({
+          source: "https://example.com/spoofed.mp4",
+          source_type: "signed_url",
+          workspace_id: "ws_victim",
+          owner_email: "victim@example.com",
+          plan_id: "network",
+          included_minutes: 36000,
+          plan_price_cents: 79900,
+          duration_seconds: 60,
+          checks: "canvas_fill",
+          process_async: true
+        })
+      });
+      const job = await jobResponse.json();
+
+      expect(jobResponse.status).toBe(202);
+      expect(job).toMatchObject({
+        workspaceId: "ws_protected",
+        ownerEmail: "protected@example.com",
+        planId: "creator",
+        includedMinutes: 2400,
+        planPriceCents: 9900
+      });
+
+      const saved = JSON.parse(readFileSync(storePath, "utf8"));
+      expect(saved.jobs[0]).toMatchObject({
+        workspaceId: "ws_protected",
+        ownerEmail: "protected@example.com",
+        planId: "creator",
+        includedMinutes: 2400,
+        planPriceCents: 9900
+      });
+      expect(JSON.stringify(saved.jobs[0])).not.toContain("ws_victim");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("scopes stored workspace API keys to their own jobs and usage ledger", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-api-key-workspace-scope-"));
+    const storePath = join(dir, "store.json");
+    const adminKey = "uck_admin_workspace_scope";
+    const seedStore = new JsonStore(storePath);
+    const victimJob = seedStore.createJob({
+      source: "https://example.com/victim.mp4",
+      source_type: "signed_url",
+      workspace_id: "ws_victim",
+      owner_email: "victim@example.com",
+      plan_id: "creator",
+      included_minutes: 2400
+    });
+    seedStore.appendUsage(victimJob.jobId, 12, currentTestBillingPeriod(), {
+      planId: "creator",
+      workspaceId: "ws_victim",
+      ownerEmail: "victim@example.com",
+      includedMinutes: 2400
+    });
+    const ownedJob = seedStore.createJob({
+      source: "https://example.com/owned.mp4",
+      source_type: "signed_url",
+      workspace_id: "ws_owned",
+      owner_email: "owned@example.com",
+      plan_id: "creator",
+      included_minutes: 2400
+    });
+    seedStore.appendUsage(ownedJob.jobId, 3, currentTestBillingPeriod(), {
+      planId: "creator",
+      workspaceId: "ws_owned",
+      ownerEmail: "owned@example.com",
+      includedMinutes: 2400
+    });
+
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const createResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Owned workspace key",
+          workspace_id: "ws_owned",
+          owner_email: "owned@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          scopes: ["jobs:write", "jobs:read", "reports:read"]
+        })
+      });
+      const created = await createResponse.json();
+      expect(createResponse.status).toBe(201);
+
+      const victimGet = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs/${victimJob.jobId}`, {
+        headers: { authorization: `Bearer ${created.apiKey}` }
+      });
+      expect(victimGet.status).toBe(404);
+
+      const victimReport = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs/${victimJob.jobId}/report`, {
+        headers: { authorization: `Bearer ${created.apiKey}` }
+      });
+      expect(victimReport.status).toBe(404);
+
+      const victimVerdict = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs/${victimJob.jobId}/gate-verdict`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${created.apiKey}`
+        },
+        body: JSON.stringify({ verdict: "BLOCK", blocked: ["tamper"] })
+      });
+      expect(victimVerdict.status).toBe(404);
+
+      const ownedGet = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs/${ownedJob.jobId}`, {
+        headers: { authorization: `Bearer ${created.apiKey}` }
+      });
+      expect(ownedGet.status).toBe(200);
+
+      const listResponse = await fetch(`http://127.0.0.1:${port}/v1/qc/jobs?limit=10`, {
+        headers: { authorization: `Bearer ${created.apiKey}` }
+      });
+      const list = await listResponse.json();
+      expect(listResponse.status).toBe(200);
+      expect(list.jobs.map((job) => job.jobId)).toEqual([ownedJob.jobId]);
+
+      const usageResponse = await fetch(`http://127.0.0.1:${port}/v1/usage`, {
+        headers: { authorization: `Bearer ${created.apiKey}` }
+      });
+      const usage = await usageResponse.json();
+      expect(usageResponse.status).toBe(200);
+      expect(usage.usageLedger).toHaveLength(1);
+      expect(usage.usageLedger[0]).toMatchObject({
+        jobId: ownedJob.jobId,
+        workspaceId: "ws_owned",
+        roundedMinutes: 3
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 20000);
+
+  it("scopes stored API-key review endpoints and delegated key creation to their own workspace", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-api-key-review-scope-"));
+    const storePath = join(dir, "store.json");
+    const adminKey = "uck_admin_review_scope";
+    const seedStore = new JsonStore(storePath);
+    seedStore.recordAbuseEvent({
+      error: "usage_limit_exceeded",
+      workspaceId: "ws_victim",
+      ownerEmail: "victim@example.com",
+      planId: "creator",
+      status: 402
+    });
+    seedStore.recordAbuseEvent({
+      error: "usage_limit_exceeded",
+      workspaceId: "ws_owned",
+      ownerEmail: "owned@example.com",
+      planId: "creator",
+      status: 402
+    });
+    seedStore.recordSpendAlert({
+      workspaceId: "ws_victim",
+      ownerEmail: "victim@example.com",
+      planId: "creator",
+      status: "sent",
+      provider: "resend"
+    });
+    seedStore.recordSpendAlert({
+      workspaceId: "ws_owned",
+      ownerEmail: "owned@example.com",
+      planId: "creator",
+      status: "sent",
+      provider: "resend"
+    });
+
+    const port = 19000 + Math.floor(Math.random() * 1000);
+    const server = spawn("node", ["server.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PORT: String(port),
+        UPLOADCHECK_API_KEY: adminKey,
+        UPLOADCHECK_STORE_PATH: storePath,
+        UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    servers.push(server);
+
+    try {
+      await waitForHealth(port);
+      const ownedKeyResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Owned review key",
+          workspace_id: "ws_owned",
+          owner_email: "owned@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          overage_cap_cents: 1200,
+          scopes: ["jobs:write", "jobs:read", "reports:read", "api_keys:read", "api_keys:write"]
+        })
+      });
+      const ownedKey = await ownedKeyResponse.json();
+      expect(ownedKeyResponse.status).toBe(201);
+
+      const victimKeyResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${adminKey}`
+        },
+        body: JSON.stringify({
+          name: "Victim key",
+          workspace_id: "ws_victim",
+          owner_email: "victim@example.com",
+          plan_id: "creator",
+          included_minutes: 2400,
+          plan_price_cents: 9900,
+          scopes: ["jobs:write"]
+        })
+      });
+      expect(victimKeyResponse.status).toBe(201);
+
+      const keysResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys?workspace_id=ws_victim`, {
+        headers: { authorization: `Bearer ${ownedKey.apiKey}` }
+      });
+      const keys = await keysResponse.json();
+      expect(keysResponse.status).toBe(200);
+      expect(keys.keys).toHaveLength(1);
+      expect(keys.keys[0]).toMatchObject({ workspaceId: "ws_owned", ownerEmail: "owned@example.com" });
+
+      const abuseResponse = await fetch(`http://127.0.0.1:${port}/v1/abuse-events?workspace_id=ws_victim`, {
+        headers: { authorization: `Bearer ${ownedKey.apiKey}` }
+      });
+      const abuse = await abuseResponse.json();
+      expect(abuseResponse.status).toBe(200);
+      expect(abuse.abuseEvents).toHaveLength(1);
+      expect(abuse.abuseEvents[0]).toMatchObject({ workspaceId: "ws_owned" });
+
+      const spendResponse = await fetch(`http://127.0.0.1:${port}/v1/spend-alerts?workspace_id=ws_victim`, {
+        headers: { authorization: `Bearer ${ownedKey.apiKey}` }
+      });
+      const spend = await spendResponse.json();
+      expect(spendResponse.status).toBe(200);
+      expect(spend.spendAlerts).toHaveLength(1);
+      expect(spend.spendAlerts[0]).toMatchObject({ workspaceId: "ws_owned" });
+
+      const delegatedCreateResponse = await fetch(`http://127.0.0.1:${port}/v1/api-keys`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${ownedKey.apiKey}`
+        },
+        body: JSON.stringify({
+          name: "Delegated attempted victim key",
+          workspace_id: "ws_victim",
+          owner_email: "attacker@example.com",
+          plan_id: "network",
+          included_minutes: 36000,
+          plan_price_cents: 79900,
+          scopes: ["jobs:write"]
+        })
+      });
+      const delegated = await delegatedCreateResponse.json();
+      expect(delegatedCreateResponse.status).toBe(201);
+      expect(delegated.key).toMatchObject({
+        workspaceId: "ws_owned",
+        ownerEmail: "owned@example.com",
+        planId: "creator",
+        includedMinutes: 2400,
+        planPriceCents: 9900,
+        overageCapCents: 1200
+      });
+      expect(delegated.key.workspaceId).not.toBe("ws_victim");
+      expect(delegated.key.planId).not.toBe("network");
+
+      const delegatedCheckoutResponse = await fetch(`http://127.0.0.1:${port}/v1/checkout/provision-api-key`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${ownedKey.apiKey}`
+        },
+        body: JSON.stringify({
+          owner_email: "attacker@example.com",
+          workspace_id: "ws_victim_checkout",
+          plan_id: "network",
+          checkout_customer_id: "cus_victim",
+          checkout_subscription_id: "sub_victim",
+          overage_cap_cents: 999999,
+          provisioning_id: "delegated-checkout-attempt"
+        })
+      });
+      const delegatedCheckout = await delegatedCheckoutResponse.json();
+      expect(delegatedCheckoutResponse.status).toBe(201);
+      expect(delegatedCheckout.key).toMatchObject({
+        workspaceId: "ws_owned",
+        ownerEmail: "owned@example.com",
+        planId: "creator",
+        includedMinutes: 2400,
+        planPriceCents: 9900,
+        overageCapCents: 1200
+      });
+      expect(delegatedCheckout.key.workspaceId).not.toBe("ws_victim_checkout");
+      expect(delegatedCheckout.key.planId).not.toBe("network");
+      expect(delegatedCheckout.key.overageCapCents).not.toBe(999999);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -930,7 +1823,8 @@ describe("server inline media API", () => {
           event_name: "subscription_created",
           custom_data: {
             uploadcheck_plan_id: "network",
-            workspace_id: "ws_network_paid"
+            workspace_id: "ws_network_paid",
+            overage_cap_cents: 5000
           }
         },
         data: {
@@ -968,7 +1862,8 @@ describe("server inline media API", () => {
           checkoutSubscriptionId: "sub_999",
           planId: "network",
           includedMinutes: 36000,
-          planPriceCents: 79900
+          planPriceCents: 89900,
+          overageCapCents: 5000
         }
       });
 
@@ -1004,7 +1899,7 @@ describe("server inline media API", () => {
     }
   }, 20000);
 
-  it("emails the API-key owner when extra-minute spend exceeds subscription value", async () => {
+  it("emails the API-key owner when billable extra-minute spend exceeds subscription value", async () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-http-spend-alert-"));
     const storePath = join(dir, "store.json");
     const adminKey = "uck_admin_spend_alert";
@@ -1024,6 +1919,21 @@ describe("server inline media API", () => {
     await new Promise((resolve) => resendServer.listen(0, "127.0.0.1", resolve));
 
     const seedStore = new JsonStore(storePath);
+    const otherWorkspaceJob = seedStore.createJob({
+      source: "/tmp/other-workspace.mp4",
+      plan_id: "creator",
+      workspace_id: "ws_other_spend",
+      owner_email: "other@example.com",
+      included_minutes: 1,
+      plan_price_cents: 100
+    });
+    seedStore.appendUsage(otherWorkspaceJob.jobId, 2400, currentTestBillingPeriod(), {
+      planId: "creator",
+      workspaceId: "ws_other_spend",
+      ownerEmail: "other@example.com",
+      includedMinutes: 1,
+      observedTotalCogsCents: 0
+    });
     const seededJob = seedStore.createJob({
       source: "/tmp/previous.mp4",
       plan_id: "creator",
@@ -1123,6 +2033,10 @@ describe("server inline media API", () => {
       });
       expect(sentEmails[0].body.text).toContain("Workspace ws_spend exceeded the overage spend threshold");
       expect(sentEmails[0].body.text).toContain("Plan price: 1.00 USD");
+      expect(sentEmails[0].body.text).toContain("Billable extra-minute spend: 156.00 USD");
+      expect(sentEmails[0].body.text).toContain("Overage rate: 0.12 USD/min");
+      expect(sentEmails[0].body.text).toContain("Minutes used: 1301");
+      expect(sentEmails[0].body.text).not.toContain("3701");
 
       const saved = JSON.parse(readFileSync(storePath, "utf8"));
       expect(saved.spendAlerts).toHaveLength(1);
@@ -1132,7 +2046,22 @@ describe("server inline media API", () => {
         planId: "creator",
         status: "sent",
         provider: "resend",
-        providerMessageId: "email_test_123"
+        providerMessageId: "email_test_123",
+        overageRevenueCents: 15600,
+        overageRateCentsPerMinute: 12
+      });
+
+      const alertsResponse = await fetch(`http://127.0.0.1:${port}/v1/spend-alerts?workspace_id=ws_spend`, {
+        headers: { authorization: `Bearer ${adminKey}` }
+      });
+      const alerts = await alertsResponse.json();
+      expect(alertsResponse.status).toBe(200);
+      expect(alerts.spendAlerts).toHaveLength(1);
+      expect(alerts.spendAlerts[0]).toMatchObject({
+        workspaceId: "ws_spend",
+        ownerEmail: "owner@example.com",
+        status: "sent",
+        provider: "resend"
       });
     } finally {
       await new Promise((resolve) => resendServer.close(resolve));

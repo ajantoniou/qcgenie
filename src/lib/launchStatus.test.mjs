@@ -50,12 +50,18 @@ describe("public launch status", () => {
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
       "npm run codex:verify-install",
       "npm run cost-basis:verify",
+      "npm run saas-basics:verify",
+      "npm run mcp-install:verify",
+      "npm run private-mcp-beta:verify",
+      "npm run anthropic-directory:verify",
+      "npm run product-agent:verify",
       "npm run live-cost-basis:verify",
       "npm run live-agent-manifest:verify",
       "npm run live-pipeline-recipes:verify",
       "npm run live-pipeline-handoff:verify",
       "npm run live-npo-pipeline-handoff:verify",
       "npm run live-openapi:verify",
+      "npm run live-mcp-install:verify",
       "npm run live-public-artifacts:verify",
       "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
       "npm run live-web-artifacts:verify",
@@ -73,6 +79,8 @@ describe("public launch status", () => {
     expect(status.verified_controls.find((control) => control.id === "product_hunt_launch_kit")?.evidence).toContain("product-hunt-launch-kit.json");
     expect(status.verified_controls.find((control) => control.id === "npo_pipeline_handoff")?.evidence).toContain("live-npo-pipeline-handoff:verify");
     expect(status.verified_controls.find((control) => control.id === "hosted_public_artifacts")?.evidence).toContain("live-public-artifacts:verify");
+    expect(status.verified_controls.find((control) => control.id === "hosted_mcp_install")?.evidence).toContain("live-mcp-install:verify");
+    expect(status.verified_controls.find((control) => control.id === "mcp_install_artifact")?.evidence).toContain("mcp-install:verify");
     expect(status.verified_controls.find((control) => control.id === "hosted_web_artifacts")?.evidence).toContain("live-web-artifacts:verify");
     expect(status.verified_controls.find((control) => control.id === "render_web_artifacts")?.evidence).toContain("qcgenie-web.onrender.com");
     expect(status.verified_controls.find((control) => control.id === "billing_enforcement")?.evidence).toContain("included deterministic QC minutes");
@@ -93,8 +101,10 @@ describe("public launch status", () => {
     expect(manifest.live_launch_handoff_url).toBe("https://api.uploadcheck.app/v1/launch-handoff");
     expect(manifest.live_launch_doctor_url).toBe("https://api.uploadcheck.app/v1/launch-doctor");
     expect(manifest.live_launch_evidence_url).toBe("https://api.uploadcheck.app/v1/launch-evidence");
+    expect(manifest.mcp_install_url).toBe("https://api.uploadcheck.app/mcp-install.json");
     expect(manifest.launch_handoff_command).toBe("npm run launch:handoff -- --text");
     expect(openapi.paths["/launch-status.json"].get.security).toEqual([]);
+    expect(openapi.paths["/mcp-install.json"].get.security).toEqual([]);
     expect(openapi.paths["/v1/launch-status"].get.security).toEqual([]);
     expect(openapi.paths["/v1/launch-handoff"].get.security).toEqual([]);
     expect(openapi.paths["/v1/launch-doctor"].get.security).toEqual([]);

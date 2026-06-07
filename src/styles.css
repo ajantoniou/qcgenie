@@ -898,6 +898,31 @@ h2 {
   color: #14532d;
 }
 
+.abuseEventList {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.abuseEventList article {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #9a3412;
+  font-size: 13px;
+}
+
+.abuseEventList span,
+.abuseEventList small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .gateList {
   display: grid;
   gap: 10px;

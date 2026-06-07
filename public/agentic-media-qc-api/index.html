@@ -44,8 +44,18 @@
       <section class="section">
         <h2>Install for agent-to-agent runs</h2>
         <div class="twoGrid">
-          <article class="answer"><h2>Current install path</h2><p>Clone <code>https://github.com/ajantoniou/uploadcheck</code> and point Claude Code, Codex, Cursor, or another MCP client at <code>/absolute/path/to/uploadcheck/mcp-server/index.mjs</code>. The npm package names are reserved in product copy, but the public npm packages are not published yet.</p></article>
+          <article class="answer"><h2>Current install path</h2><p>UploadCheck is a private MCP beta. Use a private clone or local checkout, then point Claude Code, Codex, Cursor, or another MCP client at <code>/absolute/path/to/uploadcheck/mcp-server/index.mjs</code>. The npm package names are reserved in product copy, but the public npm packages are not published yet.</p></article>
           <article class="answer"><h2>Agent handoff sequence</h2><p>Start with <code>qc_get_cost_basis</code>, run <code>qc_run_local_file</code>, then fetch <code>qc_get_report</code> and <code>qc_get_marker_csv</code> so the receiving agent gets timestamped evidence.</p></article>
+        </div>
+      </section>
+      <section class="section">
+        <h2>Direct API setup</h2>
+        <div class="twoGrid">
+          <article class="answer"><h2>Workspace key</h2><p>Every private beta MCP or API caller needs <code>Authorization: Bearer &lt;workspace_api_key&gt;</code>. Workspace keys are tied to plan minutes, top-up credits, or an operator-created beta account.</p></article>
+          <article class="answer"><h2>REST example</h2><pre><code>curl https://api.uploadcheck.app/v1/qc/jobs \
+  -H "Authorization: Bearer &lt;workspace_api_key&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"source":"https://example.com/final.mp4","kind":"video","checks":"canvas_fill,loop_freeze,repeat_fatigue,dead_air,text_contrast,text_safe_area","plan_id":"creator"}'</code></pre></article>
         </div>
       </section>
       <section class="section">
@@ -56,7 +66,7 @@
           <article class="card"><h2>Fix boundaries</h2><p>Agents can update reachable captions and project files, then flag source/render issues for humans.</p></article>
         </div>
       </section>
-      <footer class="footer">UploadCheck.app is built so creator agents can see and hear media problems before upload.</footer>
+      <footer class="footer">Checked minutes are deterministic publish-readiness QC minutes. Deep model review stays internal for capture-rate backtesting and roadmap discovery.</footer>
     </main>
   </body>
 </html>

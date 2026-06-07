@@ -4,6 +4,13 @@ import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 
 const execFileAsync = promisify(execFile);
+const REQUIRED_LOCAL_PROOF_COMMANDS = [
+  "npm run saas-basics:verify",
+  "npm run mcp-install:verify",
+  "npm run private-mcp-beta:verify",
+  "npm run anthropic-directory:verify",
+  "npm run product-agent:verify"
+];
 
 function listen(handler) {
   const server = createServer(handler);
@@ -24,7 +31,8 @@ describe("live launch doctor verifier", () => {
         contractVersion: "2026-06-06.render-web-proof",
         launchDoctorCommands: [
           "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
-          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
+          ...REQUIRED_LOCAL_PROOF_COMMANDS
         ],
         blockerFixPlan: { phases: [] },
         remainingBlockers: []
@@ -40,7 +48,35 @@ describe("live launch doctor verifier", () => {
         ok: true,
         contractVersion: "2026-06-06.render-web-proof",
         hostedMediaIngressCommandPresent: true,
-        renderWebArtifactsCommandPresent: true
+        renderWebArtifactsCommandPresent: true,
+        requiredLocalProofCommandsPresent: true
+      });
+    } finally {
+      server.close();
+    }
+  });
+
+  it("blocks when the hosted launch doctor omits SaaS and MCP proof commands", async () => {
+    const { server, baseUrl } = await listen((_req, res) => {
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({
+        name: "UploadCheck.app Launch Doctor",
+        contractVersion: "2026-06-06.render-web-proof",
+        launchDoctorCommands: [
+          "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
+          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+        ],
+        blockerFixPlan: { phases: [] },
+        remainingBlockers: []
+      }));
+    });
+
+    try {
+      await expect(execFileAsync("node", ["scripts/verify-live-launch-doctor.mjs"], {
+        cwd: process.cwd(),
+        env: { ...process.env, UPLOADCHECK_LIVE_LAUNCH_DOCTOR_BASE_URL: baseUrl }
+      })).rejects.toMatchObject({
+        stderr: expect.stringContaining("Missing SaaS/MCP/Directory proof commands")
       });
     } finally {
       server.close();
@@ -54,7 +90,8 @@ describe("live launch doctor verifier", () => {
         name: "UploadCheck.app Launch Doctor",
         contractVersion: "2026-06-06.render-web-proof",
         launchDoctorCommands: [
-          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
+          ...REQUIRED_LOCAL_PROOF_COMMANDS
         ],
         blockerFixPlan: { phases: [] },
         remainingBlockers: []
@@ -80,7 +117,8 @@ describe("live launch doctor verifier", () => {
         name: "UploadCheck.app Launch Doctor",
         launchDoctorCommands: [
           "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
-          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"
+          "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
+          ...REQUIRED_LOCAL_PROOF_COMMANDS
         ],
         blockerFixPlan: { phases: [] },
         remainingBlockers: []

@@ -64,12 +64,18 @@ assert(status.operator_commands.includes("npm run media-ingress:verify"), "launc
 assert(status.operator_commands.includes("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"), "launch-status operator commands must include hosted media-ingress probe");
 assert(status.operator_commands.includes("npm run codex:verify-install"), "launch-status operator commands must include codex:verify-install");
 assert(status.operator_commands.includes("npm run cost-basis:verify"), "launch-status operator commands must include cost-basis:verify");
+assert(status.operator_commands.includes("npm run saas-basics:verify"), "launch-status operator commands must include saas-basics:verify");
+assert(status.operator_commands.includes("npm run mcp-install:verify"), "launch-status operator commands must include mcp-install:verify");
+assert(status.operator_commands.includes("npm run private-mcp-beta:verify"), "launch-status operator commands must include private-mcp-beta:verify");
+assert(status.operator_commands.includes("npm run anthropic-directory:verify"), "launch-status operator commands must include anthropic-directory:verify");
+assert(status.operator_commands.includes("npm run product-agent:verify"), "launch-status operator commands must include product-agent:verify");
 assert(status.operator_commands.includes("npm run live-cost-basis:verify"), "launch-status operator commands must include live-cost-basis:verify");
 assert(status.operator_commands.includes("npm run live-agent-manifest:verify"), "launch-status operator commands must include live-agent-manifest:verify");
 assert(status.operator_commands.includes("npm run live-pipeline-recipes:verify"), "launch-status operator commands must include live-pipeline-recipes:verify");
 assert(status.operator_commands.includes("npm run live-pipeline-handoff:verify"), "launch-status operator commands must include live-pipeline-handoff:verify");
 assert(status.operator_commands.includes("npm run live-npo-pipeline-handoff:verify"), "launch-status operator commands must include live-npo-pipeline-handoff:verify");
 assert(status.operator_commands.includes("npm run live-openapi:verify"), "launch-status operator commands must include live-openapi:verify");
+assert(status.operator_commands.includes("npm run live-mcp-install:verify"), "launch-status operator commands must include live-mcp-install:verify");
 assert(status.operator_commands.includes("npm run live-public-artifacts:verify"), "launch-status operator commands must include live-public-artifacts:verify");
 assert(status.operator_commands.includes("UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify"), "launch-status operator commands must include Render static web-artifacts verifier");
 assert(status.operator_commands.includes("npm run live-web-artifacts:verify"), "launch-status operator commands must include live-web-artifacts:verify");
@@ -84,6 +90,8 @@ assert(status.verified_controls.some((control) => control.id === "sample_reports
 assert(status.verified_controls.some((control) => control.id === "product_hunt_launch_kit" && control.evidence.includes("product-hunt-launch-kit.json")), "launch-status Product Hunt launch kit evidence must cite product-hunt-launch-kit.json");
 assert(status.verified_controls.some((control) => control.id === "npo_pipeline_handoff" && control.evidence.includes("live-npo-pipeline-handoff:verify")), "launch-status NPO pipeline handoff evidence must cite live-npo-pipeline-handoff:verify");
 assert(status.verified_controls.some((control) => control.id === "hosted_public_artifacts" && control.evidence.includes("live-public-artifacts:verify")), "launch-status hosted public-artifacts evidence must cite live-public-artifacts:verify");
+assert(status.verified_controls.some((control) => control.id === "hosted_mcp_install" && control.evidence.includes("live-mcp-install:verify")), "launch-status hosted MCP install evidence must cite live-mcp-install:verify");
+assert(status.verified_controls.some((control) => control.id === "mcp_install_artifact" && control.evidence.includes("mcp-install:verify") && control.evidence.includes("workspace API-key")), "launch-status MCP install evidence must cite mcp-install:verify and workspace API keys");
 assert(status.verified_controls.some((control) => control.id === "hosted_web_artifacts" && control.evidence.includes("live-web-artifacts:verify")), "launch-status hosted web-artifacts evidence must cite live-web-artifacts:verify");
 assert(status.verified_controls.some((control) => control.id === "render_web_artifacts" && control.evidence.includes("qcgenie-web.onrender.com")), "launch-status Render web-artifacts evidence must cite the Render static URL");
 assert(status.verified_controls.some((control) => control.id === "billing_enforcement" && control.evidence.includes("included deterministic QC minutes") && control.evidence.includes("usage_limit_exceeded")), "launch-status billing enforcement evidence must cite deterministic minute enforcement and usage_limit_exceeded");
@@ -98,6 +106,7 @@ assert(manifest.live_launch_evidence_url === status.public_artifacts.live_launch
 assert(manifest.launch_handoff_command === "npm run launch:handoff -- --text", "agent manifest must expose the local launch handoff command");
 assert(manifest.pipeline_handoff_url === status.public_artifacts.pipeline_handoff, "agent manifest pipeline_handoff_url must match launch-status public artifact URL");
 assert(manifest.npo_pipeline_handoff_url === status.public_artifacts.npo_pipeline_handoff, "agent manifest npo_pipeline_handoff_url must match launch-status public artifact URL");
+assert(manifest.mcp_install_url === status.public_artifacts.mcp_install, "agent manifest mcp_install_url must match launch-status public artifact URL");
 assert(manifest.primary_endpoints?.includes("GET /pipeline-handoff.json"), "agent manifest must expose pipeline handoff as a primary endpoint");
 assert(manifest.primary_endpoints?.includes("GET /pipeline-recipes.json"), "agent manifest must expose pipeline recipes as a primary endpoint");
 assert(manifest.primary_endpoints?.includes("GET /npo-pipeline-handoff.json"), "agent manifest must expose NPO pipeline handoff as a primary endpoint");
@@ -106,6 +115,7 @@ assert(openapi.paths["/pipeline-handoff.json"]?.get?.security?.length === 0, "Op
 assert(openapi.paths["/npo-pipeline-handoff.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /npo-pipeline-handoff.json metadata");
 assert(openapi.paths["/launch-status.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /launch-status.json metadata");
 assert(openapi.paths["/product-hunt-launch-kit.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /product-hunt-launch-kit.json metadata");
+assert(openapi.paths["/mcp-install.json"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /mcp-install.json metadata");
 assert(openapi.paths["/v1/launch-status"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /v1/launch-status metadata");
 assert(openapi.paths["/v1/launch-handoff"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /v1/launch-handoff metadata");
 assert(openapi.paths["/v1/launch-doctor"]?.get?.security?.length === 0, "OpenAPI must expose unauthenticated /v1/launch-doctor metadata");
@@ -117,11 +127,16 @@ assert(llms.includes(status.public_artifacts.live_launch_doctor), "llms.txt must
 assert(llms.includes(status.public_artifacts.live_launch_evidence), "llms.txt must link live launch evidence URL");
 assert(llms.includes(status.public_artifacts.pipeline_handoff), "llms.txt must link pipeline handoff URL");
 assert(llms.includes(status.public_artifacts.npo_pipeline_handoff), "llms.txt must link NPO pipeline handoff URL");
+assert(llms.includes(status.public_artifacts.mcp_install), "llms.txt must link MCP install URL");
 assert(llms.includes(status.public_artifacts.sample_reports), "llms.txt must link sample report artifacts URL");
 assert(llms.includes(status.public_artifacts.product_hunt_launch_kit), "llms.txt must link Product Hunt launch kit URL");
 assert(llms.includes("npm run launch:handoff -- --text"), "llms.txt must mention the local launch handoff command");
 assert(JSON.stringify(launchKit) === JSON.stringify(buildProductHuntLaunchKit(status)), "Product Hunt launch kit does not match product-hunt-launch-kit.mjs builder");
 assert(launchKit.ready_when?.source_of_truth === status.public_artifacts.live_launch_status, "Product Hunt launch kit must use live launch status as source of truth");
+assert(launchKit.launch_copy?.proof_points?.some((point) => point.includes("Private MCP beta install uses a local checkout or private clone")), "Product Hunt launch kit must not imply public npm install is current");
+assert(launchKit.distribution_position?.current_status === "private_mcp_beta_not_public_self_serve", "Product Hunt launch kit must publish private MCP beta distribution status");
+assert(launchKit.distribution_position?.required_secret?.includes("workspace API key tied to plan minutes"), "Product Hunt launch kit must require credit-gated workspace API keys");
+assert(String(launchKit.distribution_position?.openai_connector || "").includes("defer"), "Product Hunt launch kit must defer OpenAI connector/app positioning");
 assert(launchKit.current_state_snapshot?.source === status.public_artifacts.launch_status, "Product Hunt launch kit current snapshot must link static launch status");
 assert(launchKit.current_state_snapshot?.product_hunt_ready === status.product_hunt_ready, "Product Hunt launch kit current snapshot readiness must match static launch status");
 assert(JSON.stringify(launchKit.current_state_snapshot?.remaining_blockers) === JSON.stringify(status.remaining_blockers.map((blocker) => blocker.id)), "Product Hunt launch kit current snapshot blockers must match static launch status");
@@ -132,13 +147,19 @@ assert(launchKit.ready_when?.required_commands?.includes("npm run live-launch-do
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-launch-evidence:verify"), "Product Hunt launch kit must require live-launch-evidence:verify");
 assert(launchKit.ready_when?.required_commands?.includes("UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify"), "Product Hunt launch kit must require hosted media-ingress probe");
 assert(launchKit.ready_when?.required_commands?.includes("npm run launch-status:generate"), "Product Hunt launch kit must require launch-status:generate");
+assert(launchKit.ready_when?.required_commands?.includes("npm run saas-basics:verify"), "Product Hunt launch kit must require saas-basics:verify");
+assert(launchKit.ready_when?.required_commands?.includes("npm run private-mcp-beta:verify"), "Product Hunt launch kit must require private-mcp-beta:verify");
+assert(launchKit.ready_when?.required_commands?.includes("npm run anthropic-directory:verify"), "Product Hunt launch kit must require anthropic-directory:verify");
+assert(launchKit.ready_when?.required_commands?.includes("npm run product-agent:verify"), "Product Hunt launch kit must require product-agent:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-cost-basis:verify"), "Product Hunt launch kit must require live-cost-basis:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-agent-manifest:verify"), "Product Hunt launch kit must require live-agent-manifest:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-pipeline-recipes:verify"), "Product Hunt launch kit must require live-pipeline-recipes:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-pipeline-handoff:verify"), "Product Hunt launch kit must require live-pipeline-handoff:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-npo-pipeline-handoff:verify"), "Product Hunt launch kit must require live-npo-pipeline-handoff:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-openapi:verify"), "Product Hunt launch kit must require live-openapi:verify");
+assert(launchKit.ready_when?.required_commands?.includes("npm run live-mcp-install:verify"), "Product Hunt launch kit must require live-mcp-install:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-public-artifacts:verify"), "Product Hunt launch kit must require live-public-artifacts:verify");
+assert(launchKit.ready_when?.required_commands?.includes("npm run mcp-install:verify"), "Product Hunt launch kit must require mcp-install:verify");
 assert(launchKit.ready_when?.required_commands?.includes("UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify"), "Product Hunt launch kit must require Render static web-artifacts verifier");
 assert(launchKit.ready_when?.required_commands?.includes("npm run live-web-artifacts:verify"), "Product Hunt launch kit must require live-web-artifacts:verify");
 assert(launchKit.ready_when?.required_commands?.includes("npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"), "Product Hunt launch kit must require render:validate-env-file");
@@ -155,6 +176,7 @@ assert(launchKit.public_links?.live_launch_evidence === status.public_artifacts.
 assert(launchKit.public_links?.sample_reports_index === status.public_artifacts.sample_reports, "Product Hunt launch kit must link sample reports");
 assert(launchKit.public_links?.cost_basis === status.public_artifacts.cost_basis, "Product Hunt launch kit must link cost basis");
 assert(launchKit.public_links?.pipeline_handoff === status.public_artifacts.pipeline_handoff, "Product Hunt launch kit must link pipeline handoff");
+assert(launchKit.public_links?.mcp_install === status.public_artifacts.mcp_install, "Product Hunt launch kit must link MCP install artifact");
 
 const builtStatus = readJsonIfExists("dist/launch-status.json");
 if (builtStatus) {

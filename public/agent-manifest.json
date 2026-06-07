@@ -7,8 +7,17 @@
     "@uploadcheck/cli",
     "@uploadcheck/mcp"
   ],
+  "distribution": {
+    "status": "private_mcp_beta_not_public_self_serve",
+    "current_install": "local_checkout_or_private_clone",
+    "future_npm_install": "npx -y @uploadcheck/mcp after @uploadcheck/mcp is published",
+    "public_download_ready": false,
+    "anthropic_directory_ready": false,
+    "openai_connector": "defer until hosted HTTPS MCP, account binding, report UX, and abuse/cost controls are proven in production"
+  },
   "api_base_url": "https://api.uploadcheck.app/v1",
   "openapi_url": "https://api.uploadcheck.app/openapi.json",
+  "mcp_install_url": "https://api.uploadcheck.app/mcp-install.json",
   "pipeline_handoff_url": "https://api.uploadcheck.app/pipeline-handoff.json",
   "pipeline_recipes_url": "https://api.uploadcheck.app/pipeline-recipes.json",
   "npo_pipeline_handoff_url": "https://api.uploadcheck.app/npo-pipeline-handoff.json",
@@ -40,7 +49,7 @@
     },
     {
       "plan": "Network",
-      "price_usd_monthly": 799,
+      "price_usd_monthly": 899,
       "included_checked_minutes": 36000,
       "positioning": "High-volume",
       "overage_usd_per_minute": 0.06
@@ -90,6 +99,27 @@
     "type": "api_key",
     "header": "Authorization",
     "format": "Bearer <workspace_api_key>"
+  },
+  "workspace_key_contract": {
+    "private_beta_required": true,
+    "external_users_need": "workspace API key tied to plan minutes, top-up credits, or an operator-created beta account",
+    "local_nto_can_use_repo_without_hosted_key": true,
+    "stored_key_behavior": [
+      "Returned once, stored hashed, and shown later only as a token prefix.",
+      "Forces server-side workspace, owner, plan, included minutes, and subscription price over client-supplied fields.",
+      "Can only read, report, cancel, import gate verdicts for, list, and meter jobs in its own workspace.",
+      "If granted API-key review or provisioning scopes, remains pinned to its own workspace and owner.",
+      "Operator/admin bearer keys keep broader provisioning and review access."
+    ],
+    "operator_review_endpoints": [
+      "GET /v1/api-keys?workspace_id=",
+      "GET /v1/abuse-events?workspace_id=&limit=",
+      "GET /v1/spend-alerts?workspace_id=&limit="
+    ],
+    "checkout_provisioning_endpoints": [
+      "POST /v1/checkout/provision-api-key",
+      "POST /v1/webhooks/lemonsqueezy"
+    ]
   },
   "abuse_limits": {
     "max_duration_minutes_default": 240,
@@ -216,7 +246,13 @@
     "POST /v1/webhooks/deliveries/drain",
     "POST /v1/webhooks/deliveries/{delivery_id}/retry",
     "GET /v1/usage",
-    "GET /v1/usage/margins"
+    "GET /v1/usage/margins",
+    "GET /v1/abuse-events?workspace_id=&limit=",
+    "GET /v1/spend-alerts?workspace_id=&limit=",
+    "POST /v1/api-keys",
+    "GET /v1/api-keys?workspace_id=",
+    "POST /v1/checkout/provision-api-key",
+    "POST /v1/webhooks/lemonsqueezy"
   ],
   "agent_workflow": [
     "Before launch-sensitive workflows, the agent may call qc_get_launch_status or GET /v1/launch-status to verify the live go/no-go state, then qc_get_launch_handoff or GET /v1/launch-handoff for blocker-specific required actions, proof commands, and launchDoctorCommands. Use qc_get_launch_doctor, GET /v1/launch-doctor, qc_get_launch_evidence, GET /v1/launch-evidence, uploadcheck launch-doctor --json, or uploadcheck launch-evidence --json when the agent needs the blocker fix plan, normalized launch-doctor command coverage, or redacted launch evidence.",

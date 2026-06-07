@@ -1,0 +1,181 @@
+#!/usr/bin/env node
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const draftPath = resolve("docs/anthropic-directory-draft.json");
+const prepPath = resolve("docs/ANTHROPIC-DIRECTORY.md");
+const betaPath = resolve("docs/PRIVATE-MCP-BETA.md");
+const installPath = resolve("mcp-server/mcp-install.json");
+
+const draft = JSON.parse(readFileSync(draftPath, "utf8"));
+const prep = readFileSync(prepPath, "utf8");
+const beta = readFileSync(betaPath, "utf8");
+const install = JSON.parse(readFileSync(installPath, "utf8"));
+
+const expectedTools = [
+  "qc_get_cost_basis",
+  "qc_estimate_cost",
+  "qc_run_video",
+  "qc_run_local_file",
+  "qc_get_job",
+  "qc_get_report",
+  "qc_get_events",
+  "qc_get_artifacts",
+  "qc_get_marker_csv",
+  "qc_create_upload_url"
+];
+
+const forbiddenPublic = [
+  "qc_run_gemini_backtest",
+  "gemini_watch",
+  "omni_watch",
+  "qwen",
+  "anthropic_fallback_oracle",
+  "deep_ai_review"
+];
+
+const requiredEvidenceCommands = [
+  "npm run packages:verify",
+  "npm run packages:install-smoke",
+  "npm run npm-publish:preflight",
+  "npm run mcp-install:verify",
+  "npm run product-agent:verify",
+  "npm run private-mcp-beta:verify",
+  "npm run checkout-launch:verify",
+  "npm run saas-basics:verify",
+  "npm run codex:verify-install",
+  "npm run build",
+  "npm run readiness:check",
+  "npm run live-mcp-install:verify"
+];
+
+const requiredSubmissionEvidence = [
+  "Registry proof that @uploadcheck/cli and @uploadcheck/mcp are published.",
+  "Read-only npm publish preflight proof from npm run npm-publish:preflight before founder publish.",
+  "Hosted /mcp-install.json proof from npm run live-mcp-install:verify after Render redeploy.",
+  "Paid workspace API-key proof from hosted QC job creation through report fetch.",
+  "Checkout proof from configured Lemon Squeezy checkout URLs or Creator, Studio, and Network variants.",
+  "Webhook proof that X-Signature HMAC-SHA256 is verified with UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET before API-key provisioning.",
+  "Abuse-limit proof that over-limit usage blocks before QC compute and records operator-reviewable abuse events.",
+  "Spend-alert proof that GET /v1/spend-alerts returns a Resend-backed alert after billable extra-minute spend crosses subscription value, with COGS retained as audit context.",
+  "Private beta evidence from Claude Code, Codex, and Cursor using workspace API keys.",
+  "No-public-oracle proof that package files, MCP manifests, README copy, and Directory copy do not expose gemini_watch, omni_watch, qwen, anthropic_fallback_oracle, or deep_ai_review as customer tools."
+];
+
+const errors = [];
+
+if (draft.status !== "private_mcp_beta_not_ready_for_submission") {
+  errors.push({ key: "status", reason: "must_not_claim_directory_ready" });
+}
+if (draft.mcp_server_name !== "uploadcheck") errors.push({ key: "mcp_server_name", reason: "expected_uploadcheck" });
+if (draft.distribution?.future_package !== "@uploadcheck/mcp") errors.push({ key: "distribution.future_package", reason: "expected_mcp_package" });
+if (draft.distribution?.requires_workspace_api_key !== true) errors.push({ key: "distribution.requires_workspace_api_key", reason: "must_require_workspace_api_key" });
+if (draft.distribution?.requires_credit_gated_workspace !== true) errors.push({ key: "distribution.requires_credit_gated_workspace", reason: "must_require_credit_gated_workspace" });
+if (JSON.stringify(draft.public_tools) !== JSON.stringify(expectedTools)) {
+  errors.push({ key: "public_tools", reason: "unexpected_public_tool_scope", expected: expectedTools, actual: draft.public_tools });
+}
+if (draft.billing_boundary?.included_unit !== "deterministic publish-readiness QC minutes") {
+  errors.push({ key: "billing_boundary.included_unit", reason: "must_sell_deterministic_minutes" });
+}
+if (draft.billing_boundary?.public_ai_review_budget_seconds !== 0) {
+  errors.push({ key: "billing_boundary.public_ai_review_budget_seconds", reason: "public_ai_budget_must_be_zero" });
+}
+if (!Array.isArray(draft.submission_blockers) || draft.submission_blockers.length < 5) {
+  errors.push({ key: "submission_blockers", reason: "missing_submission_blockers" });
+}
+if (!draft.submission_blockers?.some((blocker) => blocker.includes("saas-basics:verify"))) {
+  errors.push({ key: "submission_blockers", reason: "missing_saas_basics_submission_blocker" });
+}
+if (JSON.stringify(draft.required_evidence_commands) !== JSON.stringify(requiredEvidenceCommands)) {
+  errors.push({
+    key: "required_evidence_commands",
+    reason: "unexpected_required_evidence_commands",
+    expected: requiredEvidenceCommands,
+    actual: draft.required_evidence_commands
+  });
+}
+if (JSON.stringify(draft.submission_evidence) !== JSON.stringify(requiredSubmissionEvidence)) {
+  errors.push({
+    key: "submission_evidence",
+    reason: "unexpected_submission_evidence",
+    expected: requiredSubmissionEvidence,
+    actual: draft.submission_evidence
+  });
+}
+if (draft.connector_decision?.chatgpt_or_openai_connector !== "defer") {
+  errors.push({ key: "connector_decision.chatgpt_or_openai_connector", reason: "openai_connector_must_be_deferred" });
+}
+if (!draft.connector_decision?.reason?.includes("hosted HTTPS MCP")) {
+  errors.push({ key: "connector_decision.reason", reason: "missing_hosted_https_mcp_connector_gate" });
+}
+if (draft.connector_decision?.next_channel !== "Anthropic Directory after private MCP beta and npm package proof") {
+  errors.push({ key: "connector_decision.next_channel", reason: "unexpected_next_channel" });
+}
+
+const publicScope = JSON.stringify({
+  public_tools: draft.public_tools,
+  short_description: draft.short_description,
+  long_description: draft.long_description
+}).toLowerCase();
+for (const forbidden of forbiddenPublic) {
+  if (publicScope.includes(forbidden.toLowerCase())) {
+    errors.push({ key: "public_scope", reason: "forbidden_internal_oracle_leak", forbidden });
+  }
+}
+
+for (const tool of expectedTools) {
+  if (!prep.includes(`- \`${tool}\``)) errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_tool_in_prep_doc", tool });
+}
+
+if (!prep.includes("UploadCheck is currently a private MCP beta, not an Anthropic Directory-ready public listing.")) {
+  errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_not_ready_warning" });
+}
+if (!prep.includes("docs/PRIVATE-MCP-BETA.md")) {
+  errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_private_beta_handoff_link" });
+}
+if (!prep.includes("npm run saas-basics:verify")) {
+  errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_saas_basics_evidence_command" });
+}
+for (const command of requiredEvidenceCommands) {
+  if (!prep.includes(command)) {
+    errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_required_evidence_command", command });
+  }
+}
+for (const evidence of [
+  "GET /v1/spend-alerts",
+  "billable extra-minute spend",
+  "Private beta proof from Claude Code, Codex, and Cursor",
+  "Do not apply for a broad connector or ChatGPT app yet.",
+  "Hosted HTTPS MCP endpoint"
+]) {
+  if (!prep.includes(evidence)) {
+    errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_directory_decision_or_evidence", evidence });
+  }
+}
+if (!beta.includes("External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key")) {
+  errors.push({ key: "docs/PRIVATE-MCP-BETA.md", reason: "missing_workspace_key_rule" });
+}
+if (install.distribution_status !== "private_mcp_beta_not_public_self_serve") {
+  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_private_beta_distribution_status" });
+}
+if (install.current_install !== "local_checkout_or_private_clone") {
+  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_local_private_clone_current_install" });
+}
+if (!install.notes?.some((note) => note.includes("workspace API key tied to plan minutes"))) {
+  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_credit_gated_workspace_key_note" });
+}
+if (!install.codex_local?.toml?.includes('UPLOADCHECK_API_KEY = "<workspace_api_key>"')) {
+  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_codex_api_key_placeholder" });
+}
+
+if (errors.length) {
+  console.error(JSON.stringify({ ok: false, errors }, null, 2));
+  process.exit(1);
+}
+
+console.log(JSON.stringify({
+  ok: true,
+  draft: "docs/anthropic-directory-draft.json",
+  status: draft.status,
+  publicTools: draft.public_tools
+}, null, 2));

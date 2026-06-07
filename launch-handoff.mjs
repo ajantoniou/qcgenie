@@ -44,9 +44,16 @@ export function buildLaunchHandoff(report, {
       "set -a; source /tmp/uploadcheck-render-launch.env; set +a",
       "npm run render:plan && npm run render:validate-env && npm run render:apply",
       "npm run launch:doctor",
+      "npm run launch:checkout-discover",
       "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
       "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
       "UPLOADCHECK_MEDIA_INGRESS_BASE_URL=https://api.uploadcheck.app UPLOADCHECK_API_KEY=<private_bearer> npm run media-ingress:verify",
+      "npm run live-launch-doctor:verify",
+      "npm run live-launch-evidence:verify",
+      "npm run live-mcp-install:verify",
+      "npm run live-public-artifacts:verify",
+      "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
+      "npm run live-web-artifacts:verify",
       "npm run launch:check",
       "npm run readiness:check"
     ],
@@ -78,6 +85,12 @@ function buildBlockerFixPlan({ actions, remainingBlockers, blockerProofCommands 
     actionId: "checkout",
     phaseId: "configure-checkout",
     fallbackProof: ["npm run launch:checkout", "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout"]
+  });
+  addActionPhase(phases, actionById, proofById, {
+    actionId: "checkout-webhook",
+    blockerId: "checkoutWebhook",
+    phaseId: "configure-checkout-webhook",
+    fallbackProof: ["npm run render:validate-env", "npm run readiness:check"]
   });
   addActionPhase(phases, actionById, proofById, {
     actionId: "persistence",
@@ -121,12 +134,24 @@ function buildBlockerFixPlan({ actions, remainingBlockers, blockerProofCommands 
     env: [],
     commands: [
       "npm run launch:doctor",
+      "npm run live-launch-doctor:verify",
+      "npm run live-launch-evidence:verify",
+      "npm run live-mcp-install:verify",
+      "npm run live-public-artifacts:verify",
+      "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
+      "npm run live-web-artifacts:verify",
       "npm run launch:check",
       "npm run readiness:check",
       "npm run launch:handoff"
     ],
     proof_commands: [
       "npm run launch:doctor",
+      "npm run live-launch-doctor:verify",
+      "npm run live-launch-evidence:verify",
+      "npm run live-mcp-install:verify",
+      "npm run live-public-artifacts:verify",
+      "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
+      "npm run live-web-artifacts:verify",
       "npm run launch:check",
       "npm run readiness:check"
     ],
@@ -163,6 +188,10 @@ function proofCommandsForBlockers(blockers) {
     checkout: [
       "npm run launch:checkout",
       "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout"
+    ],
+    checkoutWebhook: [
+      "npm run render:validate-env",
+      "npm run readiness:check"
     ],
     customDomain: [
       "npm run launch:dns",

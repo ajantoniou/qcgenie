@@ -43,7 +43,7 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
   ]);
   requiredText(errors, "agent_install", agentInstall, [
     "Install UploadCheck for Agents",
-    "git clone https://github.com/ajantoniou/uploadcheck.git",
+    "private clone or local checkout",
     "/absolute/path/to/uploadcheck/mcp-server/index.mjs",
     "~/.codex/config.toml",
     ".cursor/mcp.json",

@@ -4,6 +4,11 @@
   "type": "module",
   "description": "MCP wrapper for the UploadCheck hosted API.",
   "homepage": "https://uploadcheck.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ajantoniou/uploadcheck.git",
+    "directory": "mcp-server"
+  },
   "bin": {
     "uploadcheck-mcp": "./index.mjs"
   },

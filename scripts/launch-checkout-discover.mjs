@@ -3,7 +3,7 @@
 const PLAN_TARGETS = [
   { plan: "creator", envKey: "UPLOADCHECK_CREATOR_VARIANT_ID", label: "Creator", priceCents: 9900 },
   { plan: "studio", envKey: "UPLOADCHECK_STUDIO_VARIANT_ID", label: "Studio", priceCents: 29900 },
-  { plan: "network", envKey: "UPLOADCHECK_NETWORK_VARIANT_ID", label: "Network", priceCents: 79900 }
+  { plan: "network", envKey: "UPLOADCHECK_NETWORK_VARIANT_ID", label: "Network", priceCents: 89900 }
 ];
 
 const apiKey = process.env.LEMONSQUEEZY_API_KEY || process.env.LEMON_SQUEEZY_API_KEY || "";
@@ -98,7 +98,7 @@ try {
           "Run npm run render:apply to sync checkout env to Render."
         ]
       : [
-          "Create an UploadCheck product in Lemon Squeezy with monthly published subscription variants: Creator $99, Studio $299, Network $799.",
+          "Create an UploadCheck product in Lemon Squeezy with monthly published subscription variants: Creator $99, Studio $299, Network $899.",
           "Set UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG or LEMONSQUEEZY_STORE_URL locally.",
           "Rerun npm run launch:checkout-discover."
         ]

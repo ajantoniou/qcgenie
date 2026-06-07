@@ -55,7 +55,7 @@ describe("public OpenAPI spec", () => {
 
   it("documents public machine-readable metadata endpoints", () => {
     const spec = loadSpec();
-    for (const path of ["/agent-manifest.json", "/pipeline-handoff.json", "/pipeline-recipes.json", "/npo-pipeline-handoff.json", "/launch-targets.json", "/launch-status.json", "/product-hunt-launch-kit.json", "/cost-basis.json", "/sample-reports/index.json"]) {
+    for (const path of ["/agent-manifest.json", "/mcp-install.json", "/pipeline-handoff.json", "/pipeline-recipes.json", "/npo-pipeline-handoff.json", "/launch-targets.json", "/launch-status.json", "/product-hunt-launch-kit.json", "/cost-basis.json", "/sample-reports/index.json"]) {
       expect(spec.paths[path].get.security).toEqual([]);
       expect(spec.paths[path].get.responses["200"].content["application/json"].schema).toEqual({ type: "object" });
     }
@@ -119,12 +119,27 @@ describe("public OpenAPI spec", () => {
     expect(jobPost.responses["413"].description).toContain("abuse limit");
     expect(jobPost.responses["429"].description).toContain("concurrency");
     expect(uploadPost.responses["413"].description).toContain("maximum size");
+    expect(spec.paths["/v1/abuse-events"].get.summary).toContain("abuse-limit");
+    expect(spec.paths["/v1/abuse-events"].get.description).toContain("operator dashboard");
+    expect(spec.paths["/v1/abuse-events"].get.description).toContain("Stored workspace API keys are pinned to their own workspace");
+    expect(spec.paths["/v1/abuse-events"].get.parameters.map((param) => param.name)).toEqual(["workspace_id", "limit"]);
+    expect(spec.paths["/v1/spend-alerts"].get.summary).toContain("spend alerts");
+    expect(spec.paths["/v1/spend-alerts"].get.description).toContain("Resend");
+    expect(spec.paths["/v1/spend-alerts"].get.description).toContain("billable extra-minute spend");
+    expect(spec.paths["/v1/spend-alerts"].get.description).toContain("overage COGS audit context");
+    expect(spec.paths["/v1/spend-alerts"].get.description).toContain("Stored workspace API keys are pinned to their own workspace");
+    expect(spec.paths["/v1/spend-alerts"].get.parameters.map((param) => param.name)).toEqual(["workspace_id", "limit"]);
+    expect(spec.paths["/v1/abuse-events"].get.responses["200"].content["application/json"].schema.properties.abuseEvents.items.$ref).toBe("#/components/schemas/AbuseEvent");
+    expect(spec.paths["/v1/spend-alerts"].get.responses["200"].content["application/json"].schema.properties.spendAlerts.items.$ref).toBe("#/components/schemas/SpendAlert");
+    expect(spec.components.schemas.SpendAlert.properties.overageRevenueCents.description).toContain("alert trigger value");
+    expect(spec.components.schemas.SpendAlert.properties.overageCostCents.description).toContain("not the trigger value");
   });
 
   it("documents queued worker drain execution", () => {
     const spec = loadSpec();
 
     expect(spec.paths["/v1/qc/jobs/drain"].post.summary).toContain("Drain queued");
+    expect(spec.paths["/v1/qc/jobs/drain"].post.description).toContain("Stored workspace API keys drain only jobs owned by their own workspace");
     expect(spec.paths["/v1/qc/jobs/drain"].post.requestBody.content["application/json"].schema.properties.limit.maximum).toBe(25);
     expect(spec.paths["/v1/qc/jobs/drain"].post.responses["200"].description).toContain("Queued jobs processed");
   });
@@ -138,10 +153,30 @@ describe("public OpenAPI spec", () => {
     expect(spec.components.schemas.ApiKeyRecord.properties.checkoutSubscriptionId.type).toEqual(["string", "null"]);
     expect(path.summary).toContain("Provision");
     expect(path.description).toContain("returns the raw apiKey only on the first");
+    expect(path.description).toContain("Stored workspace API keys with api_keys:write are pinned to their own workspace, owner, plan economics, and overage cap before checkout provisioning");
     expect(path.requestBody.content["application/json"].schema.required).toEqual(["plan_id", "owner_email"]);
     expect(path.requestBody.content["application/json"].schema.properties.plan_id.enum).toEqual(["creator", "studio", "network"]);
     expect(path.responses["201"].content["application/json"].schema.properties.apiKey.type).toEqual(["string", "null"]);
     expect(path.responses["200"].description).toContain("without bearer secret");
+  });
+
+  it("documents stored workspace API-key scoping for review and usage endpoints", () => {
+    const spec = loadSpec();
+
+    expect(spec.paths["/v1/api-keys"].post.description).toContain("stored workspace API keys with api_keys:write are pinned to their own workspace, owner, plan economics, and overage cap");
+    expect(spec.paths["/v1/api-keys"].get.description).toContain("Stored workspace API keys with api_keys:read are pinned to their own workspace");
+    expect(spec.paths["/v1/usage"].get.description).toContain("Stored workspace API keys are pinned to their own workspace usage ledger");
+    expect(spec.paths["/v1/usage/margins"].get.description).toContain("Stored workspace API keys are pinned to their own workspace usage ledger");
+    expect(spec.paths["/v1/uploads"].post.description).toContain("Stored workspace API keys force server-side workspace");
+    expect(spec.paths["/v1/uploads/{upload_id}"].get.description).toContain("only read upload reservations owned by their own workspace");
+    expect(spec.components.schemas.Upload.properties.workspaceId.description).toContain("Stored workspace API keys are pinned");
+    expect(spec.paths["/v1/webhooks"].post.description).toContain("Stored workspace API keys force server-side workspace");
+    expect(spec.paths["/v1/webhooks/{webhook_id}/delivery-preview"].get.description).toContain("owned by their own workspace");
+    expect(spec.paths["/v1/webhooks/deliveries"].get.description).toContain("pinned to their own workspace delivery log");
+    expect(spec.paths["/v1/webhooks/deliveries/{delivery_id}/retry"].post.description).toContain("owned by their own workspace");
+    expect(spec.paths["/v1/webhooks/deliveries/drain"].post.description).toContain("drain only pending deliveries owned by their own workspace");
+    expect(spec.components.schemas.WebhookEndpoint.properties.workspaceId.description).toContain("Stored workspace API keys are pinned");
+    expect(spec.components.schemas.WebhookDelivery.properties.workspaceId.description).toContain("can only list, retry, or drain their own deliveries");
   });
 
   it("documents signed Lemon Squeezy checkout webhooks", () => {
