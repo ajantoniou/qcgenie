@@ -3,7 +3,7 @@
 const DEFAULT_WEB_BASE_URL = "https://uploadcheck.app";
 const MIN_DEMO_BYTES = 1000;
 
-export function validateWebArtifacts({ productHunt, pricing, sampleReport, agenticApi, agentInstall, sitemap, llms, demo }) {
+export function validateWebArtifacts({ productHunt, pricing, sampleReport, agenticApi, agentInstall, docs, docsMcp, docsApi, sitemap, llms, demo }) {
   const errors = [];
   requiredText(errors, "product_hunt", productHunt, [
     "UploadCheck Product Hunt Launch",
@@ -51,12 +51,33 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
     "qc_run_local_file",
     "npx -y @drantoniou/uploadcheck-mcp"
   ]);
+  requiredText(errors, "docs", docs, [
+    "UploadCheck docs",
+    "npx -y @drantoniou/uploadcheck-mcp",
+    "View 20 MCP tools",
+    "View 27 endpoints"
+  ]);
+  requiredText(errors, "docs_mcp", docsMcp, [
+    "MCP reference",
+    "npx -y @drantoniou/uploadcheck-mcp",
+    "qc_get_cost_basis",
+    "qc_run_local_file"
+  ]);
+  requiredText(errors, "docs_api", docsApi, [
+    "API reference",
+    "https://api.uploadcheck.app",
+    "/v1/qc/jobs",
+    "/v1/qc/jobs/{job_id}/report"
+  ]);
   requiredText(errors, "sitemap", sitemap, [
     "https://uploadcheck.app/product-hunt/",
     "https://uploadcheck.app/pricing/",
     "https://uploadcheck.app/sample-report/",
     "https://uploadcheck.app/agentic-media-qc-api/",
-    "https://uploadcheck.app/agent-install/"
+    "https://uploadcheck.app/agent-install/",
+    "https://uploadcheck.app/docs/",
+    "https://uploadcheck.app/docs/mcp/",
+    "https://uploadcheck.app/docs/api/"
   ]);
   requiredText(errors, "llms", llms, [
     "UploadCheck.app",
@@ -90,30 +111,36 @@ async function main() {
     sampleReport: cacheBustUrl(`${baseUrl}/sample-report/`),
     agenticApi: cacheBustUrl(`${baseUrl}/agentic-media-qc-api/`),
     agentInstall: cacheBustUrl(`${baseUrl}/agent-install/`),
+    docs: cacheBustUrl(`${baseUrl}/docs/`),
+    docsMcp: cacheBustUrl(`${baseUrl}/docs/mcp/`),
+    docsApi: cacheBustUrl(`${baseUrl}/docs/api/`),
     sitemap: cacheBustUrl(`${baseUrl}/sitemap.xml`),
     llms: cacheBustUrl(`${baseUrl}/llms.txt`),
     demo: cacheBustUrl(`${baseUrl}/demo/uploadcheck-product-hunt-demo.mp4`)
   };
 
   try {
-    const [productHunt, pricing, sampleReport, agenticApi, agentInstall, sitemap, llms, demo] = await Promise.all([
+    const [productHunt, pricing, sampleReport, agenticApi, agentInstall, docs, docsMcp, docsApi, sitemap, llms, demo] = await Promise.all([
       fetchText(urls.productHunt, "Product Hunt page"),
       fetchText(urls.pricing, "pricing page"),
       fetchText(urls.sampleReport, "sample report page"),
       fetchText(urls.agenticApi, "agentic API page"),
       fetchText(urls.agentInstall, "agent install page"),
+      fetchText(urls.docs, "docs page"),
+      fetchText(urls.docsMcp, "MCP docs page"),
+      fetchText(urls.docsApi, "API docs page"),
       fetchText(urls.sitemap, "sitemap"),
       fetchText(urls.llms, "llms.txt"),
       fetchBinaryMeta(urls.demo, "demo clip")
     ]);
-    const errors = validateWebArtifacts({ productHunt, pricing, sampleReport, agenticApi, agentInstall, sitemap, llms, demo });
+    const errors = validateWebArtifacts({ productHunt, pricing, sampleReport, agenticApi, agentInstall, docs, docsMcp, docsApi, sitemap, llms, demo });
     if (errors.length) {
       fail(`UploadCheck live web artifacts: NOT READY\n${JSON.stringify({ urls, errors }, null, 2)}`);
     }
     console.log(JSON.stringify({
       ok: true,
       urls,
-      pages: 7,
+      pages: 10,
       demoBytes: demo.bytes,
       demoContentType: demo.contentType
     }, null, 2));

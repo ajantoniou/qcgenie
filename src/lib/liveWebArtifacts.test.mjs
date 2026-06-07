@@ -14,6 +14,9 @@ function currentArtifacts() {
     sampleReport: readText("public/sample-report/index.html"),
     agenticApi: readText("public/agentic-media-qc-api/index.html"),
     agentInstall: readText("public/agent-install/index.html"),
+    docs: readText("public/docs/index.html"),
+    docsMcp: readText("public/docs/mcp/index.html"),
+    docsApi: readText("public/docs/api/index.html"),
     sitemap: readText("public/sitemap.xml"),
     llms: readText("public/llms.txt"),
     demo: {
