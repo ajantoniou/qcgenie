@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 const commands = [
   ["npm", ["run", "--silent", "saas-basics:verify"]],
   ["npm", ["run", "--silent", "private-mcp-beta:verify"]],
+  ["npm", ["run", "--silent", "private-mcp-beta:evidence"]],
   ["npm", ["run", "--silent", "anthropic-directory:verify"]],
   ["npm", ["run", "--silent", "mcp-install:verify"]],
   ["npm", ["run", "--silent", "checkout-launch:verify"]],

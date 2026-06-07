@@ -5,11 +5,13 @@ import { resolve } from "node:path";
 const draftPath = resolve("docs/anthropic-directory-draft.json");
 const prepPath = resolve("docs/ANTHROPIC-DIRECTORY.md");
 const betaPath = resolve("docs/PRIVATE-MCP-BETA.md");
+const betaEvidencePath = resolve("docs/private-mcp-beta-evidence-template.json");
 const installPath = resolve("mcp-server/mcp-install.json");
 
 const draft = JSON.parse(readFileSync(draftPath, "utf8"));
 const prep = readFileSync(prepPath, "utf8");
 const beta = readFileSync(betaPath, "utf8");
+const betaEvidence = JSON.parse(readFileSync(betaEvidencePath, "utf8"));
 const install = JSON.parse(readFileSync(installPath, "utf8"));
 
 const expectedTools = [
@@ -41,6 +43,7 @@ const requiredEvidenceCommands = [
   "npm run mcp-install:verify",
   "npm run product-agent:verify",
   "npm run private-mcp-beta:verify",
+  "npm run private-mcp-beta:evidence",
   "npm run checkout-launch:verify",
   "npm run saas-basics:verify",
   "npm run codex:verify-install",
@@ -58,7 +61,7 @@ const requiredSubmissionEvidence = [
   "Webhook proof that X-Signature HMAC-SHA256 is verified with UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET before API-key provisioning.",
   "Abuse-limit proof that over-limit usage blocks before QC compute and records operator-reviewable abuse events.",
   "Spend-alert proof that GET /v1/spend-alerts returns a Resend-backed alert after billable extra-minute spend crosses subscription value, with COGS retained as audit context.",
-  "Private beta evidence from Claude Code, Codex, and Cursor using workspace API keys.",
+  "Private beta evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
   "No-public-oracle proof that package files, MCP manifests, README copy, and Directory copy do not expose gemini_watch, omni_watch, qwen, anthropic_fallback_oracle, or deep_ai_review as customer tools."
 ];
 
@@ -85,6 +88,9 @@ if (!Array.isArray(draft.submission_blockers) || draft.submission_blockers.lengt
 }
 if (!draft.submission_blockers?.some((blocker) => blocker.includes("saas-basics:verify"))) {
   errors.push({ key: "submission_blockers", reason: "missing_saas_basics_submission_blocker" });
+}
+if (!draft.submission_blockers?.some((blocker) => blocker.includes("docs/private-mcp-beta-evidence-template.json"))) {
+  errors.push({ key: "submission_blockers", reason: "missing_beta_evidence_submission_blocker" });
 }
 if (JSON.stringify(draft.required_evidence_commands) !== JSON.stringify(requiredEvidenceCommands)) {
   errors.push({
@@ -144,7 +150,7 @@ for (const command of requiredEvidenceCommands) {
 for (const evidence of [
   "GET /v1/spend-alerts",
   "billable extra-minute spend",
-  "Private beta proof from Claude Code, Codex, and Cursor",
+  "Private beta proof from Claude Code, Codex, and Cursor using workspace API keys and the public MCP tool surface only, captured in `docs/private-mcp-beta-evidence-template.json`",
   "Do not apply for a broad connector or ChatGPT app yet.",
   "Hosted HTTPS MCP endpoint"
 ]) {
@@ -154,6 +160,22 @@ for (const evidence of [
 }
 if (!beta.includes("External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key")) {
   errors.push({ key: "docs/PRIVATE-MCP-BETA.md", reason: "missing_workspace_key_rule" });
+}
+if (!beta.includes("Run `npm run private-mcp-beta:evidence` before treating the proof contract as valid.")) {
+  errors.push({ key: "docs/PRIVATE-MCP-BETA.md", reason: "missing_beta_evidence_contract_command" });
+}
+for (const client of ["claude_code", "codex", "cursor"]) {
+  if (!betaEvidence.required_clients?.includes(client)) {
+    errors.push({ key: "docs/private-mcp-beta-evidence-template.json", reason: "missing_required_client", client });
+  }
+}
+for (const forbidden of ["gemini_watch", "omni_watch", "qwen", "anthropic_fallback_oracle", "deep_ai_review"]) {
+  if (betaEvidence.allowed_tools?.includes(forbidden)) {
+    errors.push({ key: "docs/private-mcp-beta-evidence-template.json", reason: "forbidden_tool_allowed", forbidden });
+  }
+  if (!betaEvidence.forbidden_customer_tools?.includes(forbidden)) {
+    errors.push({ key: "docs/private-mcp-beta-evidence-template.json", reason: "missing_forbidden_tool", forbidden });
+  }
 }
 if (install.distribution_status !== "private_mcp_beta_not_public_self_serve") {
   errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_private_beta_distribution_status" });
