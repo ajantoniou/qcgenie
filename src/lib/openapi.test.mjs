@@ -31,7 +31,6 @@ describe("public OpenAPI spec", () => {
     const schemas = spec.components.schemas;
 
     expect(schemas.WebhookDelivery.properties.signatureHeader.const).toBe("X-UploadCheck-Signature");
-    expect(schemas.WebhookDelivery.properties.legacySignatureHeader.const).toBe("X-QCGenie-Signature");
 
     expect(spec.paths["/v1/webhooks"].post.responses["201"].content["application/json"].schema).toEqual({
       $ref: "#/components/schemas/WebhookEndpoint"

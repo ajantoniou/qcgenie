@@ -4,8 +4,8 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { getObjectStorageConfig } from "./object-storage.mjs";
 
 export function buildStorageSummary(env = process.env, options = {}) {
-  const storePath = env.UPLOADCHECK_STORE_PATH || env.QCGENIE_STORE_PATH || "/tmp/uploadcheck/store.json";
-  const durableUploadPath = env.UPLOADCHECK_DURABLE_STORAGE_DIR || env.QCGENIE_DURABLE_STORAGE_DIR || "";
+  const storePath = env.UPLOADCHECK_STORE_PATH || "/tmp/uploadcheck/store.json";
+  const durableUploadPath = env.UPLOADCHECK_DURABLE_STORAGE_DIR || "";
   const objectStorage = getObjectStorageConfig(env);
   const supabaseEnvPresent = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
   const probeEnabled = options.probeFilesystem === true || env.UPLOADCHECK_STORAGE_PROBE === "1";

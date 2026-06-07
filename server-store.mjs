@@ -7,7 +7,7 @@ import { runQcForJob } from "./qc-engine-runner.mjs";
 export class JsonStore {
   constructor(filePath, options = {}) {
     this.filePath = filePath;
-    this.secretEncryptionKey = options.secretEncryptionKey || process.env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || process.env.QCGENIE_SECRET_ENCRYPTION_KEY || null;
+    this.secretEncryptionKey = options.secretEncryptionKey || process.env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || null;
     this.state = {
       jobs: [],
       uploads: [],
@@ -521,7 +521,6 @@ export class JsonStore {
       attemptCount: 0,
       nextAttemptAt: new Date().toISOString(),
       signatureHeader: "X-UploadCheck-Signature",
-      legacySignatureHeader: "X-QCGenie-Signature",
       signature: signPayload(signingSecret, encodedPayload),
       payload,
       createdAt: new Date().toISOString()

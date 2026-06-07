@@ -1,6 +1,6 @@
-const apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || "https://api.uploadcheck.app";
-const apiKey = process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
-const limit = Number(process.env.UPLOADCHECK_DRAIN_LIMIT || process.env.QCGENIE_DRAIN_LIMIT || 25);
+const apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || "https://api.uploadcheck.app";
+const apiKey = process.env.UPLOADCHECK_API_KEY;
+const limit = Number(process.env.UPLOADCHECK_DRAIN_LIMIT || 25);
 
 if (!apiKey) {
   throw new Error("UPLOADCHECK_API_KEY is required to drain webhook deliveries.");

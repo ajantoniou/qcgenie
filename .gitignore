@@ -5,7 +5,7 @@ dist/
 _qc/
 .playwright-mcp/
 *.png
-qcgenie-*.md
+uploadcheck-*.md
 *.tsbuildinfo
 .DS_Store
 __pycache__/

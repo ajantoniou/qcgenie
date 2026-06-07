@@ -18,20 +18,20 @@ import { getObjectStorageConfig, objectKeyForUpload, uploadFileToObjectStorage }
 
 const port = Number(process.env.PORT || 10000);
 const distDir = resolve("dist");
-const uploadDir = process.env.UPLOADCHECK_UPLOAD_DIR || process.env.QCGENIE_UPLOAD_DIR || "/tmp/uploadcheck/uploads";
-const durableStorageDir = process.env.UPLOADCHECK_DURABLE_STORAGE_DIR || process.env.QCGENIE_DURABLE_STORAGE_DIR || null;
+const uploadDir = process.env.UPLOADCHECK_UPLOAD_DIR || "/tmp/uploadcheck/uploads";
+const durableStorageDir = process.env.UPLOADCHECK_DURABLE_STORAGE_DIR || null;
 const uploadStorageDir = durableStorageDir || uploadDir;
 const objectStorageConfig = getObjectStorageConfig();
 const uploadStorageMode = durableStorageDir ? "durable_filesystem" : (objectStorageConfig.configured ? "object_storage" : "render_temp_storage");
 const maxDurationMinutes = positiveNumberEnv("UPLOADCHECK_MAX_DURATION_MINUTES", 240);
 const maxUploadMb = positiveNumberEnv("UPLOADCHECK_MAX_UPLOAD_MB", 2048);
 const maxActiveJobs = positiveNumberEnv("UPLOADCHECK_MAX_ACTIVE_JOBS", 25);
-const store = new JsonStore(process.env.UPLOADCHECK_STORE_PATH || process.env.QCGENIE_STORE_PATH || "/tmp/uploadcheck/store.json", {
-  secretEncryptionKey: process.env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || process.env.QCGENIE_SECRET_ENCRYPTION_KEY
+const store = new JsonStore(process.env.UPLOADCHECK_STORE_PATH || "/tmp/uploadcheck/store.json", {
+  secretEncryptionKey: process.env.UPLOADCHECK_SECRET_ENCRYPTION_KEY
 });
-const apiKey = process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
-const apiKeyHash = process.env.UPLOADCHECK_API_KEY_SHA256 || process.env.QCGENIE_API_KEY_SHA256;
-const apiScopes = new Set((process.env.UPLOADCHECK_API_SCOPES || process.env.QCGENIE_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write,api_keys:write,api_keys:read").split(","));
+const apiKey = process.env.UPLOADCHECK_API_KEY;
+const apiKeyHash = process.env.UPLOADCHECK_API_KEY_SHA256;
+const apiScopes = new Set((process.env.UPLOADCHECK_API_SCOPES || "jobs:write,jobs:read,reports:read,uploads:write,webhooks:write,api_keys:write,api_keys:read").split(","));
 const corsOrigins = new Set((process.env.UPLOADCHECK_CORS_ORIGINS || "https://uploadcheck.app,https://www.uploadcheck.app,http://localhost:5173,http://127.0.0.1:5173").split(",").map((origin) => origin.trim()).filter(Boolean));
 
 const mimeTypes = {
@@ -1145,11 +1145,8 @@ async function sendWebhookDelivery(delivery) {
       headers: {
         "content-type": "application/json",
         [delivery.signatureHeader]: delivery.signature,
-        [delivery.legacySignatureHeader || "X-QCGenie-Signature"]: delivery.signature,
         "x-uploadcheck-delivery-id": delivery.deliveryId,
-        "x-uploadcheck-event": delivery.eventType,
-        "x-qcgenie-delivery-id": delivery.deliveryId,
-        "x-qcgenie-event": delivery.eventType
+        "x-uploadcheck-event": delivery.eventType
       },
       body: JSON.stringify(delivery.payload)
     });

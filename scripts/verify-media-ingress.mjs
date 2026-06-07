@@ -11,7 +11,7 @@ const port = 21000 + Math.floor(Math.random() * 2000);
 const hostedBaseUrl = normalizeBaseUrl(process.env.UPLOADCHECK_MEDIA_INGRESS_BASE_URL || process.env.UPLOADCHECK_API_BASE_URL || "");
 const hostedMode = Boolean(hostedBaseUrl);
 const apiKey = hostedMode
-  ? (process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY || "")
+  ? (process.env.UPLOADCHECK_API_KEY || "")
   : `uck_media_ingress_${randomBytes(8).toString("hex")}`;
 let server = null;
 

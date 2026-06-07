@@ -4,8 +4,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { runLocalFileRequest } from "./local-file.mjs";
 
-const apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || "https://api.uploadcheck.app";
-const apiKey = process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
+const apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || "https://api.uploadcheck.app";
+const apiKey = process.env.UPLOADCHECK_API_KEY;
 
 const server = new McpServer({
   name: "uploadcheck",
@@ -278,7 +278,7 @@ async function apiTextFetch(path, options = {}) {
 
 async function authedFetch(path, options = {}) {
   if (!apiKey) {
-    throw new Error("Set UPLOADCHECK_API_KEY or QCGENIE_API_KEY before running the MCP server.");
+    throw new Error("Set UPLOADCHECK_API_KEY before running the MCP server.");
   }
 
   return fetch(`${apiBaseUrl}${path}`, {

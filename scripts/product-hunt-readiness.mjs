@@ -2,7 +2,7 @@
 import { formatReadinessSummary } from "../readiness-actions.mjs";
 
 const expectedContractVersion = "2026-06-06.render-web-proof";
-const apiBaseUrl = (process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || "https://api.uploadcheck.app").replace(/\/+$/, "");
+const apiBaseUrl = (process.env.UPLOADCHECK_API_BASE_URL || "https://api.uploadcheck.app").replace(/\/+$/, "");
 const response = await fetch(`${apiBaseUrl}/v1/readiness`);
 
 if (!response.ok) {

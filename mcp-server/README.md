@@ -15,8 +15,6 @@ export UPLOADCHECK_API_BASE_URL="https://api.uploadcheck.app"
 export UPLOADCHECK_API_KEY="<workspace_api_key>"
 ```
 
-Legacy `QCGENIE_API_BASE_URL` and `QCGENIE_API_KEY` are still accepted as fallbacks during the rename.
-
 ## Agent Workflow
 
 Use `/check` from Claude Code, Codex, or another slash-command capable workspace to quality check a media asset before upload.

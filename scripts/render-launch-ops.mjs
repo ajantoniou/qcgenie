@@ -346,7 +346,7 @@ function validateLemonSqueezyWebhookSecret(env, errors) {
 }
 
 function validateSecret(env, errors) {
-  const value = env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || env.QCGENIE_SECRET_ENCRYPTION_KEY || "";
+  const value = env.UPLOADCHECK_SECRET_ENCRYPTION_KEY || "";
   const validation = validateSecretEncryptionKey(value);
   if (!validation.ok) {
     errors.push({ key: "UPLOADCHECK_SECRET_ENCRYPTION_KEY", reason: validation.reason, detail: "Generate a strong key with npm run --silent secret:generate." });

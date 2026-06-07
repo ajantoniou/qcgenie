@@ -78,8 +78,7 @@ describe("api mock service contract", () => {
       webhookId: endpoint.webhookId,
       eventType: "job.completed",
       jobId: "job_demo",
-      signatureHeader: "X-UploadCheck-Signature",
-      legacySignatureHeader: "X-QCGenie-Signature"
+      signatureHeader: "X-UploadCheck-Signature"
     });
   });
 });

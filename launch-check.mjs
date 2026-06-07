@@ -13,7 +13,7 @@ const HOSTS = LAUNCH_TARGETS.http_targets.map((target) => ({
 }));
 
 export async function buildLaunchCheck({
-  apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || process.env.QCGENIE_API_BASE_URL || DEFAULT_API_BASE_URL,
+  apiBaseUrl = process.env.UPLOADCHECK_API_BASE_URL || DEFAULT_API_BASE_URL,
   fetchImpl = fetch,
   resolver = lookup,
   cnameResolver = resolveCname

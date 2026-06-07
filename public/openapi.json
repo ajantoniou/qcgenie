@@ -236,7 +236,6 @@
           "sentAt": { "type": ["string", "null"], "format": "date-time" },
           "createdAt": { "type": "string", "format": "date-time" },
           "signatureHeader": { "type": "string", "const": "X-UploadCheck-Signature" },
-          "legacySignatureHeader": { "type": "string", "const": "X-QCGenie-Signature" },
           "signature": { "type": "string" },
           "payload": { "type": "object" }
         }

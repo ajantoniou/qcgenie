@@ -4,7 +4,7 @@ import { buildCostBasisRequest, buildEstimateRequest, buildJobRequest, buildLaun
 
 try {
   const { command, target, options } = parseArgs(process.argv.slice(2));
-  const apiKey = options.apiKey || process.env.UPLOADCHECK_API_KEY || process.env.QCGENIE_API_KEY;
+  const apiKey = options.apiKey || process.env.UPLOADCHECK_API_KEY;
 
   const request = command === "estimate"
     ? buildEstimateRequest(options)

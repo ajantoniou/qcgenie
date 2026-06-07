@@ -37,8 +37,7 @@ Agent integration:
 - Product Hunt launch kit: https://api.uploadcheck.app/product-hunt-launch-kit.json
 - Cost basis and margin assumptions: https://api.uploadcheck.app/cost-basis.json
 - Public sample reports: https://api.uploadcheck.app/sample-reports/index.json
-- The Render service display name is uploadcheck-api, but the live Render URL still uses the legacy qcgenie-api slug until custom-domain cutover.
-- Legacy `QCGENIE_*` environment names are accepted only as migration fallbacks.
+- The API is served at the verified custom domain https://api.uploadcheck.app.
 - MCP wrapper package lives in the repository under mcp-server.
 - MCP tools: qc_get_launch_status, qc_get_launch_handoff, qc_get_launch_doctor, qc_get_launch_evidence, qc_get_pipeline_handoff, qc_get_pipeline_recipes, qc_get_cost_basis, qc_estimate_cost, qc_run_video, qc_run_local_file, qc_get_job, qc_get_report, qc_get_events, qc_get_artifacts, qc_get_marker_csv, qc_submit_gate_verdict, qc_list_recent_jobs, qc_get_margin_telemetry, qc_create_upload_url.
 - MCP local-file workflow: qc_run_local_file reads a reachable local media path, encodes small files inline for Render evaluation, and falls back to signed upload for larger files.
@@ -52,7 +51,7 @@ Agent integration:
 - Agents should send idempotency_key on retries; repeated keys return the existing QC job instead of creating another run.
 - Agents should call qc_get_cost_basis before pricing or model-backed review decisions, then qc_estimate_cost before sending large media or requesting model-backed checks; the estimate returns effective checks, removed checks, cost, and margin safety.
 - Abuse limits fail fast before QC compute: duration_limit_exceeded, upload_size_limit_exceeded, and active_job_limit_exceeded. Defaults are 240 minutes, 2048 MB, and 25 active jobs unless configured by UPLOADCHECK_MAX_DURATION_MINUTES, UPLOADCHECK_MAX_UPLOAD_MB, and UPLOADCHECK_MAX_ACTIVE_JOBS.
-- Webhook endpoints can receive job.completed and job.failed events with X-UploadCheck-Signature metadata. Legacy X-QCGenie-Signature aliases are still sent during migration.
+- Webhook endpoints can receive job.completed and job.failed events with X-UploadCheck-Signature metadata.
 - Webhook signing secrets require a strong UPLOADCHECK_SECRET_ENCRYPTION_KEY for encrypted-at-rest storage; generate one with npm run --silent secret:generate.
 - Completed jobs enqueue signed webhook delivery records; delivery logs are available at GET /v1/webhooks/deliveries, manual retries at POST /v1/webhooks/deliveries/{delivery_id}/retry, and due pending delivery drains at POST /v1/webhooks/deliveries/drain.
 - Current v0 API persists jobs, uploads, webhook endpoints, webhook delivery previews, and usage entries to a server-side JSON store. Set UPLOADCHECK_STORE_PATH outside temp storage for mounted-disk persistence; Supabase persistence is still planned for multi-workspace scale.
