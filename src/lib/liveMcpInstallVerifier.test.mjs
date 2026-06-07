@@ -31,9 +31,9 @@ describe("live MCP install verifier", () => {
       });
       expect(JSON.parse(result.stdout)).toMatchObject({
         ok: true,
-        package: "@uploadcheck/mcp",
-        distributionStatus: "public_github_mcp_not_npm_self_serve",
-        currentInstall: "public_github_clone_or_local_checkout"
+        package: "@drantoniou/uploadcheck-mcp",
+        distributionStatus: "public_npm_mcp_ready",
+        currentInstall: "public_npm_or_github_checkout"
       });
     } finally {
       server.close();
@@ -58,7 +58,7 @@ describe("live MCP install verifier", () => {
     }
   });
 
-  it("blocks when the hosted MCP install artifact omits public GitHub distribution status", async () => {
+  it("blocks when the hosted MCP install artifact omits public npm distribution status", async () => {
     const install = JSON.parse(readFileSync("public/mcp-install.json", "utf8"));
     delete install.distribution_status;
     const { server, baseUrl } = await listen((_req, res) => {
@@ -71,7 +71,7 @@ describe("live MCP install verifier", () => {
         cwd: process.cwd(),
         env: { ...process.env, UPLOADCHECK_LIVE_MCP_INSTALL_BASE_URL: baseUrl }
       })).rejects.toMatchObject({
-        stderr: expect.stringContaining("missing_public_github_status")
+        stderr: expect.stringContaining("missing_public_npm_status")
       });
     } finally {
       server.close();

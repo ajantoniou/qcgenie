@@ -10,7 +10,7 @@ const packages = [
   {
     label: "CLI",
     dir: "cli",
-    name: "@uploadcheck/cli",
+    name: "@drantoniou/uploadcheck",
     bin: { uploadcheck: "./index.mjs" },
     repositoryDirectory: "cli",
     filesField: ["index.mjs", "launch-evidence.mjs", "request-builder.mjs"],
@@ -19,7 +19,7 @@ const packages = [
   {
     label: "MCP",
     dir: "mcp-server",
-    name: "@uploadcheck/mcp",
+    name: "@drantoniou/uploadcheck-mcp",
     bin: { "uploadcheck-mcp": "./index.mjs" },
     repositoryDirectory: "mcp-server",
     filesField: [
@@ -111,11 +111,11 @@ console.log(JSON.stringify({ ok: true, packages: results }, null, 2));
 
 function verifyMcpInstallManifest(manifest) {
   if (manifest.name !== "uploadcheck") throw new Error("MCP install manifest must name the uploadcheck server.");
-  if (manifest.package !== "@uploadcheck/mcp") throw new Error("MCP install manifest must reference @uploadcheck/mcp.");
+  if (manifest.package !== "@drantoniou/uploadcheck-mcp") throw new Error("MCP install manifest must reference uploadcheck-mcp.");
   if (manifest.binary !== "uploadcheck-mcp") throw new Error("MCP install manifest must reference uploadcheck-mcp.");
-  if (manifest.distribution_status !== "public_github_mcp_not_npm_self_serve") throw new Error("MCP install manifest must declare public GitHub / not npm distribution status.");
-  if (manifest.current_install !== "public_github_clone_or_local_checkout") throw new Error("MCP install manifest must keep public GitHub/local checkout as the current install path.");
-  if (!String(manifest.future_npm_install || "").includes("after @uploadcheck/mcp is published")) throw new Error("MCP install manifest must guard npx snippets until npm publish.");
+  if (manifest.distribution_status !== "public_npm_mcp_ready") throw new Error("MCP install manifest must declare public npm MCP readiness.");
+  if (manifest.current_install !== "public_npm_or_github_checkout") throw new Error("MCP install manifest must keep npm and public GitHub/local checkout as install paths.");
+  if (!String(manifest.npm_install || manifest.future_npm_install || "").includes("npx -y @drantoniou/uploadcheck-mcp")) throw new Error("MCP install manifest must expose the npx install command.");
   if (manifest.hosted_api_base_url !== "https://api.uploadcheck.app") throw new Error("MCP install manifest must use the UploadCheck custom API base URL.");
   if (!manifest.codex_local?.toml?.includes("[mcp_servers.uploadcheck]")) throw new Error("MCP install manifest must include Codex TOML.");
   if (!manifest.codex_local?.toml?.includes('UPLOADCHECK_API_KEY = "<workspace_api_key>"')) {
@@ -125,7 +125,7 @@ function verifyMcpInstallManifest(manifest) {
     const server = manifest[client]?.json?.mcpServers?.uploadcheck;
     if (!server) throw new Error(`MCP install manifest missing ${client} uploadcheck server.`);
     assertDeepEqual(`${client} command`, server.command, "npx");
-    assertDeepEqual(`${client} args`, server.args, ["-y", "@uploadcheck/mcp"]);
+    assertDeepEqual(`${client} args`, server.args, ["-y", "@drantoniou/uploadcheck-mcp"]);
   }
   for (const client of ["claude_desktop_local", "cursor_local"]) {
     const server = manifest[client]?.json?.mcpServers?.uploadcheck;

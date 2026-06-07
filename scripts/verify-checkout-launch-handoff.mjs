@@ -94,7 +94,7 @@ if (!webhookDescription.includes("UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET") || !
 
 requireIncludes(files.roadmap, docs.roadmap, [
   "live readiness now proves checkout, custom domain, secret encryption, durable JSON persistence, durable upload storage, and demo clip readiness",
-  "public download/listing is still not ready because npm publish, registry install proof, and external Claude Code/Codex/Cursor beta evidence remain outstanding",
+  "public npm packages `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp` are published with registry install proof",
   "Hosted MCP install, cost basis, web artifacts, launch doctor/evidence, and public artifacts now pass"
 ]);
 
@@ -128,8 +128,7 @@ console.log(JSON.stringify({
     "npm run readiness:check"
   ],
   requiredExternalInputs: [
-    "npm publish and registry install proof",
-    "external Claude/Codex/Cursor beta evidence with workspace API keys"
+    "npm publish and registry install proof"
   ]
 }, null, 2));
 

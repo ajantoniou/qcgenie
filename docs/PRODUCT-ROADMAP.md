@@ -3,7 +3,7 @@
 Canonical naming:
 
 - MCP server: `uploadcheck`
-- CLI/package: `@uploadcheck/cli` or `@uploadcheck/mcp`
+- CLI/package: `uploadcheck` or `uploadcheck-mcp`
 - Tagline: Quality check videos, podcasts, and clips before you upload.
 
 ## Cost Model And Pricing Verdict
@@ -93,8 +93,8 @@ Preflight model-backed check pricing is now calibrated from that observed cost: 
 ### P0 - Agent / MCP / CLI Surface
 
 21. Install a global Codex MCP server entry named `uploadcheck`.
-22. Keep MCP package identity as `@uploadcheck/mcp`.
-23. Keep CLI package identity as `@uploadcheck/cli`.
+22. Keep MCP package identity as `uploadcheck-mcp`.
+23. Keep CLI package identity as `uploadcheck`.
 24. Add MCP docs for local media, base64 media, signed URL, and YouTube URL flows.
 25. Add a `/check` skill prompt for Claude Code, Codex, and Cursor.
 26. Require idempotency keys for agent retries.
@@ -158,7 +158,7 @@ NTO-derived private QC tasks to add to the product:
 7. `pronunciation_watchlist`: flag customer-provided banned words, names, and terms that commonly misrender. Implemented first as a deterministic transcript-side watchlist gate.
 8. `spoken_leaks`: detect stage directions, URLs, vendor names, prompt text, or production notes spoken aloud. Implemented first as a deterministic transcript-side gate when callers pass transcript/script text.
 9. `dead_air`: block unintended silence longer than customer threshold. Implemented in the default gate with ffmpeg `silencedetect`.
-10. `visual_narration_match`: verify every 30-second window visually supports the narration, not just the mood.
+10. `visual_narration_match`: verify every manifest/storyboard narration beat visually supports the narration, not just the mood. Implemented first as a deterministic manifest-side gate; model-backed `narration_match` remains an internal or paid escalation.
 11. `named_entity_visual_match`: if narration names a person/place/event/product, visual should show that thing or a deliberate neutral substitute.
 12. `repeat_fatigue`: block exact clip reuse and source-family dominance windows. Implemented first as a conservative rendered-frame reuse gate plus optional JSON manifest reuse/source-family analysis.
 13. `static_head_dominance`: block long held talking-head/portrait shots without b-roll, graphic, or motion. Implemented first as a deterministic manifest-side gate.
@@ -202,7 +202,7 @@ Porting spec: the current NTO handoff contract is captured in `docs/UPLOADCHECK-
 - Done: canonical package names are documented.
 - Done: inline media payload support added for low-storage Render execution.
 - Done: cost estimate output added to API job responses and reports.
-- Done: local CLI implementation added under `cli/` for `@uploadcheck/cli`.
+- Done: local CLI implementation added under `cli/` for `uploadcheck`.
 - Done: signed-upload CLI flow added for local files larger than the inline payload limit.
 - Done: pipeline integration docs added for Codex, NTO, and NPO style workflows.
 - Done: NTO pipeline reviewed for QC productization tasks.
@@ -217,6 +217,7 @@ Porting spec: the current NTO handoff contract is captured in `docs/UPLOADCHECK-
 - Done: NTO-derived `speaker_visual_binding` deterministic manifest-side gate added to `scripts/qc-engine/check_speaker_visual_binding.py`, included in `run_gate.py`, and added to the NTO long-form recipe default.
 - Done: NTO-derived `static_head_dominance` deterministic manifest-side gate added to `scripts/qc-engine/check_static_head_dominance.py`, included in `run_gate.py`, and added to the NTO long-form recipe default.
 - Done: NTO-derived `literal_subject_match` deterministic manifest-side gate added to `scripts/qc-engine/check_literal_subject_match.py`, included in `run_gate.py`, and added to the NTO long-form recipe default.
+- Done: NTO-derived `visual_narration_match` deterministic manifest-side gate added to `scripts/qc-engine/check_visual_narration_match.py`, included in `run_gate.py`, and added to the NTO long-form recipe default so the product can flag narration beats whose selected visuals do not support the spoken content without using paid LLM watchers.
 - Done: NTO-derived `first_three_seconds` deterministic manifest-side opening-hook gate added to `scripts/qc-engine/check_first_three_seconds.py`, included in `run_gate.py`, and added to the NTO long-form and Shorts recipe defaults.
 - Done: NTO-derived `end_screen_tease` deterministic manifest-side final-window gate added to `scripts/qc-engine/check_end_screen_tease.py`, included in `run_gate.py`, and added to the NTO long-form and Shorts recipe defaults.
 - Done: NTO-derived `rehook_cadence` deterministic manifest-side cadence gate added to `scripts/qc-engine/check_rehook_cadence.py`, included in `run_gate.py`, and added to the NTO long-form recipe default.
@@ -317,7 +318,7 @@ Porting spec: the current NTO handoff contract is captured in `docs/UPLOADCHECK-
 - Done: observed provider usage is now captured from real QC engine calls. Anthropic frame checks preserve token usage, DashScope/OpenRouter Omni calls preserve OpenAI-compatible usage when present, Scribe checks preserve request/audio seconds, and `VERDICT.json`, job reports, and margin telemetry expose rollups for cost reconciliation.
 - Done: observed provider usage is now priced into post-run COGS. Reports and `/v1/usage/margins` distinguish estimated preflight COGS from observed provider COGS, observed total COGS, observed cost/minute, and observed gross margin.
 - Done: model-backed preflight pricing now uses an observed-cost floor of `0.75` cents per model call, based on the clone-crowd `twins` smoke test, so guardrails do not underprice Sonnet frame review.
-- Done: `twins` now has a Pillow-only local appearance-cluster fallback before the vision call, so repeated-character crowd scenes can block with `needs_more_character_variation` and zero provider usage when the local evidence is strong.
+- Done: `twins` now has a manifest-side duplicate/similar-character precheck plus a Pillow-only local appearance-cluster fallback before the vision call, so repeated-character crowd scenes and marked almost-identical characters can block with `needs_more_character_variation` before provider usage when the evidence is strong.
 - Done: public cost basis now includes a primary-source pricing audit and OpenAI transcription alternatives. `gpt-4o-mini-transcribe` is tracked at `0.3` cents/minute for observed COGS, but still marked unsafe for default every-minute transcription on the `$99 / 5,000` stress plan.
 - Done: billing enforcement for included minutes added. Usage metering is idempotent per job and billing period, and declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they exceed included plan minutes.
 - Done: usage-limit and spend-alert calculations are scoped by workspace when a workspace API key is used, so one Creator customer's minutes or overage cannot consume another Creator customer's allowance or trigger the wrong owner alert.
@@ -333,21 +334,21 @@ Porting spec: the current NTO handoff contract is captured in `docs/UPLOADCHECK-
 - Done: signed Lemon Squeezy webhook receiver added at `POST /v1/webhooks/lemonsqueezy`; it verifies `X-Signature` with HMAC-SHA256 over the raw body, then provisions subscription/order events into idempotent workspace API keys without exposing the admin bearer.
 - Done: owner overage-spend alerts are recorded and sent through Resend when billable extra-minute spend crosses the subscription-value threshold, using the workspace owner email from the API-key record or alert env. COGS remains recorded as audit context, but the alert trigger follows customer overage spend at the plan overage rate. This now covers both synchronous/worker QC completion and externally submitted gate verdicts.
 - Done: local pre-publish package install smoke added through `npm run packages:install-smoke`; it packs both packages, installs them in a clean temp project, runs `npx uploadcheck cost-basis --json`, and starts the installed MCP binary.
-- Done: public GitHub MCP install handoff added at `docs/PRIVATE-MCP-BETA.md`, and the machine-readable MCP install manifest now includes the `UPLOADCHECK_API_KEY` placeholder for Codex public GitHub/local installs.
-- Done: public GitHub MCP verifier added through `npm run private-mcp-beta:verify`, checking the handoff, MCP install manifest, package scripts, Directory prep, workspace-key rule, and no-public-npm/self-serve claims.
-- Done: public GitHub MCP evidence contract added at `docs/private-mcp-beta-evidence-template.json` with `npm run private-mcp-beta:evidence`, so Claude Code, Codex, and Cursor proof must be captured as sanitized job/report evidence before npm package or Directory submission.
+- Done: public npm MCP install handoff added at `docs/PRIVATE-MCP-BETA.md`, and the machine-readable MCP install manifest now includes the `UPLOADCHECK_API_KEY` placeholder for Codex npm/GitHub/local installs.
+- Done: public npm MCP verifier added through `npm run private-mcp-beta:verify`, checking the handoff, MCP install manifest, package scripts, Directory prep, workspace-key rule, and public install claims.
+- Done: public npm MCP evidence contract added at `docs/private-mcp-beta-evidence-template.json` with `npm run private-mcp-beta:evidence`, so Claude Code, Codex, and Cursor proof must be captured as sanitized job/report evidence before Directory submission.
 - Done: Anthropic Directory draft artifact added at `docs/anthropic-directory-draft.json` with `npm run anthropic-directory:verify`, keeping the public tool scope narrow and blocking Gemini/Omni/deep-review leakage before submission.
-- Done: product-agent readiness verifier added through `npm run product-agent:verify`, giving the current external-agent verdict: public GitHub/local MCP install is usable with workspace API keys, but public npm/download and Directory/connector distribution remain blocked.
+- Done: product-agent readiness verifier added through `npm run product-agent:verify`, giving the current external-agent verdict: public npm MCP install is usable with workspace API keys, while Directory/connector distribution remains blocked.
 - Done: checkout launch handoff verifier added through `npm run checkout-launch:verify`, checking direct checkout URLs, Lemon Squeezy store/variant alternatives, webhook signing, OpenAPI provisioning docs, readiness actions, and redaction rules.
 - Done: public MCP install manifest added at `/mcp-install.json` with `npm run mcp-install:verify`, keeping hosted install snippets aligned with `mcp-server/mcp-install.json` and linked from `agent-manifest.json`, OpenAPI, launch status, Product Hunt kit, and `llms.txt`; `npm run live-public-artifacts:verify` now blocks stale deploys that do not serve the MCP install artifact.
 - Done: over-limit included-minute attempts now persist `usage_limit_exceeded` abuse events with workspace, owner, plan, billing-period, and minute context, so dashboard/operator review shows blocked credit abuse instead of only duration/upload/active-job limits.
 - Done: overage spend alerts are now reviewable through the dashboard and authenticated `GET /v1/spend-alerts`, so Resend send/fail status, owner email, workspace, minutes, billable extra-minute spend, plan overage rate, and overage COGS are auditable after the 100%-of-subscription threshold triggers.
 - Done: SaaS basics verifier added through `npm run saas-basics:verify`, covering workspace API-key creation/honoring, checkout provisioning, signed Lemon Squeezy webhooks, usage-limit abuse events, and Resend spend-alert wiring as one handoff gate.
-- Done: MCP install manifest now separates current public GitHub/local snippets from future `npx -y @uploadcheck/mcp` snippets, and verifiers require included-minute workspace API-key language before external Claude/Codex/Cursor handoff.
-- Done: Anthropic Directory verifier now requires `npm run saas-basics:verify`, included-minute workspace distribution, public GitHub MCP install status, and the SaaS submission blocker before Directory prep can pass.
+- Done: MCP install manifest now serves current `npx -y @drantoniou/uploadcheck-mcp` snippets plus GitHub/local fallback snippets, and verifiers require included-minute workspace API-key language before external Claude/Codex/Cursor handoff.
+- Done: Anthropic Directory verifier now requires `npm run saas-basics:verify`, included-minute workspace distribution, public npm MCP install status, and the SaaS submission blocker before Directory prep can pass.
 - Done: launch doctor and generated launch metadata now include `saas-basics:verify`, `mcp-install:verify`, `private-mcp-beta:verify`, `anthropic-directory:verify`, and `product-agent:verify`, so normal launch proof cannot skip SaaS, MCP beta, Directory, or external-agent readiness gates.
 - Done: checkout webhook launch handoff now has an explicit `npm run render:validate-env` proof command for `UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET`, instead of relying only on generic readiness output.
-- Done: live launch-doctor/evidence verifiers now require SaaS, MCP install, public GitHub MCP, and Anthropic Directory proof commands in hosted command coverage, so stale Render launch endpoints cannot pass after local launch gates change.
+- Done: live launch-doctor/evidence verifiers now require SaaS, MCP install, public npm MCP, and Anthropic Directory proof commands in hosted command coverage, so stale Render launch endpoints cannot pass after local launch gates change.
 - Done: deployment cutover and publish checklist now name stale hosted proof explicitly; hosted launch status/Product Hunt kit plus launch doctor/evidence command coverage now include `private-mcp-beta:evidence`.
 - Done: dedicated hosted MCP install verifier added through `npm run live-mcp-install:verify`, and launch doctor/status/Product Hunt proof now include it before the broader public-artifacts verifier.
 - Partial: the customer boundary is defined and locally enforced: local NTO can call the repo directly, while hosted external Claude Code, Codex, Cursor, and MCP usage must be tied to created workspace API keys, included plan minutes, an operator-created account, and checkout before npm/package launch.
@@ -356,8 +357,8 @@ Porting spec: the current NTO handoff contract is captured in `docs/UPLOADCHECK-
 - Done: queued worker sidecar URLs added. Async jobs can now persist HTTPS `manifest_url`, `transcript_url`, `watchlist_url`, `expected_script_url`, and `chunk_sidecars_url`; `POST /v1/qc/jobs/drain` fetches them into temporary storage for the gate run while public job/report responses expose only sanitized `sidecarIngress`.
 - Done: launch pricing is updated to `Creator $99 / 2,400 minutes`, `Studio $299 / 10,000 minutes`, and `Network $899 / 36,000 minutes`; public cost-basis and hosted cost-basis verifiers now pass against live Render.
 - Done: live readiness now proves checkout, custom domain, secret encryption, durable JSON persistence, durable upload storage, and demo clip readiness on `api.uploadcheck.app`.
-- Partial: public download/listing is still not ready because npm publish, registry install proof, and external Claude Code/Codex/Cursor beta evidence remain outstanding. Hosted MCP install, cost basis, web artifacts, launch doctor/evidence, and public artifacts now pass.
-- Next: publish `@uploadcheck/mcp` and `@uploadcheck/cli`, capture registry install proof, and verify external Claude Code, Codex, Cursor, and MCP clients can call deterministic QC only with a created UploadCheck API key tied to included plan minutes or an operator-created account.
+- Done: public npm packages `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp` are published with registry install proof. External Claude Code/Codex/Cursor public GitHub MCP beta evidence, Hosted MCP install, cost basis, web artifacts, launch doctor/evidence, and public artifacts now pass.
+- Next: verify npm-based MCP clients can call deterministic QC only with a created UploadCheck API key tied to included plan minutes or an operator-created account.
 - Next: after package publish, hosted MCP install proof, and public GitHub MCP evidence are clean, prepare an Anthropic Directory submission around the narrow MCP/API workflow. Defer OpenAI ChatGPT app/connector work until a hosted HTTPS MCP endpoint, account binding, and ChatGPT-native report UX are worth the review effort.
 - Next: decide whether to keep legacy immutable Render slugs (`qcgenie-web`, `qcgenie-api`) behind the verified UploadCheck custom domains or recreate services for `uploadcheck-*` Render subdomains.
-- Partial: Product Hunt launch page, public report examples, bundled demo clip, custom domains, checkout/webhook, mounted persistence/storage envs, and hosted secret encryption are live-ready, but final external handoff still needs the current static/API artifacts redeployed, npm packages published, and Claude Code/Codex/Cursor beta proof captured.
+- Partial: Product Hunt launch page, public report examples, bundled demo clip, custom domains, checkout/webhook, mounted persistence/storage envs, hosted secret encryption, and Claude Code/Codex/Cursor beta proof are live-ready, but final external handoff still needs npm packages published and registry install proof captured.

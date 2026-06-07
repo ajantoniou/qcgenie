@@ -1,5 +1,5 @@
 {
-  "name": "@uploadcheck/cli",
+  "name": "@drantoniou/uploadcheck",
   "version": "0.1.0",
   "description": "Quality check videos, podcasts, and clips before you upload.",
   "homepage": "https://uploadcheck.app",

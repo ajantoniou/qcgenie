@@ -34,8 +34,8 @@
         <aside class="panel">
           <h2>Current distribution status</h2>
           <ul>
-            <li>Current install path: public GitHub clone or local checkout.</li>
-            <li>NPM package install: use <code>npx -y @uploadcheck/mcp</code> only after <code>@uploadcheck/cli</code> and <code>@uploadcheck/mcp</code> are published.</li>
+            <li>Current install path: public npm or GitHub checkout: <code>npx -y @drantoniou/uploadcheck-mcp</code>, public GitHub clone, or local checkout.</li>
+            <li>NPM packages: <code>@drantoniou/uploadcheck</code> and <code>@drantoniou/uploadcheck-mcp</code> are published.</li>
             <li>Required secret: <code>UPLOADCHECK_API_KEY</code>.</li>
             <li>Users need a workspace API key tied to included plan minutes.</li>
           </ul>
@@ -113,7 +113,7 @@ UPLOADCHECK_API_KEY = "&lt;workspace_api_key&gt;"</code></pre>
           <article class="answer"><h2>Repair loop</h2><p>The first agent shows all BLOCK and WATCH flags, asks whether to fix now, applies reachable caption or source-file fixes, and reruns UploadCheck before claiming the media is upload-ready.</p></article>
         </div>
       </section>
-      <footer class="footer">Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists. Use the public GitHub/local MCP path above for current agent installs.</footer>
+      <footer class="footer">For agent installs, use <code>npx -y @drantoniou/uploadcheck-mcp</code> with a workspace API key. Public GitHub and local checkout installs remain supported.</footer>
     </main>
   </body>
 </html>

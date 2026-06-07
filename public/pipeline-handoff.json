@@ -3,8 +3,8 @@
   "description": "Callable runbook for NTO, NPO, and creator production pipelines that need UploadCheck before upload.",
   "api_base_url": "https://api.uploadcheck.app/v1",
   "mcp_server": "uploadcheck",
-  "cli_package": "@uploadcheck/cli",
-  "mcp_package": "@uploadcheck/mcp",
+  "cli_package": "@drantoniou/uploadcheck",
+  "mcp_package": "@drantoniou/uploadcheck-mcp",
   "mcp_tool": "qc_get_pipeline_handoff",
   "cli_command": "uploadcheck pipeline-handoff --json",
   "source_artifacts": {

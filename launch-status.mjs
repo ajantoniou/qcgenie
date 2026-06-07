@@ -29,8 +29,8 @@ export function buildLaunchStatus(readiness, {
       api: "https://api.uploadcheck.app",
       current_api_base: "https://api.uploadcheck.app/v1",
       mcp_server: "uploadcheck",
-      cli_package: "@uploadcheck/cli",
-      mcp_package: "@uploadcheck/mcp"
+      cli_package: "@drantoniou/uploadcheck",
+      mcp_package: "@drantoniou/uploadcheck-mcp"
     },
     status,
     verified_controls: verifiedControls(),
@@ -160,7 +160,7 @@ function verifiedControls() {
     {
       id: "hosted_mcp_install",
       status: "done",
-      evidence: "npm run live-mcp-install:verify checks hosted /mcp-install.json for public GitHub/local install status, future npm guard, and workspace API-key placeholders."
+      evidence: "npm run live-mcp-install:verify checks hosted /mcp-install.json for public npm MCP install status, GitHub/local fallback, and workspace API-key placeholders."
     },
     {
       id: "npo_pipeline_handoff",
@@ -205,7 +205,7 @@ function verifiedControls() {
     {
       id: "package_verify",
       status: "done",
-      evidence: "npm run packages:verify checks @uploadcheck/cli and @uploadcheck/mcp pack contents."
+      evidence: "npm run packages:verify checks @drantoniou/uploadcheck and @drantoniou/uploadcheck-mcp pack contents."
     },
     {
       id: "mcp_install_artifact",

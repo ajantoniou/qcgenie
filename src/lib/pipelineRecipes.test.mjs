@@ -158,7 +158,12 @@ describe("UploadCheck pipeline recipes", () => {
     });
     expect(implemented.asset_triage_reuse_manifest.covers).toContain("reusable assets");
     expect(implemented.twins.covers).toContain("more distinct characters");
-    expect(implemented.narration_match.covers).toContain("Visual/narration mismatch");
+    expect(implemented.twins.covers).toContain("almost-identical lookalike characters");
+    expect(implemented.visual_narration_match).toMatchObject({
+      callable_check: "visual_narration_match"
+    });
+    expect(implemented.visual_narration_match.covers).toContain("marked unsupported");
+    expect(implemented.narration_match.covers).toContain("Model-backed");
     expect(implemented.sentence_boundary).toMatchObject({
       callable_check: "sentence_boundary"
     });

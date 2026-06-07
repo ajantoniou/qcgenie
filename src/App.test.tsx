@@ -37,11 +37,10 @@ describe("UploadCheck conversion UI", () => {
     expect(screen.getByRole("heading", { name: "Run video QC inside your agent workspace" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Install for agent-to-agent runs" })).toBeInTheDocument();
     expect(screen.getByText("/check ./final-upload.mp4")).toBeInTheDocument();
-    expect(screen.getByText("@uploadcheck/cli")).toBeInTheDocument();
-    expect(screen.getByText("@uploadcheck/mcp")).toBeInTheDocument();
     expect(screen.getAllByText("uploadcheck").length).toBeGreaterThan(0);
-    expect(screen.getByText("Current install: public GitHub clone or local checkout")).toBeInTheDocument();
-    expect(screen.getByText(/Use the public GitHub\/local install path until the npm packages are published/)).toBeInTheDocument();
+    expect(screen.getAllByText("uploadcheck-mcp").length).toBeGreaterThan(0);
+    expect(screen.getByText("Current install: public npm or GitHub checkout")).toBeInTheDocument();
+    expect(screen.getByText(/Use npx, the public GitHub clone, or a local checkout/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open install guide" })).toHaveAttribute("href", "/agent-install/");
     expect(screen.getByText(/qc_get_cost_basis -> qc_run_local_file -> qc_get_report -> qc_get_marker_csv/)).toBeInTheDocument();
   });

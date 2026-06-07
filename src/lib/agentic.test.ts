@@ -128,12 +128,12 @@ describe("agentic integration contract", () => {
     const manifest = JSON.parse(readFileSync("public/agent-manifest.json", "utf8"));
 
     expect(manifest.distribution).toMatchObject({
-      status: "public_github_mcp_not_npm_self_serve",
-      current_install: "public_github_clone_or_local_checkout",
+      status: "public_npm_mcp_ready",
+      current_install: "public_npm_or_github_checkout",
       public_download_ready: true,
       anthropic_directory_ready: false
     });
-    expect(manifest.distribution.future_npm_install).toContain("after @uploadcheck/mcp is published");
+    expect(manifest.distribution.npm_install).toContain("npx -y @drantoniou/uploadcheck-mcp");
     expect(manifest.distribution.openai_connector).toContain("defer");
     expect(manifest.workspace_key_contract).toMatchObject({
       private_beta_required: false,

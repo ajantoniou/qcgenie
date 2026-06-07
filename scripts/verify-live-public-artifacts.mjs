@@ -10,8 +10,8 @@ export function validateLaunchStatusArtifact(payload) {
   if (payload?.canonical_surfaces?.mcp_server !== "uploadcheck") {
     errors.push(error("launch_status.canonical_surfaces.mcp_server", "missing_uploadcheck_mcp", "Launch status must expose the uploadcheck MCP identity."));
   }
-  if (payload?.canonical_surfaces?.cli_package !== "@uploadcheck/cli" || payload?.canonical_surfaces?.mcp_package !== "@uploadcheck/mcp") {
-    errors.push(error("launch_status.canonical_surfaces.packages", "missing_packages", "Launch status must expose @uploadcheck/cli and @uploadcheck/mcp."));
+  if (payload?.canonical_surfaces?.cli_package !== "@drantoniou/uploadcheck" || payload?.canonical_surfaces?.mcp_package !== "@drantoniou/uploadcheck-mcp") {
+    errors.push(error("launch_status.canonical_surfaces.packages", "missing_packages", "Launch status must expose @drantoniou/uploadcheck and @drantoniou/uploadcheck-mcp."));
   }
   if (payload?.product_hunt_ready !== false) {
     errors.push(error("launch_status.product_hunt_ready", "unsafe_static_ready", "Static launch status must not claim Product Hunt readiness before live blockers clear."));
@@ -182,9 +182,9 @@ export function validateLlmsArtifact(text) {
     "UploadCheck.app",
     "Quality check videos, podcasts, and clips before you upload.",
     "MCP server name: uploadcheck.",
-    "Current distribution state: public GitHub MCP install, not public npm self-serve yet.",
-    "Current install path: public GitHub clone or local checkout.",
-    "Use @uploadcheck/cli and @uploadcheck/mcp only after the npm packages are published to npm.",
+    "Current distribution state: public npm MCP install plus public GitHub/local checkout.",
+    "Current install path: public npm or GitHub checkout.",
+    "Use @drantoniou/uploadcheck and @drantoniou/uploadcheck-mcp from npm.",
     "https://api.uploadcheck.app/product-hunt-launch-kit.json",
     "https://api.uploadcheck.app/mcp-install.json",
     "https://api.uploadcheck.app/sample-reports/index.json",
@@ -208,17 +208,17 @@ export function validateMcpInstallArtifact(payload) {
   if (payload?.name !== "uploadcheck") {
     errors.push(error("mcp_install.name", "wrong_server_name", "MCP install artifact must identify the uploadcheck server."));
   }
-  if (payload?.package !== "@uploadcheck/mcp" || payload?.binary !== "uploadcheck-mcp") {
-    errors.push(error("mcp_install.package", "wrong_package", "MCP install artifact must expose @uploadcheck/mcp and uploadcheck-mcp."));
+  if (payload?.package !== "@drantoniou/uploadcheck-mcp" || payload?.binary !== "uploadcheck-mcp") {
+    errors.push(error("mcp_install.package", "wrong_package", "MCP install artifact must expose @drantoniou/uploadcheck-mcp and @drantoniou/uploadcheck-mcp."));
   }
-  if (payload?.distribution_status !== "public_github_mcp_not_npm_self_serve") {
-    errors.push(error("mcp_install.distribution_status", "missing_public_github_status", "MCP install artifact must identify the current public GitHub / not npm status."));
+  if (payload?.distribution_status !== "public_npm_mcp_ready") {
+    errors.push(error("mcp_install.distribution_status", "missing_public_npm_status", "MCP install artifact must identify the current public npm status."));
   }
-  if (payload?.current_install !== "public_github_clone_or_local_checkout") {
-    errors.push(error("mcp_install.current_install", "missing_current_public_github_install", "MCP install artifact must keep public GitHub/local checkout as the current install path."));
+  if (payload?.current_install !== "public_npm_or_github_checkout") {
+    errors.push(error("mcp_install.current_install", "missing_current_public_npm_install", "MCP install artifact must keep npm/GitHub checkout as the current install path."));
   }
-  if (!String(payload?.future_npm_install || "").includes("after @uploadcheck/mcp is published")) {
-    errors.push(error("mcp_install.future_npm_install", "missing_future_npm_guard", "MCP install artifact must guard npx snippets until npm publish."));
+  if (!String(payload?.future_npm_install || "").includes("npx -y @drantoniou/uploadcheck-mcp")) {
+    errors.push(error("mcp_install.future_npm_install", "missing_npm_install", "MCP install artifact must expose the npm install command."));
   }
   if (payload?.environment?.UPLOADCHECK_API_BASE_URL !== DEFAULT_BASE_URL) {
     errors.push(error("mcp_install.environment.UPLOADCHECK_API_BASE_URL", "wrong_api_base", "MCP install artifact must default to the hosted API."));

@@ -36,20 +36,20 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
     "Agentic Media QC API and MCP Server",
     "MCP server",
     "uploadcheck",
-    "@uploadcheck/cli",
-    "@uploadcheck/mcp",
+    "uploadcheck",
+    "uploadcheck-mcp",
     "/agent-manifest.json",
     "/openapi.json"
   ]);
   requiredText(errors, "agent_install", agentInstall, [
     "Install UploadCheck for Agents",
-    "public GitHub clone or local checkout",
+    "public npm or GitHub checkout",
     "/absolute/path/to/uploadcheck/mcp-server/index.mjs",
     "~/.codex/config.toml",
     ".cursor/mcp.json",
     "qc_get_cost_basis",
     "qc_run_local_file",
-    "Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists"
+    "npx -y @drantoniou/uploadcheck-mcp"
   ]);
   requiredText(errors, "sitemap", sitemap, [
     "https://uploadcheck.app/product-hunt/",

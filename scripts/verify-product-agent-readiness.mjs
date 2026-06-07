@@ -70,31 +70,31 @@ requireIncludes(files.beta, beta, [
 requireIncludes(files.directory, directory, [
   "not an Anthropic Directory-ready public listing",
   "Defer OpenAI ChatGPT app/connector work until the hosted HTTPS MCP endpoint",
-  "Registry proof that `@uploadcheck/cli` and `@uploadcheck/mcp` are published"
+  "Registry proof that `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp` are published"
 ]);
 
 requireIncludes(files.publish, publish, [
-  "`@uploadcheck/mcp` v0.1.0 — NOT on npm",
-  "`@uploadcheck/cli` v0.1.0 — NOT on npm",
+  "`@drantoniou/uploadcheck-mcp` v0.1.0 — published on npm",
+  "`@drantoniou/uploadcheck` v0.1.0 — published on npm",
   "npm run npm-publish:preflight",
-  "[YOU] `npm login`",
+  "registry install proof",
   "[YOU] Redeploy whatever serves `api.uploadcheck.app`"
 ]);
 
 requireIncludes(files.install, install, [
   "Users need a workspace API key tied to included plan minutes.",
-  "public GitHub clone or local checkout",
-  "Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists"
+  "public GitHub clone",
+  "npx -y @drantoniou/uploadcheck-mcp"
 ]);
 
-if (mcpInstall.distribution_status !== "public_github_mcp_not_npm_self_serve") {
-  errors.push({ file: files.mcpInstall, reason: "must_claim_public_github_not_npm" });
+if (mcpInstall.distribution_status !== "public_npm_mcp_ready") {
+  errors.push({ file: files.mcpInstall, reason: "must_claim_public_npm_ready" });
 }
-if (mcpInstall.current_install !== "public_github_clone_or_local_checkout") {
-  errors.push({ file: files.mcpInstall, reason: "current_install_must_be_public_github_or_local" });
+if (mcpInstall.current_install !== "public_npm_or_github_checkout") {
+  errors.push({ file: files.mcpInstall, reason: "current_install_must_include_npm_and_github" });
 }
-if (!String(mcpInstall.future_npm_install || "").includes("after @uploadcheck/mcp is published")) {
-  errors.push({ file: files.mcpInstall, reason: "missing_future_npm_guard" });
+if (!String(mcpInstall.npm_install || mcpInstall.future_npm_install || "").includes("npx -y @drantoniou/uploadcheck-mcp")) {
+  errors.push({ file: files.mcpInstall, reason: "missing_npm_install_command" });
 }
 if (mcpInstall.environment?.UPLOADCHECK_API_KEY !== "<workspace_api_key>") {
   errors.push({ file: files.mcpInstall, reason: "missing_workspace_api_key_placeholder" });
@@ -146,7 +146,6 @@ requireIncludes(files.runGate, runGate, [
 
 const forbiddenReadyClaims = [
   "public self-serve is ready",
-  "Use npx -y @uploadcheck/mcp today",
   "OpenAI connector is the next step"
 ];
 for (const [file, text] of Object.entries({ [files.beta]: beta, [files.directory]: directory, [files.install]: install })) {
@@ -163,20 +162,23 @@ if (errors.length) {
 const requiredEvidenceClients = ["claude_code", "codex", "cursor"];
 const evidenceCaptured = betaEvidence.status === "captured"
   && requiredEvidenceClients.every((client) => betaEvidence.client_proofs?.some((proof) => proof.client === client && proof.status === "captured"));
-const publicBlockers = [
-  "npm packages are not published",
-  "registry install proof is not captured"
-];
+const npmProof = JSON.parse(execFileSync("npm", ["run", "--silent", "npm-publish:preflight"], {
+  cwd: process.cwd(),
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"]
+}));
+const publicBlockers = [];
+if (!npmProof.registryInstallProofReady) publicBlockers.push("registry install proof is not captured");
 if (!evidenceCaptured) {
   publicBlockers.push("external public GitHub MCP evidence is not captured");
 }
 
 console.log(JSON.stringify({
   ok: true,
-  verdict: "public_github_mcp_ready_public_npm_not_ready",
+  verdict: publicBlockers.length ? "public_npm_mcp_ready_with_remaining_blockers" : "public_npm_mcp_ready",
   recommendedDistributionPath: [
-    "Keep public GitHub MCP install as the current channel.",
-    "Publish @uploadcheck/mcp and @uploadcheck/cli after founder npm login/org confirmation.",
+    "Use npx -y @drantoniou/uploadcheck-mcp as the current public MCP install path.",
+    "Keep public GitHub clone and local checkout installs as supported fallback paths.",
     evidenceCaptured
       ? "External Claude Code, Codex, and Cursor public GitHub MCP proof is captured."
       : "Collect external Claude Code, Codex, and Cursor public GitHub MCP proof with workspace API keys.",
@@ -184,7 +186,7 @@ console.log(JSON.stringify({
   ],
   currentUsableModes: [
     "Local NTO production via local repo path.",
-    "External Claude Code/Codex/Cursor installs via public GitHub clone or local checkout plus workspace API key."
+    "External Claude Code/Codex/Cursor installs via npx, public GitHub clone, or local checkout plus workspace API key."
   ],
   publicBlockers,
   commandResults

@@ -1,6 +1,6 @@
-# UploadCheck Public GitHub MCP Install
+# UploadCheck Public NPM MCP Install
 
-UploadCheck is currently a public GitHub MCP install. External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key tied to included plan minutes or an operator-created account. Local NTO production can keep using the local repo path directly.
+UploadCheck is currently a public npm MCP install with public GitHub/local checkout fallback. External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key tied to included plan minutes or an operator-created account. Local NTO production can keep using the local repo path directly.
 
 ## Install Readiness Contract
 
@@ -36,15 +36,14 @@ curl https://api.uploadcheck.app/v1/api-keys \
 
 Store the returned `apiKey` privately as `UPLOADCHECK_API_KEY`. It will not be returned again.
 
-## Codex Public GitHub / Local Install
+## Codex Public NPM Install
 
-Before the npm package is published, point Codex at the public GitHub clone or local checkout.
-The machine-readable install artifact at `/mcp-install.json` keeps the current public GitHub/local snippets separate from future `npx -y @uploadcheck/mcp` snippets.
+Use the public MCP package for new installs. The machine-readable install artifact at `/mcp-install.json` keeps the public npm snippets and GitHub/local fallback snippets aligned.
 
 ```toml
 [mcp_servers.uploadcheck]
-command = "/absolute/path/to/uploadcheck/mcp-server/run-uploadcheck-mcp.sh"
-args = []
+command = "npx"
+args = ["-y", "@drantoniou/uploadcheck-mcp"]
 startup_timeout_sec = 60
 
 [mcp_servers.uploadcheck.env]
@@ -52,14 +51,14 @@ UPLOADCHECK_API_BASE_URL = "https://api.uploadcheck.app"
 UPLOADCHECK_API_KEY = "<workspace_api_key>"
 ```
 
-## Claude Code / Claude Desktop Public GitHub / Local Install
+## Claude Code / Claude Desktop Public NPM Install
 
 ```json
 {
   "mcpServers": {
     "uploadcheck": {
-      "command": "node",
-      "args": ["/absolute/path/to/uploadcheck/mcp-server/index.mjs"],
+      "command": "npx",
+      "args": ["-y", "@drantoniou/uploadcheck-mcp"],
       "env": {
         "UPLOADCHECK_API_BASE_URL": "https://api.uploadcheck.app",
         "UPLOADCHECK_API_KEY": "<workspace_api_key>"
@@ -69,7 +68,7 @@ UPLOADCHECK_API_KEY = "<workspace_api_key>"
 }
 ```
 
-## Cursor Public GitHub / Local Install
+## Cursor Public NPM Install
 
 Use the same JSON shape in `.cursor/mcp.json`.
 
@@ -128,7 +127,7 @@ npm run product-agent:verify
 
 Do not publish broad install copy or submit Anthropic Directory until:
 
-- `@uploadcheck/cli` and `@uploadcheck/mcp` are published to npm.
+- `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp` are published to npm.
 - `npm run npm-publish:preflight` shows the current package versions are publishable and identifies npm auth state before founder publish.
 - Hosted `/mcp-install.json`, launch doctor, and launch evidence are redeployed and pass their live verifiers.
 - Registry install proof confirms clean `npx`/package installs after publish.

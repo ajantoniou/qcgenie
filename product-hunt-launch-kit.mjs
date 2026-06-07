@@ -15,17 +15,17 @@ export function buildProductHuntLaunchKit(status) {
       short_description: "Run /check from an agent workspace or call the API before publishing. UploadCheck returns verdicts, timestamped flags, source-hash proof, marker exports, cost estimates, and repair-loop instructions.",
       proof_points: [
         "Global Codex MCP server: uploadcheck",
-        "Public GitHub MCP install uses a local checkout with a workspace API key; @uploadcheck/cli and @uploadcheck/mcp are future npm packages after publish proof",
+        "Public npm MCP install is live through @drantoniou/uploadcheck-mcp; public GitHub and local checkout installs remain supported with a workspace API key",
         "Live Render API with inline media, signed upload, queued worker, and report endpoints",
         "Public PASS, WATCH, and BLOCK sample reports",
         "Cost guardrails that downgrade or block model-backed checks when they would break the 95% gross-margin target"
       ]
     },
     distribution_position: {
-      current_status: "public_github_mcp_not_npm_self_serve",
-      current_install: "public GitHub clone or local checkout",
+      current_status: "public_npm_mcp_ready",
+      current_install: "npx, public GitHub clone, or local checkout",
       required_secret: "workspace API key tied to included plan minutes or an operator-created account",
-      public_npm_install: "after @uploadcheck/cli and @uploadcheck/mcp are published",
+      public_npm_install: "npx -y @drantoniou/uploadcheck-mcp",
       directory_submission: "after paid workspace proof, checkout/webhook proof, spend-alert proof, hosted MCP install proof, and external Claude Code/Codex/Cursor beta evidence",
       openai_connector: "defer until hosted HTTPS MCP, account binding, report UX, and abuse/cost controls are proven in production"
     },

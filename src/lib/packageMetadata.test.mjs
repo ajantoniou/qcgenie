@@ -26,7 +26,7 @@ describe("UploadCheck package metadata", () => {
     const payload = JSON.parse(output);
 
     expect(payload.ok).toBe(true);
-    expect(payload.packages.map((pkg) => pkg.name)).toEqual(["@uploadcheck/cli", "@uploadcheck/mcp"]);
+    expect(payload.packages.map((pkg) => pkg.name)).toEqual(["@drantoniou/uploadcheck", "@drantoniou/uploadcheck-mcp"]);
     expect(payload.packages[0].packedFiles).toEqual(["index.mjs", "launch-evidence.mjs", "package.json", "request-builder.mjs"]);
     expect(payload.packages[1].packedFiles).toEqual([
       "README.md",
@@ -48,7 +48,7 @@ describe("UploadCheck package metadata", () => {
     expect(script).toContain('execFileSync("npm", ["whoami"]');
     expect(script).toContain("publishableVersion");
     expect(script).toContain("founderActionRequired");
-    expect(script).toContain("already exists on npm; bump version before publish");
+    expect(script).toContain("registryInstallProofReady");
     expect(script).not.toContain('["publish"');
     expect(script).not.toContain('["publish",');
   });
@@ -57,7 +57,7 @@ describe("UploadCheck package metadata", () => {
     const pkg = readJson("cli/package.json");
 
     expect(pkg).toMatchObject({
-      name: "@uploadcheck/cli",
+      name: "@drantoniou/uploadcheck",
       bin: { uploadcheck: "./index.mjs" },
       exports: {
         ".": "./index.mjs",
@@ -75,7 +75,7 @@ describe("UploadCheck package metadata", () => {
     const install = readJson("mcp-server/mcp-install.json");
     const localFile = readFileSync(resolve("mcp-server/local-file.mjs"), "utf8");
 
-    expect(pkg.name).toBe("@uploadcheck/mcp");
+    expect(pkg.name).toBe("@drantoniou/uploadcheck-mcp");
     expect(pkg.private).toBeUndefined();
     expect(pkg.bin).toEqual({ "uploadcheck-mcp": "./index.mjs" });
     expect(pkg.publishConfig).toEqual({ access: "public" });
@@ -106,19 +106,19 @@ describe("UploadCheck package metadata", () => {
     ]);
     expect(install).toMatchObject({
       name: "uploadcheck",
-      package: "@uploadcheck/mcp",
+      package: "@drantoniou/uploadcheck-mcp",
       binary: "uploadcheck-mcp",
-      distribution_status: "public_github_mcp_not_npm_self_serve",
-      current_install: "public_github_clone_or_local_checkout",
+      distribution_status: "public_npm_mcp_ready",
+      current_install: "public_npm_or_github_checkout",
       hosted_api_base_url: "https://api.uploadcheck.app"
     });
-    expect(install.future_npm_install).toContain("after @uploadcheck/mcp is published");
+    expect(install.npm_install).toContain("npx -y @drantoniou/uploadcheck-mcp");
     expect(install.claude_desktop_local.json.mcpServers.uploadcheck.command).toBe("node");
     expect(install.claude_desktop_local.json.mcpServers.uploadcheck.args[0]).toContain("/absolute/path/to/uploadcheck/mcp-server/index.mjs");
     expect(install.cursor_local.json.mcpServers.uploadcheck.command).toBe("node");
     expect(install.notes.join("\n")).toContain("workspace API key tied to included plan minutes");
-    expect(install.claude_desktop.json.mcpServers.uploadcheck.args).toEqual(["-y", "@uploadcheck/mcp"]);
-    expect(install.cursor.json.mcpServers.uploadcheck.args).toEqual(["-y", "@uploadcheck/mcp"]);
+    expect(install.claude_desktop.json.mcpServers.uploadcheck.args).toEqual(["-y", "@drantoniou/uploadcheck-mcp"]);
+    expect(install.cursor.json.mcpServers.uploadcheck.args).toEqual(["-y", "@drantoniou/uploadcheck-mcp"]);
     expect(install.codex_local.toml).toContain("[mcp_servers.uploadcheck]");
     expect(install.codex_local.toml).toContain('UPLOADCHECK_API_KEY = "<workspace_api_key>"');
     expect(install.recommended_first_calls).toContain("qc_get_npo_pipeline_handoff");

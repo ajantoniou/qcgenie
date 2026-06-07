@@ -35,8 +35,8 @@
           <h2>Agent setup names</h2>
           <ul>
             <li>MCP server: <code>uploadcheck</code></li>
-            <li>CLI package: <code>@uploadcheck/cli</code></li>
-            <li>MCP package: <code>@uploadcheck/mcp</code></li>
+            <li>CLI package: <code>uploadcheck</code></li>
+            <li>MCP package: <code>uploadcheck-mcp</code></li>
             <li>Slash-command concept: <code>/check</code></li>
           </ul>
         </aside>
@@ -44,7 +44,7 @@
       <section class="section">
         <h2>Install for agent-to-agent runs</h2>
         <div class="twoGrid">
-          <article class="answer"><h2>Current install path</h2><p>UploadCheck is a public GitHub MCP install. Use the public GitHub repo or a local checkout, then point Claude Code, Codex, Cursor, or another MCP client at <code>/absolute/path/to/uploadcheck/mcp-server/index.mjs</code>. The npm package names are reserved in product copy, but the public npm packages are not published yet.</p></article>
+          <article class="answer"><h2>Current install path</h2><p>UploadCheck supports <code>npx -y @drantoniou/uploadcheck-mcp</code>, the public GitHub repo, or a local checkout. Claude Code, Codex, Cursor, or another MCP client still needs a workspace API key tied to plan minutes or operator-created beta access.</p></article>
           <article class="answer"><h2>Agent handoff sequence</h2><p>Start with <code>qc_get_cost_basis</code>, run <code>qc_run_local_file</code>, then fetch <code>qc_get_report</code> and <code>qc_get_marker_csv</code> so the receiving agent gets timestamped evidence.</p></article>
         </div>
       </section>

@@ -57,8 +57,8 @@ export function validateAgentManifest(payload = {}) {
   requireEqual(errors, payload.live_launch_evidence_url, "https://api.uploadcheck.app/v1/launch-evidence", "live_launch_evidence_url");
   requireEqual(errors, payload.cost_basis_url, "https://api.uploadcheck.app/cost-basis.json", "cost_basis_url");
   requireEqual(errors, payload.npo_pipeline_handoff_url, "https://api.uploadcheck.app/npo-pipeline-handoff.json", "npo_pipeline_handoff_url");
-  requireIncludes(errors, payload.packages, "@uploadcheck/cli", "packages");
-  requireIncludes(errors, payload.packages, "@uploadcheck/mcp", "packages");
+  requireIncludes(errors, payload.packages, "@drantoniou/uploadcheck", "packages");
+  requireIncludes(errors, payload.packages, "@drantoniou/uploadcheck-mcp", "packages");
   for (const tool of [
     "qc_get_launch_evidence",
     "qc_get_pipeline_handoff",

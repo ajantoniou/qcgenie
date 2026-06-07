@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -27,7 +28,7 @@ const roadmap = read(files.roadmap);
 const errors = [];
 
 requireIncludes(files.beta, beta, [
-  "UploadCheck is currently a public GitHub MCP install.",
+  "UploadCheck is currently a public npm MCP install with public GitHub/local checkout fallback.",
   "External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key",
   "included plan minutes or an operator-created account",
   "Local NTO production can keep using the local repo path directly.",
@@ -44,20 +45,20 @@ requireIncludes(files.beta, beta, [
 ]);
 
 requireIncludes(files.directory, directory, [
-  "UploadCheck is currently a public GitHub MCP install, not an Anthropic Directory-ready public listing.",
+  "UploadCheck is currently a public npm MCP install with public GitHub/local checkout fallback, not an Anthropic Directory-ready public listing.",
   "Install handoff: `docs/PRIVATE-MCP-BETA.md`",
   "Verifier: `npm run anthropic-directory:verify`"
 ]);
 
 requireIncludes(files.installPage, installPage, [
   "Users need a workspace API key tied to included plan minutes.",
-  "Do not use <code>npx -y @uploadcheck/mcp</code> until the npm package exists",
-  "public GitHub clone or local checkout",
+  "npx -y @drantoniou/uploadcheck-mcp",
+  "public GitHub clone, or local checkout",
   "/mcp-install.json"
 ]);
 
 requireIncludes(files.apiPage, apiPage, [
-  "UploadCheck is a public GitHub MCP install.",
+  "UploadCheck supports <code>npx -y @drantoniou/uploadcheck-mcp</code>, the public GitHub repo, or a local checkout.",
   "Authorization: Bearer &lt;workspace_api_key&gt;",
   "Workspace keys are tied to included plan minutes or an operator-created account.",
   "curl https://api.uploadcheck.app/v1/qc/jobs",
@@ -69,8 +70,8 @@ requireIncludes(files.pipeline, pipeline, [
   "Paid model-backed checks run only when explicitly requested"
 ]);
 
-if (mcpInstall.package !== "@uploadcheck/mcp") {
-  errors.push({ file: files.mcpInstall, reason: "wrong_package", expected: "@uploadcheck/mcp", actual: mcpInstall.package });
+if (mcpInstall.package !== "@drantoniou/uploadcheck-mcp") {
+  errors.push({ file: files.mcpInstall, reason: "wrong_package", expected: "@drantoniou/uploadcheck-mcp", actual: mcpInstall.package });
 }
 if (!mcpInstall.codex_local?.toml?.includes('UPLOADCHECK_API_KEY = "<workspace_api_key>"')) {
   errors.push({ file: files.mcpInstall, reason: "codex_missing_workspace_api_key_placeholder" });
@@ -127,7 +128,6 @@ requireIncludes(files.roadmap, roadmap, [
 const forbiddenPublicClaims = [
   "UploadCheck is public self-serve for all MCP users",
   "Anthropic Directory-ready public listing",
-  "Use npx -y @uploadcheck/mcp today",
   "unlimited full-video AI review"
 ];
 for (const claim of forbiddenPublicClaims) {
@@ -144,14 +144,22 @@ if (errors.length) {
 const requiredEvidenceClients = ["claude_code", "codex", "cursor"];
 const evidenceCaptured = betaEvidence.status === "captured"
   && requiredEvidenceClients.every((client) => betaEvidence.client_proofs?.some((proof) => proof.client === client && proof.status === "captured"));
-const remainingExternalLaunchBlockers = ["npm publish and registry install proof"];
+const npmProof = JSON.parse(execFileSync("npm", ["run", "--silent", "npm-publish:preflight"], {
+  cwd: process.cwd(),
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"]
+}));
+const remainingExternalLaunchBlockers = [];
+if (!npmProof.registryInstallProofReady) {
+  remainingExternalLaunchBlockers.push("npm publish and registry install proof");
+}
 if (!evidenceCaptured) {
-  remainingExternalLaunchBlockers.push("external Claude/Codex/Cursor public GitHub MCP evidence with workspace API keys");
+  remainingExternalLaunchBlockers.push("external Claude/Codex/Cursor public npm MCP evidence with workspace API keys");
 }
 
 console.log(JSON.stringify({
   ok: true,
-  status: "public_github_mcp_ready_not_npm_self_serve",
+  status: remainingExternalLaunchBlockers.length ? "public_mcp_beta_ready_with_external_blockers" : "public_npm_mcp_ready",
   handoff: files.beta,
   requiredRuntimeProof: [
     "npm run packages:verify",

@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { resolve } from "node:path";
 
 const packages = [
@@ -27,19 +30,21 @@ const auth = npmWhoami();
 const blockers = [];
 
 for (const result of results) {
-  if (result.exactVersionPublished) {
-    blockers.push(`${result.name}@${result.version} already exists on npm; bump version before publish.`);
+  if (result.registryStatus === "error" || result.exactVersionStatus === "error") {
+    blockers.push(`${result.name}@${result.version} registry lookup failed; rerun npm view before publish or release proof.`);
   }
 }
+const allExactVersionsPublished = results.every((result) => result.exactVersionPublished);
 
 console.log(JSON.stringify({
   ok: blockers.length === 0,
   packages: results,
   npmAuth: auth,
-  founderActionRequired: auth.status !== "authenticated" || results.some((result) => result.registryStatus === "not_found"),
+  registryInstallProofReady: allExactVersionsPublished,
+  founderActionRequired: auth.status !== "authenticated" || !allExactVersionsPublished,
   nextFounderActions: [
-    "Log in with npm as the @uploadcheck scope owner or set NPM_TOKEN.",
-    "Confirm the @uploadcheck npm scope exists and allows publishing both packages.",
+    "Log in with npm as a package-publishing account or set NPM_TOKEN.",
+    "Use the public account-scoped package names @drantoniou/uploadcheck and @drantoniou/uploadcheck-mcp unless an npm organization is created.",
     "Run npm publish --access public from cli/ and mcp-server/ after local package checks pass.",
     "After publish, rerun this preflight and npm view for both packages."
   ],
@@ -50,8 +55,10 @@ process.exit(blockers.length ? 1 : 0);
 
 function npmView(packageSpecifier, args) {
   try {
+    const cacheDir = mkdtempSync(join(tmpdir(), "uploadcheck-npm-view-"));
     const stdout = execFileSync("npm", ["view", packageSpecifier, ...args], {
       cwd: resolve("."),
+      env: { ...process.env, npm_config_cache: cacheDir },
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"]
     }).trim();

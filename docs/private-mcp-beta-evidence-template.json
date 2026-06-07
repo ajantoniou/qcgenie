@@ -1,6 +1,6 @@
 {
   "status": "captured",
-  "purpose": "Capture public GitHub MCP install proof before public npm/download or Anthropic Directory submission.",
+  "purpose": "Capture public npm MCP install proof before Anthropic Directory submission.",
   "rules": [
     "Do not store raw workspace API keys, token hashes, media files, checkout URL paths, or customer private media in this artifact.",
     "Each client proof must use a workspace API key tied to included plan minutes or an operator-created account.",

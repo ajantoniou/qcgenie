@@ -13,7 +13,7 @@ The beachhead is YouTube videos: creators import a URL, upload a cut, or run `/c
 
 ## Agentic Surface
 
-UploadCheck.app supports web users and programmatic agent workflows. The current agent distribution state is public GitHub/local MCP install, not public npm self-serve yet.
+UploadCheck.app supports web users and programmatic agent workflows. The current agent distribution state is public npm MCP install plus public GitHub/local checkout fallback.
 
 - Web users paste a YouTube URL or upload a cut.
 - Agent users run `/check` against a media file, upload id, signed URL, or YouTube URL.
@@ -21,13 +21,13 @@ UploadCheck.app supports web users and programmatic agent workflows. The current
 - MCP tools call the hosted API; `qc_run_local_file` only reads/encodes local media before sending it to Render.
 - Customer-facing tools do not expose internal model/provider rails.
 - MCP server name: `uploadcheck`.
-- CLI/package options after npm publish: `@uploadcheck/cli` and `@uploadcheck/mcp`. Until then, use the public GitHub repo or a local checkout.
+- CLI/package options: `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp`. Public GitHub repo and local checkout installs remain supported.
 - Public GitHub MCP install handoff: `docs/PRIVATE-MCP-BETA.md`.
 
 Current API/MCP tools:
 
 - MCP server: `uploadcheck`
-- CLI/package after publish: `@uploadcheck/cli` or `@uploadcheck/mcp`
+- CLI/package after publish: `uploadcheck` or `uploadcheck-mcp`
 - Installed Codex skill: `uploadcheck` at `/Users/drantoniou/.codex/skills/uploadcheck`
 
 - `qc_estimate_cost`
@@ -65,7 +65,7 @@ Public API:
 - Product Hunt readiness CLI: `npm run readiness:check`
 - Render Blueprint verifier: `npm run render:verify`
 - Render API launch helper: `npm run render:bootstrap-env`, `npm run render:env-template`, `npm run render:plan`, `npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env`, `npm run render:validate-env`, `npm run render:audit`, `npm run render:apply`
-- Package publish verifier: `npm run packages:verify` checks `@uploadcheck/cli` and `@uploadcheck/mcp` identity, bins, lock metadata, and `npm pack --dry-run` contents.
+- Package publish verifier: `npm run packages:verify` checks `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp` identity, bins, lock metadata, and `npm pack --dry-run` contents.
 - Public GitHub MCP verifier: `npm run private-mcp-beta:verify` checks the install handoff, install manifest, package scripts, Directory prep, workspace-key rule, and no-public-npm/self-serve claims.
 - Product-agent readiness verifier: `npm run product-agent:verify` checks whether Claude Code, Codex, Cursor, and MCP clients are usable through public GitHub/local install without claiming public npm/download readiness.
 - Checkout launch handoff verifier: `npm run checkout-launch:verify` checks checkout/webhook docs, Render env template, OpenAPI, and readiness actions for the exact remaining launch inputs.

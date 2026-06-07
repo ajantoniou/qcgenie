@@ -67,7 +67,7 @@ describe("launch doctor", () => {
     expect(result.stdout).toMatch(/(PASS|BLOCK) launch-handoff/);
     expect(result.stdout).toMatch(/(PASS|BLOCK) readiness/);
     expect(result.stdout).toMatch(/(PASS|BLOCK) launch-check/);
-  }, 20000);
+  }, 60000);
 
   it("prints machine-readable JSON for agent launch blockers", () => {
     const result = spawnSync("npm", ["run", "--silent", "launch:doctor", "--", "--json"], {

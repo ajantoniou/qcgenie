@@ -54,7 +54,7 @@ const requiredEvidenceCommands = [
 ];
 
 const requiredSubmissionEvidence = [
-  "Registry proof that @uploadcheck/cli and @uploadcheck/mcp are published.",
+  "Registry proof that @drantoniou/uploadcheck and @drantoniou/uploadcheck-mcp are published.",
   "Read-only npm publish preflight proof from npm run npm-publish:preflight before founder publish.",
   "Hosted /mcp-install.json proof from npm run live-mcp-install:verify after Render redeploy.",
   "Paid workspace API-key proof from hosted QC job creation through report fetch.",
@@ -72,7 +72,7 @@ if (draft.status !== "public_github_mcp_not_ready_for_directory") {
   errors.push({ key: "status", reason: "must_not_claim_directory_ready" });
 }
 if (draft.mcp_server_name !== "uploadcheck") errors.push({ key: "mcp_server_name", reason: "expected_uploadcheck" });
-if (draft.distribution?.future_package !== "@uploadcheck/mcp") errors.push({ key: "distribution.future_package", reason: "expected_mcp_package" });
+if (draft.distribution?.future_package !== "@drantoniou/uploadcheck-mcp") errors.push({ key: "distribution.future_package", reason: "expected_mcp_package" });
 if (draft.distribution?.requires_workspace_api_key !== true) errors.push({ key: "distribution.requires_workspace_api_key", reason: "must_require_workspace_api_key" });
 if (draft.distribution?.requires_included_minutes_workspace !== true) errors.push({ key: "distribution.requires_included_minutes_workspace", reason: "must_require_included_minutes_workspace" });
 if (JSON.stringify(draft.public_tools) !== JSON.stringify(expectedTools)) {
@@ -115,7 +115,7 @@ if (draft.connector_decision?.chatgpt_or_openai_connector !== "defer") {
 if (!draft.connector_decision?.reason?.includes("hosted HTTPS MCP")) {
   errors.push({ key: "connector_decision.reason", reason: "missing_hosted_https_mcp_connector_gate" });
 }
-if (draft.connector_decision?.next_channel !== "Anthropic Directory after public GitHub MCP install and npm package proof") {
+if (draft.connector_decision?.next_channel !== "Anthropic Directory after public npm MCP install proof") {
   errors.push({ key: "connector_decision.next_channel", reason: "unexpected_next_channel" });
 }
 
@@ -134,7 +134,7 @@ for (const tool of expectedTools) {
   if (!prep.includes(`- \`${tool}\``)) errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_tool_in_prep_doc", tool });
 }
 
-if (!prep.includes("UploadCheck is currently a public GitHub MCP install, not an Anthropic Directory-ready public listing.")) {
+if (!prep.includes("UploadCheck is currently a public npm MCP install with public GitHub/local checkout fallback, not an Anthropic Directory-ready public listing.")) {
   errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_not_ready_warning" });
 }
 if (!prep.includes("docs/PRIVATE-MCP-BETA.md")) {
@@ -181,11 +181,11 @@ for (const forbidden of ["gemini_watch", "omni_watch", "qwen", "anthropic_fallba
     errors.push({ key: "docs/private-mcp-beta-evidence-template.json", reason: "missing_forbidden_tool", forbidden });
   }
 }
-if (install.distribution_status !== "public_github_mcp_not_npm_self_serve") {
-  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_public_github_distribution_status" });
+if (install.distribution_status !== "public_npm_mcp_ready") {
+  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_public_npm_distribution_status" });
 }
-if (install.current_install !== "public_github_clone_or_local_checkout") {
-  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_public_github_current_install" });
+if (install.current_install !== "public_npm_or_github_checkout") {
+  errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_public_npm_or_github_current_install" });
 }
 if (!install.notes?.some((note) => note.includes("workspace API key tied to included plan minutes"))) {
   errors.push({ key: "mcp-server/mcp-install.json", reason: "missing_included_minutes_workspace_key_note" });

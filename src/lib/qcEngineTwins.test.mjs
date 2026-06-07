@@ -244,6 +244,113 @@ img.save(${JSON.stringify(mediaPath)})
     }
   });
 
+  it("blocks manifest-marked twins or almost-identical characters before vision", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-manifest-"));
+    const mediaPath = join(dir, "candidate.mp4");
+    const manifestPath = join(dir, "manifest.json");
+    const jsonPath = join(dir, "twins.json");
+
+    try {
+      writeFileSync(mediaPath, "fake");
+      writeFileSync(manifestPath, JSON.stringify({
+        scenes: [
+          {
+            t_start: 42,
+            t_end: 48,
+            narration: "The crowd gathers around the speaker.",
+            similar_characters: ["left disciple", "right disciple", "rear disciple"],
+            characters_too_similar: true,
+            duplicate_count: 3,
+            qc_note: "Three background men have almost identical faces, beards, hair, and robe silhouettes."
+          }
+        ]
+      }));
+
+      const result = spawnSync("python3", [
+        resolve("scripts/qc-engine/check_twins.py"),
+        mediaPath,
+        "--manifest",
+        manifestPath,
+        "--json",
+        jsonPath
+      ], {
+        cwd: resolve("."),
+        encoding: "utf8",
+        env: { ...process.env, UPLOADCHECK_TEST_NO_ANTHROPIC_KEY: "1" }
+      });
+      const payload = JSON.parse(readFileSync(jsonPath, "utf8"));
+
+      expect(result.status).toBe(1);
+      expect(payload).toMatchObject({
+        check: "twins",
+        pass: false,
+        frames_checked: 0
+      });
+      expect(payload.findings[0]).toMatchObject({
+        t: 42,
+        t_start: 42,
+        t_end: 48,
+        duplicate_count: 3,
+        needs_more_character_variation: true,
+        method: "manifest_character_similarity",
+        reason: "Three background men have almost identical faces, beards, hair, and robe silhouettes.",
+        action: "Regenerate or edit the scene with more distinct characters."
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("passes twins manifest findings through run_gate.py", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-gate-manifest-"));
+    const mediaPath = join(dir, "candidate.mp4");
+    const manifestPath = join(dir, "manifest.json");
+    const outDir = join(dir, "gate");
+
+    try {
+      writeFileSync(mediaPath, "fake");
+      writeFileSync(manifestPath, JSON.stringify({
+        shots: [
+          {
+            start_s: 9,
+            end_s: 13,
+            almost_identical_characters: "two women in the foreground",
+            needs_more_character_variation: true
+          }
+        ]
+      }));
+
+      const result = spawnSync("python3", [
+        resolve("scripts/qc-engine/run_gate.py"),
+        mediaPath,
+        "--checks",
+        "twins",
+        "--manifest",
+        manifestPath,
+        "--out",
+        outDir
+      ], {
+        cwd: resolve("."),
+        encoding: "utf8",
+        env: { ...process.env, UPLOADCHECK_TEST_NO_ANTHROPIC_KEY: "1" }
+      });
+      const payload = JSON.parse(readFileSync(join(outDir, "VERDICT.json"), "utf8"));
+
+      expect(result.status).toBe(1);
+      expect(payload).toMatchObject({
+        verdict: "BLOCK",
+        blocked: ["twins"]
+      });
+      expect(payload.per_check.twins.findings[0]).toMatchObject({
+        method: "manifest_character_similarity",
+        needs_more_character_variation: true
+      });
+      expect(payload.per_check.twins.findings[0].reason).toContain("duplicate");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("blocks instead of skipping when the twins vision key is missing", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-no-key-"));
     const mediaPath = join(dir, "single-person.jpg");

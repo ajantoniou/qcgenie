@@ -5,8 +5,8 @@ Flag frames where the SAME person's face appears 2+ times (AI clone), a face is 
 crowd, or a lead is rendered as twins/triplets. Harness deterministic; per-frame judgment is a strict
 schema-locked vision call (Anthropic API), not a freeform persona read.
 Exit 0 = clean, 1 = twins. JSON to stdout (+ --json).
-Usage: check_twins.py VIDEO_OR_IMAGE [--fps 0.25] [--max-frames 200] [--json out.json]
-Uses a cheap local appearance-cluster pass first, then ANTHROPIC_API_KEY for ambiguous frames.
+Usage: check_twins.py VIDEO_OR_IMAGE [--fps 0.25] [--max-frames 200] [--manifest storybook.json] [--json out.json]
+Uses a manifest precheck and cheap local appearance-cluster pass first, then ANTHROPIC_API_KEY for ambiguous frames.
 """
 import sys, os, json, subprocess, tempfile, argparse, glob, base64, re, urllib.request
 try:
@@ -31,6 +31,43 @@ PROMPT=(
  "\"reason\": \"<one short sentence>\", \"action\": \"<one short editor instruction>\"}"
 )
 IMAGE_EXTS={".jpg",".jpeg",".png",".webp",".bmp",".tif",".tiff"}
+MANIFEST_DUPLICATE_KEYS=(
+    "duplicate_characters",
+    "duplicate_people",
+    "duplicate_faces",
+    "same_face_characters",
+    "same_face_people",
+    "twin_characters",
+    "twins",
+    "clone_characters",
+    "clone_people",
+    "clone_crowd",
+    "near_duplicate_characters",
+    "near_duplicate_people",
+    "similar_characters",
+    "similar_people",
+    "lookalike_characters",
+    "almost_identical_characters",
+)
+MANIFEST_VARIATION_KEYS=(
+    "needs_more_character_variation",
+    "needs_distinct_characters",
+    "under_varied_crowd",
+    "character_variation_failure",
+    "characters_too_similar",
+    "crowd_too_similar",
+)
+MANIFEST_COUNT_KEYS=(
+    "duplicate_count",
+    "similar_character_count",
+    "near_duplicate_count",
+    "clone_count",
+    "same_face_count",
+)
+MANIFEST_REASON_KEYS=("reason","qc_note","note","description","visual_description","issue","detail")
+MANIFEST_ACTION_KEYS=("action","repair_action","fix","editor_action")
+MANIFEST_START_KEYS=("t_start","start","start_s","time")
+MANIFEST_END_KEYS=("t_end","end","end_s")
 
 def load_key():
     if os.environ.get("UPLOADCHECK_TEST_NO_ANTHROPIC_KEY"):
@@ -55,6 +92,108 @@ def load_key():
             m=re.search(rf"^{v}=(.+)$",t,re.M)
             if m and len(m.group(1).strip())>10: return m.group(1).strip().strip('"').strip("'")
     return None
+
+def truthy(value):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        return value > 0
+    return str(value).strip().lower() in {"1","true","yes","y","fail","failed","block","blocked","present","duplicate","similar","too_similar","needs_more_variation"}
+
+def scalar_items(value):
+    if value in (None, ""):
+        return []
+    if isinstance(value, list):
+        out=[]
+        for item in value:
+            out.extend(scalar_items(item))
+        return out
+    if isinstance(value, dict):
+        for key in ("name","text","character","person","label","value","reason"):
+            if value.get(key):
+                return [str(value.get(key))]
+        return [json.dumps(value, sort_keys=True)]
+    text=str(value).strip()
+    if not text:
+        return []
+    return [part.strip() for part in re.split(r"[,;|]+", text) if part.strip()]
+
+def first_value(item, keys):
+    for key in keys:
+        value=item.get(key)
+        if value not in (None, ""):
+            return value
+    return None
+
+def parse_float(value):
+    try:
+        return float(value)
+    except Exception:
+        return None
+
+def flatten_json(value, path="root"):
+    if isinstance(value, dict):
+        yield path, value
+        for key, child in value.items():
+            yield from flatten_json(child, f"{path}.{key}")
+    elif isinstance(value, list):
+        for idx, child in enumerate(value):
+            yield from flatten_json(child, f"{path}[{idx}]")
+
+def manifest_has_duplicate_signal(item):
+    for key in MANIFEST_DUPLICATE_KEYS + MANIFEST_VARIATION_KEYS:
+        if key in item and truthy(item.get(key)):
+            return True
+    return False
+
+def manifest_duplicate_count(item):
+    for key in MANIFEST_COUNT_KEYS:
+        value=item.get(key)
+        if value in (None, ""):
+            continue
+        try:
+            return int(float(value))
+        except Exception:
+            count=len(scalar_items(value))
+            if count:
+                return count
+    for key in MANIFEST_DUPLICATE_KEYS:
+        count=len(scalar_items(item.get(key)))
+        if count:
+            return count
+    return None
+
+def manifest_twins_findings(path):
+    if not path:
+        return []
+    data=json.load(open(path, "r", encoding="utf8"))
+    findings=[]
+    for row_path,item in flatten_json(data):
+        if not manifest_has_duplicate_signal(item):
+            continue
+        count=manifest_duplicate_count(item)
+        reason=first_value(item, MANIFEST_REASON_KEYS)
+        action=first_value(item, MANIFEST_ACTION_KEYS)
+        finding={
+            "needs_more_character_variation": True,
+            "reason": str(reason or "Manifest marks duplicate, near-duplicate, or too-similar characters in this scene."),
+            "action": str(action or "Regenerate or edit the scene with more distinct characters."),
+            "method": "manifest_character_similarity",
+            "manifest_path": row_path
+        }
+        if count is not None:
+            finding["duplicate_count"]=count
+        start=parse_float(first_value(item, MANIFEST_START_KEYS))
+        end=parse_float(first_value(item, MANIFEST_END_KEYS))
+        if start is not None:
+            finding["t"]=round(start,2)
+            finding["t_start"]=round(start,2)
+        if end is not None:
+            finding["t_end"]=round(end,2)
+        findings.append(finding)
+    return findings[:30]
 
 def dur(f):
     return float(subprocess.run(["ffprobe","-v","error","-show_entries","format=duration",
@@ -293,8 +432,17 @@ def is_twins_failure(v):
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("media"); ap.add_argument("--fps",type=float,default=0.25)
-    ap.add_argument("--max-frames",type=int,default=200); ap.add_argument("--json",default=None)
+    ap.add_argument("--max-frames",type=int,default=200); ap.add_argument("--manifest",default=None); ap.add_argument("--json",default=None)
     a=ap.parse_args()
+    if a.manifest:
+        manifest_findings=manifest_twins_findings(a.manifest)
+        if manifest_findings:
+            result={"check":"twins","media":a.media,"media_type":"image" if is_image(a.media) else "video",
+                    "manifest":a.manifest,"frames_checked":0,"deterministic_frames_checked":0,"vision_errors":0,
+                    "findings":manifest_findings,"pass":False}
+            out=json.dumps(result,indent=2)
+            if a.json: open(a.json,"w").write(out)
+            print(out); sys.exit(1)
     tmp=tempfile.mkdtemp(prefix="qctw_")
     frames=extract_frames(a.media,tmp,a.fps)[:a.max_frames]
     if not frames:

@@ -18,14 +18,14 @@ describe("Product Hunt launch kit", () => {
     expect(kit.product.name).toBe("UploadCheck.app");
     expect(kit.product.tagline).toBe("Quality check videos, podcasts, and clips before you upload.");
     expect(kit.launch_copy.headline).toContain("Catch upload mistakes");
-    expect(kit.launch_copy.proof_points.join("\n")).toContain("Public GitHub MCP install uses a local checkout");
-    expect(kit.launch_copy.proof_points.join("\n")).toContain("future npm packages after publish proof");
+    expect(kit.launch_copy.proof_points.join("\n")).toContain("Public npm MCP install is live");
+    expect(kit.launch_copy.proof_points.join("\n")).toContain("@drantoniou/uploadcheck-mcp");
     expect(kit.distribution_position).toMatchObject({
-      current_status: "public_github_mcp_not_npm_self_serve",
-      current_install: "public GitHub clone or local checkout",
+      current_status: "public_npm_mcp_ready",
+      current_install: "npx, public GitHub clone, or local checkout",
       required_secret: "workspace API key tied to included plan minutes or an operator-created account"
     });
-    expect(kit.distribution_position.public_npm_install).toContain("after @uploadcheck/cli and @uploadcheck/mcp are published");
+    expect(kit.distribution_position.public_npm_install).toContain("npx -y @drantoniou/uploadcheck-mcp");
     expect(kit.distribution_position.directory_submission).toContain("paid workspace proof");
     expect(kit.distribution_position.openai_connector).toContain("defer");
     expect(kit.demo_flow).toHaveLength(4);

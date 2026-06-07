@@ -82,6 +82,7 @@ export function validatePipelineRecipes(payload = {}) {
     "sentence_boundary",
     "speaker_visual_binding",
     "literal_subject_match",
+    "visual_narration_match",
     "rehook_cadence"
   ]) {
     if (!implemented.has(gate)) {
@@ -102,9 +103,16 @@ export function validatePipelineRecipes(payload = {}) {
       detail: "Recipes must publish the clone-crowd/more-distinct-characters QC task."
     });
   }
+  if (!String(implemented.get("visual_narration_match")?.covers || "").includes("marked unsupported")) {
+    errors.push({
+      key: "nto_replacement_qc.implemented_gates.visual_narration_match",
+      reason: "missing_visual_narration_contract",
+      detail: "Recipes must publish the deterministic visual/narration match QC task."
+    });
+  }
 
   const longFormChecks = String(payload.profiles?.nto_long_form?.mcp_call?.arguments?.checks || "");
-  for (const check of ["text_contrast", "hallucinated_plate_text", "chunk_sidecar_failures", "script_faithfulness"]) {
+  for (const check of ["text_contrast", "visual_narration_match", "hallucinated_plate_text", "chunk_sidecar_failures", "script_faithfulness"]) {
     if (!longFormChecks.includes(check)) {
       errors.push({ key: "profiles.nto_long_form.mcp_call.arguments.checks", reason: "missing_check", detail: `Expected ${check} in nto_long_form checks.` });
     }

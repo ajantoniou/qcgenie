@@ -5,7 +5,7 @@ Thin MCP wrapper over the hosted UploadCheck API. It does not run quality checks
 Canonical naming:
 
 - MCP server: `uploadcheck`
-- CLI/package: `@uploadcheck/cli` or `@uploadcheck/mcp`
+- CLI/package: `uploadcheck` or `uploadcheck-mcp`
 - Tagline: Quality check videos, podcasts, and clips before you upload.
 
 ## Environment
@@ -123,6 +123,6 @@ node index.mjs
 
 Machine-readable install snippets for Codex, Claude Desktop, Cursor, and generic
 stdio MCP clients are published in `mcp-install.json`. Keep this file aligned
-with the package name `@uploadcheck/mcp`, binary `uploadcheck-mcp`, current
+with the package name `uploadcheck-mcp`, binary `uploadcheck-mcp`, current
 hosted API base URL, and first-call sequence for NPO/NTO production pipelines.
-The current MCP install path is a public GitHub clone or local checkout with a workspace API key tied to included plan minutes or an operator-created account. The `npx -y @uploadcheck/mcp` snippets in `mcp-install.json` are future-package snippets for after `@uploadcheck/mcp` is published to npm.
+The current MCP install path is a public GitHub clone or local checkout with a workspace API key tied to included plan minutes or an operator-created account. The `npx -y @drantoniou/uploadcheck-mcp` snippets in `mcp-install.json` are future-package snippets for after `uploadcheck-mcp` is published to npm.

@@ -1,5 +1,5 @@
 {
-  "status": "public_github_mcp_not_ready_for_directory",
+  "status": "public_npm_mcp_not_ready_for_directory",
   "name": "UploadCheck.app",
   "category": "Media quality control",
   "short_description": "Quality check videos, podcasts, and clips before upload.",
@@ -7,8 +7,8 @@
   "mcp_server_name": "uploadcheck",
   "distribution": {
     "private_beta": false,
-    "current_install": "public GitHub clone or local checkout",
-    "future_package": "@uploadcheck/mcp",
+    "current_install": "npx -y @drantoniou/uploadcheck-mcp",
+    "package": "@drantoniou/uploadcheck-mcp",
     "hosted_api_base_url": "https://api.uploadcheck.app",
     "requires_workspace_api_key": true,
     "requires_included_minutes_workspace": true
@@ -59,21 +59,21 @@
     "npm run live-mcp-install:verify"
   ],
   "submission_evidence": [
-    "Registry proof that @uploadcheck/cli and @uploadcheck/mcp are published.",
-    "Read-only npm publish preflight proof from npm run npm-publish:preflight before founder publish.",
+    "Registry proof that @drantoniou/uploadcheck and @drantoniou/uploadcheck-mcp are published.",
+    "Read-only npm publish preflight proof from npm run npm-publish:preflight.",
     "Hosted /mcp-install.json proof from npm run live-mcp-install:verify after Render redeploy.",
     "Paid workspace API-key proof from hosted QC job creation through report fetch.",
     "Checkout proof from configured Lemon Squeezy checkout URLs or Creator, Studio, and Network variants.",
     "Webhook proof that X-Signature HMAC-SHA256 is verified with UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET before API-key provisioning.",
     "Abuse-limit proof that over-limit usage blocks before QC compute and records operator-reviewable abuse events.",
     "Spend-alert proof that GET /v1/spend-alerts returns a Resend-backed alert after billable extra-minute spend crosses subscription value, with COGS retained as audit context.",
-    "Public GitHub MCP client evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
+    "Public npm MCP client evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
     "No-public-oracle proof that package files, MCP manifests, README copy, and Directory copy do not expose gemini_watch, omni_watch, qwen, anthropic_fallback_oracle, or deep_ai_review as customer tools."
   ],
   "connector_decision": {
     "chatgpt_or_openai_connector": "defer",
     "reason": "MCP/API distribution is the current product-agent channel; connector review waits for hosted HTTPS MCP, account binding, report UX, abuse controls, and production cost evidence.",
-    "next_channel": "Anthropic Directory after public GitHub MCP install and npm package proof"
+    "next_channel": "Anthropic Directory after public npm MCP install proof"
   },
   "not_public_tools": [
     "gemini_watch",
@@ -83,11 +83,10 @@
     "deep_ai_review"
   ],
   "submission_blockers": [
-    "Publish @uploadcheck/mcp to npm.",
     "Configure checkout URLs or Lemon Squeezy Creator, Studio, and Network variants.",
     "Configure UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET on Render.",
     "Pass npm run saas-basics:verify against the current checkout, usage-limit, API-key, and Resend spend-alert code.",
     "Capture paid workspace API-key proof from hosted QC job creation through report fetch.",
-    "Capture public GitHub MCP client evidence from Claude Code, Codex, and Cursor in docs/private-mcp-beta-evidence-template.json."
+    "Capture public npm MCP client evidence from Claude Code, Codex, and Cursor in docs/private-mcp-beta-evidence-template.json."
   ]
 }

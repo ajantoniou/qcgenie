@@ -1,5 +1,5 @@
 {
-  "name": "@uploadcheck/mcp",
+  "name": "@drantoniou/uploadcheck-mcp",
   "version": "0.1.0",
   "type": "module",
   "description": "MCP wrapper for the UploadCheck hosted API.",

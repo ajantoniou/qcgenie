@@ -4,11 +4,11 @@ Prepared by the agent. **Every step marked [YOU] is a founder/ops action — the
 `npm publish`, `npm login`, or the public redeploy.** Agent can do the [AGENT-OK] prep on request.
 
 ## State verified now
-- `@uploadcheck/mcp` v0.1.0 — NOT on npm (E404). pack OK: 7 files, ~unpacked. bin `uploadcheck-mcp`.
-- `@uploadcheck/cli` v0.1.0 — NOT on npm (E404). pack OK: 4 files, 29.5kB. bin `uploadcheck`.
-- `npm whoami` → ENEEDAUTH (not logged in).
+- `@drantoniou/uploadcheck-mcp` v0.1.0 — published on npm. pack OK: 7 files. bin `uploadcheck-mcp`.
+- `@drantoniou/uploadcheck` v0.1.0 — published on npm. pack OK: 4 files. bin `uploadcheck`.
+- `npm whoami` → `drantoniou`.
 - Both `npm pack --dry-run` succeed — tarball contents are correct (no .env, no secrets in `files`).
-- `npm run npm-publish:preflight` is the read-only registry/auth check before founder publish. It must report both current versions as publishable and identify whether this machine is logged in.
+- `npm run npm-publish:preflight` is the registry/auth proof check. It reports both current versions published with tarball integrity, so registry install proof is captured.
 
 ## Scoped-package publish mode
 Both packages now set `"publishConfig": { "access": "public" }`, so `npm publish` uses the intended public scoped-package mode.
@@ -20,8 +20,8 @@ Both packages now set `"publishConfig": { "access": "public" }`, so `npm publish
 - [DONE] Verify `bin` shebangs (`#!/usr/bin/env node`) at top of both index.mjs so `npx` works. `npm run packages:verify` now enforces shebangs and executable bin modes.
 - [DONE] Add read-only npm registry/auth preflight. `npm run npm-publish:preflight` checks `npm view` for both exact versions and `npm whoami` without attempting to publish.
 - [AGENT-OK] Bump version if 0.1.0 was ever locally consumed (npm forbids re-publishing same version).
-- [YOU] `npm login` (or set `NPM_TOKEN`) as the @uploadcheck org owner.
-- [YOU] Confirm the `@uploadcheck` org/scope exists on npm and you can publish to it.
+- [DONE] `NPM_TOKEN` with bypass 2FA was set locally in ignored `.env` for the initial publish.
+- [DONE] Npm rejected unscoped `uploadcheck` as too similar to `upload_check`; package identity moved to the account scope npm suggested.
 
 ## Publish (YOU run these, in order)
 ```
@@ -29,7 +29,7 @@ cd "/Applications/DrAntoniou Projects/UploadCheck/cli"        && npm publish --a
 cd "/Applications/DrAntoniou Projects/UploadCheck/mcp-server" && npm publish --access public
 ```
 - [YOU] Verify registry install after publish:
-  `npm run packages:install-smoke` for local tarballs, then `npm view @uploadcheck/cli@latest version dist.tarball dist.integrity --json`, `npm view @uploadcheck/mcp@latest version dist.tarball dist.integrity --json`, and a clean `npx uploadcheck cost-basis --json`.
+  `npm run packages:install-smoke` for local tarballs, then `npm view @drantoniou/uploadcheck@latest version dist.tarball dist.integrity --json`, `npm view @drantoniou/uploadcheck-mcp@latest version dist.tarball dist.integrity --json`, and a clean `npx uploadcheck cost-basis --json`.
 
 ## Public artifact redeploy (YOU — separate from npm)
 The hosted manifests must reflect the new "call UploadCheck first -> fix flags -> rerun" workflow and the current private MCP beta gates.
@@ -47,3 +47,14 @@ The hosted manifests must reflect the new "call UploadCheck first -> fix flags -
 
 ## Internal-only guard
 - [DONE] `qc_run_gemini_backtest` / `gemini-backtest.mjs` is stripped from public `@uploadcheck/cli` and `@uploadcheck/mcp` package files and public MCP tools. Internal capture-rate measurement stays repo-only through `scripts/qc-engine/gemini_watch.py`.
+
+## 🐞 BUG FOUND (twins false-positive) — log for product
+- The `twins` check (`local_crowd_archetype_cluster` method) returns BLOCK with `duplicate_count:7`
+  on a PURE TEXT CARD (zero human faces). It clusters text glyphs / flat-background patches as
+  "facial archetype chips."
+- Repro: run twins on any Remotion/text-card clip → false BLOCK.
+- Fix: gate should detect "no detectable faces in frame" and SKIP/PASS the twins check for that
+  frame, OR require an actual face-detector hit before archetype-clustering. The MANDATORY_NO_SKIP
+  firewall shouldn't fire on faceless frames.
+- Impact: any NTO beat we replace with a text card will false-fail twins until this is fixed.
+  Workaround for now: human-eye confirms text cards are twin-free (no faces == no twins).

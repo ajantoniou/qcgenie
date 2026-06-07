@@ -8,15 +8,15 @@ hand-built --checks list; --fast only shortens requested expensive checks and is
 not a spend guardrail. Requested mandatory firewall checks such as twins must not
 skip clean when their runtime dependency is missing.
 Usage:
-  run_gate.py VIDEO [--checks canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,first_three_seconds,end_screen_tease,rehook_cadence,contact_sheet_evidence,opening_footer_text_presence,text_crop_jitter,thumbnail_text_readability,hallucinated_plate_text,clean_segment_source_scrub,asset_triage_reuse_manifest,chunk_sidecar_failures,spoken_leaks,pronunciation_watchlist,script_faithfulness,sentence_boundary,dialogue_in_music_short,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch,gemini_watch]
+  run_gate.py VIDEO [--checks canvas_fill,loop_freeze,repeat_fatigue,speaker_visual_binding,static_head_dominance,literal_subject_match,visual_narration_match,first_three_seconds,end_screen_tease,rehook_cadence,contact_sheet_evidence,opening_footer_text_presence,text_crop_jitter,thumbnail_text_readability,hallucinated_plate_text,clean_segment_source_scrub,asset_triage_reuse_manifest,chunk_sidecar_failures,spoken_leaks,pronunciation_watchlist,script_faithfulness,sentence_boundary,dialogue_in_music_short,dead_air,cheap_broll,text_contrast,text_safe_area,garble,twins,narration_match,omni_watch,gemini_watch]
               [--deterministic-only] [--lang eng] [--out DIR] [--manifest storybook.json] [--transcript transcript.txt] [--watchlist watchlist.json] [--expected-script script.txt] [--sidecar-dir _dialogue-chunks] [--fast]
 Exit 0 only if every RUN check PASSES.
 """
 import sys, os, json, subprocess, argparse, time
 
 HERE=os.path.dirname(os.path.abspath(__file__))
-ALL=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","opening_footer_text_presence","text_crop_jitter","thumbnail_text_readability","hallucinated_plate_text","clean_segment_source_scrub","asset_triage_reuse_manifest","chunk_sidecar_failures","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dialogue_in_music_short","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch","gemini_watch","shorts_format"]
-DEFAULT=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","opening_footer_text_presence","text_crop_jitter","thumbnail_text_readability","hallucinated_plate_text","clean_segment_source_scrub","asset_triage_reuse_manifest","chunk_sidecar_failures","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dialogue_in_music_short","dead_air","text_contrast","text_safe_area","shorts_format"]
+ALL=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","visual_narration_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","opening_footer_text_presence","text_crop_jitter","thumbnail_text_readability","hallucinated_plate_text","clean_segment_source_scrub","asset_triage_reuse_manifest","chunk_sidecar_failures","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dialogue_in_music_short","dead_air","cheap_broll","text_contrast","text_safe_area","garble","twins","narration_match","omni_watch","gemini_watch","shorts_format"]
+DEFAULT=["canvas_fill","loop_freeze","repeat_fatigue","speaker_visual_binding","static_head_dominance","literal_subject_match","visual_narration_match","first_three_seconds","end_screen_tease","rehook_cadence","contact_sheet_evidence","opening_footer_text_presence","text_crop_jitter","thumbnail_text_readability","hallucinated_plate_text","clean_segment_source_scrub","asset_triage_reuse_manifest","chunk_sidecar_failures","spoken_leaks","pronunciation_watchlist","script_faithfulness","sentence_boundary","dialogue_in_music_short","dead_air","text_contrast","text_safe_area","shorts_format"]
 PAID_ORACLE_CHECKS={"cheap_broll","garble","twins","narration_match","omni_watch","gemini_watch"}
 SCRIPT={c:f"check_{c}.py" for c in ALL}; SCRIPT["omni_watch"]="omni_watch.py"; SCRIPT["gemini_watch"]="gemini_watch.py"
 MANDATORY_NO_SKIP={"twins"}
@@ -28,10 +28,12 @@ def run(check,video,lang,outdir,fast,manifest=None,transcript=None,watchlist=Non
     if check=="speaker_visual_binding" and manifest: cmd+=["--manifest",manifest]
     if check=="static_head_dominance" and manifest: cmd+=["--manifest",manifest]
     if check=="literal_subject_match" and manifest: cmd+=["--manifest",manifest]
+    if check=="visual_narration_match" and manifest: cmd+=["--manifest",manifest]
     if check=="first_three_seconds" and manifest: cmd+=["--manifest",manifest]
     if check=="end_screen_tease" and manifest: cmd+=["--manifest",manifest]
     if check=="rehook_cadence" and manifest: cmd+=["--manifest",manifest]
     if check=="contact_sheet_evidence" and manifest: cmd+=["--manifest",manifest]
+    if check=="twins" and manifest: cmd+=["--manifest",manifest]
     if check=="opening_footer_text_presence" and manifest: cmd+=["--manifest",manifest]
     if check=="text_crop_jitter" and manifest: cmd+=["--manifest",manifest]
     if check=="hallucinated_plate_text" and manifest: cmd+=["--manifest",manifest]
