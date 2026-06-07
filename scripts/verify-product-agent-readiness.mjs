@@ -165,7 +165,6 @@ console.log(JSON.stringify({
   recommendedDistributionPath: [
     "Keep private MCP beta as the current channel.",
     "Publish @uploadcheck/mcp and @uploadcheck/cli after founder npm login/org confirmation.",
-    "Redeploy api.uploadcheck.app artifacts so hosted /mcp-install.json and launch evidence are current.",
     "Collect external Claude Code, Codex, and Cursor beta proof with workspace API keys.",
     "Prepare Anthropic Directory after paid workspace proof; defer OpenAI connector/app."
   ],
@@ -175,7 +174,6 @@ console.log(JSON.stringify({
   ],
   publicBlockers: [
     "npm packages are not published",
-    "hosted artifacts must be redeployed",
     "registry install proof is not captured",
     "external beta evidence is not captured"
   ],

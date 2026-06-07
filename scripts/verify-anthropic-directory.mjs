@@ -44,6 +44,7 @@ const requiredEvidenceCommands = [
   "npm run product-agent:verify",
   "npm run private-mcp-beta:verify",
   "npm run private-mcp-beta:evidence",
+  "npm run private-mcp-beta:capture -- /path/to/sanitized-client-proof.json",
   "npm run checkout-launch:verify",
   "npm run saas-basics:verify",
   "npm run codex:verify-install",
@@ -163,6 +164,9 @@ if (!beta.includes("External Claude Code, Codex, Cursor, and MCP clients must us
 }
 if (!beta.includes("Run `npm run private-mcp-beta:evidence` before treating the proof contract as valid.")) {
   errors.push({ key: "docs/PRIVATE-MCP-BETA.md", reason: "missing_beta_evidence_contract_command" });
+}
+if (!beta.includes("npm run private-mcp-beta:capture -- /path/to/sanitized-client-proof.json")) {
+  errors.push({ key: "docs/PRIVATE-MCP-BETA.md", reason: "missing_beta_evidence_capture_command" });
 }
 for (const client of ["claude_code", "codex", "cursor"]) {
   if (!betaEvidence.required_clients?.includes(client)) {

@@ -39,6 +39,7 @@ requireIncludes(files.beta, beta, [
   "Owner spend alerts must record, email through Resend, and remain reviewable",
   "Use `docs/private-mcp-beta-evidence-template.json` to capture proof for Claude Code, Codex, and Cursor.",
   "Run `npm run private-mcp-beta:evidence` before treating the proof contract as valid.",
+  "npm run private-mcp-beta:capture -- /path/to/sanitized-client-proof.json",
   "Do not publish broad install copy or submit Anthropic Directory until:"
 ]);
 
@@ -91,6 +92,7 @@ for (const script of [
   "npm-publish:preflight",
   "saas-basics:verify",
   "private-mcp-beta:evidence",
+  "private-mcp-beta:capture",
   "codex:verify-install",
   "anthropic-directory:verify",
   "mcp-install:verify",
@@ -155,7 +157,6 @@ console.log(JSON.stringify({
     "npm run readiness:check"
   ],
   remainingExternalLaunchBlockers: [
-    "hosted artifact redeploy proving /mcp-install.json and launch evidence are current",
     "npm publish and registry install proof",
     "external Claude/Codex/Cursor beta evidence with workspace API keys"
   ]

@@ -50,6 +50,7 @@
     "anthropic-directory:verify": "node scripts/verify-anthropic-directory.mjs",
     "private-mcp-beta:verify": "node scripts/verify-private-mcp-beta.mjs",
     "private-mcp-beta:evidence": "node scripts/verify-private-mcp-beta-evidence.mjs",
+    "private-mcp-beta:capture": "node scripts/capture-private-mcp-beta-evidence.mjs",
     "product-agent:verify": "node scripts/verify-product-agent-readiness.mjs",
     "checkout-launch:verify": "node scripts/verify-checkout-launch-handoff.mjs",
     "mcp-install:verify": "node scripts/verify-mcp-install-artifact.mjs",

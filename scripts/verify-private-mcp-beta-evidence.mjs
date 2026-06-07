@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const evidencePath = "docs/private-mcp-beta-evidence-template.json";
+const evidencePath = process.env.UPLOADCHECK_PRIVATE_MCP_BETA_EVIDENCE_PATH || "docs/private-mcp-beta-evidence-template.json";
 const payload = JSON.parse(readFileSync(resolve(evidencePath), "utf8"));
 const errors = [];
 

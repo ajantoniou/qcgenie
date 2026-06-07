@@ -101,6 +101,15 @@ Each captured client proof must include:
 
 Run `npm run private-mcp-beta:evidence` before treating the proof contract as valid. The verifier allows the template to remain `template_not_captured`, but Directory/public submission cannot move forward until all three client proofs are captured.
 
+To merge one sanitized client proof into the evidence file:
+
+```bash
+npm run private-mcp-beta:capture -- /path/to/sanitized-client-proof.json
+npm run private-mcp-beta:evidence
+```
+
+The capture helper rejects raw API keys, token/hash-looking strings, forbidden internal tools, missing cost preflight, and missing report fetches.
+
 Before handing the beta instructions to another workspace, run:
 
 ```bash
