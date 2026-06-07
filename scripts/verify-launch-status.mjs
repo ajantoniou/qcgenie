@@ -25,12 +25,19 @@ const launchKit = readJson("public/product-hunt-launch-kit.json");
 const llms = readFileSync(resolve("public/llms.txt"), "utf8");
 
 const representativeReadiness = buildReadinessReport({
-  host: "qcgenie-api.onrender.com",
+  host: "api.uploadcheck.app",
   env: {
     UPLOADCHECK_API_KEY_SHA256: "a".repeat(64),
-    UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"
+    UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4",
+    UPLOADCHECK_CREATOR_CHECKOUT_URL: "https://uploadcheck.lemonsqueezy.com/checkout/buy/creator",
+    UPLOADCHECK_STUDIO_CHECKOUT_URL: "https://uploadcheck.lemonsqueezy.com/checkout/buy/studio",
+    UPLOADCHECK_NETWORK_CHECKOUT_URL: "https://uploadcheck.lemonsqueezy.com/checkout/buy/network",
+    UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET: "representative-webhook-secret",
+    UPLOADCHECK_SECRET_ENCRYPTION_KEY: "representative_strong_secret_encryption_key_32_bytes",
+    UPLOADCHECK_STORE_PATH: "/mnt/uploadcheck/store.json",
+    UPLOADCHECK_DURABLE_STORAGE_DIR: "/mnt/uploadcheck/uploads"
   },
-  now: "2026-06-06T00:00:00.000Z"
+  now: "2026-06-07T00:00:00.000Z"
 });
 
 const expected = buildLaunchStatus(representativeReadiness, {

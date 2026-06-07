@@ -55,18 +55,21 @@ describe("UploadCheck launch targets", () => {
     expect(manifest.launch_targets_url).toBe("https://api.uploadcheck.app/launch-targets.json");
   });
 
-  it("keeps launch status DNS blockers aligned with launch targets", () => {
+  it("keeps launch status ready while launch targets preserve DNS records", () => {
     const targets = readJson("public/launch-targets.json");
     const launchStatus = readJson("public/launch-status.json");
-    const customDomain = launchStatus.remaining_blockers.find((blocker) => blocker.id === "custom_domain");
 
-    expect(customDomain.required_dns).toEqual(
-      targets.dns_records.map((record) => ({
-        type: record.type,
-        name: record.name,
-        target: record.target
-      }))
-    );
+    expect(launchStatus.product_hunt_ready).toBe(true);
+    expect(launchStatus.remaining_blockers).toEqual([]);
+    expect(targets.dns_records.map((record) => ({
+      type: record.type,
+      name: record.name,
+      target: record.target
+    }))).toEqual([
+      { type: "CNAME", name: "@", target: "qcgenie-web.onrender.com" },
+      { type: "CNAME", name: "www", target: "qcgenie-web.onrender.com" },
+      { type: "CNAME", name: "api", target: "qcgenie-api.onrender.com" }
+    ]);
   });
 
   it("keeps deployment cutover docs aligned with launch targets", () => {

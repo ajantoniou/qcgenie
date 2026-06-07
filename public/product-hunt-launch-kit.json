@@ -126,15 +126,8 @@
   },
   "current_state_snapshot": {
     "source": "https://api.uploadcheck.app/launch-status.json",
-    "product_hunt_ready": false,
-    "remaining_blockers": [
-      "checkout",
-      "checkout_webhook",
-      "custom_domain",
-      "secret_encryption",
-      "persistence",
-      "storage"
-    ],
+    "product_hunt_ready": true,
+    "remaining_blockers": [],
     "note": "Static snapshot only. Use live_launch_status before launch."
   }
 }

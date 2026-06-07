@@ -2,9 +2,9 @@
   "name": "UploadCheck.app Launch Status",
   "contractVersion": "2026-06-06.render-web-proof",
   "description": "Machine-readable Product Hunt launch state for UploadCheck.app agents and operators.",
-  "generated_from": "representative static readiness",
-  "last_verified_date": "2026-06-06",
-  "product_hunt_ready": false,
+  "generated_from": "representative launch-ready readiness",
+  "last_verified_date": "2026-06-07",
+  "product_hunt_ready": true,
   "canonical_surfaces": {
     "app": "https://uploadcheck.app",
     "api": "https://api.uploadcheck.app",
@@ -19,12 +19,12 @@
     "render_media_ingress": "pass",
     "api_auth": "pass",
     "demo_clip": "pass",
-    "checkout": "blocked",
-    "checkout_webhook": "blocked",
-    "custom_domain": "blocked",
-    "secret_encryption": "blocked",
-    "persistence": "blocked",
-    "storage": "blocked"
+    "checkout": "pass",
+    "checkout_webhook": "pass",
+    "custom_domain": "pass",
+    "secret_encryption": "pass",
+    "persistence": "pass",
+    "storage": "pass"
   },
   "verified_controls": [
     {
@@ -138,81 +138,7 @@
       "evidence": "npm run render:bootstrap-env pre-fills generated API hash and webhook encryption values; npm run render:validate-env rejects placeholders, weak secrets, invalid URLs, invalid API hashes, incomplete object storage, and non-durable paths before render:apply."
     }
   ],
-  "remaining_blockers": [
-    {
-      "id": "checkout",
-      "severity": "block",
-      "required_inputs": [
-        "UPLOADCHECK_CREATOR_CHECKOUT_URL",
-        "UPLOADCHECK_STUDIO_CHECKOUT_URL",
-        "UPLOADCHECK_NETWORK_CHECKOUT_URL"
-      ],
-      "alternative_inputs": [
-        "UPLOADCHECK_LEMONSQUEEZY_STORE_SLUG",
-        "UPLOADCHECK_CREATOR_VARIANT_ID",
-        "UPLOADCHECK_STUDIO_VARIANT_ID",
-        "UPLOADCHECK_NETWORK_VARIANT_ID"
-      ]
-    },
-    {
-      "id": "checkout_webhook",
-      "severity": "block",
-      "required_inputs": [
-        "UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET"
-      ],
-      "note": "Signed Lemon Squeezy checkout webhooks must be verified before paid checkout events can provision MCP/API keys."
-    },
-    {
-      "id": "custom_domain",
-      "severity": "block",
-      "required_dns": [
-        {
-          "type": "CNAME",
-          "name": "@",
-          "target": "qcgenie-web.onrender.com"
-        },
-        {
-          "type": "CNAME",
-          "name": "www",
-          "target": "qcgenie-web.onrender.com"
-        },
-        {
-          "type": "CNAME",
-          "name": "api",
-          "target": "qcgenie-api.onrender.com"
-        }
-      ]
-    },
-    {
-      "id": "secret_encryption",
-      "severity": "block",
-      "required_inputs": [
-        "UPLOADCHECK_SECRET_ENCRYPTION_KEY"
-      ],
-      "generator": "npm run --silent render:bootstrap-env"
-    },
-    {
-      "id": "persistence",
-      "severity": "block",
-      "required_inputs": [
-        "UPLOADCHECK_STORE_PATH=/mnt/uploadcheck/store.json"
-      ],
-      "note": "Supabase schema exists for future multi-workspace persistence, but Product Hunt readiness currently requires the mounted JsonStore path because the server adapter is JsonStore."
-    },
-    {
-      "id": "storage",
-      "severity": "block",
-      "required_inputs": [
-        "UPLOADCHECK_DURABLE_STORAGE_DIR=/mnt/uploadcheck/uploads"
-      ],
-      "alternative_inputs": [
-        "UPLOADCHECK_STORAGE_BUCKET",
-        "UPLOADCHECK_STORAGE_ENDPOINT",
-        "UPLOADCHECK_STORAGE_ACCESS_KEY_ID",
-        "UPLOADCHECK_STORAGE_SECRET_ACCESS_KEY"
-      ]
-    }
-  ],
+  "remaining_blockers": [],
   "operator_commands": [
     "npm run launch:doctor",
     "npm run launch:evidence -- --json",

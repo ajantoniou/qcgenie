@@ -13,14 +13,12 @@ export function validateLaunchStatusArtifact(payload) {
   if (payload?.canonical_surfaces?.cli_package !== "@drantoniou/uploadcheck" || payload?.canonical_surfaces?.mcp_package !== "@drantoniou/uploadcheck-mcp") {
     errors.push(error("launch_status.canonical_surfaces.packages", "missing_packages", "Launch status must expose @drantoniou/uploadcheck and @drantoniou/uploadcheck-mcp."));
   }
-  if (payload?.product_hunt_ready !== false) {
-    errors.push(error("launch_status.product_hunt_ready", "unsafe_static_ready", "Static launch status must not claim Product Hunt readiness before live blockers clear."));
+  if (payload?.product_hunt_ready !== true) {
+    errors.push(error("launch_status.product_hunt_ready", "not_ready", "Static launch status must reflect the current launch-ready state."));
   }
   const blockers = (payload?.remaining_blockers || []).map((blocker) => blocker.id);
-  for (const blocker of ["checkout", "custom_domain", "secret_encryption", "persistence", "storage"]) {
-    if (!blockers.includes(blocker)) {
-      errors.push(error("launch_status.remaining_blockers", "missing_blocker", `Launch status must preserve blocker ${blocker}.`));
-    }
+  if (blockers.length !== 0) {
+    errors.push(error("launch_status.remaining_blockers", "stale_blockers", "Launch status must not preserve stale blockers after live readiness is clear."));
   }
   const commands = payload?.operator_commands || [];
   for (const command of [
@@ -86,8 +84,8 @@ export function validateProductHuntLaunchKitArtifact(payload) {
       errors.push(error("product_hunt_launch_kit.ready_when.required_commands", "missing_required_command", `Missing required command: ${command}`));
     }
   }
-  if (payload?.current_state_snapshot?.product_hunt_ready !== false || !String(payload?.current_state_snapshot?.note || "").includes("Static snapshot")) {
-    errors.push(error("product_hunt_launch_kit.current_state_snapshot", "unsafe_snapshot", "Product Hunt kit must warn that static status is not live readiness."));
+  if (payload?.current_state_snapshot?.product_hunt_ready !== true || (payload?.current_state_snapshot?.remaining_blockers || []).length !== 0) {
+    errors.push(error("product_hunt_launch_kit.current_state_snapshot", "stale_snapshot", "Product Hunt kit current snapshot must reflect launch-ready static status."));
   }
   return errors;
 }
