@@ -29,6 +29,7 @@ try {
         UPLOADCHECK_API_KEY: apiKey,
         UPLOADCHECK_STORE_PATH: join(tempDir, "store.json"),
         UPLOADCHECK_UPLOAD_DIR: join(tempDir, "uploads"),
+        UPLOADCHECK_DURABLE_STORAGE_DIR: join(tempDir, "uploads"),
         UPLOADCHECK_INLINE_MEDIA_MAX_MB: "1",
         UPLOADCHECK_MAX_UPLOAD_MB: "1",
         UPLOADCHECK_BUNDLED_DEMO_CLIP_PATH: "public/demo/uploadcheck-product-hunt-demo.mp4"

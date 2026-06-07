@@ -49,6 +49,9 @@ export function buildStorageSummary(env = process.env, options = {}) {
 export function formatStorageSummary(summary = buildStorageSummary()) {
   const lines = [];
   lines.push(`UploadCheck persistence/storage config: ${summary.ok ? "READY" : "NOT READY"}`);
+  if (summary.hostedProof?.checked) {
+    lines.push(`Hosted storage proof: ${summary.hostedProof.ok ? "pass" : "fail"} ${summary.hostedProof.url || ""}`.trim());
+  }
   lines.push("");
   lines.push(`${summary.persistence.ok ? "PASS" : "BLOCK"} persistence (${summary.persistence.mode})`);
   lines.push(`  storePath: ${summary.persistence.storePath}`);

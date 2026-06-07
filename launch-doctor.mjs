@@ -5,7 +5,7 @@ export const LAUNCH_DOCTOR_STEPS = [
   { id: "checkout", label: "Check checkout configuration", command: ["npm", "run", "--silent", "launch:checkout"] },
   { id: "checkout-probe", label: "Probe live checkout reachability", command: ["npm", "run", "--silent", "launch:checkout"], env: { UPLOADCHECK_CHECKOUT_PROBE: "1" } },
   { id: "storage", label: "Check persistence and storage configuration", command: ["npm", "run", "--silent", "launch:storage"] },
-  { id: "storage-probe", label: "Probe writable durable storage", command: ["npm", "run", "--silent", "launch:storage"], env: { UPLOADCHECK_STORAGE_PROBE: "1" } },
+  { id: "storage-probe", label: "Probe hosted durable storage proof", command: ["npm", "run", "--silent", "launch:storage"], env: { UPLOADCHECK_STORAGE_PROBE: "hosted" } },
   { id: "render-config", label: "Verify Render blueprint", command: ["npm", "run", "--silent", "render:verify"] },
   { id: "media-ingress", label: "Verify programmatic video/audio ingress", command: ["npm", "run", "--silent", "media-ingress:verify"] },
   { id: "hosted-launch-doctor", label: "Verify hosted launch doctor endpoint", command: ["npm", "run", "--silent", "live-launch-doctor:verify"] },

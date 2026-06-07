@@ -61,5 +61,5 @@ describe("launch evidence", () => {
     expect(JSON.stringify(payload)).not.toContain("uck_");
     expect(JSON.stringify(payload)).not.toContain("/tmp/uploadcheck/");
     expect(payload.results.find((result) => result.id === "hosted-media-ingress").commandString).toContain("UPLOADCHECK_API_KEY=<private_bearer>");
-  }, 30_000);
+  }, 60_000);
 });

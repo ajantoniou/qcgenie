@@ -101,6 +101,7 @@ describe("Product Hunt launch kit", () => {
       "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify",
       "npm run live-web-artifacts:verify",
       "npm run launch-status:generate",
+      "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
       "npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env"
     ]);
 

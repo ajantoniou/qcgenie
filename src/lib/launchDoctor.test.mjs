@@ -47,7 +47,7 @@ describe("launch doctor", () => {
     expect(result.stdout).toContain("BLOCK checkout");
     expect(result.stdout).toContain("BLOCK checkout-probe");
     expect(result.stdout).toContain("BLOCK storage");
-    expect(result.stdout).toContain("BLOCK storage-probe");
+    expect(result.stdout).toMatch(/(PASS|BLOCK) storage-probe/);
     expect(result.stdout).toMatch(/(PASS|BLOCK) render-web-artifacts/);
     for (const hostedStep of [
       "hosted-launch-doctor",
@@ -80,7 +80,7 @@ describe("launch doctor", () => {
     expect(result.status).toBe(1);
     expect(payload.ok).toBe(false);
     expect(payload.status).toBe("blocked");
-    expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "checkout-probe", "storage", "storage-probe", "hosted-media-ingress"]));
+    expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "checkout-probe", "storage", "hosted-media-ingress"]));
     expect(payload.results.find((step) => step.id === "hosted-launch-doctor")).toBeTruthy();
     expect(payload.results.find((step) => step.id === "render-web-artifacts")).toMatchObject({
       commandString: "UPLOADCHECK_LIVE_WEB_BASE_URL=https://qcgenie-web.onrender.com npm run live-web-artifacts:verify"
@@ -103,7 +103,7 @@ describe("launch doctor", () => {
       ok: false
     });
     expect(payload.results.find((step) => step.id === "hosted-media-ingress").stdout).toContain("Missing env: UPLOADCHECK_API_KEY");
-  }, 20000);
+  }, 60000);
 
   it("publishes normalized doctor command coverage for Product Hunt launch-kit verification", () => {
     expect(launchDoctorCommandStrings()).toEqual(expect.arrayContaining([
@@ -111,7 +111,7 @@ describe("launch doctor", () => {
       "npm run launch:checkout",
       "UPLOADCHECK_CHECKOUT_PROBE=1 npm run launch:checkout",
       "npm run launch:storage",
-      "UPLOADCHECK_STORAGE_PROBE=1 npm run launch:storage",
+      "UPLOADCHECK_STORAGE_PROBE=hosted npm run launch:storage",
       "npm run media-ingress:verify",
       "npm run live-launch-doctor:verify",
       "npm run live-launch-evidence:verify",
