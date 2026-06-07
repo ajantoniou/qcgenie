@@ -192,6 +192,7 @@ export function validateLlmsArtifact(text) {
     "Checked minutes are deterministic publish-readiness QC minutes",
     "Internal AI helps improve the QC engine",
     "report feeds back to the user's LLM",
+    "Included minutes reset monthly and do not roll over",
     "no public self-serve extra-minute or credit purchase flow yet",
     "NTO/NPO pipeline profiles"
   ];

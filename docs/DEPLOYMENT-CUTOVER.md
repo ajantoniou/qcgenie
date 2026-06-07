@@ -1,6 +1,6 @@
 # UploadCheck.app Deployment Cutover
 
-Current verified state on 2026-06-05:
+Current verified state on 2026-06-07:
 
 - Render static site display name: `uploadcheck-web`
 - Render static site service id: `srv-d8hk200jo6nc73er93u0`
@@ -8,11 +8,11 @@ Current verified state on 2026-06-05:
 - Render API display name: `uploadcheck-api`
 - Render API service id: `srv-d8hk74svikkc73cu6atg`
 - Live Render API URL: `https://qcgenie-api.onrender.com`
-- Root custom domain on Render: `uploadcheck.app`, status `unverified`
-- Redirect custom domain on Render: `www.uploadcheck.app`, status `unverified`, redirects to `uploadcheck.app`
-- API custom domain on Render: `api.uploadcheck.app`, status `unverified`
+- Root custom domain on Render: `uploadcheck.app`, configured; live DNS/HTTP pass, while Render audit still reports `unverified`
+- Redirect custom domain on Render: `www.uploadcheck.app`, configured; live DNS/HTTP pass with redirect, while Render audit still reports `unverified`
+- API custom domain on Render: `api.uploadcheck.app`, configured; live DNS/HTTP pass, while Render audit still reports `unverified`
 
-The `uploadcheck-api.onrender.com` and `uploadcheck-web.onrender.com` hostnames are not live because Render retained the original immutable service slugs after the display-name rename. Use the live `qcgenie-*` Render URLs until DNS/custom domains verify.
+The `uploadcheck-api.onrender.com` and `uploadcheck-web.onrender.com` hostnames are not live because Render retained the original immutable service slugs after the display-name rename. Public users should use `https://uploadcheck.app` and `https://api.uploadcheck.app`; operators can keep the live `qcgenie-*` Render URLs as fallback service slugs.
 
 ## DNS Records Needed
 

@@ -75,6 +75,7 @@ describe("public sample reports", () => {
     expect(llms).toContain("report feeds back to the user's LLM");
     expect(llms).toContain("UploadCheck is the SaaS QC authority");
     expect(llms).toContain("No broad rewrite, no taste-based refactor");
+    expect(llms).toContain("Included minutes reset monthly and do not roll over");
     expect(llms).toContain("no public self-serve extra-minute or credit purchase flow yet");
     expect(llms).toContain("Veo 3 Standard video+audio at $0.40/second");
     expect(llms).toContain("Higgsfield uses credits that vary by model");

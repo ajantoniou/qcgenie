@@ -60,7 +60,7 @@
     "stress_99_5000_remaining_cogs_after_deterministic_cents_per_minute": 0.0157,
     "stress_99_5000_verdict": "$99 / 5,000 is too generous for full-model review; public pricing stays deterministic QC minutes.",
     "deep_model_review_position": "Internal engine backtesting and deterministic capture-rate measurement, not a public minute allowance.",
-    "extra_minutes": "No public self-serve extra-minute or credit purchase flow yet; users upgrade plans or contact the operator when included minutes are exhausted."
+    "extra_minutes": "Included minutes reset monthly and do not roll over. No public self-serve extra-minute or credit purchase flow yet; users upgrade plans or contact the operator when included minutes are exhausted."
   },
   "answer_engine_topics": [
     "Video quality checker before YouTube upload",

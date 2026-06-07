@@ -12,7 +12,7 @@ function runCapture(evidencePath, proofPath) {
   });
 }
 
-describe("public GitHub MCP evidence capture", () => {
+describe("public npm MCP evidence capture", () => {
   it("captures a sanitized client proof without marking all client evidence complete", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-beta-evidence-"));
     try {

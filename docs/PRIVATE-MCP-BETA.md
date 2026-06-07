@@ -13,6 +13,7 @@ UploadCheck is currently a public npm MCP install with public GitHub/local check
 - Stored customer keys can only create/read uploads, register/review/drain webhooks, read, report, cancel, import gate verdicts for, drain queued jobs, list, and meter jobs in their own workspace. Active-job concurrency limits are also evaluated within the stored key's workspace. If a stored key has API-key review/provisioning scopes, those routes are still pinned to the stored key's own workspace, owner, plan economics, and overage cap, including checkout provisioning. Operator/admin bearer keys keep broader provisioning and review access.
 - Redacted workspace API keys must be reviewable through the dashboard or `GET /v1/api-keys` with `api_keys:read`, without exposing token hashes or bearer secrets.
 - Abuse events must be visible through the dashboard or `GET /v1/abuse-events`.
+- Included minutes reset monthly and do not roll over.
 - Extra deterministic minutes require approved `overage_cap_cents`; a zero or omitted cap blocks at included minutes and records `usage_limit_exceeded`.
 - Owner spend alerts must record, email through Resend, and remain reviewable through the dashboard or `GET /v1/spend-alerts` when billable extra-minute spend crosses 100% of subscription value. COGS stays visible as audit context, but the trigger follows customer overage spend.
 

@@ -51,7 +51,7 @@
       <section class="section">
         <h2>Direct API setup</h2>
         <div class="twoGrid">
-          <article class="answer"><h2>Workspace key</h2><p>Every MCP or API caller needs <code>Authorization: Bearer &lt;workspace_api_key&gt;</code>. Workspace keys are tied to included plan minutes or an operator-created account. There is no public self-serve extra-minute or credit purchase flow yet.</p></article>
+          <article class="answer"><h2>Workspace key</h2><p>Every MCP or API caller needs <code>Authorization: Bearer &lt;workspace_api_key&gt;</code>. Workspace keys are tied to included plan minutes or an operator-created account. Included minutes reset monthly and do not roll over. There is no public self-serve extra-minute or credit purchase flow yet.</p></article>
           <article class="answer"><h2>REST example</h2><pre><code>curl https://api.uploadcheck.app/v1/qc/jobs \
   -H "Authorization: Bearer &lt;workspace_api_key&gt;" \
   -H "Content-Type: application/json" \

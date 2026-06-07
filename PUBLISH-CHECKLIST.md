@@ -23,16 +23,17 @@ Both packages now set `"publishConfig": { "access": "public" }`, so `npm publish
 - [DONE] `NPM_TOKEN` with bypass 2FA was set locally in ignored `.env` for the initial publish.
 - [DONE] Npm rejected unscoped `uploadcheck` as too similar to `upload_check`; package identity moved to the account scope npm suggested.
 
-## Publish (YOU run these, in order)
+## Publish (done)
 ```
 cd "/Applications/DrAntoniou Projects/UploadCheck/cli"        && npm publish --access public
 cd "/Applications/DrAntoniou Projects/UploadCheck/mcp-server" && npm publish --access public
 ```
-- [YOU] Verify registry install after publish:
+- [DONE] Published `@drantoniou/uploadcheck@0.1.0` and `@drantoniou/uploadcheck-mcp@0.1.0`.
+- [DONE] Verify registry install after publish:
   `npm run packages:install-smoke` for local tarballs, then `npm view @drantoniou/uploadcheck@latest version dist.tarball dist.integrity --json`, `npm view @drantoniou/uploadcheck-mcp@latest version dist.tarball dist.integrity --json`, and a clean `npx uploadcheck cost-basis --json`.
 
 ## Public artifact redeploy (YOU — separate from npm)
-The hosted manifests must reflect the new "call UploadCheck first -> fix flags -> rerun" workflow and the current private MCP beta gates.
+The hosted manifests must reflect the new "call UploadCheck first -> fix flags -> rerun" workflow and the current public npm MCP gates.
 - [YOU] Redeploy whatever serves `api.uploadcheck.app` (the `dist/` artifacts: agent-manifest.json,
   launch-status.json, product-hunt-launch-kit.json, mcp-install.json, pipeline-recipes.json,
   npo-pipeline-handoff.json, llms.txt, install docs, and launch doctor/evidence endpoints).
@@ -46,7 +47,7 @@ The hosted manifests must reflect the new "call UploadCheck first -> fix flags -
   (These are [AGENT-OK] to RUN as read-only checks against the live URL once you've deployed.)
 
 ## Internal-only guard
-- [DONE] `qc_run_gemini_backtest` / `gemini-backtest.mjs` is stripped from public `@uploadcheck/cli` and `@uploadcheck/mcp` package files and public MCP tools. Internal capture-rate measurement stays repo-only through `scripts/qc-engine/gemini_watch.py`.
+- [DONE] `qc_run_gemini_backtest` / `gemini-backtest.mjs` is stripped from public `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp` package files and public MCP tools. Internal capture-rate measurement stays repo-only through `scripts/qc-engine/gemini_watch.py`.
 
 ## 🐞 BUG FOUND (twins false-positive) — log for product
 - The `twins` check (`local_crowd_archetype_cluster` method) returns BLOCK with `duplicate_count:7`

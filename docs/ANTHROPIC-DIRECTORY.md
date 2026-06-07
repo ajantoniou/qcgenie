@@ -49,6 +49,7 @@ Internal product-testing oracles such as `scripts/qc-engine/gemini_watch.py` are
 - The dashboard or checkout provisioning path can create a workspace API key only with authenticated provisioning authority, applies plan economics server-side, and never exposes the stored hash or future copies of the bearer
 - Lemon Squeezy checkout webhooks are verified with `X-Signature` HMAC-SHA256 and `UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET` before they can provision an MCP/API key
 - A job that crosses the subscription-value threshold on billable extra-minute spend records a spend alert, sends the owner email through Resend, and remains reviewable through `GET /v1/spend-alerts` with COGS retained as audit context
+- Billing policy proof that included minutes reset monthly and do not roll over
 - Public npm MCP proof from Claude Code, Codex, and Cursor using workspace API keys and the public MCP tool surface only, captured in `docs/private-mcp-beta-evidence-template.json`
 - No public MCP manifest, package file list, Directory draft, or README path exposes `gemini_watch`, `omni_watch`, `qwen`, `anthropic_fallback_oracle`, or `deep_ai_review` as a customer tool
 

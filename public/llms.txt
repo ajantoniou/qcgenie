@@ -80,6 +80,7 @@ Pricing:
 - Checked minutes are not bundled AI review minutes.
 - Internal AI helps improve the QC engine; it is not sold as a separate public review feature.
 - Re-checks count because UploadCheck analyzes the actual media file each time.
+- Included minutes reset monthly and do not roll over.
 - There is no public self-serve extra-minute or credit purchase flow yet; users upgrade plans or contact the operator when included minutes are exhausted.
 - Most serious solo creators are expected to fit around 300-1,800 checked minutes/month; 2,400 minutes gives room for weekly uploads, clip batches, and repeated final checks.
 - Heavy users are expected around 4,000-8,500 checked minutes/month.

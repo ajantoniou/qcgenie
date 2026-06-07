@@ -66,7 +66,7 @@ Public API:
 - Render Blueprint verifier: `npm run render:verify`
 - Render API launch helper: `npm run render:bootstrap-env`, `npm run render:env-template`, `npm run render:plan`, `npm run render:validate-env-file -- /tmp/uploadcheck-render-launch.env`, `npm run render:validate-env`, `npm run render:audit`, `npm run render:apply`
 - Package publish verifier: `npm run packages:verify` checks `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp` identity, bins, lock metadata, and `npm pack --dry-run` contents.
-- Public GitHub MCP verifier: `npm run private-mcp-beta:verify` checks the install handoff, install manifest, package scripts, Directory prep, workspace-key rule, and no-public-npm/self-serve claims.
+- Public npm MCP verifier: `npm run private-mcp-beta:verify` checks the install handoff, install manifest, package scripts, Directory prep, workspace-key rule, and public install claims.
 - Product-agent readiness verifier: `npm run product-agent:verify` checks whether Claude Code, Codex, Cursor, and MCP clients are usable through public GitHub/local install without claiming public npm/download readiness.
 - Checkout launch handoff verifier: `npm run checkout-launch:verify` checks checkout/webhook docs, Render env template, OpenAPI, and readiness actions for the exact remaining launch inputs.
 - MCP install artifact verifier: `npm run mcp-install:verify` checks public `/mcp-install.json` against the package manifest and agent/OpenAPI links.
@@ -93,7 +93,7 @@ Persistence state:
 - Due pending webhook deliveries can be drained in batches through `/v1/webhooks/deliveries/drain`.
 - Render cron can run `node scripts/drain-webhooks.mjs` with `UPLOADCHECK_API_KEY`, `UPLOADCHECK_API_BASE_URL`, and `UPLOADCHECK_DRAIN_LIMIT` to process due deliveries on a schedule.
 - Report reads append rounded-minute usage ledger entries.
-- Usage metering is idempotent per job, workspace, plan, and billing period; declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they would exceed that workspace's included deterministic QC minutes plus operator-approved `overage_cap_cents`. A zero or omitted cap blocks at included minutes.
+- Usage metering is idempotent per job, workspace, plan, and billing period; included minutes reset monthly and do not roll over. Declared jobs with `plan_id` plus `minutes` or `duration_seconds` are rejected with `usage_limit_exceeded` before QC if they would exceed that workspace's included deterministic QC minutes plus operator-approved `overage_cap_cents`. A zero or omitted cap blocks at included minutes.
 - Abuse limits fail fast before QC compute: `duration_limit_exceeded`, `upload_size_limit_exceeded`, and `active_job_limit_exceeded`. Defaults are 240 minutes, 2048 MB, and 25 active jobs, configurable with `UPLOADCHECK_MAX_DURATION_MINUTES`, `UPLOADCHECK_MAX_UPLOAD_MB`, and `UPLOADCHECK_MAX_ACTIVE_JOBS`; stored workspace API keys apply the active-job limit within that workspace so one customer cannot consume another workspace's queue allowance.
 - Fail-fast abuse-limit and usage-limit events are persisted and can be reviewed from the dashboard or with `GET /v1/abuse-events?workspace_id=&limit=` by a bearer token with `api_keys:read`.
 - `uploadcheck usage` reads `/v1/usage/margins` and prints current estimated COGS, cost/minute, and gross margin.

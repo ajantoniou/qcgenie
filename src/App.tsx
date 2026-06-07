@@ -242,7 +242,7 @@ const faqItems = [
   {
     question: "Do re-checks count against included minutes?",
     answer:
-      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. There is no public self-serve extra-minute or credit purchase flow yet, so jobs stop at the included-minute limit unless the account upgrades or an operator adjusts the workspace."
+      "Yes. Re-checks count because UploadCheck analyzes the actual media file each time. Included minutes reset monthly and do not roll over. There is no public self-serve extra-minute or credit purchase flow yet, so jobs stop at the included-minute limit unless the account upgrades or an operator adjusts the workspace."
   },
   {
     question: "What can UploadCheck fix automatically?",

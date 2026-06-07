@@ -59,6 +59,7 @@ describe("static SEO/AEO pages", () => {
     expect(html).toContain("Included minutes cover deterministic publish-readiness QC");
     expect(html).toContain("not bundled AI review minutes");
     expect(html).toContain("Internal AI helps improve the engine");
+    expect(html).toContain("Included minutes reset monthly and do not roll over");
     expect(html).toContain("no public self-serve extra-minute or credit purchase flow yet");
     expect(html).not.toContain("unlimited full-video AI review");
     expect(html).not.toContain("We never block a check");

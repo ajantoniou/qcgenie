@@ -62,6 +62,7 @@ const requiredSubmissionEvidence = [
   "Webhook proof that X-Signature HMAC-SHA256 is verified with UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET before API-key provisioning.",
   "Abuse-limit proof that over-limit usage blocks before QC compute and records operator-reviewable abuse events.",
   "Spend-alert proof that GET /v1/spend-alerts returns a Resend-backed alert after billable extra-minute spend crosses subscription value, with COGS retained as audit context.",
+  "Billing policy proof that included minutes reset monthly and do not roll over.",
   "Public npm MCP client evidence from Claude Code, Codex, and Cursor using workspace API keys, captured in docs/private-mcp-beta-evidence-template.json.",
   "No-public-oracle proof that package files, MCP manifests, README copy, and Directory copy do not expose gemini_watch, omni_watch, qwen, anthropic_fallback_oracle, or deep_ai_review as customer tools."
 ];
@@ -151,6 +152,7 @@ for (const command of requiredEvidenceCommands) {
 for (const evidence of [
   "GET /v1/spend-alerts",
   "billable extra-minute spend",
+  "included minutes reset monthly and do not roll over",
   "Public npm MCP proof from Claude Code, Codex, and Cursor using workspace API keys and the public MCP tool surface only, captured in `docs/private-mcp-beta-evidence-template.json`",
   "Do not apply for a broad connector or ChatGPT app yet.",
   "Hosted HTTPS MCP endpoint"

@@ -108,6 +108,7 @@
   "notes": [
     "Current public install supports npx -y @drantoniou/uploadcheck-mcp, the public GitHub repo, or an existing local checkout.",
     "Users need a workspace API key tied to included plan minutes or an operator-created account.",
+    "Included minutes reset monthly and do not roll over.",
     "There is no public self-serve extra-minute or credit purchase flow yet; jobs stop at included minutes unless an operator configures an account limit.",
     "Use qc_run_local_file for reachable local videos, podcasts, clips, stills, and NPO audio files.",
     "Small local files are encoded inline and evaluated through Render temp storage.",

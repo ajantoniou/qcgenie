@@ -39,7 +39,7 @@ evidence.client_proofs[index] = {
   report_url: proof.report_url || null,
   verdict: proof.verdict,
   sanitized_evidence_timestamp: proof.sanitized_evidence_timestamp,
-  notes: proof.notes || "Sanitized external public GitHub MCP evidence captured."
+  notes: proof.notes || "Sanitized external public npm MCP evidence captured."
 };
 
 const capturedClients = evidence.client_proofs.filter((item) => item.status === "captured").map((item) => item.client);

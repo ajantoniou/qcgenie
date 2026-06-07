@@ -67,6 +67,7 @@ export function validateWebArtifacts({ productHunt, pricing, sampleReport, agent
     "https://api.uploadcheck.app/v1/launch-evidence",
     "Checked minutes are deterministic publish-readiness QC minutes",
     "report feeds back to the user's LLM",
+    "Included minutes reset monthly and do not roll over",
     "no public self-serve extra-minute or credit purchase flow yet"
   ]);
   if (!demo?.ok) {
