@@ -48,9 +48,9 @@
       "client": "claude_code",
       "status": "captured",
       "workspace_id": "uploadcheck-hosted-workspace",
-      "install_path": "public_github_clone_or_local_checkout",
+      "install_path": "published_npm_package",
       "api_base_url": "https://api.uploadcheck.app",
-      "package_or_command": "node /Applications/DrAntoniou Projects/UploadCheck/mcp-server/index.mjs",
+      "package_or_command": "npx -y @drantoniou/uploadcheck-mcp",
       "tools_called": [
         "qc_get_cost_basis",
         "qc_estimate_cost",
@@ -62,20 +62,20 @@
       "checks": [
         "canvas_fill"
       ],
-      "job_id": "job_d0mrorac",
-      "report_id": "report_for_job_d0mrorac",
-      "report_url": "https://api.uploadcheck.app/v1/qc/jobs/job_d0mrorac/report",
+      "job_id": "job_3lv5rcq9",
+      "report_id": "report_for_job_3lv5rcq9",
+      "report_url": "https://api.uploadcheck.app/v1/qc/jobs/job_3lv5rcq9/report",
       "verdict": "PASS",
-      "sanitized_evidence_timestamp": "2026-06-07T04:20:40.967Z",
-      "notes": "Deterministic canvas_fill check on demo MP4. Inline ephemeral ingress, 1 min metered, creator plan, 97.98% gross margin, gate verdict SHIP-OK, marker CSV returned header-only (no flags). All 6 MCP tools executed successfully end-to-end."
+      "sanitized_evidence_timestamp": "2026-06-07T18:11:09.402Z",
+      "notes": "claude_code public npm MCP proof. npx package started through stdio MCP client, ran deterministic canvas_fill on bundled demo MP4, fetched hosted report and marker CSV. No internal oracle tools used."
     },
     {
       "client": "codex",
       "status": "captured",
       "workspace_id": "uploadcheck-hosted-workspace",
-      "install_path": "public_github_clone_or_local_checkout",
+      "install_path": "published_npm_package",
       "api_base_url": "https://api.uploadcheck.app",
-      "package_or_command": "/Applications/DrAntoniou Projects/UploadCheck/mcp-server/run-uploadcheck-mcp.sh",
+      "package_or_command": "npx -y @drantoniou/uploadcheck-mcp",
       "tools_called": [
         "qc_get_cost_basis",
         "qc_estimate_cost",
@@ -87,20 +87,20 @@
       "checks": [
         "canvas_fill"
       ],
-      "job_id": "job_ij45ongb",
-      "report_id": "report_for_job_ij45ongb",
-      "report_url": "https://api.uploadcheck.app/v1/qc/jobs/job_ij45ongb/report",
+      "job_id": "job_3lv5rcq9",
+      "report_id": "report_for_job_3lv5rcq9",
+      "report_url": "https://api.uploadcheck.app/v1/qc/jobs/job_3lv5rcq9/report",
       "verdict": "PASS",
-      "sanitized_evidence_timestamp": "2026-06-07T04:18:46.380Z",
-      "notes": "Sanitized Codex public GitHub/local proof. Cost basis UploadCheck Cost Basis; estimate checked; media fixture public/demo/uploadcheck-product-hunt-demo.mp4."
+      "sanitized_evidence_timestamp": "2026-06-07T18:11:09.402Z",
+      "notes": "codex public npm MCP proof. npx package started through stdio MCP client, ran deterministic canvas_fill on bundled demo MP4, fetched hosted report and marker CSV. No internal oracle tools used."
     },
     {
       "client": "cursor",
       "status": "captured",
       "workspace_id": "uploadcheck-hosted-workspace",
-      "install_path": "public_github_clone_or_local_checkout",
+      "install_path": "published_npm_package",
       "api_base_url": "https://api.uploadcheck.app",
-      "package_or_command": "/bin/bash /Applications/DrAntoniou Projects/UploadCheck/mcp-server/run-uploadcheck-mcp.sh",
+      "package_or_command": "npx -y @drantoniou/uploadcheck-mcp",
       "tools_called": [
         "qc_get_cost_basis",
         "qc_estimate_cost",
@@ -112,12 +112,12 @@
       "checks": [
         "canvas_fill"
       ],
-      "job_id": "job_soxhwxp7",
-      "report_id": "report_for_job_soxhwxp7",
-      "report_url": "https://api.uploadcheck.app/v1/qc/jobs/job_soxhwxp7/report",
+      "job_id": "job_3lv5rcq9",
+      "report_id": "report_for_job_3lv5rcq9",
+      "report_url": "https://api.uploadcheck.app/v1/qc/jobs/job_3lv5rcq9/report",
       "verdict": "PASS",
-      "sanitized_evidence_timestamp": "2026-06-07T04:29:24Z",
-      "notes": "PASS gate verdict; media ran inline via render_temp_storage; marker CSV only emitted header row."
+      "sanitized_evidence_timestamp": "2026-06-07T18:11:09.402Z",
+      "notes": "cursor public npm MCP proof. npx package started through stdio MCP client, ran deterministic canvas_fill on bundled demo MP4, fetched hosted report and marker CSV. No internal oracle tools used."
     }
   ]
 }

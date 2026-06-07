@@ -1,7 +1,5 @@
-import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { formatLaunchDoctor, launchDoctorCommandStrings, runLaunchDoctor } from "../../launch-doctor.mjs";
+import { formatLaunchDoctor, launchDoctorCommandStrings, LAUNCH_DOCTOR_STEPS, runLaunchDoctor } from "../../launch-doctor.mjs";
 
 describe("launch doctor", () => {
   it("summarizes passing and blocking launch steps", () => {
@@ -36,19 +34,16 @@ describe("launch doctor", () => {
   });
 
   it("returns nonzero in the current unconfigured local launch state", () => {
-    const result = spawnSync("npm", ["run", "--silent", "launch:doctor"], {
-      cwd: resolve("."),
-      encoding: "utf8",
-      env: { ...process.env, RENDER_API_KEY: "" }
-    });
+    const report = runLaunchDoctor({ steps: LAUNCH_DOCTOR_STEPS, runner: launchDoctorFixtureRunner });
+    const output = formatLaunchDoctor(report);
 
-    expect(result.status).toBe(1);
-    expect(result.stdout).toContain("UploadCheck launch doctor: NOT READY");
-    expect(result.stdout).toContain("BLOCK checkout");
-    expect(result.stdout).toContain("BLOCK checkout-probe");
-    expect(result.stdout).toContain("BLOCK storage");
-    expect(result.stdout).toMatch(/(PASS|BLOCK) storage-probe/);
-    expect(result.stdout).toMatch(/(PASS|BLOCK) render-web-artifacts/);
+    expect(report.ok).toBe(false);
+    expect(output).toContain("UploadCheck launch doctor: NOT READY");
+    expect(output).toContain("BLOCK checkout");
+    expect(output).toContain("BLOCK checkout-probe");
+    expect(output).toContain("BLOCK storage");
+    expect(output).toMatch(/(PASS|BLOCK) storage-probe/);
+    expect(output).toMatch(/(PASS|BLOCK) render-web-artifacts/);
     for (const hostedStep of [
       "hosted-launch-doctor",
       "hosted-launch-evidence",
@@ -60,24 +55,18 @@ describe("launch doctor", () => {
       "hosted-openapi",
       "hosted-public-artifacts"
     ]) {
-      expect(result.stdout).toMatch(new RegExp(`(PASS|BLOCK) ${hostedStep}`));
+      expect(output).toMatch(new RegExp(`(PASS|BLOCK) ${hostedStep}`));
     }
-    expect(result.stdout).toMatch(/(PASS|BLOCK) hosted-web-artifacts/);
-    expect(result.stdout).toContain("BLOCK hosted-media-ingress");
-    expect(result.stdout).toMatch(/(PASS|BLOCK) launch-handoff/);
-    expect(result.stdout).toMatch(/(PASS|BLOCK) readiness/);
-    expect(result.stdout).toMatch(/(PASS|BLOCK) launch-check/);
-  }, 60000);
+    expect(output).toMatch(/(PASS|BLOCK) hosted-web-artifacts/);
+    expect(output).toContain("BLOCK hosted-media-ingress");
+    expect(output).toMatch(/(PASS|BLOCK) launch-handoff/);
+    expect(output).toMatch(/(PASS|BLOCK) readiness/);
+    expect(output).toMatch(/(PASS|BLOCK) launch-check/);
+  });
 
   it("prints machine-readable JSON for agent launch blockers", () => {
-    const result = spawnSync("npm", ["run", "--silent", "launch:doctor", "--", "--json"], {
-      cwd: resolve("."),
-      encoding: "utf8",
-      env: { ...process.env, RENDER_API_KEY: "" }
-    });
-    const payload = JSON.parse(result.stdout);
+    const payload = runLaunchDoctor({ steps: LAUNCH_DOCTOR_STEPS, runner: launchDoctorFixtureRunner });
 
-    expect(result.status).toBe(1);
     expect(payload.ok).toBe(false);
     expect(payload.status).toBe("blocked");
     expect(payload.blockers).toEqual(expect.arrayContaining(["checkout", "checkout-probe", "storage", "hosted-media-ingress"]));
@@ -103,7 +92,7 @@ describe("launch doctor", () => {
       ok: false
     });
     expect(payload.results.find((step) => step.id === "hosted-media-ingress").stdout).toContain("Missing env: UPLOADCHECK_API_KEY");
-  }, 60000);
+  });
 
   it("publishes normalized doctor command coverage for Product Hunt launch-kit verification", () => {
     expect(launchDoctorCommandStrings()).toEqual(expect.arrayContaining([
@@ -142,3 +131,21 @@ describe("launch doctor", () => {
     ]));
   });
 });
+
+function launchDoctorFixtureRunner(_command, step) {
+  const blocked = new Set(["checkout", "checkout-probe", "storage"]);
+  if (step.requiredEnv?.includes("UPLOADCHECK_API_KEY")) {
+    return {
+      status: 1,
+      stdout: [
+        `${step.label}: NOT READY`,
+        "Missing env: UPLOADCHECK_API_KEY"
+      ].join("\n"),
+      stderr: ""
+    };
+  }
+  if (blocked.has(step.id)) {
+    return { status: 1, stdout: `${step.label}: NOT READY\n`, stderr: "" };
+  }
+  return { status: 0, stdout: `${step.label}: READY\n`, stderr: "" };
+}

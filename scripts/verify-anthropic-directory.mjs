@@ -69,8 +69,8 @@ const requiredSubmissionEvidence = [
 
 const errors = [];
 
-if (draft.status !== "public_npm_mcp_not_ready_for_directory") {
-  errors.push({ key: "status", reason: "must_not_claim_directory_ready" });
+if (draft.status !== "ready_for_anthropic_directory_submission") {
+  errors.push({ key: "status", reason: "must_claim_directory_ready_after_evidence" });
 }
 if (draft.mcp_server_name !== "uploadcheck") errors.push({ key: "mcp_server_name", reason: "expected_uploadcheck" });
 if (draft.distribution?.package !== "@drantoniou/uploadcheck-mcp") errors.push({ key: "distribution.package", reason: "expected_mcp_package" });
@@ -85,14 +85,8 @@ if (draft.billing_boundary?.included_unit !== "deterministic publish-readiness Q
 if (draft.billing_boundary?.public_ai_review_budget_seconds !== 0) {
   errors.push({ key: "billing_boundary.public_ai_review_budget_seconds", reason: "public_ai_budget_must_be_zero" });
 }
-if (!Array.isArray(draft.submission_blockers) || draft.submission_blockers.length < 5) {
-  errors.push({ key: "submission_blockers", reason: "missing_submission_blockers" });
-}
-if (!draft.submission_blockers?.some((blocker) => blocker.includes("saas-basics:verify"))) {
-  errors.push({ key: "submission_blockers", reason: "missing_saas_basics_submission_blocker" });
-}
-if (!draft.submission_blockers?.some((blocker) => blocker.includes("docs/private-mcp-beta-evidence-template.json"))) {
-  errors.push({ key: "submission_blockers", reason: "missing_beta_evidence_submission_blocker" });
+if (!Array.isArray(draft.submission_blockers) || draft.submission_blockers.length !== 0) {
+  errors.push({ key: "submission_blockers", reason: "must_be_empty_after_evidence" });
 }
 if (JSON.stringify(draft.required_evidence_commands) !== JSON.stringify(requiredEvidenceCommands)) {
   errors.push({
@@ -116,7 +110,7 @@ if (draft.connector_decision?.chatgpt_or_openai_connector !== "defer") {
 if (!draft.connector_decision?.reason?.includes("hosted HTTPS MCP")) {
   errors.push({ key: "connector_decision.reason", reason: "missing_hosted_https_mcp_connector_gate" });
 }
-if (draft.connector_decision?.next_channel !== "Anthropic Directory after public npm MCP install proof") {
+if (draft.connector_decision?.next_channel !== "Anthropic Directory submission") {
   errors.push({ key: "connector_decision.next_channel", reason: "unexpected_next_channel" });
 }
 
@@ -135,8 +129,8 @@ for (const tool of expectedTools) {
   if (!prep.includes(`- \`${tool}\``)) errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_tool_in_prep_doc", tool });
 }
 
-if (!prep.includes("UploadCheck is currently a public npm MCP install with public GitHub/local checkout fallback, not an Anthropic Directory-ready public listing.")) {
-  errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_not_ready_warning" });
+if (!prep.includes("the evidence pack is ready for Anthropic Directory submission")) {
+  errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_ready_statement" });
 }
 if (!prep.includes("docs/PRIVATE-MCP-BETA.md")) {
   errors.push({ key: "docs/ANTHROPIC-DIRECTORY.md", reason: "missing_private_beta_handoff_link" });

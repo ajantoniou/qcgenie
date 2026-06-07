@@ -127,9 +127,7 @@ console.log(JSON.stringify({
     "npm run live-public-artifacts:verify",
     "npm run readiness:check"
   ],
-  requiredExternalInputs: [
-    "npm publish and registry install proof"
-  ]
+  requiredExternalInputs: []
 }, null, 2));
 
 function read(path) {

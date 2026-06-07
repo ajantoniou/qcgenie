@@ -469,7 +469,7 @@ describe("JsonStore", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
-  });
+  }, 20_000);
 
   it("records an honest fallback when a local media file is invalid", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-store-"));

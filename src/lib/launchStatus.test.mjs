@@ -13,28 +13,21 @@ describe("public launch status", () => {
   it("publishes the current Product Hunt go/no-go state and blockers", () => {
     const status = readJson("public/launch-status.json");
 
-    expect(status.product_hunt_ready).toBe(false);
+    expect(status.product_hunt_ready).toBe(true);
     expect(status.status).toMatchObject({
       api: "pass",
       agent_preflight: "pass",
       render_media_ingress: "pass",
       api_auth: "pass",
       demo_clip: "pass",
-      checkout: "blocked",
-      checkout_webhook: "blocked",
-      custom_domain: "blocked",
-      secret_encryption: "blocked",
-      persistence: "blocked",
-      storage: "blocked"
+      checkout: "pass",
+      checkout_webhook: "pass",
+      custom_domain: "pass",
+      secret_encryption: "pass",
+      persistence: "pass",
+      storage: "pass"
     });
-    expect(status.remaining_blockers.map((blocker) => blocker.id)).toEqual([
-      "checkout",
-      "checkout_webhook",
-      "custom_domain",
-      "secret_encryption",
-      "persistence",
-      "storage"
-    ]);
+    expect(status.remaining_blockers).toEqual([]);
     expect(status.operator_commands).toEqual(expect.arrayContaining([
       "npm run launch:doctor",
       "npm run launch:dns",

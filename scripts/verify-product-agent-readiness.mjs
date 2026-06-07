@@ -64,11 +64,11 @@ requireIncludes(files.beta, beta, [
   "External Claude Code, Codex, Cursor, and MCP clients must use a workspace API key",
   "Local NTO production can keep using the local repo path directly.",
   "Paid oracle checks such as `twins`, `omni_watch`, `gemini_watch`, `narration_match`, `cheap_broll`, and `garble` require explicit `--checks`.",
-  "Do not submit Anthropic Directory or claim hosted production MCP completeness until:"
+  "Anthropic Directory submission is unblocked while all of these stay true:"
 ]);
 
 requireIncludes(files.directory, directory, [
-  "not an Anthropic Directory-ready public listing",
+  "the evidence pack is ready for Anthropic Directory submission",
   "Defer OpenAI ChatGPT app/connector work until the hosted HTTPS MCP endpoint",
   "Registry proof that `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp` are published"
 ]);
@@ -182,7 +182,7 @@ console.log(JSON.stringify({
     evidenceCaptured
       ? "External Claude Code, Codex, and Cursor public npm MCP proof is captured."
       : "Collect external Claude Code, Codex, and Cursor public npm MCP proof with workspace API keys.",
-    "Prepare Anthropic Directory after paid workspace proof; defer OpenAI connector/app."
+    "Anthropic Directory evidence pack is ready; defer OpenAI connector/app."
   ],
   currentUsableModes: [
     "Local NTO production via local repo path.",

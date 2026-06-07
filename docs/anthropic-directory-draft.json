@@ -1,5 +1,5 @@
 {
-  "status": "public_npm_mcp_not_ready_for_directory",
+  "status": "ready_for_anthropic_directory_submission",
   "name": "UploadCheck.app",
   "category": "Media quality control",
   "short_description": "Quality check videos, podcasts, and clips before upload.",
@@ -74,7 +74,7 @@
   "connector_decision": {
     "chatgpt_or_openai_connector": "defer",
     "reason": "MCP/API distribution is the current product-agent channel; connector review waits for hosted HTTPS MCP, account binding, report UX, abuse controls, and production cost evidence.",
-    "next_channel": "Anthropic Directory after public npm MCP install proof"
+    "next_channel": "Anthropic Directory submission"
   },
   "not_public_tools": [
     "gemini_watch",
@@ -83,11 +83,5 @@
     "anthropic_fallback_oracle",
     "deep_ai_review"
   ],
-  "submission_blockers": [
-    "Configure checkout URLs or Lemon Squeezy Creator, Studio, and Network variants.",
-    "Configure UPLOADCHECK_LEMONSQUEEZY_WEBHOOK_SECRET on Render.",
-    "Pass npm run saas-basics:verify against the current checkout, usage-limit, API-key, and Resend spend-alert code.",
-    "Capture paid workspace API-key proof from hosted QC job creation through report fetch.",
-    "Capture public npm MCP client evidence from Claude Code, Codex, and Cursor in docs/private-mcp-beta-evidence-template.json."
-  ]
+  "submission_blockers": []
 }

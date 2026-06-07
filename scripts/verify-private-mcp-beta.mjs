@@ -41,11 +41,11 @@ requireIncludes(files.beta, beta, [
   "Use `docs/private-mcp-beta-evidence-template.json` to capture proof for Claude Code, Codex, and Cursor.",
   "Run `npm run private-mcp-beta:evidence` before treating the proof contract as valid.",
   "npm run private-mcp-beta:capture -- /path/to/sanitized-client-proof.json",
-  "Do not submit Anthropic Directory or claim hosted production MCP completeness until:"
+  "Anthropic Directory submission is unblocked while all of these stay true:"
 ]);
 
 requireIncludes(files.directory, directory, [
-  "UploadCheck is currently a public npm MCP install with public GitHub/local checkout fallback, not an Anthropic Directory-ready public listing.",
+  "UploadCheck is currently a public npm MCP install with public GitHub/local checkout fallback, and the evidence pack is ready for Anthropic Directory submission.",
   "Install handoff: `docs/PRIVATE-MCP-BETA.md`",
   "Verifier: `npm run anthropic-directory:verify`"
 ]);

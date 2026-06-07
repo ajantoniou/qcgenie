@@ -300,6 +300,22 @@ def avg_rgb(crop):
 def rgb_distance(a,b):
     return sum((a[i]-b[i])**2 for i in range(3))**0.5
 
+def skin_like_ratio(crop):
+    rgb=crop.convert("RGB")
+    total=0; skin=0
+    for r,g,b in rgb.getdata():
+        total+=1
+        if (
+            70 <= r <= 245 and
+            40 <= g <= 210 and
+            25 <= b <= 180 and
+            r > g * 0.95 and
+            g > b * 0.75 and
+            max(r,g,b) - min(r,g,b) > 18
+        ):
+            skin+=1
+    return skin / total if total else 0
+
 def dark_components(image):
     w,h=image.size
     pix=image.convert("RGB").load()
@@ -362,6 +378,7 @@ def appearance_chips(jpg):
         chips.append({
             "hash": dhash(chip),
             "rgb": avg_rgb(chip),
+            "skin": skin_like_ratio(chip),
             "center": comp["center"],
             "area": comp["area"]
         })
@@ -406,6 +423,9 @@ def deterministic_clone_crowd_finding(jpg, t):
         largest=max(clusters, key=len)
         duplicate_count=len(largest)
         if duplicate_count < spec["min_cluster"]:
+            continue
+        skin_supported=sum(1 for idx in largest if chips[idx].get("skin",0) >= 0.035)
+        if skin_supported < max(3, int(len(largest)*0.45)):
             continue
         return {
             "t": t,

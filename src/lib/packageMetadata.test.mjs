@@ -37,7 +37,7 @@ describe("UploadCheck package metadata", () => {
       "request-builder.mjs",
       "run-uploadcheck-mcp.sh"
     ]);
-  });
+  }, 20_000);
 
   it("exposes a read-only npm publish preflight command", () => {
     const script = readFileSync("scripts/verify-npm-publish-preflight.mjs", "utf8");

@@ -244,6 +244,47 @@ img.save(${JSON.stringify(mediaPath)})
     }
   });
 
+  it("does not locally block pure text cards as clone crowds", () => {
+    const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-text-card-"));
+    const mediaPath = join(dir, "text-card.jpg");
+
+    try {
+      const makeImage = `
+from PIL import Image, ImageDraw
+img=Image.new("RGB",(640,360),(242,232,210))
+draw=ImageDraw.Draw(img)
+for y in [70,125,180,235]:
+    draw.rectangle((80,y,560,y+22), fill=(38,31,25))
+    draw.rectangle((110,y+34,490,y+50), fill=(54,45,36))
+img.save(${JSON.stringify(mediaPath)})
+`;
+      const imageResult = spawnSync("python3", ["-c", makeImage], { cwd: resolve("."), encoding: "utf8" });
+      expect(imageResult.status).toBe(0);
+
+      const script = `
+import importlib.util, tempfile, json, shutil
+spec = importlib.util.spec_from_file_location("check_twins", "scripts/qc-engine/check_twins.py")
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+tmp=tempfile.mkdtemp(prefix="twins_text_card_")
+try:
+    frames=mod.extract_frames(${JSON.stringify(mediaPath)}, tmp, 0.25)
+    findings=[mod.deterministic_clone_crowd_finding(fp,t) for fp,t in frames]
+    print(json.dumps({"frames": len(frames), "findings": [f for f in findings if f]}))
+finally:
+    shutil.rmtree(tmp)
+`;
+      const result = spawnSync("python3", ["-c", script], { cwd: resolve("."), encoding: "utf8" });
+      const payload = JSON.parse(result.stdout);
+
+      expect(result.status).toBe(0);
+      expect(payload.frames).toBeGreaterThan(0);
+      expect(payload.findings).toEqual([]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("blocks manifest-marked twins or almost-identical characters before vision", () => {
     const dir = mkdtempSync(join(tmpdir(), "uploadcheck-twins-manifest-"));
     const mediaPath = join(dir, "candidate.mp4");

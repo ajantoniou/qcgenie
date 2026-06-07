@@ -99,7 +99,7 @@ Each captured client proof must include:
 - final verdict
 - sanitized evidence timestamp
 
-Run `npm run private-mcp-beta:evidence` before treating the proof contract as valid. The verifier allows the template to remain `template_not_captured`, but Directory/public submission cannot move forward until all three client proofs are captured.
+Run `npm run private-mcp-beta:evidence` before treating the proof contract as valid. Directory submission can move forward only while all three client proofs remain captured and current.
 
 To merge one sanitized client proof into the evidence file:
 
@@ -124,9 +124,9 @@ npm run anthropic-directory:verify
 npm run product-agent:verify
 ```
 
-## Remaining Directory And Hosted Proof Gates
+## Directory And Hosted Proof Gates
 
-Do not submit Anthropic Directory or claim hosted production MCP completeness until:
+Anthropic Directory submission is unblocked while all of these stay true:
 
 - `npm run npm-publish:preflight` shows the current package versions are published and registry-installable.
 - Hosted `/mcp-install.json`, launch doctor, and launch evidence are redeployed and pass their live verifiers.

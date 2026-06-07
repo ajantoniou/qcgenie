@@ -49,13 +49,6 @@ The hosted manifests must reflect the new "call UploadCheck first -> fix flags -
 ## Internal-only guard
 - [DONE] `qc_run_gemini_backtest` / `gemini-backtest.mjs` is stripped from public `@drantoniou/uploadcheck` and `@drantoniou/uploadcheck-mcp` package files and public MCP tools. Internal capture-rate measurement stays repo-only through `scripts/qc-engine/gemini_watch.py`.
 
-## 🐞 BUG FOUND (twins false-positive) — log for product
-- The `twins` check (`local_crowd_archetype_cluster` method) returns BLOCK with `duplicate_count:7`
-  on a PURE TEXT CARD (zero human faces). It clusters text glyphs / flat-background patches as
-  "facial archetype chips."
-- Repro: run twins on any Remotion/text-card clip → false BLOCK.
-- Fix: gate should detect "no detectable faces in frame" and SKIP/PASS the twins check for that
-  frame, OR require an actual face-detector hit before archetype-clustering. The MANDATORY_NO_SKIP
-  firewall shouldn't fire on faceless frames.
-- Impact: any NTO beat we replace with a text card will false-fail twins until this is fixed.
-  Workaround for now: human-eye confirms text cards are twin-free (no faces == no twins).
+## Twins text-card false-positive
+- [DONE] `twins` local appearance clustering now requires face/skin-tone support before a local clone-crowd BLOCK.
+- [DONE] Regression coverage in `src/lib/qcEngineTwins.test.mjs` keeps pure text cards from blocking as cloned characters while preserving the clone-crowd positive fixtures.

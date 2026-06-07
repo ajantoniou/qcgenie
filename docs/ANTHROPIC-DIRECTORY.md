@@ -1,6 +1,6 @@
 # UploadCheck Anthropic Directory Prep
 
-UploadCheck is currently a public npm MCP install with public GitHub/local checkout fallback, not an Anthropic Directory-ready public listing.
+UploadCheck is currently a public npm MCP install with public GitHub/local checkout fallback, and the evidence pack is ready for Anthropic Directory submission.
 
 ## Current Channel Priority
 
@@ -67,7 +67,7 @@ Commercial boundary: Deterministic publish-readiness minutes are the included un
 
 - Machine-readable draft: `docs/anthropic-directory-draft.json`
 - Verifier: `npm run anthropic-directory:verify`
-- Rule: the draft must remain `public_npm_mcp_not_ready_for_directory` until hosted MCP install proof, paid workspace-key proof, and public npm MCP evidence are complete in `docs/private-mcp-beta-evidence-template.json`.
+- Rule: the draft may remain `ready_for_anthropic_directory_submission` only while hosted MCP install proof, paid workspace-key proof, spend-alert proof, and public npm MCP evidence in `docs/private-mcp-beta-evidence-template.json` stay current.
 
 ## Connector Decision
 
@@ -75,5 +75,5 @@ Do not apply for a broad connector or ChatGPT app yet. The current product-agent
 
 1. Public npm MCP install through `npx -y @drantoniou/uploadcheck-mcp`, with public GitHub clone or local checkout fallback.
 2. Keep public npm packages verified with `packages:install-smoke` and registry publish proof.
-3. Anthropic Directory submission after hosted MCP install, paid workspace, spend-alert, and client beta evidence are captured.
+3. Anthropic Directory submission using the captured hosted MCP install, paid workspace, spend-alert, and public npm MCP client evidence.
 4. Hosted HTTPS MCP endpoint or connector review only after account binding, report UX, and abuse/cost controls are proven in production.
