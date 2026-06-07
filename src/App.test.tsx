@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { App } from "./App";
 
@@ -6,43 +6,87 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+// The operator views (Dashboard, Agent Workflow) live behind the header
+// "Console" menu so the marketing chrome stays clean. Tests open them through it.
+function openAppView(name: string) {
+  fireEvent.click(screen.getByRole("button", { name: "Console" }));
+  fireEvent.click(screen.getByRole("menuitem", { name }));
+}
+
 describe("UploadCheck conversion UI", () => {
-  test("leads with UploadCheck.app branding, final-export insurance, and sample proof", () => {
+  test("leads with the agent-first hero, creator framing, and sample proof", () => {
     render(<App />);
 
-    expect(screen.getByText("UploadCheck.app")).toBeInTheDocument();
-    expect(screen.getByText(/final-export insurance for creators/)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Catch broken exports before your audience or client does." })).toBeInTheDocument();
-    expect(screen.getByText(/Run deterministic publish-readiness QC on videos, podcasts, and clips/)).toBeInTheDocument();
-    expect(screen.getByText(/report is fed back to your LLM/)).toBeInTheDocument();
+    // Brand appears in both the header and the footer now.
+    expect(screen.getAllByText("UploadCheck.app").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/the QC layer agents call before publishing/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Video QC for AI agents before upload" })).toBeInTheDocument();
+    expect(
+      screen.getByText(/UploadCheck is the deterministic QC step in an agent pipeline/)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/One agent generates or edits the media; UploadCheck returns the verdict/)).toBeInTheDocument();
     expect(screen.getByText("LLM repair loop")).toBeInTheDocument();
     expect(screen.getByText("UploadCheck decides. Agents repair.")).toBeInTheDocument();
     expect(screen.getByText(/UploadCheck is the SaaS QC authority/)).toBeInTheDocument();
     expect(screen.getByText(/no broad rewrite, no taste-based refactor/i)).toBeInTheDocument();
     expect(screen.getByText(/I will only patch the flagged caption span/)).toBeInTheDocument();
-    expect(screen.getAllByText("/check final-upload.mp4").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByRole("link", { name: "Start Creator - $99/mo" })).toHaveAttribute("href", "/checkout/creator");
-    expect(screen.getByRole("link", { name: "View sample report" })).toHaveAttribute("href", "/sample-report/");
-    expect(screen.getByText("Upgrade when volume grows.")).toBeInTheDocument();
+    expect(screen.getByText("/check final-upload.mp4")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Run a sample check" })).toHaveAttribute("href", "/sample-report/");
+    expect(screen.getByRole("link", { name: "Install MCP server" })).toHaveAttribute("href", "/agent-install/");
     expect(screen.getByText("Frozen frames")).toBeInTheDocument();
     expect(screen.getByText("Caption safe-area")).toBeInTheDocument();
-    expect(screen.getByText("Media checks before upload")).toBeInTheDocument();
+    // Marketing chrome.
+    expect(screen.getByText("Video QC for AI agents before upload.")).toBeInTheDocument();
   });
 
-  test("agent page explains the /check workflow before listing API details", () => {
+  test("explains how it works and who it is for before any API surface", () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Agent Workflow" }));
+    expect(screen.getByRole("heading", { name: "How it works" })).toBeInTheDocument();
+    expect(screen.getByText("Install the UploadCheck MCP server")).toBeInTheDocument();
+    expect(screen.getByText("Review timestamped evidence")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Agents can ship the edit. They still need a QC loop." })).toBeInTheDocument();
+    expect(screen.getByText("YouTube creators")).toBeInTheDocument();
+    expect(screen.getByText("Course creators")).toBeInTheDocument();
+    expect(screen.getByText("Podcast & video editors")).toBeInTheDocument();
+    // Minimal install path on the homepage, full guide linked out.
+    expect(screen.getByText("npx -y uploadcheck-mcp")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open sample report" })).toHaveAttribute("href", "/sample-report/");
+  });
+
+  test("leads with the agent-to-agent pipeline story", () => {
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: "Built for agent-to-agent pipelines" })).toBeInTheDocument();
+    expect(screen.getByText("Producer agent")).toBeInTheDocument();
+    expect(screen.getByText("Repair agent")).toBeInTheDocument();
+    expect(screen.getByText("Publish gate")).toBeInTheDocument();
+    expect(screen.getByText(/qc_get_cost_basis.*qc_run_local_file.*qc_get_report.*qc_get_marker_csv/)).toBeInTheDocument();
+    // The header surfaces the agent story as a primary nav item.
+    const header = screen.getByRole("banner");
+    expect(within(header).getByRole("link", { name: "For agents" })).toHaveAttribute("href", "#agent-to-agent");
+  });
+
+  test("agent view trims the dumps and links the full reference to docs", () => {
+    render(<App />);
+
+    openAppView("Agent Workflow");
 
     expect(screen.getByRole("heading", { name: "Run video QC inside your agent workspace" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Install for agent-to-agent runs" })).toBeInTheDocument();
     expect(screen.getByText("/check ./final-upload.mp4")).toBeInTheDocument();
     expect(screen.getAllByText("uploadcheck").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("uploadcheck-mcp").length).toBeGreaterThan(0);
     expect(screen.getByText("Current install: public npm or GitHub checkout")).toBeInTheDocument();
     expect(screen.getByText(/Use npx, the public GitHub clone, or a local checkout/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open install guide" })).toHaveAttribute("href", "/agent-install/");
     expect(screen.getByText(/qc_get_cost_basis -> qc_run_local_file -> qc_get_report -> qc_get_marker_csv/)).toBeInTheDocument();
+    // The full machinery now lives in the docs, linked rather than dumped.
+    expect(screen.getByRole("heading", { name: "Full MCP and REST reference lives in the docs" })).toBeInTheDocument();
+    const callout = screen.getByRole("region", { name: "Full reference" });
+    expect(within(callout).getByRole("link", { name: "MCP reference" })).toHaveAttribute("href", "/docs/mcp/");
+    expect(within(callout).getByRole("link", { name: "API reference" })).toHaveAttribute("href", "/docs/api/");
+    expect(screen.getByRole("link", { name: "See all 20 MCP tools" })).toHaveAttribute("href", "/docs/mcp/");
+    expect(screen.getByRole("link", { name: "See the full API reference" })).toHaveAttribute("href", "/docs/api/");
   });
 
   test("dashboard creates a workspace API key and shows the bearer once", async () => {
@@ -55,7 +99,7 @@ describe("UploadCheck conversion UI", () => {
     } as Response);
 
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    openAppView("Dashboard");
     fireEvent.change(screen.getAllByLabelText("Provisioning bearer")[0], { target: { value: "uck_admin_key" } });
     fireEvent.click(screen.getByRole("button", { name: "Create API key" }));
 
@@ -83,7 +127,7 @@ describe("UploadCheck conversion UI", () => {
     } as Response);
 
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    openAppView("Dashboard");
     fireEvent.click(screen.getByRole("button", { name: "Create API key" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Provisioning bearer token required");
@@ -109,7 +153,7 @@ describe("UploadCheck conversion UI", () => {
     } as Response);
 
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    openAppView("Dashboard");
     fireEvent.change(screen.getAllByLabelText("Provisioning bearer")[1], { target: { value: "uck_admin_key" } });
     fireEvent.click(screen.getByRole("button", { name: "Load API keys" }));
 
@@ -132,7 +176,7 @@ describe("UploadCheck conversion UI", () => {
     } as Response);
 
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    openAppView("Dashboard");
     fireEvent.click(screen.getByRole("button", { name: "Load API keys" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Provisioning bearer token required");
@@ -154,7 +198,7 @@ describe("UploadCheck conversion UI", () => {
     } as Response);
 
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    openAppView("Dashboard");
     fireEvent.change(screen.getAllByLabelText("Provisioning bearer")[2], { target: { value: "uck_admin_key" } });
     fireEvent.click(screen.getByRole("button", { name: "Load abuse events" }));
 
@@ -175,7 +219,7 @@ describe("UploadCheck conversion UI", () => {
     } as Response);
 
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    openAppView("Dashboard");
     fireEvent.click(screen.getByRole("button", { name: "Load abuse events" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Provisioning bearer token required");
@@ -204,7 +248,7 @@ describe("UploadCheck conversion UI", () => {
     } as Response);
 
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    openAppView("Dashboard");
     fireEvent.change(screen.getAllByLabelText("Provisioning bearer")[3], { target: { value: "uck_admin_key" } });
     fireEvent.click(screen.getByRole("button", { name: "Load spend alerts" }));
 
@@ -228,7 +272,7 @@ describe("UploadCheck conversion UI", () => {
     } as Response);
 
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Dashboard" }));
+    openAppView("Dashboard");
     fireEvent.click(screen.getByRole("button", { name: "Load spend alerts" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Provisioning bearer token required");
@@ -239,13 +283,13 @@ describe("UploadCheck conversion UI", () => {
   test("positions the metered pricing model around the $99 creator plan", () => {
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: "QC is tiny compared with generating the video." })).toBeInTheDocument();
-    expect(screen.getByText("Veo 3 Fast video + audio")).toBeInTheDocument();
-    expect(screen.getByText("$9.00 generated minute")).toBeInTheDocument();
-    expect(screen.getByText("Veo 3 Standard video + audio")).toBeInTheDocument();
-    expect(screen.getByText("$24.00 generated minute")).toBeInTheDocument();
-    expect(screen.getByText("Higgsfield premium workflows")).toBeInTheDocument();
-    expect(screen.getByText("Variable credit burn")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Checking the file costs almost nothing." })).toBeInTheDocument();
+    expect(screen.getByText("Veo 3 Fast")).toBeInTheDocument();
+    expect(screen.getByText("220×")).toBeInTheDocument();
+    expect(screen.getByText("Veo 3 Standard")).toBeInTheDocument();
+    expect(screen.getByText("585×")).toBeInTheDocument();
+    expect(screen.getAllByText(/cheaper to check than to make/).length).toBe(2);
+    expect(screen.getByText("QC is 0.46% of generation cost")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Publish-readiness checks priced by media minutes, not seats." })).toBeInTheDocument();
     expect(screen.getByText("Secure monthly checkout")).toBeInTheDocument();
     expect(screen.getByText("Upgrade when volume grows")).toBeInTheDocument();
@@ -321,10 +365,17 @@ describe("UploadCheck conversion UI", () => {
     );
   });
 
-  test("exposes pricing and sample report as public conversion links", () => {
+  test("exposes pricing, sample report, and docs as public conversion links", () => {
     render(<App />);
 
-    expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "/pricing/");
-    expect(screen.getByRole("link", { name: "Sample report" })).toHaveAttribute("href", "/sample-report/");
+    // These links appear in both the header nav and the footer.
+    const header = screen.getByRole("banner");
+    expect(within(header).getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "/pricing/");
+    expect(within(header).getByRole("link", { name: "Sample report" })).toHaveAttribute("href", "/sample-report/");
+    expect(within(header).getByRole("link", { name: "Docs" })).toHaveAttribute("href", "/docs/");
+
+    const footer = screen.getByRole("contentinfo");
+    expect(within(footer).getByRole("link", { name: "MCP reference" })).toHaveAttribute("href", "/docs/mcp/");
+    expect(within(footer).getByRole("link", { name: "API reference" })).toHaveAttribute("href", "/docs/api/");
   });
 });

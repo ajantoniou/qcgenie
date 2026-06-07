@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="canonical" href="https://uploadcheck.app/docs/api/" />
+    <link rel="stylesheet" href="/seo-pages.css" />
+    <meta name="description" content="Complete UploadCheck REST API reference: all 27 endpoints for QC jobs, reports, artifacts, uploads, usage, and workspace API keys." />
+    <title>UploadCheck REST API Reference | UploadCheck.app</title>
+    <style>
+      .docNav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+      .docNav a {
+        text-decoration: none; font-weight: 800; font-size: 14px;
+        padding: 9px 14px; border-radius: 8px; border: 1px solid #cfd8e3;
+        background: #ffffff; color: #101827; min-height: 40px;
+        display: inline-flex; align-items: center;
+      }
+      .docNav a.current { background: #0f766e; color: #ffffff; border-color: #0f766e; }
+      .refList { display: grid; gap: 12px; margin-top: 16px; }
+      .refItem { background: #ffffff; border: 1px solid #dce3ec; border-radius: 10px; padding: 18px; }
+      .refItem h3 {
+        margin: 0; font-size: 16px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        color: #0f766e; overflow-wrap: anywhere;
+      }
+      .refItem p { margin: 8px 0 0; color: #475569; line-height: 1.55; }
+      .refMeta { display: grid; gap: 6px; margin-top: 12px; }
+      .refMeta code {
+        display: block; background: #0f1623; color: #c7f9ee; border-radius: 8px;
+        padding: 9px 11px; font-size: 13px; overflow-wrap: anywhere;
+      }
+      .refMeta span { color: #64748b; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+      .method {
+        display: inline-block; font-size: 11px; font-weight: 900; border-radius: 6px;
+        padding: 3px 7px; margin-right: 8px; vertical-align: middle;
+      }
+      .method.get { background: #d1fae5; color: #047857; }
+      .method.post { background: #dbeafe; color: #1d4ed8; }
+      .method.put { background: #fef3c7; color: #b45309; }
+      .method.delete { background: #fee2e2; color: #b91c1c; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <nav class="nav">
+        <a class="brand" href="/"><span>U</span>UploadCheck.app</a>
+        <div class="navLinks"><a href="/pricing/">Pricing</a><a href="/sample-report/">Sample report</a><a href="/agent-install/">Install</a><a href="/docs/">Docs</a></div>
+      </nav>
+      <section class="hero">
+        <div class="heroCopy">
+          <h1>REST API reference</h1>
+          <p class="tagline">All 27 UploadCheck endpoints.</p>
+          <p>Every request authenticates with <code>Authorization: Bearer &lt;workspace_api_key&gt;</code> against <code>https://api.uploadcheck.app</code>. The full machine-readable spec lives at <a href="/openapi.json">/openapi.json</a>.</p>
+          <nav class="docNav" aria-label="Docs navigation"><a href="/docs/">Overview</a><a href="/docs/mcp/">MCP reference</a><a href="/docs/api/" class="current" aria-current="page">API reference</a><a href="/agent-install/">Install guide</a></nav>
+        </div>
+        <aside class="panel">
+          <h2>Base</h2>
+          <ul>
+            <li>Host: <code>api.uploadcheck.app</code></li>
+            <li>Auth: <code>Bearer &lt;workspace_api_key&gt;</code></li>
+            <li>Spec: <code>/openapi.json</code></li>
+            <li>Manifest: <code>/agent-manifest.json</code></li>
+          </ul>
+        </aside>
+      </section>
+      <section class="section">
+        <h2>Endpoints</h2>
+        <div class="refList">
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/launch-status</h3>
+          <p>Fetch live Product Hunt launch go/no-go state, blockers, and operator commands.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/launch-handoff</h3>
+          <p>Fetch live Product Hunt launch blockers, required actions, proof commands, and no-launch rule.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/launch-doctor</h3>
+          <p>Fetch live Product Hunt blocker fix plan and normalized launch-doctor command coverage.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/launch-evidence</h3>
+          <p>Fetch redacted live launch evidence for agent-safe Product Hunt verification.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/pipeline-handoff.json</h3>
+          <p>Fetch the production pipeline handoff runbook for NTO/NPO and creator workflows.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/npo-pipeline-handoff.json</h3>
+          <p>Fetch the focused NPO podcast/audio production handoff for cost, sidecars, media ingress, marker CSV, and repair-loop workflows.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method post">POST</span>/v1/qc/estimate</h3>
+          <p>Preflight cost, margin guardrail behavior, and effective checks before uploading media.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method post">POST</span>/v1/qc/jobs</h3>
+          <p>Create a QC job from a YouTube URL, upload id, or signed asset URL.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method post">POST</span>/v1/qc/jobs/drain</h3>
+          <p>Process queued async QC jobs for Render cron/workflow worker execution.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/qc/jobs/{job_id}</h3>
+          <p>Poll job status, verdict, gate progress, and minute usage.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/qc/jobs/{job_id}/report</h3>
+          <p>Fetch shareable JSON/PDF-ready defects, timestamps, and evidence.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/qc/jobs/{job_id}/events</h3>
+          <p>Inspect lifecycle events for agent explanations and progress audit.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/qc/jobs/{job_id}/artifacts</h3>
+          <p>List generated reports, marker exports, clips, and related QC artifacts.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/qc/jobs/{job_id}/artifacts/markers</h3>
+          <p>Download editor marker CSV for a completed QC run.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method post">POST</span>/v1/qc/jobs/{job_id}/gate-verdict</h3>
+          <p>Submit an external full-video gate VERDICT.json into UploadCheck.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method post">POST</span>/v1/qc/jobs/{job_id}/cancel</h3>
+          <p>Cancel queued or active work before minutes are finalized.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method post">POST</span>/v1/uploads</h3>
+          <p>Create a signed upload target for agents and self-serve users.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method put">PUT</span>/v1/uploads/{upload_id}/content</h3>
+          <p>Send local media bytes to the signed upload URL before creating an upload_id QC job.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/uploads/{upload_id}</h3>
+          <p>Check upload processing and metadata probe status.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/qc/jobs?limit=&amp;status=&amp;source_url=</h3>
+          <p>List recent jobs and avoid duplicate agent runs.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/usage</h3>
+          <p>List recent usage ledger entries; stored workspace API keys are pinned to their own workspace.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/usage/margins?billing_period=&amp;limit=</h3>
+          <p>Summarize usage COGS, allocated revenue, cost per minute, and gross margin.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/abuse-events?workspace_id=&amp;limit=</h3>
+          <p>List persisted fail-fast abuse-limit events for operator review.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/spend-alerts?workspace_id=&amp;limit=</h3>
+          <p>List persisted Resend overage-spend alert attempts for operator review.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method post">POST</span>/v1/api-keys</h3>
+          <p>Create a hashed workspace API key for paid Claude Code, Codex, Cursor, and MCP clients.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method post">POST</span>/v1/checkout/provision-api-key</h3>
+          <p>Provision a paid checkout customer into an idempotent workspace API key for MCP/API clients.</p>
+        </article>
+        <article class="refItem">
+          <h3><span class="method get">GET</span>/v1/api-keys?workspace_id=</h3>
+          <p>List redacted API-key records without returning bearer secrets.</p>
+        </article>
+        </div>
+      </section>
+      <footer class="footer">UploadCheck is the QC authority. Agents repair only the flagged spans they can reach, then rerun before upload. Checked minutes are deterministic publish-readiness QC minutes.</footer>
+    </main>
+  </body>
+</html>
