@@ -495,7 +495,7 @@ function LandingView({ setView }: { setView: (view: View) => void }) {
             ))}
           </ul>
         </div>
-        <AgentTranscript />
+        <HeroCheckDemo />
       </section>
 
       <section className="proofStrip" aria-label="Supported agents">
@@ -786,19 +786,21 @@ function prefersReducedMotion() {
   }
 }
 
-// The hero terminal runs itself: the command, then each finding streams in, then
-// the verdict and the agent's repair line, then it pauses and loops. It is an
-// honest illustration of a real /check run, not a live analysis. When the user
-// prefers reduced motion (or in non-browser/test environments) the full final
-// state renders immediately with no animation.
-function AgentTranscript() {
-  const totalSteps = agentFindings.length + 2; // command echo -> each finding -> repair line
-  const [step, setStep] = useState(() => (prefersReducedMotion() ? totalSteps : 0));
+// One animation clock for the hero: the command runs, each finding streams in,
+// then the repair line, then it holds and loops. The video-player demo and the
+// terminal both read this `step` so the playhead and the findings stay in sync.
+// `totalSteps` = command echo + one per finding + repair line. With reduced
+// motion (or in non-browser/test environments) it returns the final step so the
+// full state renders with no animation.
+const CHECK_TOTAL_STEPS = agentFindings.length + 2;
+
+function useCheckAnimation() {
+  const [step, setStep] = useState(() => (prefersReducedMotion() ? CHECK_TOTAL_STEPS : 0));
   const timers = useRef<Array<ReturnType<typeof setTimeout>>>([]);
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
-    const stepMs = [600, 700, 700, 700, 700, 1100]; // pace per reveal; last = read time before loop
+    const stepMs = [700, 900, 900, 900, 900, 1100]; // pace per reveal; last = read time
     let cancelled = false;
 
     const run = () => {
@@ -806,7 +808,7 @@ function AgentTranscript() {
       timers.current = [];
       setStep(0);
       let elapsed = 0;
-      for (let next = 1; next <= totalSteps; next += 1) {
+      for (let next = 1; next <= CHECK_TOTAL_STEPS; next += 1) {
         elapsed += stepMs[Math.min(next - 1, stepMs.length - 1)];
         timers.current.push(
           setTimeout(() => {
@@ -828,11 +830,72 @@ function AgentTranscript() {
       timers.current.forEach(clearTimeout);
       timers.current = [];
     };
-  }, [totalSteps]);
+  }, []);
 
+  return step;
+}
+
+// Video-player mock: a stylized (CSS-drawn, no third-party thumbnail) frame with
+// a playhead that sweeps the timeline, flag pins at each finding's timecode, and
+// an audio track with a dropout gap. Driven by the shared `step` so a pin lights
+// up exactly as its terminal row appears.
+function VideoDemo({ step }: { step: number }) {
+  const revealed = Math.max(0, Math.min(step - 1, agentFindings.length));
+  // Pin positions as a % of a ~9:30 timeline, from each finding's real timecode.
+  const pins = [
+    { pct: 4, verdict: "block", label: "00:12" },
+    { pct: 23, verdict: "watch", label: "01:08" },
+    { pct: 48, verdict: "watch", label: "02:44" },
+    { pct: 93, verdict: "block", label: "09:16" }
+  ];
+  // Playhead rests just past the latest revealed pin (or at the start).
+  const headPct = revealed === 0 ? 2 : pins[Math.min(revealed, pins.length) - 1].pct;
+  const scanning = step >= 1 && revealed < agentFindings.length;
+
+  return (
+    <div className="videoDemo" aria-hidden="true">
+      <div className={scanning ? "videoStage scanning" : "videoStage"}>
+        <div className="videoScene">
+          <span className="vsSun" />
+          <span className="vsHill" />
+          <span className="vsHill two" />
+          <span className="vsSubject" />
+          <span className="vsCaption">final-upload.mp4</span>
+        </div>
+        {scanning && <span className="scanBar" style={{ left: `${headPct}%` }} />}
+        <span className="videoBadge">QC scanning</span>
+      </div>
+      <div className="videoTimeline">
+        <div className="timelineTrack">
+          <span className="playhead" style={{ left: `${headPct}%` }} />
+          {pins.map((pin, index) => (
+            <span
+              key={pin.label}
+              className={`pin ${pin.verdict}${index < revealed ? " active" : ""}`}
+              style={{ left: `${pin.pct}%` }}
+              title={`${pin.verdict.toUpperCase()} ${pin.label}`}
+            />
+          ))}
+        </div>
+        <div className="waveform">
+          {Array.from({ length: 40 }).map((_, i) => (
+            // A visible dropout gap around the right-channel audio finding (~01:08).
+            <span key={i} className={i >= 9 && i <= 11 ? "wave gap" : "wave"} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AgentTranscript({ step: stepProp }: { step?: number }) {
+  // Self-drives in standalone placements (e.g. the Agent Workflow view); in the
+  // hero it receives the shared step so it stays in lockstep with the video.
+  const ownStep = useCheckAnimation();
+  const step = stepProp ?? ownStep;
   const commandRun = step >= 1;
   const revealedFindings = Math.max(0, Math.min(step - 1, agentFindings.length));
-  const showRepair = step >= totalSteps;
+  const showRepair = step >= CHECK_TOTAL_STEPS;
 
   return (
     <aside className="agentTranscript" aria-label="Sample UploadCheck agent transcript">
@@ -870,6 +933,17 @@ function AgentTranscript() {
         </p>
       </div>
     </aside>
+  );
+}
+
+// Hero visual: the video-player demo above the terminal, both on one clock.
+function HeroCheckDemo() {
+  const step = useCheckAnimation();
+  return (
+    <div className="heroVisual">
+      <VideoDemo step={step} />
+      <AgentTranscript step={step} />
+    </div>
   );
 }
 

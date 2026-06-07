@@ -382,6 +382,226 @@ p {
 
 /* ---------- Terminal transcript ---------- */
 
+/* ---------- Hero check demo (video mock + terminal, one clock) ---------- */
+
+.heroVisual {
+  display: grid;
+  gap: 16px;
+  align-self: center;
+}
+
+.videoDemo {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #0f1623;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.18);
+}
+
+.videoStage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.videoScene {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #1b2740 0%, #24344f 55%, #2c3e5c 100%);
+  overflow: hidden;
+}
+
+.vsSun {
+  position: absolute;
+  top: 16%;
+  right: 16%;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd27a, #f0a64e 70%);
+  box-shadow: 0 0 40px rgba(240, 166, 78, 0.5);
+}
+
+.vsHill {
+  position: absolute;
+  bottom: -40%;
+  left: -10%;
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  background: #21304a;
+}
+
+.vsHill.two {
+  left: auto;
+  right: -14%;
+  bottom: -48%;
+  width: 78%;
+  height: 78%;
+  background: #1a2740;
+}
+
+.vsSubject {
+  position: absolute;
+  bottom: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 46% 46%;
+  background: #0e1626;
+  box-shadow: 0 18px 0 -4px #0e1626;
+}
+
+.vsCaption {
+  position: absolute;
+  left: 50%;
+  bottom: 9%;
+  transform: translateX(-50%);
+  background: rgba(8, 12, 20, 0.72);
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+
+.scanBar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, #5eead4 18%, #5eead4 82%, transparent);
+  box-shadow: 0 0 16px 2px rgba(94, 234, 212, 0.55);
+  transition: left 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.videoBadge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(8, 12, 20, 0.72);
+  color: #5eead4;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.videoBadge::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5eead4;
+}
+
+.videoStage.scanning .videoBadge::before {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.videoTimeline {
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.timelineTrack {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+}
+
+.playhead {
+  position: absolute;
+  top: -4px;
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background: #e2e8f0;
+  transform: translateX(-50%);
+  transition: left 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+}
+
+.pin {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0.4;
+  border: 2px solid #0f1623;
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease;
+}
+
+.pin.block {
+  background: #f87171;
+}
+
+.pin.watch {
+  background: #fbbf24;
+}
+
+.pin.active {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.pin.block.active {
+  box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.25);
+}
+
+.pin.watch.active {
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.22);
+}
+
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 26px;
+}
+
+.wave {
+  flex: 1;
+  height: 30%;
+  border-radius: 1px;
+  background: rgba(94, 234, 212, 0.4);
+  animation: wavePulse 1.4s ease-in-out infinite;
+}
+
+.wave:nth-child(odd) { height: 55%; }
+.wave:nth-child(3n) { height: 78%; }
+.wave:nth-child(4n) { height: 40%; }
+.wave:nth-child(5n) { height: 92%; }
+
+.wave.gap {
+  height: 8% !important;
+  background: rgba(248, 113, 113, 0.55);
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes wavePulse {
+  0%, 100% { transform: scaleY(1); opacity: 0.55; }
+  50% { transform: scaleY(0.6); opacity: 0.9; }
+}
+
 .agentTranscript {
   border-radius: 12px;
   overflow: hidden;
@@ -390,7 +610,6 @@ p {
   box-shadow: 0 28px 60px rgba(15, 23, 42, 0.22);
   display: grid;
   grid-template-rows: auto 1fr;
-  align-self: stretch;
 }
 
 .terminalHeader {
@@ -562,13 +781,27 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .caret { animation: none; }
+  .caret,
+  .wave,
+  .videoBadge::before {
+    animation: none;
+  }
 
   .findingRow,
   .repairLine {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+
+  .scanBar {
+    display: none;
+  }
+
+  /* Show all findings as flagged in the static (no-motion) state. */
+  .pin {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
