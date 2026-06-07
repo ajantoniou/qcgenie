@@ -20,6 +20,7 @@ const files = {
   publish: "PUBLISH-CHECKLIST.md",
   install: "public/agent-install/index.html",
   mcpInstall: "public/mcp-install.json",
+  betaEvidence: "docs/private-mcp-beta-evidence-template.json",
   packageJson: "package.json",
   runGate: "scripts/qc-engine/run_gate.py",
   engineReference: "scripts/qc-engine/ENGINE-REFERENCE.md",
@@ -52,6 +53,7 @@ const directory = read(files.directory);
 const publish = read(files.publish);
 const install = read(files.install);
 const mcpInstall = JSON.parse(read(files.mcpInstall));
+const betaEvidence = JSON.parse(read(files.betaEvidence));
 const packageJson = JSON.parse(read(files.packageJson));
 const runGate = read(files.runGate);
 const engineReference = read(files.engineReference);
@@ -158,24 +160,33 @@ if (errors.length) {
   process.exit(1);
 }
 
+const requiredEvidenceClients = ["claude_code", "codex", "cursor"];
+const evidenceCaptured = betaEvidence.status === "captured"
+  && requiredEvidenceClients.every((client) => betaEvidence.client_proofs?.some((proof) => proof.client === client && proof.status === "captured"));
+const publicBlockers = [
+  "npm packages are not published",
+  "registry install proof is not captured"
+];
+if (!evidenceCaptured) {
+  publicBlockers.push("external public GitHub MCP evidence is not captured");
+}
+
 console.log(JSON.stringify({
   ok: true,
   verdict: "public_github_mcp_ready_public_npm_not_ready",
   recommendedDistributionPath: [
     "Keep public GitHub MCP install as the current channel.",
     "Publish @uploadcheck/mcp and @uploadcheck/cli after founder npm login/org confirmation.",
-    "Collect external Claude Code, Codex, and Cursor public GitHub MCP proof with workspace API keys.",
+    evidenceCaptured
+      ? "External Claude Code, Codex, and Cursor public GitHub MCP proof is captured."
+      : "Collect external Claude Code, Codex, and Cursor public GitHub MCP proof with workspace API keys.",
     "Prepare Anthropic Directory after paid workspace proof; defer OpenAI connector/app."
   ],
   currentUsableModes: [
     "Local NTO production via local repo path.",
     "External Claude Code/Codex/Cursor installs via public GitHub clone or local checkout plus workspace API key."
   ],
-  publicBlockers: [
-    "npm packages are not published",
-    "registry install proof is not captured",
-    "external public GitHub MCP evidence is not captured"
-  ],
+  publicBlockers,
   commandResults
 }, null, 2));
 

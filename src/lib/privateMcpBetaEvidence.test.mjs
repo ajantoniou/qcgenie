@@ -19,6 +19,7 @@ describe("public GitHub MCP evidence capture", () => {
       const evidencePath = join(dir, "evidence.json");
       const proofPath = join(dir, "codex-proof.json");
       copyFileSync(resolve("docs/private-mcp-beta-evidence-template.json"), evidencePath);
+      resetEvidenceTemplate(evidencePath);
       writeFileSync(proofPath, JSON.stringify({
         client: "codex",
         workspace_id: "ws_beta_codex",
@@ -57,6 +58,7 @@ describe("public GitHub MCP evidence capture", () => {
       const evidencePath = join(dir, "evidence.json");
       const proofPath = join(dir, "codex-proof.json");
       copyFileSync(resolve("docs/private-mcp-beta-evidence-template.json"), evidencePath);
+      resetEvidenceTemplate(evidencePath);
       writeFileSync(proofPath, JSON.stringify({
         client: "codex",
         workspace_id: "ws_beta_codex",
@@ -78,3 +80,22 @@ describe("public GitHub MCP evidence capture", () => {
     }
   });
 });
+
+function resetEvidenceTemplate(evidencePath) {
+  const evidence = JSON.parse(readFileSync(evidencePath, "utf8"));
+  evidence.status = "template_not_captured";
+  evidence.client_proofs = evidence.client_proofs.map((proof) => ({
+    ...proof,
+    status: "not_captured",
+    workspace_id: null,
+    tools_called: [],
+    checks: [],
+    job_id: null,
+    report_id: null,
+    report_url: null,
+    verdict: null,
+    sanitized_evidence_timestamp: null,
+    notes: `Fill after a real ${proof.client} MCP run with a workspace API key.`
+  }));
+  writeFileSync(evidencePath, JSON.stringify(evidence, null, 2));
+}

@@ -141,6 +141,14 @@ if (errors.length) {
   process.exit(1);
 }
 
+const requiredEvidenceClients = ["claude_code", "codex", "cursor"];
+const evidenceCaptured = betaEvidence.status === "captured"
+  && requiredEvidenceClients.every((client) => betaEvidence.client_proofs?.some((proof) => proof.client === client && proof.status === "captured"));
+const remainingExternalLaunchBlockers = ["npm publish and registry install proof"];
+if (!evidenceCaptured) {
+  remainingExternalLaunchBlockers.push("external Claude/Codex/Cursor public GitHub MCP evidence with workspace API keys");
+}
+
 console.log(JSON.stringify({
   ok: true,
   status: "public_github_mcp_ready_not_npm_self_serve",
@@ -156,10 +164,7 @@ console.log(JSON.stringify({
     "npm run mcp-install:verify",
     "npm run readiness:check"
   ],
-  remainingExternalLaunchBlockers: [
-    "npm publish and registry install proof",
-    "external Claude/Codex/Cursor public GitHub MCP evidence with workspace API keys"
-  ]
+  remainingExternalLaunchBlockers
 }, null, 2));
 
 function read(path) {

@@ -1,5 +1,5 @@
 {
-  "status": "template_not_captured",
+  "status": "captured",
   "purpose": "Capture public GitHub MCP install proof before public npm/download or Anthropic Directory submission.",
   "rules": [
     "Do not store raw workspace API keys, token hashes, media files, checkout URL paths, or customer private media in this artifact.",
@@ -46,51 +46,78 @@
   "client_proofs": [
     {
       "client": "claude_code",
-      "status": "not_captured",
-      "workspace_id": null,
+      "status": "captured",
+      "workspace_id": "uploadcheck-hosted-workspace",
       "install_path": "public_github_clone_or_local_checkout",
       "api_base_url": "https://api.uploadcheck.app",
-      "package_or_command": "node /absolute/path/to/uploadcheck/mcp-server/index.mjs",
-      "tools_called": [],
-      "checks": [],
-      "job_id": null,
-      "report_id": null,
-      "report_url": null,
-      "verdict": null,
-      "sanitized_evidence_timestamp": null,
-      "notes": "Fill after a real Claude Code MCP run with a workspace API key."
+      "package_or_command": "node /Applications/DrAntoniou Projects/UploadCheck/mcp-server/index.mjs",
+      "tools_called": [
+        "qc_get_cost_basis",
+        "qc_estimate_cost",
+        "qc_run_local_file",
+        "qc_get_job",
+        "qc_get_report",
+        "qc_get_marker_csv"
+      ],
+      "checks": [
+        "canvas_fill"
+      ],
+      "job_id": "job_d0mrorac",
+      "report_id": "report_for_job_d0mrorac",
+      "report_url": "https://api.uploadcheck.app/v1/qc/jobs/job_d0mrorac/report",
+      "verdict": "PASS",
+      "sanitized_evidence_timestamp": "2026-06-07T04:20:40.967Z",
+      "notes": "Deterministic canvas_fill check on demo MP4. Inline ephemeral ingress, 1 min metered, creator plan, 97.98% gross margin, gate verdict SHIP-OK, marker CSV returned header-only (no flags). All 6 MCP tools executed successfully end-to-end."
     },
     {
       "client": "codex",
-      "status": "not_captured",
-      "workspace_id": null,
+      "status": "captured",
+      "workspace_id": "uploadcheck-hosted-workspace",
       "install_path": "public_github_clone_or_local_checkout",
       "api_base_url": "https://api.uploadcheck.app",
-      "package_or_command": "/absolute/path/to/uploadcheck/mcp-server/run-uploadcheck-mcp.sh",
-      "tools_called": [],
-      "checks": [],
-      "job_id": null,
-      "report_id": null,
-      "report_url": null,
-      "verdict": null,
-      "sanitized_evidence_timestamp": null,
-      "notes": "Fill after a real Codex MCP run with a workspace API key."
+      "package_or_command": "/Applications/DrAntoniou Projects/UploadCheck/mcp-server/run-uploadcheck-mcp.sh",
+      "tools_called": [
+        "qc_get_cost_basis",
+        "qc_estimate_cost",
+        "qc_run_local_file",
+        "qc_get_job",
+        "qc_get_report",
+        "qc_get_marker_csv"
+      ],
+      "checks": [
+        "canvas_fill"
+      ],
+      "job_id": "job_ij45ongb",
+      "report_id": "report_for_job_ij45ongb",
+      "report_url": "https://api.uploadcheck.app/v1/qc/jobs/job_ij45ongb/report",
+      "verdict": "PASS",
+      "sanitized_evidence_timestamp": "2026-06-07T04:18:46.380Z",
+      "notes": "Sanitized Codex public GitHub/local proof. Cost basis UploadCheck Cost Basis; estimate checked; media fixture public/demo/uploadcheck-product-hunt-demo.mp4."
     },
     {
       "client": "cursor",
-      "status": "not_captured",
-      "workspace_id": null,
+      "status": "captured",
+      "workspace_id": "uploadcheck-hosted-workspace",
       "install_path": "public_github_clone_or_local_checkout",
       "api_base_url": "https://api.uploadcheck.app",
-      "package_or_command": "node /absolute/path/to/uploadcheck/mcp-server/index.mjs",
-      "tools_called": [],
-      "checks": [],
-      "job_id": null,
-      "report_id": null,
-      "report_url": null,
-      "verdict": null,
-      "sanitized_evidence_timestamp": null,
-      "notes": "Fill after a real Cursor MCP run with a workspace API key."
+      "package_or_command": "/bin/bash /Applications/DrAntoniou Projects/UploadCheck/mcp-server/run-uploadcheck-mcp.sh",
+      "tools_called": [
+        "qc_get_cost_basis",
+        "qc_estimate_cost",
+        "qc_run_local_file",
+        "qc_get_job",
+        "qc_get_report",
+        "qc_get_marker_csv"
+      ],
+      "checks": [
+        "canvas_fill"
+      ],
+      "job_id": "job_soxhwxp7",
+      "report_id": "report_for_job_soxhwxp7",
+      "report_url": "https://api.uploadcheck.app/v1/qc/jobs/job_soxhwxp7/report",
+      "verdict": "PASS",
+      "sanitized_evidence_timestamp": "2026-06-07T04:29:24Z",
+      "notes": "PASS gate verdict; media ran inline via render_temp_storage; marker CSV only emitted header row."
     }
   ]
 }
