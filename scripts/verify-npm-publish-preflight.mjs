@@ -35,19 +35,26 @@ for (const result of results) {
   }
 }
 const allExactVersionsPublished = results.every((result) => result.exactVersionPublished);
+const founderActionRequired = auth.status !== "authenticated" || !allExactVersionsPublished;
+const nextFounderActions = founderActionRequired
+  ? [
+      "Log in with npm as a package-publishing account or set NPM_TOKEN.",
+      "Use the public account-scoped package names @drantoniou/uploadcheck and @drantoniou/uploadcheck-mcp unless an npm organization is created.",
+      "Run npm publish --access public from cli/ and mcp-server/ after local package checks pass.",
+      "After publish, rerun this preflight and npm view for both packages."
+    ]
+  : [
+      "No npm publish action is required for the current package versions.",
+      "Rotate or revoke the temporary npm automation token after deployment proof is complete."
+    ];
 
 console.log(JSON.stringify({
   ok: blockers.length === 0,
   packages: results,
   npmAuth: auth,
   registryInstallProofReady: allExactVersionsPublished,
-  founderActionRequired: auth.status !== "authenticated" || !allExactVersionsPublished,
-  nextFounderActions: [
-    "Log in with npm as a package-publishing account or set NPM_TOKEN.",
-    "Use the public account-scoped package names @drantoniou/uploadcheck and @drantoniou/uploadcheck-mcp unless an npm organization is created.",
-    "Run npm publish --access public from cli/ and mcp-server/ after local package checks pass.",
-    "After publish, rerun this preflight and npm view for both packages."
-  ],
+  founderActionRequired,
+  nextFounderActions,
   blockers
 }, null, 2));
 
